@@ -1,0 +1,25 @@
+{
+   "expo": {
+    "name": "TrainNow",
+    "icon": "./images/food.png",
+    "version": "1.0.0",
+    "slug": "trainnow",
+    "sdkVersion": "22.0.0",
+    "packagerOpts": {
+      "nonPersistent": "--nonPersistent"
+    },
+    "ios": {
+      "bundleIdentifier": "com.soundduel.blog"
+    },
+    "android": {
+      "package": "com.soundduel.blog",
+      "versionCode": 7,
+      "permissions": ["WAKE_LOCK"],
+      "config": {
+       "googleMaps": {
+         "apiKey": "AIzaSyBpg1xqXwLSJmjpnqN1P2BIuL_4xHFDflw	",
+       }
+     }
+    }
+   }
+ }
