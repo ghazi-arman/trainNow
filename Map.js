@@ -374,7 +374,7 @@ export class Map extends Component {
         </View>
         );
       }.bind(this));
-
+    }
 
       if(this.state.acceptSessions != null){
       var uid = firebase.auth().currentUser.uid;
@@ -395,7 +395,7 @@ export class Map extends Component {
           abbr = "AM"
         }
         var displayDate = month + "/" + day + " " + hour + ":" + minute + abbr;
-        if(session.trainee == uid)
+        if(session.trainee == uid){
           var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.trainerName}</Text></View>);
         }else{
             var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.traineeName}</Text></View>);

@@ -1,7 +1,7 @@
 {
    "expo": {
     "name": "TrainNow",
-    "icon": "./images/food.png",
+    "icon": "./logo.png",
     "version": "1.0.0",
     "slug": "trainnow",
     "sdkVersion": "22.0.0",
