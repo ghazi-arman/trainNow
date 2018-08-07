@@ -13,7 +13,6 @@ import {
   DatePickerIOS
 } from 'react-native';
 import {Permissions, Location, Font, AppLoading, MapView} from 'expo';
-import Popup from './Popup.js';
 import firebase from 'firebase';
 import Modal from 'react-native-modal';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
@@ -27,22 +26,21 @@ export class Map extends Component {
     this.state = {
       userRegion: {},
       mapRegion: {},
+      user: {},
       gyms: [],
       pendingSessions: [],
-      gymModal: false,
-      pendingModal: false,
-      bookModal: false,
+      acceptSessions: [],
       selectedGym: 'null',
       selectedTrainer: 'null',
       bookingTrainer: 'null',
       bookDate: new Date(),
       bookDuration: '60',
       userLoaded: false,
-      user: {
-        trainer: true
-      },
       fontLoaded: false,
-      locationLoaded: false
+      locationLoaded: false,
+      gymModal: false,
+      pendingModal: false,
+      bookModal: false,
     }
 
     this.bookTrainer=this.bookTrainer.bind(this);
@@ -61,9 +59,7 @@ export class Map extends Component {
     }
 
     if(!this.state.locationLoaded){
-      //Calls getLocation method after map is rendered
       this.getLocationAsync();
-      console.log('getLocation');
     }
 
     //get gyms from db
@@ -108,14 +104,14 @@ export class Map extends Component {
     this.setState({
       gyms: gyms,
       pendingSessions: pending,
-      acceptSession: accept,
+      acceptSession: accepted,
     });
 
     }, 10000);
   }
 
+  //LoadFont function
   loadFont = async () => {
-        //Loads font libraries required
     await Font.loadAsync({
       FontAwesome: require('./fonts/font-awesome-4.7.0/fonts/FontAwesome.otf'),
       fontAwesome: require('./fonts/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf'),
@@ -151,7 +147,6 @@ export class Map extends Component {
   //updates mapRegion object in state
   handleMapRegionChange = mapRegion => {
     if(this.state.regionSet){
-      console.log('region changed');
       this.setState({ mapRegion });
     }else{
       return;
@@ -212,10 +207,12 @@ export class Map extends Component {
     return items;
   }
 
+  //ShowModal function to open up different modals
   showModal(type, option){
+    
     //open gym modal
     if(type == "gym"){
-      //pull gym from db onClick to make sure info is updated
+      //pull gym from db onClick to make sure info is updated (eg. trainer is active)
       firebase.database().ref('/gyms/' + option.key).once("value", function(snapshot){
         this.setState({
           bookModal: false,
@@ -240,6 +237,7 @@ export class Map extends Component {
     }
   }
 
+  //Hide Modal Functions
   hidegymModal = () => this.setState({ gymModal: false });
   hidebookModal = () => this.setState({ bookModal: false, bookingTrainer: 'null' });
   hidependingModal = () => this.setState({pendingModal: false});
@@ -482,7 +480,7 @@ export class Map extends Component {
         <MapView
           ref = {(mapView) => { _map = mapView; }}
           style={styles.container}
-          onRegionChangeComplete={this.handleMapRegionChange}
+          onRegionChange={this.handleMapRegionChange}
           region={this.state.mapRegion}
           showsUserLocation={true}
           onMapReady={() => {
@@ -599,8 +597,6 @@ export class Map extends Component {
             </View>
           </View>
         </Modal>
-
-      <Popup ref={(popup) => {this._popup = popup;}} db={firebase}/>
 
       </View>
     );
