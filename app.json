@@ -4,7 +4,7 @@
     "icon": "./logo.png",
     "version": "1.0.0",
     "slug": "trainnow",
-    "sdkVersion": "22.0.0",
+    "sdkVersion": "23.0.0",
     "packagerOpts": {
       "nonPersistent": "--nonPersistent"
     },
@@ -17,7 +17,7 @@
       "permissions": ["WAKE_LOCK"],
       "config": {
        "googleMaps": {
-         "apiKey": "AIzaSyBpg1xqXwLSJmjpnqN1P2BIuL_4xHFDflw	",
+         "apiKey": "AIzaSyBpg1xqXwLSJmjpnqN1P2BIuL_4xHFDflw ",
        }
      }
     }

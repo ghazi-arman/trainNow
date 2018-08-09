@@ -64,6 +64,7 @@ export class Map extends Component {
 
     //get gyms from db
     var gyms = this.loadGyms();
+
     this.setState({ gyms: gyms });
 
     //Get user info for state
@@ -99,15 +100,13 @@ export class Map extends Component {
     //get Accepted Session from db
     var accepted = this.loadAccept(user.uid);
 
-  
     //Send information to state
     this.setState({
-      gyms: gyms,
       pendingSessions: pending,
-      acceptSession: accepted,
+      acceptSessions: accepted,
     });
 
-    }, 10000);
+    }, 7000);
   }
 
   //LoadFont function
@@ -252,19 +251,29 @@ export class Map extends Component {
     }
   }
 
-
   //book a session with a trainer
   bookTrainer(){
     var user = firebase.auth().currentUser;
     var pendingRef = firebase.database().ref('pendingSessions');
-    var currentSession = null;
 
-    pendingRef.orderByKey().equalTo(user.uid).on("child_added", function(snapshot) {
-      currentSession = snapshot.val();
-    });
+    if(user.uid == this.state.bookingTrainer.key){
+  
+      Alert.alert('You cannot book yourself as a Trainer!');
+      return;
 
-    if(user.uid != this.state.bookingTrainer.key && currentSession == null && this.state.bookingTrainer.active == true){
-        pendingRef.child(user.uid).set({
+    }else if(this.state.bookingTrainer.active == false){
+      
+      Alert.alert('Sorry, this trainer is no longer active.');
+      return;
+
+    }else{
+      Alert.alert(
+      "Are you sure you want to book this session?", 
+      "",
+      [
+        {text: 'No'},
+        {text: 'Yes', onPress: () => {
+          pendingRef.child(user.uid).set({
           trainee: user.uid,
           traineeName: this.state.user.name,
           trainer: this.state.bookingTrainer.key,
@@ -272,8 +281,10 @@ export class Map extends Component {
           start: this.state.bookDate.toString(),
           duration: this.state.bookDuration,
           location: this.state.selectedGym.location
-        });
-        Alert.alert('Session Booked');
+          });
+          Alert.alert('Session Booked');
+        }},
+      ]);
     }
   }
 
@@ -281,29 +292,60 @@ export class Map extends Component {
   acceptSession(session){
     var user = firebase.auth().currentUser;
     var sessionRef = firebase.database().ref('trainSessions');
-    sessionRef.child(session.trainee).set({
-      trainee: session.trainee,
-      traineeName: session.traineeName,
-      trainer: session.trainer,
-      trainerName: session.trainerName,
-      start: session.start,
-      duration: session.duration,
-      location: session.location,
-      traineeLoc: null,
-      trainerLoc: null,
-      trainerReady: false,
-      traineeReady: false,
-      met: false,
-      actualStart: null
-    });
-    var pendingRef = firebase.database().ref('pendingSessions');
-    pendingRef.child(session.trainee).remove();
+    Alert.alert(
+      "Are you sure you want to accept this session?", 
+      "",
+      [
+        {text: 'No'},
+        {text: 'Yes', onPress: () => {
+          pendingRef.child(session.trainee).remove();
+          sessionRef.child(session.trainee).set({
+            trainee: session.trainee,
+            traineeName: session.traineeName,
+            trainer: session.trainer,
+            trainerName: session.trainerName,
+            start: session.start,
+            duration: session.duration,
+            location: session.location,
+            traineeLoc: null,
+            trainerLoc: null,
+            trainerReady: false,
+            traineeReady: false,
+            met: false,
+            actualStart: null
+          });
+          var pendingRef = firebase.database().ref('pendingSessions');
+          pendingRef.child(session.trainee).remove();
+        }
+      }]);
   }
 
   //Cancel pending session as trainee
   cancelSession(session){
     var pendingRef = firebase.database().ref('pendingSessions');
-    pendingRef.child(session.trainee).remove();
+    Alert.alert(
+      "Are you sure you want to cancel this session?", 
+      "",
+      [
+        {text: 'No'},
+        {text: 'Yes', onPress: () => {
+          pendingRef.child(session.trainee).remove();
+        }
+      }]);
+  }
+
+  //Cancel accept session as trainee
+  cancelAccept(session){
+    var sessionRef = firebase.database().ref('trainSessions');
+        Alert.alert(
+      "Are you sure you want to cancel this session?", 
+      "",
+      [
+        {text: 'No'},
+        {text: 'Yes', onPress: () => {
+          sessionRef.child(session.trainee).remove();
+        }
+      }]);
   }
 
   //Go to account page
@@ -311,30 +353,44 @@ export class Map extends Component {
     Actions.account();
   }
 
+  //Convert Date to readable format
+  dateToString(start){
+
+    var pendingDate = new Date(start);
+    var month = pendingDate.getMonth() + 1;
+    var day = pendingDate.getDate();
+    var hour = pendingDate.getHours();
+    var minute = pendingDate.getMinutes();
+    var abbr;
+
+    if(minute < 10){
+        minute = "0" + minute;
+    }
+    //Sets abbr to AM or PM
+    if(hour > 12){
+      hour = hour - 12;
+      abbr = "PM";
+    }else{
+      abbr = "AM"
+    }
+
+    var displayDate = month + "/" + day + " " + hour + ":" + minute + abbr;
+    return displayDate;
+  }
+
   render() {
     if(!this.state.fontLoaded || typeof this.state.userRegion.latitude === 'undefined' || this.state.userRegion === null){
       return <Expo.AppLoading />;
     }
     if(this.state.pendingSessions != null){
+
       var uid = firebase.auth().currentUser.uid;
       var pendingList =  this.state.pendingSessions.map(function(session){
-        var pendingDate = new Date(session.start);
-        var month = pendingDate.getMonth() + 1;
-        var day = pendingDate.getDate();
-        var hour = pendingDate.getHours();
-        var minute = pendingDate.getMinutes();
-        var abbr;
-        if(minute < 10){
-            minute = "0" + minute;
-        }
-        if(hour > 12){
-          hour = hour - 12;
-          abbr = "PM";
-        }else{
-          abbr = "AM"
-        }
-        var displayDate = month + "/" + day + " " + hour + ":" + minute + abbr;
+
+        var displayDate = this.dateToString(session.start);
+
         if(session.trainee == uid){
+
           var button = (
             <TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.cancelSession(session)}>
               <Text 
@@ -344,8 +400,9 @@ export class Map extends Component {
               </Text>
             </TouchableOpacity>);
           var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.trainerName}</Text></View>);
-
+        
         }else{
+
           var button = (
             <TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.acceptSession(session)}>
               <Text 
@@ -355,7 +412,6 @@ export class Map extends Component {
               </Text>
             </TouchableOpacity>);
             var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.traineeName}</Text></View>);
-
         }
         return(
         <View style={{flexDirection: 'column', justifyContent: 'flex-start'}} key={session.trainee}>
@@ -377,22 +433,7 @@ export class Map extends Component {
       if(this.state.acceptSessions != null){
       var uid = firebase.auth().currentUser.uid;
       var acceptList =  this.state.acceptSessions.map(function(session){
-        var pendingDate = new Date(session.start);
-        var month = pendingDate.getMonth() + 1;
-        var day = pendingDate.getDate();
-        var hour = pendingDate.getHours();
-        var minute = pendingDate.getMinutes();
-        var abbr;
-        if(minute < 10){
-            minute = "0" + minute;
-        }
-        if(hour > 12){
-          hour = hour - 12;
-          abbr = "PM";
-        }else{
-          abbr = "AM"
-        }
-        var displayDate = month + "/" + day + " " + hour + ":" + minute + abbr;
+        var displayDate = this.dateToString(session.start);
         if(session.trainee == uid){
           var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.trainerName}</Text></View>);
         }else{
@@ -407,7 +448,7 @@ export class Map extends Component {
               <View style={styles.trainerView}><Text style={styles.trainerInfo}>{displayDate}</Text></View>
             </View> 
             <View style={{width: "25%", height: 50}}>
-              <TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.cancelSession(session)}>
+              <TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.cancelAccept(session)}>
                 <Text 
                   style={styles.buttonText}
                 >

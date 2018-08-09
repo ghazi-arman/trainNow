@@ -8,9 +8,12 @@ import {
   TouchableOpacity,
   StatusBar,
   Alert,
-  Switch
+  Switch,
+  Image,
+  Picker
 } from 'react-native';
 import { Actions } from 'react-native-router-flux';
+import { ImagePicker } from 'expo';
 import firebase from 'firebase';
 
 
@@ -22,6 +25,7 @@ export class SignupForm extends Component {
 		this.state = {
 			trainer: false,
 			nextForm: false,
+			pictureForm: false,
 			name:'',
 			email: '',
 			password: '',
@@ -30,9 +34,41 @@ export class SignupForm extends Component {
 			rate:'',
 			bio:'',
 			cert:'',
+			image: 'null',
+			gyms: [],
 		};
 		this.onSignUpPress=this.onSignUpPress.bind(this);
 	}
+
+	async componentDidMount() {
+		var gyms = this.loadGyms();
+		this.setState({gyms: gyms});
+	}
+
+	_pickImage = async () => {
+    	let result = await ImagePicker.launchImageLibraryAsync({
+     		allowsEditing: true,
+      		aspect: [4, 3],
+    	});
+
+    	if (!result.cancelled) {
+      		this.setState({ image: result.uri });
+    	}
+    }
+
+    //Load gyms from db for MapView
+  	loadGyms(){
+	    var items = [];
+	    var gymsRef = firebase.database().ref('gyms');
+	    gymsRef.once('value', function(data) {
+	      data.forEach(function(dbevent) {
+	        var item = dbevent.val();
+	        item.key = dbevent.key;
+	        items.push(item);
+	      });
+	    });
+    	return items;
+  	}
 
 	onSignUpPress() {
 		// client side authentication
@@ -45,7 +81,7 @@ export class SignupForm extends Component {
 		var cert = this.state.cert;
 		var bio = this.state.bio;
 		var trainer = this.state.trainer;
-		Alert.alert("Loading...");
+		var image = this.state.image;
 
 		//email missing
 		if(!email.length) {
@@ -90,56 +126,38 @@ export class SignupForm extends Component {
 			}
 		}
 
+		Alert.alert("Loading...");
 		firebase.auth().createUserWithEmailAndPassword(this.state.email, pw)
 			.then(function(firebaseUser) {
 				
 				var userRef = firebase.database().ref('users');
 				if(trainer){
-					var gymRef = firebase.database().ref('/gyms/-LI-i3Nl2G6orr78D8QH/trainers');
+					var gymRef = firebase.database().ref('/gyms/' + gym + '/trainers');
 					gymRef.child(firebaseUser.uid).set({
 						active: false,
 						bio: bio,
 						cert: cert,
 						name: name,
-						rate: rate
+						rate: rate,
 					});
 					userRef.child(firebaseUser.uid).set({
 						trainer: true,
 						name: name,
-				    	gym: '-LI-i3Nl2G6orr78D8QH',
+				    	gym: gym,
 			      		cert: cert,
 			      		rate: rate,
 			      		bio: bio,
+			      		image: image,
 			      		active: false
 			    	});
 				}else{
 					userRef.child(firebaseUser.uid).set({
 			      		trainer: false,
-			      		name: name
+			      		name: name,
+			      		image: image
 			    	});
 				}
 
-			  	// var gymRef = firebase.database().ref('gyms');
-			  	// gymRef.push({	
-			  	// 	name: '24 Hour Fitness',
-			  	// 	location: {latitude: 32.959892, longitude: -117.11205},
-			  	// 	trainers: [{key: firebaseUser.uid,
-			  	// 				name: name,
-			  	// 				gym: gym,
-			  	// 				rate: rate,
-			  	// 				bio: bio}],
-			  	// 	hours: '10-10'
-			  	// });
-
-			  	// gymRef.push({
-			  	// 	name: 'LA Fitness',
-			  	// 	location: {latitude: 33.016937, longitude: -117.109838},
-			  	// 	trainers: [firebaseUser.uid, "12341235223sda"],
-			  	// 	hours: '6-11'
-			  	// });
-
-				// Alert.alert("Sign up successful!");
-				// return to login page after sign up
 				Actions.pop();				
 			})
 			.catch(function(error) {
@@ -156,17 +174,15 @@ export class SignupForm extends Component {
 
 
 	render() {
-		let isTrainer = this.state.trainer;
-		let nextForm = this.state.nextForm;
-		let text;
+		var isTrainer = this.state.trainer;
+		var nextForm = this.state.nextForm;
+		var pictureForm = this.state.pictureForm;
+		var image = this.state.image;
+		var gyms = this.state.gyms;
+
 		if(nextForm){
-			nameField = null;
-			emailField = null;
-			passField = null;
-			confirmField = null;
-			passHint = null;
-			trainerField = null
-			trainerHint = null;
+			nameField = emailField = passField = confirmField = passHint = pictureButton = trainerField = trainerHint = imageHolder = null;
+
 			submitButton = (
 				<TouchableOpacity style={styles.buttonContainer} onPressIn={this.onSignUpPress}>
 					<Text 
@@ -176,16 +192,13 @@ export class SignupForm extends Component {
 					</Text>
 				</TouchableOpacity>);
 			gymField = 
-				<TextInput
-					placeholder="Gym"
-					returnKeyType="done"
-					style={styles.input}
-					selectionColor="#FFF"
-					placeholderTextColor='#FFF'
-					onChangeText={(gym) => this.setState({gym})}
-					value={this.state.gym}
-					autoCorrect={false}
-					/>;
+				<Picker
+				  selectedValue={this.state.gym}
+				  onValueChange={(itemValue, itemIndex) => this.setState({gym: itemValue})}>
+				  {gyms.map(function(gym){
+				  	return (<Picker.Item label={gym.name} value={gym.key} />);
+				  })}
+				</Picker>;
 			rateField = 
 				<TextInput
 					placeholder="Rate ($ hourly)"
@@ -228,7 +241,32 @@ export class SignupForm extends Component {
 						Previous
 					</Text>
 				</TouchableOpacity>;
+		}else if(pictureForm){
+			nameField = emailField = passField = confirmField = passHint = trainerField = trainerHint = null;
+			 prevButton = gymField = rateField = bioField = certField = null;
+			prevButton = 
+				<TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.setState({nextForm: true})}>
+					<Text 
+						style={styles.buttonText}
+						>
+						Previous
+					</Text>
+				</TouchableOpacity>;
+			if(image != 'null'){
+				imageHolder = (<Image source={{ uri: image }} style={{ width: 200, height: 200 }} />);
+			}
+			pictureButton = (
+				<TouchableOpacity style={styles.buttonContainer} onPressIn={() => this._pickImage()}>
+					<Text 
+						style={styles.buttonText}
+						>
+						Add Picture
+					</Text>
+				</TouchableOpacity>
+			);
 		}else{
+			prevButton = gymField = rateField = bioField = certField = imageHolder = pictureButton = null;
+
 			nameField = 
 				<TextInput
 					placeholder="Full Name"
@@ -254,7 +292,6 @@ export class SignupForm extends Component {
 					onChangeText={(email) => this.setState({email})}
 					value={this.state.email}
 					/>;
-
 			passField =
 				<TextInput
 					placeholder="Password"
@@ -289,13 +326,9 @@ export class SignupForm extends Component {
 					/>;
 			trainerHint = <Text style = {styles.question}>Are you signing up as a trainer? </Text>;
 
-			prevButton = null;
-			gymField = null;
-			rateField = null;
-			bioField = null;
-			certField = null;
 		}
-		if(isTrainer && !nextForm){
+
+		if(isTrainer && !nextForm && !pictureForm){
 			submitButton = (
 				<TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.setState({nextForm: true})}>
 					<Text 
@@ -305,7 +338,17 @@ export class SignupForm extends Component {
 					</Text>
 				</TouchableOpacity>);
 
-		}else{
+		}else if((!isTrainer && !pictureForm) || (isTrainer && nextForm)){
+			submitButton = (
+				<TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.setState({pictureForm: true, nextForm: false})}>
+					<Text 
+						style={styles.buttonText}
+						>
+						Next
+					</Text>
+				</TouchableOpacity>);
+
+		}else if(pictureForm){
 			submitButton =(
 				<TouchableOpacity style={styles.buttonContainer} onPressIn={this.onSignUpPress}>
 					<Text 
@@ -331,6 +374,8 @@ export class SignupForm extends Component {
 				{certField}
 				{trainerHint}
 				{trainerField}
+				{imageHolder}
+				{pictureButton}
 				{prevButton}				
 				{submitButton}
 			</View>
