@@ -434,7 +434,6 @@ const styles = StyleSheet.create({
 	},
 	input: {
 		height: 40,
-		verticalAlign: 'bottom',
 		border: 0,
 		outline: 0,
 		background: 'transparent',

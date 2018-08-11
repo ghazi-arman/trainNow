@@ -70,7 +70,7 @@ export class Map extends Component {
     //Get user info for state
     var user = firebase.auth().currentUser;
     var usersRef = firebase.database().ref('users');
-    usersRef.orderByKey().equalTo(user.uid).on("child_added", function(snapshot) {
+    usersRef.orderByKey().equalTo(user.uid).on('child_added', function(snapshot) {
       this.setState({user: snapshot.val()});
     }.bind(this));
 
@@ -81,13 +81,13 @@ export class Map extends Component {
     //Check for Session in Progress
     var sessionRef = firebase.database().ref('trainSessions');
     var currDate = new Date();
-    sessionRef.orderByKey().equalTo(user.uid).on("child_added", function(snapshot){
+    sessionRef.orderByKey().equalTo(user.uid).on('child_added', function(snapshot){
       var session = snapshot.val();
       if(new Date(session.start) < currDate){
         Actions.session();
       }
     });
-    sessionRef.orderByChild('trainer').equalTo(user.uid).on("child_added", function(snapshot){
+    sessionRef.orderByChild('trainer').equalTo(user.uid).on('child_added', function(snapshot){
       var session = snapshot.val();
       if(new Date(session.start) < currDate){
         Actions.session();
@@ -159,12 +159,12 @@ export class Map extends Component {
     var pendingSession = null;
     var pendingSessions = [];
     
-    pendingRef.orderByChild("trainer").equalTo(userKey).once("child_added", function(snapshot) {
+    pendingRef.orderByChild('trainer').equalTo(userKey).once('child_added', function(snapshot) {
       pendingSession = snapshot.val();
       pendingSessions.push(pendingSession);
     }.bind(this));
 
-    pendingRef.orderByKey().equalTo(userKey).once("child_added", function(snapshot) {
+    pendingRef.orderByKey().equalTo(userKey).once('child_added', function(snapshot) {
       pendingSession = snapshot.val();
       pendingSessions.push(pendingSession);
     }.bind(this));
@@ -177,12 +177,12 @@ export class Map extends Component {
     var acceptSession = null;
     var acceptSessions = [];
     
-    acceptRef.orderByChild("trainer").equalTo(userKey).once("child_added", function(snapshot) {
+    acceptRef.orderByChild('trainer').equalTo(userKey).once('child_added', function(snapshot) {
       acceptSession = snapshot.val();
       acceptSessions.push(acceptSession);
     }.bind(this));
 
-    acceptRef.orderByKey().equalTo(userKey).once("child_added", function(snapshot) {
+    acceptRef.orderByKey().equalTo(userKey).once('child_added', function(snapshot) {
       acceptSession = snapshot.val();
       acceptSessions.push(acceptSession);
     }.bind(this));
@@ -210,9 +210,9 @@ export class Map extends Component {
   showModal(type, option){
     
     //open gym modal
-    if(type == "gym"){
+    if(type == 'gym'){
       //pull gym from db onClick to make sure info is updated (eg. trainer is active)
-      firebase.database().ref('/gyms/' + option.key).once("value", function(snapshot){
+      firebase.database().ref('/gyms/' + option.key).once('value', function(snapshot){
         this.setState({
           bookModal: false,
           gymModal: true,
@@ -222,7 +222,7 @@ export class Map extends Component {
     }
 
     //open book modal
-    if(type == "book"){
+    if(type == 'book'){
       this.setState({
         gymModal: false,
         bookingTrainer: option
@@ -231,7 +231,7 @@ export class Map extends Component {
     }
 
     //open pending modal
-    if(type == "pending"){
+    if(type == 'pending'){
       this.setState({pendingModal: true});
     }
   }
@@ -268,8 +268,8 @@ export class Map extends Component {
 
     }else{
       Alert.alert(
-      "Are you sure you want to book this session?", 
-      "",
+      'Are you sure you want to book this session?', 
+      '',
       [
         {text: 'No'},
         {text: 'Yes', onPress: () => {
@@ -293,8 +293,8 @@ export class Map extends Component {
     var user = firebase.auth().currentUser;
     var sessionRef = firebase.database().ref('trainSessions');
     Alert.alert(
-      "Are you sure you want to accept this session?", 
-      "",
+      'Are you sure you want to accept this session?', 
+      '',
       [
         {text: 'No'},
         {text: 'Yes', onPress: () => {
@@ -324,8 +324,8 @@ export class Map extends Component {
   cancelSession(session){
     var pendingRef = firebase.database().ref('pendingSessions');
     Alert.alert(
-      "Are you sure you want to cancel this session?", 
-      "",
+      'Are you sure you want to cancel this session?', 
+      '',
       [
         {text: 'No'},
         {text: 'Yes', onPress: () => {
@@ -338,8 +338,8 @@ export class Map extends Component {
   cancelAccept(session){
     var sessionRef = firebase.database().ref('trainSessions');
         Alert.alert(
-      "Are you sure you want to cancel this session?", 
-      "",
+      'Are you sure you want to cancel this session?', 
+      '',
       [
         {text: 'No'},
         {text: 'Yes', onPress: () => {
@@ -364,17 +364,17 @@ export class Map extends Component {
     var abbr;
 
     if(minute < 10){
-        minute = "0" + minute;
+        minute = '0' + minute;
     }
     //Sets abbr to AM or PM
     if(hour > 12){
       hour = hour - 12;
-      abbr = "PM";
+      abbr = 'PM';
     }else{
-      abbr = "AM"
+      abbr = 'AM'
     }
 
-    var displayDate = month + "/" + day + " " + hour + ":" + minute + abbr;
+    var displayDate = month + '/' + day + ' ' + hour + ':' + minute + abbr;
     return displayDate;
   }
 
@@ -416,12 +416,12 @@ export class Map extends Component {
         return(
         <View style={{flexDirection: 'column', justifyContent: 'flex-start'}} key={session.trainee}>
           <View style={{flexDirection: 'row', justifyContent: 'space-around', height: 50}} key={session.trainee}>
-            <View style={{width: "70%", flexDirection: 'row', justifyContent: 'space-around', height: 50}}>
+            <View style={{width: '70%', flexDirection: 'row', justifyContent: 'space-around', height: 50}}>
               {name}
               <View style={styles.rateView}><Text style={styles.trainerInfo}>{session.duration} min</Text></View>
               <View style={styles.trainerView}><Text style={styles.trainerInfo}>{displayDate}</Text></View>
             </View> 
-            <View style={{width: "25%", height: 50}}>
+            <View style={{width: '25%', height: 50}}>
               {button}
             </View>
           </View>
@@ -442,12 +442,12 @@ export class Map extends Component {
         return(
         <View style={{flexDirection: 'column', justifyContent: 'flex-start'}} key={session.trainee}>
           <View style={{flexDirection: 'row', justifyContent: 'space-around', height: 50}} key={session.trainee}>
-            <View style={{width: "70%", flexDirection: 'row', justifyContent: 'space-around', height: 50}}>
+            <View style={{width: '70%', flexDirection: 'row', justifyContent: 'space-around', height: 50}}>
               {name}
               <View style={styles.rateView}><Text style={styles.trainerInfo}>{session.duration} min</Text></View>
               <View style={styles.trainerView}><Text style={styles.trainerInfo}>{displayDate}</Text></View>
             </View> 
-            <View style={{width: "25%", height: 50}}>
+            <View style={{width: '25%', height: 50}}>
               <TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.cancelAccept(session)}>
                 <Text 
                   style={styles.buttonText}
@@ -462,6 +462,22 @@ export class Map extends Component {
       }.bind(this));
     }
     if(this.state.selectedGym != 'null'){
+        var map = (
+        <MapView
+          ref = {(mapView) => { _map = mapView; }}
+          style={styles.container}
+          region={{
+            latitude: this.state.selectedGym.location.latitude,
+            longitude: this.state.selectedGym.location.longitude,
+            latitudeDelta: 0.0422,
+            longitudeDelta: 0.0221
+          }}
+          pitchEnabled = {false} rotateEnabled = {false} scrollEnabled = {false} zoomEnabled = {false}>
+              <MapView.Marker
+                ref={marker => (this.marker = marker)}
+                key={this.state.selectedGym.key}
+                coordinate={this.state.selectedGym.location} />
+        </MapView>);
       var trainers = this.state.selectedGym.trainers;
       var trainersList = Object.keys(trainers).map(function(key, index){
         var trainer = trainers[key];
@@ -470,9 +486,9 @@ export class Map extends Component {
         //Sets up bio and certifications area if a trainer is selected in gym modal
         if(this.state.selectedTrainer != null && this.state.selectedTrainer.key == key){
         var biocertField = (
-          <View style={{flexDirection: 'row', justifyContent: 'space-around', height: 50}} key={key}>
-            <View style={styles.trainerView}><Text style={styles.trainerInfo}>{this.state.selectedTrainer.cert}</Text></View>
-            <View style={styles.trainerView}><Text style={styles.trainerInfo}>{this.state.selectedTrainer.bio}</Text></View>
+          <View style={{flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}} key={key}>
+            <View style={styles.certView}><Text style={styles.trainerInfo}>Certifications: {this.state.selectedTrainer.cert}</Text></View>
+            <View style={styles.certView}><Text style={styles.trainerInfo}>Bio: {this.state.selectedTrainer.bio}</Text></View>
           </View>);
         }
 
@@ -486,16 +502,16 @@ export class Map extends Component {
 
         //DOM Element for a trainer in gym modal
         return(
-        <View style={{flexDirection: 'column', justifyContent: 'flex-start'}} key={key}>
+        <View style={styles.trainerContainer} key={key}>
         <TouchableWithoutFeedback onPressIn={() => this.setState({selectedTrainer: this.extendTrainer(trainer)})}>
-          <View style={{flexDirection: 'row', justifyContent: 'space-around', height: 50}} key={trainer.key}>
-            <View style={{width: "70%", flexDirection: 'row', justifyContent: 'space-around', height: 50}}>
+          <View style={styles.trainerRow} key={trainer.key}>
+            <View style={styles.trainerInfoContainer}>
               <View style={styles.trainerView}><Text style={styles.trainerInfo}>{trainer.name}</Text></View>
               <View style={styles.rateView}><Text style={styles.trainerInfo}>${trainer.rate}</Text></View>
               {activeField}
             </View> 
-            <View style={{width: "25%", height: 50}}>
-              <TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.showModal("book", trainer)}>
+            <View style={{width: '25%', height: 50}}>
+              <TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.showModal('book', trainer)}>
                 <Text 
                   style={styles.buttonText}
                 >
@@ -534,7 +550,7 @@ export class Map extends Component {
                 key={marker.key}
                 coordinate={marker.location}
                 onPress={() => {
-                 this.showModal("gym", marker);
+                 this.showModal('gym', marker);
                 }} />
           ))}
         </MapView>
@@ -560,7 +576,7 @@ export class Map extends Component {
           </TouchableOpacity>
           <TouchableOpacity
               style={styles.accountButton}
-              onPressIn={() => this.showModal("pending")}
+              onPressIn={() => this.showModal('pending')}
           >
             <Text style={{ fontSize: 50, color: '#FFFFFF' }}>
                 <FontAwesome>{Icons.comment}</FontAwesome>
@@ -573,9 +589,17 @@ export class Map extends Component {
         <Modal isVisible={this.state.gymModal}
         onBackdropPress={this.hidegymModal}>
           <View style={styles.gymModal}>
-            <Text style={styles.gymName}>{this.state.selectedGym.name}</Text>
+            <View style={styles.nameContainer}>
+              <Text style={styles.gymName}>{this.state.selectedGym.name}</Text>
+            </View>
+            <View style={styles.mapContainer}>
+              {map}
+            </View>
             <Text style={styles.hourDetails}>Hours: {this.state.selectedGym.hours}</Text>
-            {trainersList}
+            <Text style={styles.hourDetails}>Trainers</Text>
+            <ScrollView style={styles.trainers}>
+              {trainersList}
+            </ScrollView>
           </View>
         </Modal>
 
@@ -616,9 +640,9 @@ export class Map extends Component {
                 itemStyle={{height: 150}}
                 selectedValue={this.state.bookDuration}
                 onValueChange={(itemValue, itemIndex) => this.setState({bookDuration: itemValue})}>
-                <Picker.Item label="60" value="60" />
-                <Picker.Item label="90" value="90" />
-                <Picker.Item label="120" value="120" />
+                <Picker.Item label='60' value='60' />
+                <Picker.Item label='90' value='90' />
+                <Picker.Item label='120' value='120' />
               </Picker>
             </View>
             <View style={{flexDirection: 'row', justifyContent: 'center'}}>
@@ -651,8 +675,10 @@ const styles = StyleSheet.create({
     width: '35%'
   },
   buttonContainer: {
-    paddingVertical: 15,
-    backgroundColor: '#C51162'
+    height: 48,
+    backgroundColor: '#C51162',
+    flexDirection: 'column',
+    justifyContent: 'center'
   },
   bookButton: {
     paddingVertical: 15,
@@ -666,12 +692,41 @@ const styles = StyleSheet.create({
     fontWeight: '700'
   },
   trainerView: {
-    width: '40%',
+    width: '25%',
     height: 50
   },
+  certView: {
+    width: '90%'
+  },
+  trainerRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    height: 50,
+    borderWidth: 1,
+    borderColor: 'black',
+    margin: 5
+  },
   rateView: {
-    width: '20%',
+    width: '15%',
     height: 50
+  },
+  activeView: {
+    width: '25%',
+    height: 50
+  },
+  trainerInfoContainer:{
+    width: '70%',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    height: 50
+  },
+  trainers: {
+    width: '100%',
+    height: '65%'
+  },
+  mapContainer: {
+    height: '20%',
+    width: '100%'
   },
   active:{
     color: 'green'
@@ -695,24 +750,31 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   bottomBar: {
+    width: '100%',
     position: 'absolute',
     flex: 1,
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-around',
     bottom: 0,
-    backgroundColor: '#2980b9'
+    backgroundColor: '#69D2E7'
   },
   centerButton: {
     position: 'relative',
     borderRadius: 35,
     margin: 10
-  }, 
+  },
+  trainerContainer: {
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+    alignItems: 'center'
+  },
   gymModal: {
      flex: .7,
      flexDirection: 'column',
      justifyContent: 'flex-start',
      alignItems: 'center',
      backgroundColor: '#fff',
+     borderRadius: 10,
   },
   bookModal: {
      flex: .7,
@@ -731,11 +793,21 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginTop: 15,
   },
+  nameContainer: {
+    height: '15%',
+    width: '100%',
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    backgroundColor: '#A7DBD8',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
   hourDetails: {
     fontFamily: 'lato',
-    fontSize: 20,
-    color: '#616a77',
-    fontWeight: '300',
+    fontSize: 24,
+    color: 'black',
+    fontWeight: '400',
     marginTop: 10,
     marginBottom: 10
   },
