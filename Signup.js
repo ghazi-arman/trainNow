@@ -1,17 +1,8 @@
 import React, { Component } from 'react';
-import {
-  Platform,
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  KeyboardAvoidingView,
-  TouchableOpacity
-} from 'react-native';
-import { CheckBox } from 'react-native-checkbox';
-import { SignupForm } from './SignupForm'
+import { Platform, StyleSheet, Text, View, Image, KeyboardAvoidingView, TouchableOpacity } from 'react-native';
+import { SignupForm } from './SignupForm';
 import { Actions } from 'react-native-router-flux';
-
+import {AppLoading, Font} from 'expo';
 
 export class Signup extends Component {
 	goback() {
@@ -22,24 +13,19 @@ export class Signup extends Component {
 			<KeyboardAvoidingView
 				behavior = "padding"
 				style = {styles.container}
-				enabled>
+				>
 				<View style = {styles.logoContainer}>
-					<Image 
-						style = {styles.logo}
-						source = {require('./logo.png')}
-						/>
-					<Text style={styles.title}>PT Hero</Text>
+					<Image style = {styles.logo} source = {require('./logo.png')}/>
 				</View>
 				<View style={styles.formContainer}>
 					<SignupForm />
-				</View>
-				<View style={styles.buttonContainer}>
-					<Text style={styles.button}>
-						Already have an account yet?
-					</Text>
-					<TouchableOpacity onPressIn={this.goback}>
-						<Text style={styles.buttonText}>  Sign in</Text>
-					</TouchableOpacity>
+					<View style={styles.linkContainer}>
+						<View style={styles.textContain}>
+							<TouchableOpacity onPressIn={this.goback}>
+								<Text style={styles.linkText}>Have an Account?</Text>
+							</TouchableOpacity>
+						</View>
+					</View>
 				</View>
 			</KeyboardAvoidingView>
 		);
@@ -49,37 +35,39 @@ export class Signup extends Component {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: '#263238',
+		alignItems: 'center',
+		justifyContent: 'center',
+		backgroundColor: '#E0E4CC'
+	},
+	formContainer: {
+		height: '50%',
+		width: '80%'
 	},
 	logo: {
-		width: 100,
-		height: 100
+		width: '65%',
+		height: '65%'
 	},
 	logoContainer: {
+		flexDirection: 'row',
+		justifyContent: 'center',
 		alignItems: 'center',
-		flexGrow: 1,
+		height: '25%',
+		width: '80%'
+	},
+	textContain:{
+		height: 30
+	},
+	linkContainer: {
+		flex: 1,
+		flexDirection: 'column',
+		alignItems: 'center',
 		justifyContent: 'center',
+		height: '10%',
+		paddingTop: 25
 	},
-	title: {
-		color: "#FFFFFF",
-		marginTop: 10,
-		fontSize: 35,
-		textAlign: 'center'
-	},
-	buttonContainer: {
-		flexGrow: 1,
-		alignItems: 'flex-end',
-		justifyContent: 'center',
-		paddingVertical: 16,
-		flexDirection: 'row'
-	},
-	button: {
-		color: 'rgba(255,255,255,0.6)',
-		fontSize: 16
-	},
-	buttonText: {
-		color: '#ffffff',
+	linkText: {
+		color: '#FA6900',
 		fontSize: 16,
-		fontWeight: '500'
-	},
+		fontWeight: '500',
+	}
 });

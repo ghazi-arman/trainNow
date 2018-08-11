@@ -546,9 +546,7 @@ export class Map extends Component {
               onPressIn={() =>_map.animateToRegion(this.state.userRegion, 499)}
           >
             <Text style={{ fontSize: 50, color: '#FFFFFF' }}>
-              {this.state.fontLoaded ? (
                 <FontAwesome>{Icons.compass}</FontAwesome>
-              ) : null}
             </Text>
           </TouchableOpacity>
 
@@ -557,9 +555,7 @@ export class Map extends Component {
               onPressIn={this.showAccount.bind(this)}
           >
             <Text style={{ fontSize: 50, color: '#FFFFFF' }}>
-              {this.state.fontLoaded ? (
                 <FontAwesome>{Icons.user}</FontAwesome>
-              ) : null}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -567,9 +563,7 @@ export class Map extends Component {
               onPressIn={() => this.showModal("pending")}
           >
             <Text style={{ fontSize: 50, color: '#FFFFFF' }}>
-              {this.state.fontLoaded ? (
                 <FontAwesome>{Icons.comment}</FontAwesome>
-              ) : null}
             </Text>
           </TouchableOpacity>
 

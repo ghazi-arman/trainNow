@@ -1,17 +1,8 @@
 import React, { Component } from 'react';
-import {
-  Platform,
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  KeyboardAvoidingView,
-  TouchableOpacity,
-} from 'react-native';
+import { Platform, StyleSheet, Text, View, Image, KeyboardAvoidingView, TouchableOpacity } from 'react-native';
 import { LoginForm } from './LoginForm'
 import { Actions } from 'react-native-router-flux';
-
-
+import FontAwesome, { Icons } from 'react-native-fontawesome';
 
 export class Login extends Component {
 
@@ -30,31 +21,24 @@ export class Login extends Component {
 				style = {styles.container}
 				>
 				<View style = {styles.logoContainer}>
-					<Image 
-						style = {styles.logo}
-						source = {require('./logo.png')}
-						/>
-					<Text style={styles.title}>PT Hero</Text>
+					<Image style = {styles.logo} source = {require('./logo.png')} />
 				</View>
 				<View style={styles.formContainer}>
+
 					<LoginForm />
-				</View>
-				<View style={styles.forgotTextContainer}>
-					<Text style={styles.signupText}>
-						Forgot your password? 
-					</Text>
-					<TouchableOpacity onPress={this.forgot}>
-						<Text style={styles.signupButton}>  Reset</Text>
-					</TouchableOpacity>
-				</View>				
-				<View style={styles.signupTextContainer}>
-					<Text style={styles.signupText}>
-						Don't have an account yet? 
-					</Text>
-					<TouchableOpacity onPress={this.signup}>
-						<Text style={styles.signupButton}>  Sign up</Text>
-					</TouchableOpacity>
-				</View>
+					<View style={styles.linkContainer}>
+						<View style={styles.textContain}>
+							<TouchableOpacity onPress={this.forgot}>
+								<Text style={styles.linkText}>Forgot Password?</Text>
+							</TouchableOpacity>
+						</View>
+						<View styles={styles.textContain}>
+							<TouchableOpacity onPress={this.signup}>
+								<Text style={styles.linkText}>New User?</Text>
+							</TouchableOpacity>
+						</View>
+					</View>
+				</View>	
 			</KeyboardAvoidingView>
 		);
 	}
@@ -63,43 +47,38 @@ export class Login extends Component {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: '#263238',
+		alignItems: 'center',
+		justifyContent: 'center',
+		backgroundColor: '#E0E4CC'
+	},
+	formContainer: {
+		height: '45%',
+		width: '80%'
 	},
 	logo: {
-		width: 100,
-		height: 100
+		width: '65%',
+		height: '65%'
 	},
 	logoContainer: {
+		flexDirection: 'row',
+		justifyContent: 'center',
 		alignItems: 'center',
-		flexGrow: 1,
+		height: '25%',
+		width: '80%'
+	},
+	textContain:{
+		height: 30
+	},
+	linkContainer: {
+		flexDirection: 'column',
+		alignItems: 'center',
 		justifyContent: 'center',
+		height: "15%",
+		paddingTop: 20
 	},
-	title: {
-		color: "#FFFFFF",
-		marginTop: 10,
-		fontSize: 35,
-		textAlign: 'center'
-	},
-	forgotTextContainer: {
-		flexGrow: 1,
-		alignItems: 'flex-end',
-		justifyContent: 'center',
-		flexDirection: 'row'
-	},
-	signupTextContainer: {
-		flexGrow: 1,
-		alignItems: 'flex-end',
-		justifyContent: 'center',
-		paddingVertical: 16,
-		flexDirection: 'row'
-	},
-	signupText: {
-		color: 'rgba(255,255,255,0.6)',
-		fontSize: 16
-	},
-	signupButton: {
-		color: '#ffffff',
+	linkText: {
+		color: '#FA6900',
 		fontSize: 16,
-		fontWeight: '500'
-	},
+		fontWeight: '500',
+	}
 });

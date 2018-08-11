@@ -1,22 +1,9 @@
 import React, { Component } from 'react';
-import {
-  Platform,
-  StyleSheet,
-  Text,
-  View,
-  TextInput,
-  TouchableOpacity,
-  StatusBar,
-  Alert,
-  Switch,
-  Image,
-  Picker
-} from 'react-native';
+import { Platform, StyleSheet, Text, View, TextInput, TouchableOpacity, StatusBar, Alert, Switch, Image, Picker } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import { ImagePicker } from 'expo';
 import firebase from 'firebase';
-
-
+import FontAwesome, { Icons } from 'react-native-fontawesome';
 
 export class SignupForm extends Component {
 	
@@ -26,6 +13,8 @@ export class SignupForm extends Component {
 			trainer: false,
 			nextForm: false,
 			pictureForm: false,
+			fontLoaded: false,
+			gymLoaded: false,
 			name:'',
 			email: '',
 			password: '',
@@ -37,26 +26,27 @@ export class SignupForm extends Component {
 			image: 'null',
 			gyms: [],
 		};
+
 		this.onSignUpPress=this.onSignUpPress.bind(this);
 	}
 
 	async componentDidMount() {
+		
+		if(!this.state.fontLoaded){
+			this.loadFont();
+		}
 		var gyms = this.loadGyms();
 		this.setState({gyms: gyms});
 	}
 
-	_pickImage = async () => {
-    	let result = await ImagePicker.launchImageLibraryAsync({
-     		allowsEditing: true,
-      		aspect: [4, 3],
-    	});
+	loadFont = async () => {
+		await Font.loadAsync({
+	      FontAwesome: require('./fonts/font-awesome-4.7.0/fonts/FontAwesome.otf'),
+	      fontAwesome: require('./fonts/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf')
+	    });
+	    this.setState({fontLoaded: true});
+	}
 
-    	if (!result.cancelled) {
-      		this.setState({ image: result.uri });
-    	}
-    }
-
-    //Load gyms from db for MapView
   	loadGyms(){
 	    var items = [];
 	    var gymsRef = firebase.database().ref('gyms');
@@ -69,6 +59,17 @@ export class SignupForm extends Component {
 	    });
     	return items;
   	}
+
+  	_pickImage = async () => {
+    	let result = await ImagePicker.launchImageLibraryAsync({
+     		allowsEditing: true,
+      		aspect: [4, 3],
+    	});
+
+    	if (!result.cancelled) {
+      		this.setState({ image: result.uri });
+    	}
+    }
 
 	onSignUpPress() {
 		// client side authentication
@@ -174,6 +175,7 @@ export class SignupForm extends Component {
 
 
 	render() {
+
 		var isTrainer = this.state.trainer;
 		var nextForm = this.state.nextForm;
 		var pictureForm = this.state.pictureForm;
@@ -181,7 +183,7 @@ export class SignupForm extends Component {
 		var gyms = this.state.gyms;
 
 		if(nextForm){
-			nameField = emailField = passField = confirmField = passHint = pictureButton = trainerField = trainerHint = imageHolder = null;
+			nameField = emailField = passField = confirmField = pictureButton = trainerField = imageHolder = null;
 
 			submitButton = (
 				<TouchableOpacity style={styles.buttonContainer} onPressIn={this.onSignUpPress}>
@@ -191,37 +193,57 @@ export class SignupForm extends Component {
 						Signup
 					</Text>
 				</TouchableOpacity>);
-			gymField = 
+			gymField = (
+			<View style={styles.inputRow}>
+				<Text style={styles.icon}>
+					<FontAwesome>{Icons.building}</FontAwesome>
+				</Text>
 				<Picker
-				  selectedValue={this.state.gym}
-				  onValueChange={(itemValue, itemIndex) => this.setState({gym: itemValue})}>
-				  {gyms.map(function(gym){
-				  	return (<Picker.Item label={gym.name} value={gym.key} />);
-				  })}
-				</Picker>;
-			rateField = 
+					style={styles.picker}
+					itemStyle={{height: 45}}
+				  	selectedValue={this.state.gym}
+				  	onValueChange={(itemValue, itemIndex) => this.setState({gym: itemValue})}>
+				  	<Picker.Item label="Pick a Gym (Scroll)" value= '' />
+				  	{gyms.map(function(gym){
+				  		return (<Picker.Item label={gym.name} value={gym.key} />);
+				  	})}
+				</Picker>
+			</View>);
+			rateField = ( 
+			<View style={styles.inputRow}>
+				<Text style={styles.icon}>
+					<FontAwesome>{Icons.dollar}</FontAwesome>
+				</Text>
 				<TextInput
 					placeholder="Rate ($ hourly)"
 					style={styles.input}
 					selectionColor="#FFF"
-					placeholderTextColor='#FFF'
+					placeholderTextColor='#69D2E7'
 					onChangeText={(rate) => this.setState({rate})}
 					value={this.state.rate}
 					keyboardType="number-pad"
-					returnKeyType="done"
-					/>;
-			certField = 
+					returnKeyType="done" />
+			</View>);
+			certField = (
+			<View style={styles.inputRow}>
+				<Text style={styles.icon}>
+					<FontAwesome>{Icons.vcard}</FontAwesome>
+				</Text>
 				<TextInput
 					placeholder="Certifications"
 					returnKeyType="done"
 					style={styles.input}
 					selectionColor="#FFF"
-					placeholderTextColor='#FFF'
+					placeholderTextColor='#69D2E7'
 					onChangeText={(cert) => this.setState({cert})}
 					value={this.state.cert}
-					autoCorrect={false}
-					/>;
-			bioField =
+					autoCorrect={false} />
+			</View>);
+			bioField = (
+			<View style={styles.inputRow}>
+				<Text style={styles.icon}>
+					<FontAwesome>{Icons.info}</FontAwesome>
+				</Text>
 				<TextInput
 					autoCorrect={false}
 					blurOnSumbit={true}
@@ -229,10 +251,10 @@ export class SignupForm extends Component {
 					multiline={true}
 					style={styles.input}
 					selectionColor="#FFF"
-					placeholderTextColor='#FFF'
+					placeholderTextColor='#69D2E7'
 					onChangeText = {(bio) => this.setState({bio})}
-					value={this.state.bio}
-					/>;
+					value={this.state.bio} />
+			</View>);
 			prevButton = 
 				<TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.setState({nextForm: false})}>
 					<Text 
@@ -242,10 +264,13 @@ export class SignupForm extends Component {
 					</Text>
 				</TouchableOpacity>;
 		}else if(pictureForm){
-			nameField = emailField = passField = confirmField = passHint = trainerField = trainerHint = null;
+			nameField = emailField = passField = confirmField = trainerField = null;
 			 prevButton = gymField = rateField = bioField = certField = null;
 			prevButton = 
-				<TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.setState({nextForm: true})}>
+				<TouchableOpacity style={styles.buttonContainer} 
+					onPressIn={() => 
+						(isTrainer) ? this.setState({nextForm: true, pictureForm: false})
+						: this.setState({pictureForm: false})}>
 					<Text 
 						style={styles.buttonText}
 						>
@@ -253,7 +278,9 @@ export class SignupForm extends Component {
 					</Text>
 				</TouchableOpacity>;
 			if(image != 'null'){
-				imageHolder = (<Image source={{ uri: image }} style={{ width: 200, height: 200 }} />);
+				imageHolder = (<View style={styles.imageContainer}><Image source={{ uri: image }} style={styles.imageHolder} /></View>);
+			}else{
+				imageHolder = (<View style={styles.imageContainer}><View style={styles.imageHolder}></View></View>);
 			}
 			pictureButton = (
 				<TouchableOpacity style={styles.buttonContainer} onPressIn={() => this._pickImage()}>
@@ -267,18 +294,26 @@ export class SignupForm extends Component {
 		}else{
 			prevButton = gymField = rateField = bioField = certField = imageHolder = pictureButton = null;
 
-			nameField = 
+			nameField = (
+			<View style={styles.inputRow}>
+				<Text style={styles.icon}>
+					<FontAwesome>{Icons.user}</FontAwesome>
+				</Text>
 				<TextInput
 					placeholder="Full Name"
 					returnKeyType="done"
 					style={styles.input}
 					selectionColor="#FFF"
-					placeholderTextColor='#FFF'
+					placeholderTextColor='#69D2E7'
 					onChangeText={(name) => this.setState({name})}
 					value={this.state.name}
-					autoCorrect={false}
-					/>;
-			emailField = 
+					autoCorrect={false} />
+			</View>);
+			emailField = (
+			<View style={styles.inputRow}>
+				<Text style={styles.icon}>
+					<FontAwesome>{Icons.envelope}</FontAwesome>
+				</Text>
 				<TextInput 
 					placeholder="Email"
 					returnKeyType="done"
@@ -288,43 +323,53 @@ export class SignupForm extends Component {
 					autoCorrect={false}
 					style={styles.input}
 					selectionColor="#FFF"
-					placeholderTextColor='#FFF'
+					placeholderTextColor='#69D2E7'
 					onChangeText={(email) => this.setState({email})}
-					value={this.state.email}
-					/>;
-			passField =
+					value={this.state.email} />
+			</View>);
+			passField = (
+			<View style={styles.inputRow}>
+				<Text style={styles.icon}>
+					<FontAwesome>{Icons.lock}</FontAwesome>
+				</Text>
 				<TextInput
 					placeholder="Password"
 					returnKeyType="done"
 					secureTextEntry
 					style={styles.input}
 					selectionColor="#FFF"
-					placeholderTextColor='#FFF'
+					placeholderTextColor='#69D2E7'
 					onChangeText={(password) => this.setState({password})}
 					value={this.state.password}
-					ref={(input) => this.passwordInput = input}
-					/>;
-			confirmField =
+					ref={(input) => this.passwordInput = input} />
+			</View>);
+			confirmField = (
+			<View style={styles.inputRow}>
+				<Text style={styles.icon}>
+					<FontAwesome>{Icons.check}</FontAwesome>
+				</Text>
 				<TextInput
 					placeholder="Confirm Password"
 					returnKeyType="done"
 					secureTextEntry
 					style={styles.input}
 					selectionColor="#FFF"
-					placeholderTextColor='#FFF'
+					placeholderTextColor='#69D2E7'
 					onChangeText={(confirmPass) => this.setState({confirmPass})}
 					value={this.state.confirmPass}
-					ref={(input) => this.passwordInput = input}
-					/>;
-			passHint = <Text style = {styles.hints}> Password must contain 6-12 characters </Text>;
-
-			trainerField = 				
+					ref={(input) => this.passwordInput = input} />
+			</View>);
+			trainerField = (
+			<View style={styles.inputRow}>
+				<Text style = {styles.hints}>Are you signing up as a trainer? </Text>
 				<Switch
-					style={styles.switch}
+					onTintColor="#69D2E7"
+					tintColor="#FA6900"
+					thumbTintColor="#FA6900"
 					value={this.state.trainer}
 					onValueChange={(trainer) => this.setState({trainer})}
-					/>;
-			trainerHint = <Text style = {styles.question}>Are you signing up as a trainer? </Text>;
+					/>
+			</View>);
 
 		}
 
@@ -359,20 +404,16 @@ export class SignupForm extends Component {
 				</TouchableOpacity>);
 		}
 		return (
-			<View style = {styles.container}>
-			<StatusBar 
-				barStyle="light-content"
-				/>
+			<View>
+			<StatusBar barStyle="dark-content" />
 				{nameField}
 				{emailField}
 				{passField}
 				{confirmField}
-				{passHint}
 				{gymField}
 				{rateField}
 				{bioField}
 				{certField}
-				{trainerHint}
 				{trainerField}
 				{imageHolder}
 				{pictureButton}
@@ -384,35 +425,58 @@ export class SignupForm extends Component {
 }
 
 const styles = StyleSheet.create({
-	container: {
-		padding: 20,
-	},
-	switch: {
-		marginBottom: 10,
+	inputRow: {
+		width: '100%',
+		flexDirection: 'row',
+		justifyContent: 'center',
+		alignItems: 'flex-bottom',
+		marginBottom: 20
 	},
 	input: {
 		height: 40,
-		backgroundColor: 'rgba(255,255,255,0.2)',
-		marginBottom: 10,
-		color: '#FFF',
-		paddingHorizontal: 10,
+		verticalAlign: 'bottom',
+		border: 0,
+		outline: 0,
+		background: 'transparent',
+		borderBottomWidth: 1,
+		borderColor: '#F38630',
+		width: '90%'
+	},
+	picker: {
+		height: 45,
+		borderWidth: 1,
+		borderColor: '#F38630',
+		width: '90%',
 	},
 	buttonContainer: {
-		backgroundColor: '#C51162',
+		backgroundColor: '#69D2E7',
 		paddingVertical: 15,
-		marginTop: 10
+		marginTop: 20
 	},
 	buttonText: {
 		textAlign: 'center',
 		color: '#FFFFFF',
 		fontWeight: '700'
 	},
-	hints:{
-		color: 'rgba(255,255,255,0.5)',		
-		marginBottom: 10,
+	imageContainer: {
+		flexDirection: 'row',
+		justifyContent: 'center'
 	},
-	question:{
-		color: '#FFF',
-		marginBottom:10,
+	imageHolder: {
+		height: 200,
+		width: 200,
+		borderWidth: 1,
+		borderColor: '#F38630',
+	},
+	icon: {
+		color: '#69D2E7',
+		fontSize: 30,
+		marginRight: 10,
+		marginTop: 13
+	},
+	hints:{
+		color: '#69D2E7',		
+		marginBottom: 10,
+		marginRight: 10
 	}
 });

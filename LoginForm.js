@@ -1,18 +1,9 @@
 import React, { Component } from 'react';
-import {
-  Platform,
-  StyleSheet,
-  Text,
-  View,
-  TextInput,
-  TouchableOpacity,
-  StatusBar,
-  Alert,
-  Keyboard
-} from 'react-native';
-
+import { Platform, StyleSheet, Text, View, TextInput, TouchableOpacity, StatusBar, Alert, Keyboard } from 'react-native';
+import {AppLoading, Font} from 'expo';
 import { Actions } from 'react-native-router-flux';
 import * as firebase from 'firebase';
+import FontAwesome, { Icons } from 'react-native-fontawesome';
 
 export class LoginForm extends Component {
 
@@ -21,105 +12,100 @@ export class LoginForm extends Component {
 		this.state = {
 			email: '',
 			password: '',
-			state: ''
+			fontLoaded: false
 		};
+
 		this.onLoginPress=this.onLoginPress.bind(this);
 	}
 
+	async componentDidMount() {
+		if(!this.state.fontLoaded){
+			this.loadFont();
+		}
+	}
+
+	loadFont = async () => {
+		await Font.loadAsync({
+	      FontAwesome: require('./fonts/font-awesome-4.7.0/fonts/FontAwesome.otf'),
+	      fontAwesome: require('./fonts/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf')
+	    });
+	    this.setState({fontLoaded: true});
+	}
+
+
 	onLoginPress() {
-		Keyboard.dismiss();
-		// client side authentication
 		var uname = this.state.email;
 		var pw = this.state.password;
-		var specialChars = "@!#$%^&*()_+[]{}?:;|'\"\\,./~`-=";
 
-		// email not empty
+		// email check
 		if(!uname.length) {
-			Alert.alert("Please enter email!");
-		    this.setState({
-		    	email: '',
-		    	password: '',
-		    });			
+			Alert.alert("Please enter email!");		
 			return;			
 		}	
 
-		var speicalCharCheck = function(pw) {
-			for(i = 0; i < specialChars.length; i++) {
-				if(pw.indexOf(specialChars[i]) > -1) {
-					return true;
-				}
-			}
-			return false;
-		}
-
-		// pw length, contains lower/upper case and special char
-		if(pw.length < 6 || pw.length > 12) {
-			Alert.alert("Invalid Password!");
-		    this.setState({
-		    	password: '',
-		    });			
+		// pw length check
+		if(!pw.length || pw.length < 6) {
+			Alert.alert("Password must be more than six characters!");	
 			return;
 		}
 
-		// authenticate email and password here
+		// Check email and password here
 		firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password)
 			.then(function() {
-				// if authenticated, enter the map page
-				this.setState({
-					email: '',
-					password: '',
-					loaded: false,
-				});				
+
 				Actions.map();
-			}.bind(this))
-			.catch(function(error) {
-				// Handle Errors here.
+			}.bind(this)).catch(function(error) {
+
+				//Authentication Error check
 				var errorCode = error.code;
 				var errorMessage = error.message;
 				if (errorCode === 'auth/wrong-password') {
 					Alert.alert('Wrong password.');
 				} 
-				else {
-					Alert.alert(errorMessage);
-				}	
-				this.setState({
-					password: '',
-					loaded: false,
-				});			
 			}.bind(this));
 
 	}
 
 	render() {
+		if(!this.state.fontLoaded){
+			return <Expo.AppLoading />;
+		}
 		return (
-			<View style = {styles.container}>
-			<StatusBar 
-				barStyle="light-content"
-				/>
-				<TextInput 
-					placeholder="Email"
-					returnKeyType="next"
-					onSubmitEditing={() => this.passwordInput.focus()}
-					keyboardType="email-address"
-					autoCapitalize="none"
-					autoCorrect={false}
-					style={styles.input}
-					selectionColor="#FFF"
-					placeholderTextColor='#FFF'
-					onChangeText={(email) => this.setState({email})}
-					value={this.state.email}
-					/>
-				<TextInput
-					placeholder="Password"
-					returnKeyType="go"
-					secureTextEntry
-					style={styles.input}
-					selectionColor="#FFF"
-					placeholderTextColor='#FFF'
-					onChangeText={(password) => this.setState({password})}
-					value={this.state.password}
-					ref={(input) => this.passwordInput = input}
-					/>
+			<View>
+			<StatusBar barStyle="dark-content" />
+				<View style={styles.inputRow}>
+					<Text style={styles.icon}>
+						<FontAwesome>{Icons.user}</FontAwesome>
+					</Text>
+					<TextInput 
+						placeholder="Email"
+						returnKeyType="next"
+						onSubmitEditing={() => this.passwordInput.focus()}
+						keyboardType="email-address"
+						autoCapitalize="none"
+						autoCorrect={false}
+						style={styles.input}
+						selectionColor="#FFF"
+						placeholderTextColor='#69D2E7'
+						onChangeText={(email) => this.setState({email})}
+						value={this.state.email} />
+				</View>
+				<View style={styles.inputRow}>
+					<Text style={styles.icon}>
+						<FontAwesome>{Icons.lock}</FontAwesome>
+					</Text>
+					<TextInput
+						autoCorrect={false}
+						placeholder="Password"
+						returnKeyType="go"
+						secureTextEntry
+						style={styles.input}
+						selectionColor="#FFF"
+						placeholderTextColor='#69D2E7'
+						onChangeText={(password) => this.setState({password})}
+						value={this.state.password}
+						ref={(input) => this.passwordInput = input}/>
+				</View>
 				<TouchableOpacity style={styles.buttonContainer} onPressIn={this.onLoginPress}>
 					<Text 
 						style={styles.buttonText}
@@ -131,23 +117,36 @@ export class LoginForm extends Component {
 }
 
 const styles = StyleSheet.create({
-	container: {
-		padding: 20,
+	inputRow: {
+		width: '100%',
+		flexDirection: 'row',
+		justifyContent: 'center',
+		alignItems: 'flex-start',
+		marginBottom: 20
 	},
 	input: {
 		height: 40,
-		backgroundColor: 'rgba(255,255,255,0.2)',
-		marginBottom: 10,
-		color: '#FFF',
-		paddingHorizontal: 10,
+		border: 0,
+		outline: 0,
+		background: 'transparent',
+		borderBottomWidth: 1,
+		borderColor: '#F38630',
+		width: '90%'
 	},
 	buttonContainer: {
-		backgroundColor: '#C51162',
+		backgroundColor: '#69D2E7',
 		paddingVertical: 15,
+		marginTop: 20
 	},
 	buttonText: {
 		textAlign: 'center',
 		color: '#FFFFFF',
 		fontWeight: '700'
+	},
+	icon: {
+		color: '#69D2E7',
+		fontSize: 30,
+		marginRight: 10,
+		marginTop: 13
 	}
 });
