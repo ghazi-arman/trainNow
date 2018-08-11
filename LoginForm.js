@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
 	},
 	input: {
 		height: 40,
-		border: 0,
+		borderWidth: 0,
 		outline: 0,
 		background: 'transparent',
 		borderBottomWidth: 1,
