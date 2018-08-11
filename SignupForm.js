@@ -435,8 +435,7 @@ const styles = StyleSheet.create({
 	input: {
 		height: 40,
 		borderWidth: 0,
-		outline: 0,
-		background: 'transparent',
+		backgroundColor: 'transparent',
 		borderBottomWidth: 1,
 		borderColor: '#F38630',
 		width: '90%'
