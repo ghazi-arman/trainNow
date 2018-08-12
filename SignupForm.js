@@ -429,7 +429,7 @@ const styles = StyleSheet.create({
 		width: '100%',
 		flexDirection: 'row',
 		justifyContent: 'center',
-		alignItems: 'flex-bottom',
+		alignItems: 'flex-end',
 		marginBottom: 20
 	},
 	input: {

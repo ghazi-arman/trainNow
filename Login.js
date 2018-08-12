@@ -32,7 +32,7 @@ export class Login extends Component {
 								<Text style={styles.linkText}>Forgot Password?</Text>
 							</TouchableOpacity>
 						</View>
-						<View styles={styles.textContain}>
+						<View style={styles.textContain}>
 							<TouchableOpacity onPress={this.signup}>
 								<Text style={styles.linkText}>New User?</Text>
 							</TouchableOpacity>
