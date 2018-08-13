@@ -29,14 +29,14 @@ export class Forgot extends Component {
 						style = {styles.logo}
 						source = {require('./logo.png')}
 						/>
-					<Text style={styles.title}>Free Finder</Text>
+					<Text style={styles.title}></Text>
 				</View>
 				<View style={styles.formContainer}>
 					<ForgotForm />
 				</View>
 				<View style={styles.buttonContainer}>
 					<Text style={styles.button}>
-						Already have an account yet?
+						Already have an account?
 					</Text>
 					<TouchableOpacity onPress={this.goback}>
 						<Text style={styles.buttonText}>  Sign in</Text>
@@ -50,7 +50,7 @@ export class Forgot extends Component {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: '#3498db',
+		backgroundColor: '#E0E4CC',
 	},
 	logo: {
 		width: 100,
@@ -75,12 +75,14 @@ const styles = StyleSheet.create({
 		flexDirection: 'row'
 	},
 	button: {
-		color: 'rgba(255,255,255,0.6)',
-		fontSize: 16
+		color: '#FA6900',
+		fontSize: 16,
+		fontWeight: '500',
 	},
 	buttonText: {
-		color: '#ffffff',
+		color: '#FA6900',
 		fontSize: 16,
-		fontWeight: '500'
+		fontWeight: '500',
+		textDecorationLine: 'underline',
 	},
 });

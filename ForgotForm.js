@@ -12,6 +12,8 @@ import {
 
 import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
+import {AppLoading, Font} from 'expo';
+import FontAwesome, { Icons } from 'react-native-fontawesome';
 
 
 
@@ -23,6 +25,20 @@ export class ForgotForm extends Component {
 			email: '',
 		};
 		this.submit=this.submit.bind(this);
+	}
+
+	async componentDidMount() {
+		if(!this.state.fontLoaded){
+			this.loadFont();
+		}
+	}
+
+	loadFont = async () => {
+		await Font.loadAsync({
+	      FontAwesome: require('./fonts/font-awesome-4.7.0/fonts/FontAwesome.otf'),
+	      fontAwesome: require('./fonts/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf')
+	    });
+	    this.setState({fontLoaded: true});
 	}
 
 	submit() {
@@ -44,19 +60,24 @@ export class ForgotForm extends Component {
 		return (
 			<View style = {styles.container}>
 			<StatusBar 
-				barStyle="light-content"
+				barStyle="dark-content"
 				/>
-				<TextInput 
-					placeholder="username or email"
-					placeholderTextColor='rgba(255,255,255,0.7)'
-					returnKeyType="next"
-					keyboardType="email-address"
-					autoCapitalize="none"
-					autoCorrect={false}
-					style={styles.input}
-					onChangeText={(email) => this.setState({email})}
-					value={this.state.email}
-					/>
+				<View style={styles.inputRow}>
+					<Text style={styles.icon}>
+							<FontAwesome>{Icons.user}</FontAwesome>
+						</Text>
+					<TextInput 
+						placeholder="username or email"
+						placeholderTextColor='#69D2E7'
+						returnKeyType="next"
+						keyboardType="email-address"
+						autoCapitalize="none"
+						autoCorrect={false}
+						style={styles.input}
+						onChangeText={(email) => this.setState({email})}
+						value={this.state.email}
+						/>
+				</View>
 				<TouchableOpacity style={styles.buttonContainer}>
 					<Text 
 						style={styles.buttonText}
@@ -74,20 +95,35 @@ const styles = StyleSheet.create({
 	container: {
 		padding: 20,
 	},
+	inputRow: {
+		width: '100%',
+		flexDirection: 'row',
+		justifyContent: 'center',
+		alignItems: 'flex-start',
+		marginBottom: 20
+	},
 	input: {
 		height: 40,
-		backgroundColor: 'rgba(255,255,255,0.2)',
-		marginBottom: 10,
-		color: '#FFF',
-		paddingHorizontal: 10,
+		borderWidth: 0,
+		backgroundColor: 'transparent',
+		borderBottomWidth: 1,
+		borderColor: '#F38630',
+		width: '90%'
 	},
 	buttonContainer: {
-		backgroundColor: '#2980b9',
+		backgroundColor: '#69D2E7',
 		paddingVertical: 15,
+		marginTop: 20
 	},
 	buttonText: {
 		textAlign: 'center',
 		color: '#FFFFFF',
 		fontWeight: '700'
+	},
+	icon: {
+		color: '#69D2E7',
+		fontSize: 30,
+		marginRight: 10,
+		marginTop: 13
 	}
 });
