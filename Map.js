@@ -41,6 +41,9 @@ export class Map extends Component {
       gymModal: false,
       pendingModal: false,
       bookModal: false,
+      unRead: false,
+      pendingLoaded: false,
+      alertPresent: false
     }
 
     this.bookTrainer=this.bookTrainer.bind(this);
@@ -65,7 +68,10 @@ export class Map extends Component {
     //get gyms from db
     var gyms = this.loadGyms();
 
-    this.setState({ gyms: gyms });
+    //send info to the state
+    this.setState({
+      gyms: gyms,
+    });
 
     //Get user info for state
     var user = firebase.auth().currentUser;
@@ -78,35 +84,55 @@ export class Map extends Component {
     //Re Render every 10 seconds for pendingMessages
     this._interval = setInterval(() => {
 
-    //Check for Session in Progress
-    var sessionRef = firebase.database().ref('trainSessions');
-    var currDate = new Date();
-    sessionRef.orderByKey().equalTo(user.uid).on('child_added', function(snapshot){
-      var session = snapshot.val();
-      if(new Date(session.start) < currDate){
-        Actions.session();
+      //Check for Session in Progress
+      var sessionRef = firebase.database().ref('trainSessions');
+      var currDate = new Date();
+      sessionRef.orderByKey().equalTo(user.uid).on('child_added', function(snapshot){
+        var session = snapshot.val();
+        if(new Date(session.start) < currDate){
+          Actions.session();
+        }
+      });
+      sessionRef.orderByChild('trainer').equalTo(user.uid).on('child_added', function(snapshot){
+        var session = snapshot.val();
+        if(new Date(session.start) < currDate){
+          Actions.session();
+        }
+      });
+
+      this.checkRead(user.uid);
+
+      if(!this.state.pendingLoaded || this.state.unRead){
+        //get pendingSessions from db
+        var pending = this.loadPending(user.uid);
+
+        //get Accepted Session from db
+        var accepted = this.loadAccept(user.uid);
+
+        this.state.pendingLoaded = true;
+
+        //send info to the state
+        this.setState({
+          pendingSessions: pending,
+          acceptSessions: accepted,
+        });
+
+
+        if(this.state.unRead){
+          if(!this.state.alertPresent){
+            Alert.alert(
+            'You have a new Session!',
+            '',
+            [
+              {text: 'View', onPress: () => {
+                this.showModal('pending');
+              }}  
+            ]);
+          }
+          this.state.alertPresent = true;
+        }
       }
-    });
-    sessionRef.orderByChild('trainer').equalTo(user.uid).on('child_added', function(snapshot){
-      var session = snapshot.val();
-      if(new Date(session.start) < currDate){
-        Actions.session();
-      }
-    });
-
-    //get pendingSessions from db
-    var pending = this.loadPending(user.uid);
-
-    //get Accepted Session from db
-    var accepted = this.loadAccept(user.uid);
-
-    //Send information to state
-    this.setState({
-      pendingSessions: pending,
-      acceptSessions: accepted,
-    });
-
-    }, 7000);
+    }, 3000);
   }
 
   //LoadFont function
@@ -152,6 +178,28 @@ export class Map extends Component {
     }
   };
 
+  checkRead(userKey){
+    var pendingRef = firebase.database().ref('pendingSessions');
+    var acceptRef = firebase.database().ref('trainSessions');
+    var acceptSession = pendingSession = null;
+    
+    //Only need to send trainers a notification for pending Sessions
+    pendingRef.orderByChild('trainer').equalTo(userKey).once('child_added', function(snapshot) {
+      pendingSession = snapshot.val();
+      if(typeof pendingSession.read !== 'undefined' && pendingSession.read == false){
+        this.setState({unRead: true});
+      }
+    }.bind(this));
+
+    //Only need to send trainees a notification for accepted Sessions
+    acceptRef.orderByKey().equalTo(userKey).once('child_added', function(snapshot) {
+      acceptSession = snapshot.val();
+      if(typeof acceptSession.read !== 'undefined' && acceptSession.read == false){
+        this.setState({unRead: true});
+      }
+    }.bind(this));
+
+  }
 
   //Load Pending Sessions still awaiting accept for trainer
   loadPending(userKey){
@@ -173,6 +221,7 @@ export class Map extends Component {
   }
 
   loadAccept(userKey){
+    var unRead;
     var acceptRef = firebase.database().ref('trainSessions');
     var acceptSession = null;
     var acceptSessions = [];
@@ -188,6 +237,25 @@ export class Map extends Component {
     }.bind(this));
 
     return acceptSessions;
+  }
+
+  markRead(){
+    var user = firebase.auth().currentUser;
+      this.state.pendingSessions.map(function(session){
+        if(user.uid == session.trainer){
+          firebase.database().ref('/pendingSessions/'+ session.trainee).update({
+            read: true
+          });
+        }
+      });
+    this.state.acceptSessions.map(function(session){
+      if(user.uid == session.trainee){
+        firebase.database().ref('/trainSessions/'+ session.trainee).update({
+          read: true
+        });
+      }
+    });
+    this.setState({unRead: false});
   }
 
 
@@ -232,7 +300,10 @@ export class Map extends Component {
 
     //open pending modal
     if(type == 'pending'){
-      this.setState({pendingModal: true});
+      this.markRead();
+      this.setState({
+        pendingModal: true,
+      });
     }
   }
 
@@ -268,7 +339,7 @@ export class Map extends Component {
 
     }else{
       Alert.alert(
-      'Are you sure you want to book this session?', 
+      'Are you sure you want to book this session?',
       '',
       [
         {text: 'No'},
@@ -280,7 +351,8 @@ export class Map extends Component {
           trainerName: this.state.bookingTrainer.name,
           start: this.state.bookDate.toString(),
           duration: this.state.bookDuration,
-          location: this.state.selectedGym.location
+          location: this.state.selectedGym.location,
+          read: false,
           });
           Alert.alert('Session Booked');
         }},
@@ -292,13 +364,14 @@ export class Map extends Component {
   acceptSession(session){
     var user = firebase.auth().currentUser;
     var sessionRef = firebase.database().ref('trainSessions');
+    var pendingRef = firebase.database().ref('pendingSessions');
+
     Alert.alert(
       'Are you sure you want to accept this session?', 
       '',
       [
         {text: 'No'},
         {text: 'Yes', onPress: () => {
-          pendingRef.child(session.trainee).remove();
           sessionRef.child(session.trainee).set({
             trainee: session.trainee,
             traineeName: session.traineeName,
@@ -312,12 +385,13 @@ export class Map extends Component {
             trainerReady: false,
             traineeReady: false,
             met: false,
-            actualStart: null
+            actualStart: null,
+            read: false
           });
-          var pendingRef = firebase.database().ref('pendingSessions');
           pendingRef.child(session.trainee).remove();
         }
       }]);
+    this.setState({pendingLoaded: false});
   }
 
   //Cancel pending session as trainee
@@ -332,6 +406,7 @@ export class Map extends Component {
           pendingRef.child(session.trainee).remove();
         }
       }]);
+    this.setState({pendingLoaded: false});
   }
 
   //Cancel accept session as trainee
@@ -346,6 +421,7 @@ export class Map extends Component {
           sessionRef.child(session.trainee).remove();
         }
       }]);
+    this.setState({pendingLoaded: false});
   }
 
   //Go to account page
