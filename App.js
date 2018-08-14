@@ -35,6 +35,10 @@ export default class App extends Component<{}> {
   componentWillUnmount() {
     firebase.off();
   }
+
+  componentDidMount(){
+    Expo.ScreenOrientation.allow(Expo.ScreenOrientation.Orientation.PORTRAIT_UP);
+  }
   
   render() {
     return (
