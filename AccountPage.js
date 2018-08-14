@@ -7,10 +7,11 @@ import {
   Button,
   Image,
   KeyboardAvoidingView,
+  ScrollView,
   TouchableOpacity,
   Alert
 } from 'react-native';
-import {Permissions, Location, Font} from 'expo';
+import {Permissions, Location, Font, ImagePicker} from 'expo';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import {AccountForm} from './AccountForm';
@@ -66,9 +67,9 @@ export class AccountPage extends Component {
 						style={styles.gobackText}
 						>	 Back to map</Text>
 				</TouchableOpacity>			
-				<View style = {styles.formContainer}>
+				<ScrollView style = {styles.formContainer}>
 					<AccountForm />
-				</View>
+				</ScrollView>
 				<TouchableOpacity 
 					style={styles.buttonContainer}
 					onPressIn={this.logout}>

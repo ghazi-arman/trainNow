@@ -7,11 +7,13 @@ import {
   TextInput,
   TouchableOpacity,
   StatusBar,
+  ScrollView,
   Alert,
   Switch
 } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
+import { ImagePicker} from 'expo';
 
 
 
@@ -52,6 +54,16 @@ export class AccountForm extends Component {
 	   	}
   	}
 
+  	_pickImage = async () => {
+    	let result = await ImagePicker.launchImageLibraryAsync({
+     		allowsEditing: true,
+      		aspect: [4, 3],
+    	});
+
+    	if (!result.cancelled) {
+      		this.setState({ image: result.uri });
+    	}
+    }
 
 	onUpdatePress() {
 		// client side authentication
@@ -200,12 +212,19 @@ export class AccountForm extends Component {
 				{nameField}
 				{rateField}
 				{bioField}
-				{certField}			
+				{certField}		
+				<TouchableOpacity style={styles.buttonContainer} onPressIn={() => this._pickImage()}>
+					<Text 
+						style={styles.buttonText}
+						>
+						Update Image
+					</Text>
+				</TouchableOpacity>	
 				<TouchableOpacity style={styles.buttonContainer} onPressIn={this.onUpdatePress}>
 					<Text 
 						style={styles.buttonText}
 						>
-						Update Info
+						Save Changes
 					</Text>
 				</TouchableOpacity>
 			</View>
