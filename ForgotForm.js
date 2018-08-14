@@ -67,7 +67,7 @@ export class ForgotForm extends Component {
 							<FontAwesome>{Icons.user}</FontAwesome>
 						</Text>
 					<TextInput 
-						placeholder="username or email"
+						placeholder="Email"
 						placeholderTextColor='#69D2E7'
 						returnKeyType="next"
 						keyboardType="email-address"
@@ -92,9 +92,6 @@ export class ForgotForm extends Component {
 }
 
 const styles = StyleSheet.create({
-	container: {
-		padding: 20,
-	},
 	inputRow: {
 		width: '100%',
 		flexDirection: 'row',
@@ -126,4 +123,5 @@ const styles = StyleSheet.create({
 		marginRight: 10,
 		marginTop: 13
 	}
+
 });

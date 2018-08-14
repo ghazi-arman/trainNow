@@ -25,22 +25,17 @@ export class Forgot extends Component {
 				style = {styles.container}
 				>
 				<View style = {styles.logoContainer}>
-					<Image 
-						style = {styles.logo}
-						source = {require('./logo.png')}
-						/>
-					<Text style={styles.title}></Text>
+					<Image style = {styles.logo} source = {require('./logo.png')} />
 				</View>
 				<View style={styles.formContainer}>
 					<ForgotForm />
-				</View>
-				<View style={styles.buttonContainer}>
-					<Text style={styles.button}>
-						Already have an account?
-					</Text>
-					<TouchableOpacity onPress={this.goback}>
-						<Text style={styles.buttonText}>  Sign in</Text>
-					</TouchableOpacity>
+					<View style={styles.linkContainer}>
+						<View style={styles.textContain}>
+							<TouchableOpacity onPress={this.goback}>
+								<Text style={styles.linkText}>Have an Account?</Text>
+							</TouchableOpacity>
+						</View>
+					</View>
 				</View>
 			</KeyboardAvoidingView>
 		);
@@ -50,39 +45,38 @@ export class Forgot extends Component {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: '#E0E4CC',
+		alignItems: 'center',
+		justifyContent: 'center',
+		backgroundColor: '#E0E4CC'
 	},
 	logo: {
-		width: 100,
-		height: 100
+		width: '65%',
+		height: '65%'
 	},
 	logoContainer: {
+		flexDirection: 'row',
+		justifyContent: 'center',
 		alignItems: 'center',
-		flexGrow: 1,
+		height: '25%',
+		width: '80%'
+	},
+	textContain:{
+		height: 30
+	},
+	formContainer: {
+		height: '45%',
+		width: '80%'
+	},
+	linkContainer: {
+		flexDirection: 'column',
+		alignItems: 'center',
 		justifyContent: 'center',
+		height: "15%",
+		paddingTop: 10
 	},
-	title: {
-		color: "#FFF",
-		marginTop: 10,
-		textAlign: 'center',
-		opacity: 0.9,
-	},
-	buttonContainer: {
-		flexGrow: 1,
-		alignItems: 'flex-end',
-		justifyContent: 'center',
-		paddingVertical: 16,
-		flexDirection: 'row'
-	},
-	button: {
+	linkText: {
 		color: '#FA6900',
 		fontSize: 16,
 		fontWeight: '500',
-	},
-	buttonText: {
-		color: '#FA6900',
-		fontSize: 16,
-		fontWeight: '500',
-		textDecorationLine: 'underline',
-	},
+	}
 });

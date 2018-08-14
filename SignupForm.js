@@ -25,7 +25,7 @@ export class SignupForm extends Component {
 			cert:'',
 			image: 'null',
 			gyms: [],
-		};
+		}; 
 
 		this.onSignUpPress=this.onSignUpPress.bind(this);
 	}
