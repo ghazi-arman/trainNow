@@ -7,6 +7,7 @@ import {Forgot} from './Forgot';
 import {Map} from './Map';
 import {AccountPage} from './AccountPage';
 import {SessionPage} from './SessionPage';
+import {RatingPage} from './RatingPage';
 
 
 export class Routes extends Component {
@@ -20,6 +21,7 @@ export class Routes extends Component {
 			    	<Scene key="map" component={Map} title="Map"/>
 			    	<Scene key="account" component={AccountPage} title="AccountPage"/>
 			    	<Scene key="session" component={SessionPage} title="SessionPage"/>
+			    	<Scene key="rating" component={RatingPage} title="RatingPage" />
 			    </Stack>
 			</Router>
 		);
