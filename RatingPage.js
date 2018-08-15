@@ -32,23 +32,31 @@ export class RatingPage extends Component {
 		Actions.reset('map');
 	}
 
+	componentWillUnmount(){
+		clearInterval(this._interval);
+	}
+
 	// load font after render the page
 	async componentDidMount() {
 
-		Font.loadAsync({
-		  fontAwesome: require('./fonts/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf'),
-		});
-		this.setState({ fontLoaded: true });
+		this._interval = setInterval(() => {
 
-		var user = firebase.auth().currentUser;
-		var sessionRef = firebase.database().ref('trainSessions');
-		sessionRef.orderByKey().equalTo(user.uid).on("child_added", function(snapshot){
-			this.setState({session: snapshot.val()});
-		}.bind(this));
+			Font.loadAsync({
+			  fontAwesome: require('./fonts/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf'),
+			});
+			this.setState({ fontLoaded: true });
 
-		sessionRef.orderByChild('trainer').equalTo(user.uid).on("child_added", function(snapshot){
-			this.setState({session: snapshot.val()});
-		}.bind(this));
+			var user = firebase.auth().currentUser;
+			var sessionRef = firebase.database().ref('trainSessions');
+			sessionRef.orderByKey().equalTo(user.uid).on("child_added", function(snapshot){
+				this.setState({session: snapshot.val()});
+			}.bind(this));
+
+			sessionRef.orderByChild('trainer').equalTo(user.uid).on("child_added", function(snapshot){
+				this.setState({session: snapshot.val()});
+			}.bind(this));
+
+		}, 2000);
 
 	}
 
@@ -69,9 +77,15 @@ export class RatingPage extends Component {
 		if(this.state.session.trainer == user.uid){
 			var userRef = firebase.database().ref('/users/' + this.state.session.trainee + '/trainerHistory/');
 			sessionRef.update({trainerRating: this.state.rating});
+			if(this.state.session.traineeRating){
+				sessionRef.remove();
+			}
 		}else{
 			var userRef = firebase.database().ref('/users/' + this.state.session.trainer + '/trainerHistory/');
 			sessionRef.update({traineeRating: this.state.rating});
+			if(this.state.session.trainerRating){
+				sessionRef.remove();
+			}
 		}
 
 		userRef.child(displayDate).set({

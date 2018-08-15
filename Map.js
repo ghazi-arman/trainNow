@@ -117,7 +117,7 @@ export class Map extends Component {
           this.state.alertPresent = true;
         }
       }
-    }, 3000);
+    }, 2000);
   }
 
   //LoadFont function
