@@ -52,6 +52,22 @@ export class SessionPage extends Component {
 		this.setState({ mapRegion });
 	};
 	
+	endSession(){
+		var user = firebase.auth().currentUser;
+		var sessionRef = firebase.database().ref('/trainSessions/' + this.state.session.trainee)
+
+		if(this.state.session.trainer == user.uid){
+			sessionRef.update({trainerEnd: true});
+			if(this.state.session.traineeEnd){
+				Actions.rating();
+			}
+		}else{
+			sessionRef.update({traineeEnd: true});
+			if(this.state.session.trainerEnd){
+				Actions.rating();
+			}
+		}
+	}
 	startSession(){
 		var user = firebase.auth().currentUser;
 		var sessionRef = firebase.database().ref('/trainSessions/' + this.state.session.trainee)
@@ -109,36 +125,50 @@ export class SessionPage extends Component {
 				this.setState({session: snapshot.val()});
 			}.bind(this));
 
-		}, 10000);
+			if(typeof this.state.session.end !== 'undefined' && this.state.session.end != null){
+				Actions.reset('rating');
+			}
+
+		}, 3000);
 	}
 
 	componentWillUnmount(){
 		clearInterval(this._interval);
 	}
+	  //Convert Date to readable format
+	  dateToString(start){
+
+	    var pendingDate = new Date(start);
+	    var month = pendingDate.getMonth() + 1;
+	    var day = pendingDate.getDate();
+	    var hour = pendingDate.getHours();
+	    var minute = pendingDate.getMinutes();
+	    var abbr;
+
+	    if(minute < 10){
+	        minute = '0' + minute;
+	    }
+	    //Sets abbr to AM or PM
+	    if(hour > 12){
+	      hour = hour - 12;
+	      abbr = 'PM';
+	    }else{
+	      abbr = 'AM'
+	    }
+
+	    var displayDate = month + '-' + day + ' ' + hour + ':' + minute + abbr;
+	    return displayDate;
+	  }
 
 	render() {
 		if(this.state.session == 'null' || typeof this.state.session.location === 'undefined'|| this.state.userRegion == 'null' || typeof this.state.userRegion === 'undefined' || this.state.mapRegion == 'null'){
 			return <Expo.AppLoading />
 		}else{
-			var pendingDate = new Date(this.state.session.start);
-        	var hour = pendingDate.getHours();
-        	var minute = pendingDate.getMinutes();
-        	var abbr;
-        	if(minute < 10){
-        		minute = "0" + minute;
-        	}
-        	if(hour == 0){
-        		hour = 12;
-        	}
-        	if(hour > 12){
-          		hour = hour - 12;
-          		abbr = "PM";
-        	}else{
-          		abbr = "AM"
-        	}
+			var displayDate = this.dateToString(this.state.session.start);
+
 			var map, button, time, minutes, remaining;
 			if(!this.state.session.met){
-				time = <Text style={styles.bookDetails}>Start: {hour}:{minute} {abbr} </Text>;
+				time = <Text style={styles.bookDetails}>Start: {displayDate} </Text>;
 				length = <Text style={styles.bookDetails}>Length: {this.state.session.duration} min</Text>;
 				map = ( 
 					<MapView
@@ -147,7 +177,7 @@ export class SessionPage extends Component {
 					  scrollEnabled = {false}
 					  zoomEnabled = {false}
 			          ref = {(mapView) => { _map = mapView; }}
-			          style={styles.formContainer}
+			          style={styles.mapContainer}
 			          onRegionChange={this.handleMapRegionChange}
 			          region={this.state.mapRegion}
 			          showUserLocation={true}
@@ -176,14 +206,16 @@ export class SessionPage extends Component {
 					</TouchableOpacity>
 				);
 			}else{
+				pendingDate = new Date(this.state.session.start);
+				displayDate = this.dateToString(this.state.session.start);
 				remaining = ((pendingDate.getTime() + (parseInt(this.state.session.duration) * 1000 * 60)) - new Date().getTime());
 				minutes = Math.floor((remaining/1000)/60);
-				time = <Text style={styles.bookDetails}>Session Started at {hour}:{minute} {abbr} </Text>;
+				time = <Text style={styles.bookDetails}>Session Started at {displayDate}</Text>;
 				length = <Text style={styles.bookDetails}>You have {minutes} min left</Text>;
 				button = (
 					<TouchableOpacity 
 						style={styles.buttonContainer}
-						onPressIn={this.startSession}>
+						onPressIn={this.endSession}>
 						<Text 
 							style={styles.buttonText}
 							>End Session</Text>
@@ -193,25 +225,20 @@ export class SessionPage extends Component {
 			}
 		}
 		return (
-			<KeyboardAvoidingView 
-				behavior="padding"
-				style = {styles.container}
-				>
-				<TouchableOpacity 
-					style={styles.gobackContainer}
-					onPressIn={this.backtomap}>
-					<Text 
-						style={styles.gobackText}
-						>	 Back to map</Text>
-				</TouchableOpacity>			
-				<View style = {styles.formContainer}>
-					<Text style={styles.bookDetails}>Trainer: {this.state.session.trainerName}</Text>
-					<Text style={styles.bookDetails}>Trainee: {this.state.session.traineeName}</Text>
-					{time}
-					{length}
+			<KeyboardAvoidingView behavior="padding" style = {styles.container}>	
+				<View style={styles.formContainer}>
+					<View style={styles.infoContainer}>
+						<Text style={styles.header}>Session Details</Text>
+						<Text style={styles.bookDetails}>Trainer: {this.state.session.trainerName}</Text>
+						<Text style={styles.bookDetails}>Trainee: {this.state.session.traineeName}</Text>
+						{time}
+						{length}
+            		</View>
             		{map}
+            		<View style={styles.buttonContain}>
+            			{button}
+            		</View>
 				</View>
-				{button}
 			</KeyboardAvoidingView>	
 		);
 	}
@@ -220,48 +247,46 @@ export class SessionPage extends Component {
 
 const styles = StyleSheet.create({
 	bookDetails:{
-    	fontSize: 20,
-    	fontWeight: '500'
+    	fontSize: 25,
+    	fontWeight: '500',
+  	},
+  	header: {
+  		fontSize: 35,
+  		fontWeight: '700',
+  		textDecorationLine: 'underline'
+
   	},
 	container: {
 		flex: 1,
-		backgroundColor: '#3498db',
-	},
-	gobackContainer: {
-		backgroundColor: '#2980b9',
-		paddingVertical: 20,
-		top: '5%'
+		backgroundColor: '#E0E4CC',
+		flexDirection: 'column',
+		justifyContent: 'center',
+		alignItems: 'center'
 	},
 	formContainer: {
-	    position: 'relative',
-	    marginLeft: '10%',
-	    height: '80%',
 	    width: '80%',
-	    marginTop: 30
+	    flexDirection: 'column',
+	    justifyContent: 'center',
+	    alignItems: 'center'
   	},
-	gobackText: {
-		textAlign: 'center',
-		color: '#FFFFFF',
-		fontWeight: '700'
-	},
-	logo: {
-		width: 100,
-		height: 100,
-	},
-	logoContainer: {
-		alignItems: 'center',
-		flexGrow: 1,
-		justifyContent: 'center',
-	},
-	title: {
-		color: "#FFF",
-		marginTop: 10,
-		textAlign: 'center',
-		opacity: 0.9,
-	},		
+  	mapContainer: {
+  		width: '100%',
+  		height: '50%'
+  	},
+  	buttonContain: {
+  		width: '50%'
+  	},
+  	infoContainer: {
+  		height: '40%',
+  		width: '100%',
+  		flexDirection: 'column',
+  		justifyContent: 'center',
+  		alignItems: 'center',
+  	},	
 	buttonContainer: {
 		backgroundColor: '#2980b9',
 		paddingVertical: 15,
+		width: '100%'
 	},
 	buttonText: {
 		textAlign: 'center',
