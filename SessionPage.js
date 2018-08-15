@@ -26,6 +26,7 @@ export class SessionPage extends Component {
 			userRegion: 'null',
 		};
 		this.endSession=this.endSession.bind(this);
+		this.startSession=this.startSession.bind(this);
 	}
 
 	backtomap() {
@@ -75,6 +76,10 @@ export class SessionPage extends Component {
 	startSession(){
 		var user = firebase.auth().currentUser;
 		var sessionRef = firebase.database().ref('/trainSessions/' + this.state.session.trainee)
+		if(typeof this.state.session === 'undefined'){
+			Alert.alert("Try Again Please. Server Problem");
+			return;
+		}
 
 		if(this.state.session.trainer == user.uid){
 
@@ -268,21 +273,22 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	formContainer: {
-	    width: '80%',
+	    width: '100%',
 	    flexDirection: 'column',
 	    justifyContent: 'center',
 	    alignItems: 'center'
   	},
   	mapContainer: {
   		width: '100%',
-  		height: '50%'
+  		height: '40%'
   	},
   	buttonContain: {
-  		width: '50%'
+  		width: '50%',
+  		height: '20%'
   	},
   	infoContainer: {
-  		height: '50%',
-  		width: '100%',
+  		height: '40%',
+  		width: '80%',
   		flexDirection: 'column',
   		justifyContent: 'center',
   		alignItems: 'center',
@@ -290,7 +296,8 @@ const styles = StyleSheet.create({
 	buttonContainer: {
 		backgroundColor: '#2980b9',
 		paddingVertical: 15,
-		width: '100%'
+		width: '100%',
+		paddingTop: 15
 	},
 	buttonText: {
 		textAlign: 'center',
