@@ -84,22 +84,7 @@ export class Map extends Component {
     //Re Render every 10 seconds for pendingMessages
     this._interval = setInterval(() => {
 
-      //Check for Session in Progress
-      var sessionRef = firebase.database().ref('trainSessions');
-      var currDate = new Date();
-      sessionRef.orderByKey().equalTo(user.uid).on('child_added', function(snapshot){
-        var session = snapshot.val();
-        if(new Date(session.start) < currDate){
-          Actions.session();
-        }
-      });
-      sessionRef.orderByChild('trainer').equalTo(user.uid).on('child_added', function(snapshot){
-        var session = snapshot.val();
-        if(new Date(session.start) < currDate){
-          Actions.session();
-        }
-      });
-
+      this.checkSessions(user.uid);
       this.checkRead(user.uid);
 
       if(!this.state.pendingLoaded || this.state.unRead){
@@ -177,6 +162,29 @@ export class Map extends Component {
       return;
     }
   };
+
+  checkSessions(userKey){
+      //Check for Session in Progress
+      var sessionRef = firebase.database().ref('trainSessions');
+      var currDate = new Date();
+      sessionRef.orderByKey().equalTo(userKey).on('child_added', function(snapshot){
+        var session = snapshot.val();
+        if(new Date(session.start) < currDate && session.end == null){
+          Actions.reset('session');
+        }else if(session.end != null && session.traineeRating == null){
+          Actions.reset('rating');
+        }
+      });
+
+      sessionRef.orderByChild('trainer').equalTo(userKey).on('child_added', function(snapshot){
+        var session = snapshot.val();
+        if(new Date(session.start) < currDate && session.end == null){
+          Actions.reset('session');
+        }else if(session.end != null && session.trainerRating == null){
+          Actions.reset('rating');
+        }
+      });
+  }
 
   checkRead(userKey){
     var pendingRef = firebase.database().ref('pendingSessions');
@@ -352,6 +360,7 @@ export class Map extends Component {
           start: this.state.bookDate.toString(),
           duration: this.state.bookDuration,
           location: this.state.selectedGym.location,
+          rate: this.state.bookingTrainer.rate,
           read: false,
           });
           Alert.alert('Session Booked');
@@ -374,19 +383,24 @@ export class Map extends Component {
         {text: 'Yes', onPress: () => {
           sessionRef.child(session.trainee).set({
             trainee: session.trainee,
-            traineeName: session.traineeName,
             trainer: session.trainer,
+            traineeName: session.traineeName,
             trainerName: session.trainerName,
             start: session.start,
             duration: session.duration,
             location: session.location,
+            rate: session.rate,
             traineeLoc: null,
             trainerLoc: null,
             trainerReady: false,
             traineeReady: false,
             met: false,
-            actualStart: null,
-            read: false
+            read: false,
+            end: null,
+            traineeRating: null,
+            trainerRating: null,
+            traineeEnd: false,
+            trainerEnd: false,
           });
           pendingRef.child(session.trainee).remove();
         }

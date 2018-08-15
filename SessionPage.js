@@ -25,7 +25,7 @@ export class SessionPage extends Component {
 			mapRegion: 'null',
 			userRegion: 'null',
 		};
-		this.startSession=this.startSession.bind(this);
+		this.endSession=this.endSession.bind(this);
 	}
 
 	backtomap() {
@@ -57,14 +57,18 @@ export class SessionPage extends Component {
 		var sessionRef = firebase.database().ref('/trainSessions/' + this.state.session.trainee)
 
 		if(this.state.session.trainer == user.uid){
-			sessionRef.update({trainerEnd: true});
 			if(this.state.session.traineeEnd){
-				Actions.rating();
+				sessionRef.update({trainerEnd: true, end: new Date()});
+				Actions.reset('rating');
+			}else{
+				sessionRef.update({trainerEnd: true});
 			}
 		}else{
-			sessionRef.update({traineeEnd: true});
 			if(this.state.session.trainerEnd){
-				Actions.rating();
+				sessionRef.update({traineeEnd: true, end: new Date()});
+				Actions.reset('rating');
+			}else{
+				sessionRef.update({traineeEnd: true});
 			}
 		}
 	}
@@ -210,7 +214,7 @@ export class SessionPage extends Component {
 				displayDate = this.dateToString(this.state.session.start);
 				remaining = ((pendingDate.getTime() + (parseInt(this.state.session.duration) * 1000 * 60)) - new Date().getTime());
 				minutes = Math.floor((remaining/1000)/60);
-				time = <Text style={styles.bookDetails}>Session Started at {displayDate}</Text>;
+				time = <Text style={styles.bookDetails}>Start:{displayDate}</Text>;
 				length = <Text style={styles.bookDetails}>You have {minutes} min left</Text>;
 				button = (
 					<TouchableOpacity 
@@ -277,7 +281,7 @@ const styles = StyleSheet.create({
   		width: '50%'
   	},
   	infoContainer: {
-  		height: '40%',
+  		height: '50%',
   		width: '100%',
   		flexDirection: 'column',
   		justifyContent: 'center',

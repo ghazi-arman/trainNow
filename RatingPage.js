@@ -57,7 +57,7 @@ export class RatingPage extends Component {
 		var sessionRef = firebase.database().ref('/trainSessions/' + this.state.session.trainee)
 		var displayDate = this.dateToString(this.state.session.start);
 		
-		var duration = new Date(this.state.session.start) - new Date(this.state.session.end);
+		var duration = new Date(this.state.session.end) - new Date(this.state.session.start);
 		var minutes = Math.floor((duration/1000)/60);
 		var rate = parseInt(minutes) * (parseInt(this.state.session.rate) / 60);
 		
@@ -114,7 +114,7 @@ export class RatingPage extends Component {
 			return <Expo.AppLoading />
 		}else{
 			var displayDate = this.dateToString(this.state.session.end);
-			var duration = new Date(this.state.session.start) - new Date(this.state.session.end);
+			var duration = new Date(this.state.session.end) - new Date(this.state.session.start);
 			var minutes = Math.floor((duration/1000)/60);
 			var rate = parseInt(minutes) * (parseInt(this.state.session.rate) / 60);
 		}
