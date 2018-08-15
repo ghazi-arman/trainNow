@@ -593,7 +593,7 @@ export class Map extends Component {
         //DOM Element for a trainer in gym modal
         return(
         <View style={styles.trainerContainer} key={key}>
-        <TouchableWithoutFeedback onPressIn={() => this.setState({selectedTrainer: this.extendTrainer(trainer)})}>
+        <TouchableWithoutFeedback onPress={() => this.setState({selectedTrainer: this.extendTrainer(trainer)})}>
           <View style={styles.trainerRow} key={trainer.key}>
             <View style={styles.trainerInfoContainer}>
               <View style={styles.trainerView}><Text style={styles.trainerInfo}>{trainer.name}</Text></View>
