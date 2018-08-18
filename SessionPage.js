@@ -29,10 +29,6 @@ export class SessionPage extends Component {
 		this.startSession=this.startSession.bind(this);
 	}
 
-	backtomap() {
-		Actions.reset('map');
-	}
-
 	getLocationAsync = async () => {
 
 	    //grab user location and store it
