@@ -53,19 +53,22 @@ export class SessionModal extends Component {
 	  	rv = await acceptRef.orderByChild('trainer').equalTo(userKey).once('value', function(snapshot) {
 	      acceptSession = snapshot.val();
 	      if(acceptSession != null){
-	      	var key = Object.keys(pendingSession);
-	      	acceptSessions.push(acceptSession[key[0]]);
+	      	var key = Object.keys(acceptSession);
+	      	if(acceptSession[key[0]].end == null){
+	      		acceptSessions.push(acceptSession[key[0]]);
+	      	}
 	      }
 	    }.bind(this));
 
 	    rv = await acceptRef.orderByKey().equalTo(userKey).once('value', function(snapshot) {
 	      acceptSession = snapshot.val();
-	      if(acceptSession != null){
+	      if(acceptSession != null && acceptSession[userKey].end == null){
 	      	acceptSessions.push(acceptSession[userKey]);
 	      }
 	    }.bind(this));
 		
 		this.setState({pendingSessions: pendingSessions, acceptSessions: acceptSessions, loaded: true});
+		this.markRead();
 
 	}
 
@@ -93,6 +96,7 @@ export class SessionModal extends Component {
 	    var user = firebase.auth().currentUser;
 	    var sessionRef = firebase.database().ref('trainSessions');
 	    var pendingRef = firebase.database().ref('pendingSessions');
+	    var pendingSessions = this.state.pendingSessions;
 
 	    Alert.alert(
 	      'Are you sure you want to accept this session?', 
@@ -122,6 +126,8 @@ export class SessionModal extends Component {
 	            trainerEnd: false,
 	          });
 	          pendingRef.child(session.trainee).remove();
+	          pendingSessions.splice(pendingSessions.indexOf(session.trainee), 1);
+	          this.setState({pendingSessions: pendingSessions});
 	        }
 	      }]);
 	}
@@ -129,6 +135,7 @@ export class SessionModal extends Component {
 	//Cancel pending session as trainee
 	cancelSession(session){
 	    var pendingRef = firebase.database().ref('pendingSessions');
+	    var pendingSessions = this.state.pendingSessions
 	    Alert.alert(
 	      'Are you sure you want to cancel this session?', 
 	      '',
@@ -136,6 +143,8 @@ export class SessionModal extends Component {
 	        {text: 'No'},
 	        {text: 'Yes', onPress: () => {
 	          pendingRef.child(session.trainee).remove();
+	          pendingSessions.splice(pendingSessions.indexOf(session.trainee), 1);
+	          this.setState({pendingSessions: pendingSessions});
 	        }
 	      }]);
 	}
@@ -143,6 +152,7 @@ export class SessionModal extends Component {
 	//Cancel accept session as trainee
   	cancelAccept(session){
 	    var sessionRef = firebase.database().ref('trainSessions');
+	    acceptSessions = this.state.acceptSessions;
 	        Alert.alert(
 	      'Are you sure you want to cancel this session?', 
 	      '',
@@ -150,6 +160,8 @@ export class SessionModal extends Component {
 	        {text: 'No'},
 	        {text: 'Yes', onPress: () => {
 	          sessionRef.child(session.trainee).remove();
+	          acceptSessions.splice(acceptSessions.indexOf(session.trainee), 1);
+	          this.setState({acceptSessions: acceptSessions});
 	        }
 	      }]);
   	}
@@ -184,14 +196,12 @@ export class SessionModal extends Component {
 		if(this.state.pendingSessions == 'null' || this.state.acceptSessions == 'null' || typeof this.state.pendingSessions === 'undefined' || this.state.acceptSessions === 'undefined' || !this.state.loaded){
 			return <Expo.AppLoading />;
 		}else{
-			console.log('not null');
 			var acceptSessions = this.state.acceptSessions;
 			var pendingSessions = this.state.pendingSessions;
 			var userKey = firebase.auth().currentUser.uid;
 		 	var pendingList = pendingSessions.map(function(session){
-		    	var displayDate = this.dateToString(session.start);
-		    	console.log(session);
 
+		    	var displayDate = this.dateToString(session.start);
 		        if(session.trainee == userKey){
 
 		          var button = (
@@ -232,7 +242,7 @@ export class SessionModal extends Component {
 		        );
 		    }.bind(this));
 		    var acceptList = acceptSessions.map(function(session){
-		      	console.log(session.duration);
+
 		        var displayDate = this.dateToString(session.start);
 		        if(session.trainee == userKey){
 		          var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.trainerName}</Text></View>);

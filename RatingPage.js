@@ -67,7 +67,7 @@ export class RatingPage extends Component {
 		
 		var duration = new Date(this.state.session.end) - new Date(this.state.session.start);
 		var minutes = Math.floor((duration/1000)/60);
-		var rate = parseInt(minutes) * (parseInt(this.state.session.rate) / 60);
+		var rate = (parseInt(minutes) * (parseInt(this.state.session.rate) / 60)).toFixed(2);
 		
 		if(this.state.rating == 'null'){
 			Alert.alert('Enter a rating!');
@@ -130,7 +130,7 @@ export class RatingPage extends Component {
 			var displayDate = this.dateToString(this.state.session.end);
 			var duration = new Date(this.state.session.end) - new Date(this.state.session.start);
 			var minutes = Math.floor((duration/1000)/60);
-			var rate = parseInt(minutes) * (parseInt(this.state.session.rate) / 60);
+			var rate = (parseInt(minutes) * (parseInt(this.state.session.rate) / 60)).toFixed(2);
 		}
 		return (
 			<KeyboardAvoidingView behavior="padding" style = {styles.container}>	

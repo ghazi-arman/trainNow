@@ -66,10 +66,10 @@ export class Map extends Component {
         			{text: 'View', onPress: () => {this.showModal('pending');}}
       	]);
       	this.state.modalPresent = true;
-     	}else{
+     	}else if(!this.state.unRead){
      		this.checkRead(user.uid);
      	}
-    }, 3000);
+    }, 500);
   }
 
   //Gets user location and updates mapRegion in state
@@ -137,7 +137,6 @@ export class Map extends Component {
     pendingRef.orderByChild('trainer').equalTo(userKey).once('child_added', function(snapshot) {
       pendingSession = snapshot.val();
       if(typeof pendingSession.read !== 'undefined' && pendingSession.read == false){
-        	console.log('unread');
         	this.setState({unRead: true});
       }
     }.bind(this));
@@ -146,7 +145,6 @@ export class Map extends Component {
     acceptRef.orderByKey().equalTo(userKey).once('child_added', function(snapshot) {
       acceptSession = snapshot.val();
       if(typeof acceptSession.read !== 'undefined' && acceptSession.read == false){
-      	console.log('unread');
         	this.setState({unRead: true});
       }
     }.bind(this));
