@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		justifyContent: 'flex-start',
 		alignItems: 'center',
-		backgroundColor: '#fff',
+		backgroundColor: '#E0E4CC',
 		borderRadius: 10,
 	},
 	gymName: {
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
 	    width: '100%',
 	    borderTopLeftRadius: 10,
 	    borderTopRightRadius: 10,
-	    backgroundColor: '#A7DBD8',
+	    backgroundColor: '#69D2E7',
 	    flexDirection: 'row',
 	    justifyContent: 'center',
 	    alignItems: 'center'

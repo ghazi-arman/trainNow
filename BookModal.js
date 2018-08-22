@@ -32,7 +32,6 @@ export class BookModal extends Component {
 	//Loads selected trainer Info from db
 	loadTrainer(trainerKey){
 	    firebase.database().ref('/users/' + trainerKey).once('value', function(snapshot){
-	    console.log(snapshot.val());
         this.setState({
           trainer: snapshot.val()
         });
@@ -55,27 +54,33 @@ export class BookModal extends Component {
 	      return;
 
 	    }else{
-	      Alert.alert(
-	      'Are you sure you want to book this session?',
-	      '',
-	      [
-	        {text: 'No'},
-	        {text: 'Yes', onPress: () => {
-	          pendingRef.child(user.uid).set({
-	          trainee: user.uid,
-	          traineeName: this.state.user.name,
-	          trainer: this.props.trainer.key,
-	          trainerName: this.state.trainer.name,
-	          start: this.state.bookDate.toString(),
-	          duration: this.state.bookDuration,
-	          location: this.props.gym.location,
-	          rate: this.state.trainer.rate,
-	          read: false,
-	          });
-	          Alert.alert('Session Booked');
-	        }},
-	      ]);
-	    }
+	    	pendingRef.once('value', function(snapshot){
+	    		if(snapshot.hasChild(user.uid)){
+	    			Alert.alert('You cannot book a session when you have one pending!');
+	    		}else{
+	    			Alert.alert(
+				      'Are you sure you want to book this session?',
+				      '',
+				     	[
+			        	{text: 'No'},
+			        	{text: 'Yes', onPress: () => {
+			         	pendingRef.child(user.uid).set({
+			          	trainee: user.uid,
+			          	traineeName: this.state.user.name,
+			          	trainer: this.props.trainer.key,
+			          	trainerName: this.state.trainer.name,
+			          	start: this.state.bookDate.toString(),
+			          	duration: this.state.bookDuration,
+			          	location: this.props.gym.location,
+			          	rate: this.state.trainer.rate,
+			          	read: false,
+			         });
+			         Alert.alert('Session Booked');
+			        }},
+			      ]);
+	    		}
+	    	}.bind(this));
+	   }
   	}
 
 	render(){
@@ -84,41 +89,39 @@ export class BookModal extends Component {
 		}else{
 			return(
 				<View style={styles.modal}>
-		            <Text style={styles.hourDetails}>Book Trainer: {this.state.trainer.name}</Text>
-		            <Text style={styles.bookDetails}>Certifications: {this.state.trainer.cert}</Text>
-		            <Text style={styles.bookDetails}>Bio: {this.state.trainer.bio}</Text>
-		            <Text style={styles.bookDetails}>Gym: {this.props.gym.name}</Text>
-		            <View style={styles.formContainer}>
-		              <Text style ={styles.bookFormLabel}>Session Date & Time</Text>
-		              <DatePickerIOS
-		                mode='time'
-		                minimumDate={new Date()}
-		                style={{width: '65%', height: 150}}
-		                itemStyle={{height: 150}}
-		                date={this.state.bookDate}
-		                onDateChange={(bookDate) => this.setState({bookDate: bookDate})}
-		              />
-		            </View>
-		            <View style={styles.formRow}>
-		              <Text style ={styles.bookFormLabel}>Session Duration</Text>
-		              <Picker
-		                style={{width: '65%', height: 150}}
-		                itemStyle={{height: 150}}
-		                selectedValue={this.state.bookDuration}
-		                onValueChange={(itemValue, itemIndex) => this.setState({bookDuration: itemValue})}>
-		                <Picker.Item label='60' value='60' />
-		                <Picker.Item label='90' value='90' />
-		                <Picker.Item label='120' value='120' />
-		              </Picker>
-		            </View>
-		            <View style={{flexDirection: 'row', justifyContent: 'center'}}>
-		              <TouchableOpacity style={styles.bookButton} onPressIn={() => this.bookTrainer()}>
-		                <Text 
-		                  style={styles.buttonText}
-		                  >
-		                  Schedule Session
-		                </Text>
-		              </TouchableOpacity>
+					<View style={styles.formContainer}>
+			            <Text style={styles.hourDetails}>{this.state.trainer.name}</Text>
+			            <Text style={styles.bookDetails}>Gym: {this.props.gym.name}</Text>
+			            <View style={styles.inputRow}>
+			              <Text style ={styles.bookFormLabel}>Session Time</Text>
+			              <DatePickerIOS
+			                mode='time'
+			                style={styles.datepicker}
+			                minuteInterval={10}
+			                minimumDate={new Date(new Date().getTime() + 600000)}
+			                date={this.state.bookDate}
+			                onDateChange={(bookDate) => this.setState({bookDate: bookDate})}
+			              />
+			            </View>
+			            <View style={styles.inputRow}>
+			              <Text style ={styles.bookFormLabel}>Session Duration</Text>
+			              <Picker
+			                style={styles.picker}
+			                itemStyle={{height: 90}}
+			                selectedValue={this.state.bookDuration}
+			                onValueChange={(itemValue, itemIndex) => this.setState({bookDuration: itemValue})}>
+			                <Picker.Item label='60' value='60' />
+			                <Picker.Item label='90' value='90' />
+			                <Picker.Item label='120' value='120' />
+			              </Picker>
+			            </View>
+			            <TouchableOpacity style={styles.bookButton} onPressIn={() => this.bookTrainer()}>
+			            	<Text 
+			                  style={styles.buttonText}
+			                  >
+			                  Schedule Session
+			                </Text>
+			            </TouchableOpacity>
 		            </View>
 	         	</View>)
 		}
@@ -131,7 +134,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		justifyContent: 'flex-start',
 		alignItems: 'center',
-		backgroundColor: '#fff',
+		backgroundColor: '#E0E4CC',
 		borderRadius: 10,
 	},
 	bookDetails:{
@@ -144,27 +147,42 @@ const styles = StyleSheet.create({
     	width: '35%'
   	},
   	formContainer: {
-		flexDirection: 'row',
+		flexDirection: 'column',
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
+		width: '80%'
+	},
+	datepicker: {
+		height: 200,
+		width: '80%',
+		borderWidth: 1,
+		borderColor: '#F38630',
+		marginTop: 20
+	},
+	picker: {
+		height: 90,
+		borderWidth: 1,
+		borderColor: '#F38630',
+		width: '80%',
 	},
 	bookButton: {
     	paddingVertical: 15,
-    	backgroundColor: '#C51162',
+    	backgroundColor: '#69D2E7',
     	width: '70%',
     	marginTop: 20
   	},
-  	formRow: {
-  		flexDirection: 'row',
-  		justifyContent: 'center',
-  		alignItems: 'center',
-		marginTop: 25
-  	},
+  	inputRow: {
+		width: '90%',
+		flexDirection: 'row',
+		justifyContent: 'center',
+		alignItems: 'center',
+		marginBottom: 20
+	},
   	hourDetails: {
 	    fontFamily: 'lato',
-	    fontSize: 24,
+	    fontSize: 34,
 	    color: 'black',
-	    fontWeight: '400',
+	    fontWeight: '500',
 	    marginTop: 10,
 	    marginBottom: 10
   	},

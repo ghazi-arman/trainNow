@@ -133,7 +133,7 @@ export class SignupForm extends Component {
 				
 				var userRef = firebase.database().ref('users');
 				if(trainer){
-					var gymRef = firebase.database().ref('/gyms/' + gym + '/trainers');
+					var gymRef = firebase.database().ref('/gyms/' + gym + '/trainers/');
 					gymRef.child(firebaseUser.uid).set({
 						active: false,
 						bio: bio,

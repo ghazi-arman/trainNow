@@ -10,7 +10,83 @@ export class SessionModal extends Component {
 	
 	constructor(props) {
 		super(props);
+		this.state = {
+			pendingSessions: 'null',
+			acceptSessions: 'null',
+			loaded: false
+		}
+		this.acceptSession=this.acceptSession.bind(this);
+		this.loadSessions=this.loadSessions.bind(this);
 	}
+
+	componentDidMount(){
+		var user = firebase.auth().currentUser;
+		if(!this.state.loaded){
+			this.loadSessions(user.uid);
+		}
+	}
+
+	//Load Pending sessions still awaiting accept by trainer
+	async loadSessions(userKey){
+		var pendingRef = firebase.database().ref('pendingSessions');
+		var acceptRef = firebase.database().ref('trainSessions');
+    	var acceptSession = null;
+    	var acceptSessions = [];
+		var pendingSession = null;
+		var pendingSessions = [];
+
+		var rv = await pendingRef.orderByChild('trainer').equalTo(userKey).once('value', function(snapshot) {
+    	  pendingSession = snapshot.val();
+	      if(pendingSession != null){
+	      	var key = Object.keys(pendingSession);
+	      	pendingSessions.push(pendingSession[key[0]]);
+	      }
+   	 	}.bind(this)); 
+
+	    rv = await pendingRef.orderByKey().equalTo(userKey).once('value', function(snapshot) {
+	      pendingSession = snapshot.val();
+	      if(pendingSession != null){
+	      	pendingSessions.push(pendingSession[userKey]);
+	      }	    
+	  	}.bind(this));
+
+	  	rv = await acceptRef.orderByChild('trainer').equalTo(userKey).once('value', function(snapshot) {
+	      acceptSession = snapshot.val();
+	      if(acceptSession != null){
+	      	var key = Object.keys(pendingSession);
+	      	acceptSessions.push(acceptSession[key[0]]);
+	      }
+	    }.bind(this));
+
+	    rv = await acceptRef.orderByKey().equalTo(userKey).once('value', function(snapshot) {
+	      acceptSession = snapshot.val();
+	      if(acceptSession != null){
+	      	acceptSessions.push(acceptSession[userKey]);
+	      }
+	    }.bind(this));
+		
+		this.setState({pendingSessions: pendingSessions, acceptSessions: acceptSessions, loaded: true});
+
+	}
+
+  	//mark all sessions shown to user as read in db
+  	markRead(){
+	    var user = firebase.auth().currentUser;
+      	this.state.pendingSessions.map(function(session){
+      	  	if(user.uid == session.trainer){
+         		firebase.database().ref('/pendingSessions/'+ session.trainee).update({
+            		read: true
+          		});
+        		}
+      	});
+	    this.state.acceptSessions.map(function(session){
+	      	if(user.uid == session.trainee){
+	        	firebase.database().ref('/trainSessions/'+ session.trainee).update({
+	          		read: true
+	        	});
+	      	}
+	    });
+  	}
 
 	//Accept pending Session as trainer
 	acceptSession(session){
@@ -76,21 +152,21 @@ export class SessionModal extends Component {
 	          sessionRef.child(session.trainee).remove();
 	        }
 	      }]);
-	    this.setState({pendingLoaded: false});
   	}
 
 	//Convert Date to readable format
 	dateToString(start){
 
 	    var pendingDate = new Date(start);
-	    var month = pendingDate.getMonth() + 1;
-	    var day = pendingDate.getDate();
 	    var hour = pendingDate.getHours();
 	    var minute = pendingDate.getMinutes();
 	    var abbr;
 
 	    if(minute < 10){
 	        minute = '0' + minute;
+	    }
+	    if(hour == 0){
+	    	hour = 12;
 	    }
 	    //Sets abbr to AM or PM
 	    if(hour > 12){
@@ -100,97 +176,98 @@ export class SessionModal extends Component {
 	      abbr = 'AM'
 	    }
 
-	    var displayDate = month + '/' + day + ' ' + hour + ':' + minute + abbr;
+	    var displayDate = hour + ':' + minute + abbr;
 	    return displayDate;
   	}
 
 	render(){
-		var uid = firebase.auth().currentUser.uid;
+		if(this.state.pendingSessions == 'null' || this.state.acceptSessions == 'null' || typeof this.state.pendingSessions === 'undefined' || this.state.acceptSessions === 'undefined' || !this.state.loaded){
+			return <Expo.AppLoading />;
+		}else{
+			console.log('not null');
+			var acceptSessions = this.state.acceptSessions;
+			var pendingSessions = this.state.pendingSessions;
+			var userKey = firebase.auth().currentUser.uid;
+		 	var pendingList = pendingSessions.map(function(session){
+		    	var displayDate = this.dateToString(session.start);
+		    	console.log(session);
 
-		if(this.props.pending != null){
-	      	var pendingList =  this.props.pending.map(function(session){
+		        if(session.trainee == userKey){
 
-	        var displayDate = this.dateToString(session.start);
+		          var button = (
+		            <TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.cancelSession(session)}>
+		              <Text 
+		                style={styles.buttonText}
+		              >
+		              Cancel
+		              </Text>
+		            </TouchableOpacity>);
+		          var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.trainerName}</Text></View>);
+		        
+		        }else{
 
-	        if(session.trainee == uid){
-
-	          var button = (
-	            <TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.cancelSession(session)}>
-	              <Text 
-	                style={styles.buttonText}
-	              >
-	              Cancel
-	              </Text>
-	            </TouchableOpacity>);
-	          var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.trainerName}</Text></View>);
-	        
-	        }else{
-
-	          var button = (
-	            <TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.acceptSession(session)}>
-	              <Text 
-	                style={styles.buttonText}
-	              >
-	              Accept
-	              </Text>
-	            </TouchableOpacity>);
-	            var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.traineeName}</Text></View>);
-	        }
-	        return(
-	        <View style={{flexDirection: 'column', justifyContent: 'flex-start'}} key={session.trainee}>
-	          <View style={{flexDirection: 'row', justifyContent: 'space-around', height: 50}} key={session.trainee}>
-	            <View style={{width: '70%', flexDirection: 'row', justifyContent: 'space-around', height: 50}}>
-	              {name}
-	              <View style={styles.rateView}><Text style={styles.trainerInfo}>{session.duration} min</Text></View>
-	              <View style={styles.trainerView}><Text style={styles.trainerInfo}>{displayDate}</Text></View>
-	            </View> 
-	            <View style={{width: '25%', height: 50}}>
-	              {button}
-	            </View>
-	          </View>
-	        </View>
-	        );
-	      }.bind(this));
-	    }
-
-      if(this.props.accepted != null){
-	      var uid = firebase.auth().currentUser.uid;
-	      var acceptList =  this.props.accepted.map(function(session){
-	        var displayDate = this.dateToString(session.start);
-	        if(session.trainee == uid){
-	          var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.trainerName}</Text></View>);
-	        }else{
-	            var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.traineeName}</Text></View>);
-	        }
-	        return(
-	        <View style={{flexDirection: 'column', justifyContent: 'flex-start'}} key={session.trainee}>
-	          <View style={{flexDirection: 'row', justifyContent: 'space-around', height: 50}} key={session.trainee}>
-	            <View style={{width: '70%', flexDirection: 'row', justifyContent: 'space-around', height: 50}}>
-	              {name}
-	              <View style={styles.rateView}><Text style={styles.trainerInfo}>{session.duration} min</Text></View>
-	              <View style={styles.trainerView}><Text style={styles.trainerInfo}>{displayDate}</Text></View>
-	            </View> 
-	            <View style={{width: '25%', height: 50}}>
-	              <TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.cancelAccept(session)}>
-	                <Text 
-	                  style={styles.buttonText}
-	                >
-	                Cancel
-	                </Text>
-	              </TouchableOpacity>
-	            </View>
-	          </View>
-	        </View>
-	        );
-	      }.bind(this));
-	    }
-		return(
+		          var button = (
+		            <TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.acceptSession(session)}>
+		              <Text 
+		                style={styles.buttonText}
+		              >
+		              Accept
+		              </Text>
+		            </TouchableOpacity>);
+		            var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.traineeName}</Text></View>);
+		        }
+		        return(
+		        <View style={{flexDirection: 'column', justifyContent: 'flex-start'}} key={session.trainee}>
+		          <View style={{flexDirection: 'row', justifyContent: 'space-around', height: 50}} key={session.trainee}>
+		            <View style={{width: '70%', flexDirection: 'row', justifyContent: 'space-around', height: 50}}>
+		              {name}
+		              <View style={styles.rateView}><Text style={styles.trainerInfo}>{session.duration} min</Text></View>
+		              <View style={styles.trainerView}><Text style={styles.trainerInfo}>{displayDate}</Text></View>
+		            </View> 
+		            <View style={{width: '25%', height: 50}}>
+		              {button}
+		            </View>
+		          </View>
+		        </View>
+		        );
+		    }.bind(this));
+		    var acceptList = acceptSessions.map(function(session){
+		      	console.log(session.duration);
+		        var displayDate = this.dateToString(session.start);
+		        if(session.trainee == userKey){
+		          var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.trainerName}</Text></View>);
+		        }else{
+		            var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.traineeName}</Text></View>);
+		        }
+		        return(
+		        <View style={{flexDirection: 'column', justifyContent: 'flex-start'}} key={session.trainee}>
+		          <View style={{flexDirection: 'row', justifyContent: 'space-around', height: 50}} key={session.trainee}>
+		            <View style={{width: '70%', flexDirection: 'row', justifyContent: 'space-around', height: 50}}>
+		              {name}
+		              <View style={styles.rateView}><Text style={styles.trainerInfo}>{session.duration} min</Text></View>
+		              <View style={styles.trainerView}><Text style={styles.trainerInfo}>{displayDate}</Text></View>
+		            </View> 
+		            <View style={{width: '25%', height: 50}}>
+		              <TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.cancelAccept(session)}>
+		                <Text 
+		                  style={styles.buttonText}
+		                >
+		                Cancel
+		                </Text>
+		              </TouchableOpacity>
+		            </View>
+		          </View>
+		        </View>
+		        );
+		    }.bind(this));
+			return(
 			 <View style={styles.modal}>
 	            <Text style={styles.gymName}>Upcoming Sessions</Text>
 	            {acceptList}
 	            <Text style={styles.gymName}>Pending Sessions</Text>
 	            {pendingList}
 	        </View>)
+		}
 	}
 }
 
@@ -204,7 +281,7 @@ const styles = StyleSheet.create({
 		borderRadius: 10,
 	},
 	trainerView: {
-    	width: '25%',
+    	width: '30%',
     	height: 50
   	},
 	bookDetails:{
