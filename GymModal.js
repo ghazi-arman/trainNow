@@ -30,7 +30,7 @@ export class GymModal extends Component {
 
   	//Deselects or selects trainer based on trainer clicked
   	extendTrainer(trainer){
-    	if(this.state.selectedTrainer == trainer){
+    	if(this.state.trainer == trainer){
       		return null;
     	}else{
       		return trainer;
@@ -47,9 +47,9 @@ export class GymModal extends Component {
 	        //Sets up bio and certifications area if a trainer is selected in gym modal
 	        if(this.state.trainer != null && this.state.trainer.key == key){
 	        var biocertField = (
-	          <View style={{flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}} key={key}>
-	            <View style={styles.certView}><Text style={styles.trainerInfo}>Certifications: {this.state.trainer.cert}</Text></View>
-	            <View style={styles.certView}><Text style={styles.trainerInfo}>Bio: {this.state.trainer.bio}</Text></View>
+	          <View style={styles.biocert} key={key}>
+	            <View style={styles.certView}><Text style={styles.biocertTitle}>Certifications</Text><Text style={styles.biocertText}>{this.state.trainer.cert}</Text></View>
+	            <View style={styles.certView}><Text style={styles.biocertTitle}>Trainer Bio</Text><Text style={styles.biocertText}>{this.state.trainer.bio}</Text></View>
 	          </View>);
 	        }
 
@@ -124,7 +124,7 @@ export class GymModal extends Component {
 	            {map}
 	            </View>
 	            <Text style={styles.hourDetails}>Hours: {this.state.gym.hours}</Text>
-	            <Text style={styles.hourDetails}>Trainers</Text>
+	            <Text style={styles.trainerTitle}>Trainers</Text>
 	            <ScrollView style={styles.trainers}>
 	              {this.getTrainers()}
 	            </ScrollView>
@@ -147,8 +147,7 @@ const styles = StyleSheet.create({
     	fontFamily: 'latoBold',
     	fontSize: 30,
     	color: 'black',
-    	fontWeight: '500',
-    	marginTop: 15,
+    	fontWeight: '500'
   	},
 	nameContainer: {
 	    height: '15%',
@@ -156,7 +155,7 @@ const styles = StyleSheet.create({
 	    borderTopLeftRadius: 10,
 	    borderTopRightRadius: 10,
 	    backgroundColor: '#69D2E7',
-	    flexDirection: 'row',
+	    flexDirection: 'column',
 	    justifyContent: 'center',
 	    alignItems: 'center'
   	},
@@ -168,22 +167,26 @@ const styles = StyleSheet.create({
   		height: '100%',
   		width: '100%'
   	},
-	trainerContainer: {
-    	flexDirection: 'column',
-    	justifyContent: 'flex-start',
-    	alignItems: 'center'
-  	},
 	trainerRow: {
 	    flexDirection: 'row',
-	    justifyContent: 'center',
+	    justifyContent: 'space-between',
 	    height: 50,
 	    borderWidth: 1,
-	    borderColor: 'black',
-	    margin: 5
+	   	borderColor: 'black',
+	   	marginTop: 10
   	},
   	trainers: {
     	width: '100%',
-    	height: '65%'
+    	height: '65%',
+    	flexDirection: 'column',
+    	justifyContent: 'space-between',
+    	alignItems: 'center'
+  	},
+  	trainerContainer: {
+  		width: '90%',
+  		flexDirection: 'column',
+  		justifyContent: 'center',
+  		alignItems: 'center'
   	},
   	trainerInfoContainer:{
     	width: '70%',
@@ -192,29 +195,54 @@ const styles = StyleSheet.create({
     	height: 50
   	},
   	trainerInfo: {
-    	paddingVertical: 15,
+  		paddingVertical: 15,
     	textAlign: 'center', 
     	fontSize: 15,
-    	fontWeight: '700',
+    	fontWeight: '600',
+  	},
+  	biocertTitle: {
+  		fontSize: 17,
+  		fontWeight: '700',
+  		textAlign: 'center',
+  		textDecoration: 'underline'
+  	},
+  	biocertText: {
+  		fontSize: 15,
+  		fontWeight: '400',
+  		textAlign: 'center'
+  	},
+  	biocert: {
+  		flexDirection: 'row',
+  		justifyContent: 'center',
+  		alignItems: 'flex-start',
+	    width: '90%',
+	    backgroundColor: '#c9cdb7',
+	    padding: 5
   	},
   	activeView: {
-    	width: '25%',
+    	width: '30%',
     	height: 50
   	},
   	certView: {
-    	width: '90%'
+    	width: '50%'
   	},
   	rateView: {
-    	width: '15%',
+    	width: '20%',
     	height: 50
   	},
   	hourDetails: {
 	    fontFamily: 'lato',
-	    fontSize: 24,
+	    fontSize: 16,
 	    color: 'black',
 	    fontWeight: '400',
 	    marginTop: 10,
-	    marginBottom: 10
+  	},
+  	trainerTitle: {
+	    fontFamily: 'lato',
+	    fontSize: 24,
+	    color: 'black',
+	    fontWeight: '400',
+	    marginTop: 5,
   	},
   	buttonContainer: {
     	height: 48,
@@ -234,7 +262,7 @@ const styles = StyleSheet.create({
     	color: 'red'
   	},
   	trainerView: {
-    	width: '25%',
+    	width: '45%',
     	height: 50
   	},
 });

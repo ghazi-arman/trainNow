@@ -35,17 +35,17 @@ export class Signup extends Component {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
+		justifyContent: 'flex-start',
 		alignItems: 'center',
-		justifyContent: 'center',
 		backgroundColor: '#E0E4CC'
 	},
 	formContainer: {
-		height: '50%',
+		height: '40%',
 		width: '80%'
 	},
 	logo: {
-		width: '65%',
-		height: '65%'
+		width: '45%',
+		height: '45%'
 	},
 	logoContainer: {
 		flexDirection: 'row',

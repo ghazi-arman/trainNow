@@ -171,7 +171,8 @@ export class SessionPage extends Component {
 		}else{
 			var displayDate = this.dateToString(this.state.session.start);
 
-			var map, button, time, minutes, remaining;
+			var map, button, time, minutes, remaining, ready;
+			var user = firebase.auth().currentUser;
 			if(!this.state.session.met){
 				time = <Text style={styles.bookDetails}>Start: {displayDate} </Text>;
 				length = <Text style={styles.bookDetails}>Length: {this.state.session.duration} min</Text>;
@@ -210,6 +211,15 @@ export class SessionPage extends Component {
 							>Start Session</Text>
 					</TouchableOpacity>
 				);
+				if(this.state.session.traineeReady && user.uid == this.state.session.trainer){
+					ready = <Text style={styles.smallText}>{this.state.session.trainee} is ready!</Text>;
+				}else if(this.state.session.trainerReady && user.uid == this.state.session.trainee){
+					ready = <Text style={styles.smallText}>{this.state.session.trainer} is ready!</Text>
+				}else if(user.uid == this.state.session.trainee){
+					ready = <Text style={styles.smallText}>{this.state.session.trainer} en route!</Text>;					
+				}else{
+					ready = <Text style={styles.smallText}>{this.state.session.trainee} en route</Text>;
+				}
 			}else{
 				pendingDate = new Date(this.state.session.start);
 				displayDate = this.dateToString(this.state.session.start);
@@ -227,6 +237,11 @@ export class SessionPage extends Component {
 					</TouchableOpacity>
 				);
 				map = null;
+				if(this.state.session.traineeEnd && user.uid == this.state.session.trainer){
+					ready = <Text style={styles.smallText}>{this.state.session.trainee} ended!</Text>;
+				}else if(this.state.session.trainerEnd && user.uid == this.state.session.trainee){
+					ready = <Text style={styles.smallText}>{this.state.session.trainer} ended!</Text>
+				}
 			}
 		}
 		return (
@@ -238,6 +253,7 @@ export class SessionPage extends Component {
 						<Text style={styles.bookDetails}>Trainee: {this.state.session.traineeName}</Text>
 						{time}
 						{length}
+						{ready}
             		</View>
             		{map}
             		<View style={styles.buttonContain}>
@@ -254,6 +270,11 @@ const styles = StyleSheet.create({
 	bookDetails:{
     	fontSize: 25,
     	fontWeight: '500',
+  	},
+  	smallText:{
+  		fontSize: 15,
+  		fontWeight: '300',
+  		color: '#2980b9'
   	},
   	header: {
   		fontSize: 35,

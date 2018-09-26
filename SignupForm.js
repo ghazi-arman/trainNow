@@ -449,7 +449,7 @@ const styles = StyleSheet.create({
 	buttonContainer: {
 		backgroundColor: '#69D2E7',
 		paddingVertical: 15,
-		marginTop: 20
+		marginTop: 10
 	},
 	buttonText: {
 		textAlign: 'center',

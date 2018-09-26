@@ -52,12 +52,12 @@ const styles = StyleSheet.create({
 		backgroundColor: '#E0E4CC'
 	},
 	formContainer: {
-		height: '45%',
+		height: '40%',
 		width: '80%'
 	},
 	logo: {
-		width: '65%',
-		height: '65%'
+		width: '45%',
+		height: '45%'
 	},
 	logoContainer: {
 		flexDirection: 'row',
@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 		height: "15%",
-		paddingTop: 20
+		paddingTop: 40
 	},
 	linkText: {
 		color: '#FA6900',
