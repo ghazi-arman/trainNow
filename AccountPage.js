@@ -14,13 +14,20 @@ import {
 import {Permissions, Location, Font, ImagePicker} from 'expo';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
+import Modal from 'react-native-modal';
 import {AccountForm} from './AccountForm';
 import { Actions } from 'react-native-router-flux';
+import { AccountBar } from './AccountBar';
+import { SessionModal } from './SessionModal';
 
 export class AccountPage extends Component {
 
 	constructor(props) {
 		super(props);
+		
+		this.state = {
+      		pendingModal: false
+      	}
 	}
 
 	// user log out confirm
@@ -46,6 +53,8 @@ export class AccountPage extends Component {
 		Actions.pop();
 	}
 
+	hidependingModal = () => this.setState({pendingModal: false});
+
 	// load font after render the page
 	async componentDidMount() {
 		await Font.loadAsync({
@@ -59,24 +68,16 @@ export class AccountPage extends Component {
 			<KeyboardAvoidingView 
 				behavior="padding"
 				style = {styles.container}
-				>
-				<TouchableOpacity 
-					style={styles.gobackContainer}
-					onPressIn={this.backtomap}>
-					<Text 
-						style={styles.gobackText}
-						>	 Back to map</Text>
-				</TouchableOpacity>			
+				>		
 				<ScrollView style = {styles.formContainer}>
 					<AccountForm />
 				</ScrollView>
-				<TouchableOpacity 
-					style={styles.buttonContainer}
-					onPressIn={this.logout}>
-					<Text 
-						style={styles.buttonText}
-						>Logout</Text>
-				</TouchableOpacity>
+				<Modal 
+					isVisible={this.state.pendingModal}
+        			onBackdropPress={this.hidependingModal}>
+          			<SessionModal />
+        		</Modal>
+				<AccountBar map={this.backtomap} logout={this.logout} pending={() => this.setState({ pendingModal: true })}/>
 			</KeyboardAvoidingView>	
 		);
 	}
@@ -86,43 +87,14 @@ export class AccountPage extends Component {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: '#3498db',
-	},
-	gobackContainer: {
-		backgroundColor: '#2980b9',
-		paddingVertical: 20,
-		top: '5%'
+		backgroundColor: '#E0E4CC',
+		flexDirection: 'column',
+		justifyContent: 'space-around',
+		alignItems: 'center'	
 	},
 	formContainer: {
-		marginTop: 30
+		width: '90%',
+		height: '80%',
+		marginTop: 20
 	},
-	gobackText: {
-		textAlign: 'center',
-		color: '#FFFFFF',
-		fontWeight: '700'
-	},
-	logo: {
-		width: 100,
-		height: 100,
-	},
-	logoContainer: {
-		alignItems: 'center',
-		flexGrow: 1,
-		justifyContent: 'center',
-	},
-	title: {
-		color: "#FFF",
-		marginTop: 10,
-		textAlign: 'center',
-		opacity: 0.9,
-	},		
-	buttonContainer: {
-		backgroundColor: '#2980b9',
-		paddingVertical: 15,
-	},
-	buttonText: {
-		textAlign: 'center',
-		color: '#FFFFFF',
-		fontWeight: '700'
-	}
 });

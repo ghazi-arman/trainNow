@@ -14,14 +14,14 @@ import {
 import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
 import { ImagePicker} from 'expo';
-
-
+import FontAwesome, { Icons } from 'react-native-fontawesome';
 
 export class AccountForm extends Component {
 	
 	constructor(props) {
 		super(props);
 		this.state = {
+			fontLoaded: false,
 			trainer: false,
 			active: false,
 			name:'',
@@ -34,7 +34,11 @@ export class AccountForm extends Component {
 		this.onUpdatePress=this.onUpdatePress.bind(this);
 	}
 
-	componentWillMount() {
+	componentDidMount() {
+		//Load Font
+		if(!this.state.fontLoaded){
+			this.loadFont();
+		}
 	    //pull user from database and check if trainer
 	    let usersRef = firebase.database().ref('users');
 	   	var user = firebase.auth().currentUser;
@@ -53,6 +57,14 @@ export class AccountForm extends Component {
 			}.bind(this));
 	   	}
   	}
+
+  	loadFont = async () => {
+		await Font.loadAsync({
+	      FontAwesome: require('./fonts/font-awesome-4.7.0/fonts/FontAwesome.otf'),
+	      fontAwesome: require('./fonts/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf')
+	    });
+	    this.setState({fontLoaded: true});
+	}
 
   	_pickImage = async () => {
     	let result = await ImagePicker.launchImageLibraryAsync({
@@ -131,8 +143,10 @@ export class AccountForm extends Component {
 	render() {
 		let isTrainer = this.state.trainer;
 		nameField =(
-			<View>
-				<Text style = {styles.hints}> Name </Text> 
+			<View style={styles.inputRow}>
+				<Text style={styles.icon}>
+					<FontAwesome>{Icons.user}</FontAwesome>
+				</Text>
 				<TextInput
 				placeholder="Name"
 				returnKeyType="done"
@@ -146,17 +160,24 @@ export class AccountForm extends Component {
 			</View>);
 		if(isTrainer){
 			activeField = (
-				<View>
-					<Text style = {styles.hints}> Are you training now? </Text>  				
+				<View style={styles.switchRow}>
+					<Text style={styles.hints}>
+						Active?
+					</Text>			
 					<Switch
+						onTintColor="#69D2E7"
+						tintColor="#FA6900"
+						thumbTintColor="#FA6900"
 						style={styles.switch}
 						value={this.state.active}
 						onValueChange={(active) => this.setState({active})}
 						/>
 				</View>);
 			rateField = (
-				<View>
-					<Text style = {styles.hints}> Rate </Text> 
+				<View style={styles.inputRow}>
+					<Text style={styles.icon}>
+						<FontAwesome>{Icons.dollar}</FontAwesome>
+					</Text>
 					<TextInput
 						placeholder="Rate"
 						style={styles.input}
@@ -169,8 +190,10 @@ export class AccountForm extends Component {
 					/>
 				</View>);
 			certField = (
-				<View>
-					<Text style = {styles.hints}> Certifications </Text> 
+				<View style={styles.inputRow}>
+					<Text style={styles.icon}>
+						<FontAwesome>{Icons.vcard}</FontAwesome>
+					</Text>
 					<TextInput
 						placeholder="Certifications"
 						returnKeyType="done"
@@ -183,12 +206,15 @@ export class AccountForm extends Component {
 						/>
 				</View>);
 			bioField = (
-				<View>
-					<Text style = {styles.hints}> Bio </Text> 
+				<View style={styles.inputRow}>
+					<Text style={styles.icon}>
+						<FontAwesome>{Icons.info}</FontAwesome>
+					</Text>
 					<TextInput
 						autoCorrect={false}
 						blurOnSumbit={true}
 						placeholder="Bio"
+						returnKeyType="done"
 						multiline={true}
 						style={styles.input}
 						selectionColor="#FFF"
@@ -210,9 +236,9 @@ export class AccountForm extends Component {
 				/>
 				{activeField}
 				{nameField}
-				{rateField}
+				{rateField} 
 				{bioField}
-				{certField}		
+				{certField}
 				<TouchableOpacity style={styles.buttonContainer} onPressIn={() => this._pickImage()}>
 					<Text 
 						style={styles.buttonText}
@@ -236,18 +262,36 @@ const styles = StyleSheet.create({
 	container: {
 		padding: 20,
 	},
-	switch: {
-		marginBottom: 10,
-	},
 	input: {
 		height: 40,
-		backgroundColor: 'rgba(255,255,255,0.2)',
-		marginBottom: 10,
-		color: '#FFF',
-		paddingHorizontal: 10,
+		borderWidth: 0,
+		backgroundColor: 'transparent',
+		borderBottomWidth: 1,
+		borderColor: '#F38630',
+		width: '90%'
+	},
+	inputRow: {
+		width: '100%',
+		flexDirection: 'row',
+		justifyContent: 'center',
+		alignItems: 'flex-end',
+		marginBottom: 20
+	},
+	switchRow: {
+		width: '100%',
+		flexDirection: 'column',
+		justifyContent: 'flex-start',
+		alignItems: 'center',
+		marginBottom: 5
+	},
+	icon: {
+		color: '#69D2E7',
+		fontSize: 30,
+		marginRight: 10,
+		marginTop: 13
 	},
 	buttonContainer: {
-		backgroundColor: '#C51162',
+		backgroundColor: '#69D2E7',
 		paddingVertical: 15,
 		marginTop: 10
 	},
@@ -257,9 +301,8 @@ const styles = StyleSheet.create({
 		fontWeight: '700'
 	},
 	hints:{
-		color: "#FFF",
-		fontSize: 20,		
-		marginBottom: 5,
+		color: "#69D2E7",
+		fontSize: 25,		
 		fontWeight: "500"
 	}
 });

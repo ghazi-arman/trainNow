@@ -195,9 +195,10 @@ const styles = StyleSheet.create({
   	},
   	formContainer: {
 		flexDirection: 'column',
-		justifyContent: 'center',
+		justifyContent: 'space-around',
 		alignItems: 'center',
-		width: '95%'
+		width: '95%',
+		height: '85%'
 	},
 	datePickerHolder: {
 		height: 200,
