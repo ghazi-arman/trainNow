@@ -200,7 +200,7 @@ export class SignupForm extends Component {
 				</Text>
 				<Picker
 					style={styles.picker}
-					itemStyle={{height: 45}}
+					itemStyle={{height: 45, color: '#08d9d6'}}
 				  	selectedValue={this.state.gym}
 				  	onValueChange={(itemValue, itemIndex) => this.setState({gym: itemValue})}>
 				  	<Picker.Item label="Pick a Gym (Scroll)" value= '' />
@@ -218,7 +218,7 @@ export class SignupForm extends Component {
 					placeholder="Rate ($ hourly)"
 					style={styles.input}
 					selectionColor="#FFF"
-					placeholderTextColor='#69D2E7'
+					placeholderTextColor='#08d9d6'
 					onChangeText={(rate) => this.setState({rate})}
 					value={this.state.rate}
 					keyboardType="number-pad"
@@ -234,7 +234,7 @@ export class SignupForm extends Component {
 					returnKeyType="done"
 					style={styles.input}
 					selectionColor="#FFF"
-					placeholderTextColor='#69D2E7'
+					placeholderTextColor='#08d9d6'
 					onChangeText={(cert) => this.setState({cert})}
 					value={this.state.cert}
 					autoCorrect={false} />
@@ -251,7 +251,7 @@ export class SignupForm extends Component {
 					multiline={true}
 					style={styles.input}
 					selectionColor="#FFF"
-					placeholderTextColor='#69D2E7'
+					placeholderTextColor='#08d9d6'
 					onChangeText = {(bio) => this.setState({bio})}
 					value={this.state.bio} />
 			</View>);
@@ -304,7 +304,7 @@ export class SignupForm extends Component {
 					returnKeyType="done"
 					style={styles.input}
 					selectionColor="#FFF"
-					placeholderTextColor='#69D2E7'
+					placeholderTextColor='#08d9d6'
 					onChangeText={(name) => this.setState({name})}
 					value={this.state.name}
 					autoCorrect={false} />
@@ -323,7 +323,7 @@ export class SignupForm extends Component {
 					autoCorrect={false}
 					style={styles.input}
 					selectionColor="#FFF"
-					placeholderTextColor='#69D2E7'
+					placeholderTextColor='#08d9d6'
 					onChangeText={(email) => this.setState({email})}
 					value={this.state.email} />
 			</View>);
@@ -338,7 +338,7 @@ export class SignupForm extends Component {
 					secureTextEntry
 					style={styles.input}
 					selectionColor="#FFF"
-					placeholderTextColor='#69D2E7'
+					placeholderTextColor='#08d9d6'
 					onChangeText={(password) => this.setState({password})}
 					value={this.state.password}
 					ref={(input) => this.passwordInput = input} />
@@ -354,7 +354,7 @@ export class SignupForm extends Component {
 					secureTextEntry
 					style={styles.input}
 					selectionColor="#FFF"
-					placeholderTextColor='#69D2E7'
+					placeholderTextColor='#08d9d6'
 					onChangeText={(confirmPass) => this.setState({confirmPass})}
 					value={this.state.confirmPass}
 					ref={(input) => this.passwordInput = input} />
@@ -363,9 +363,9 @@ export class SignupForm extends Component {
 			<View style={styles.inputRow}>
 				<Text style = {styles.hints}>Are you signing up as a trainer? </Text>
 				<Switch
-					onTintColor="#69D2E7"
-					tintColor="#FA6900"
-					thumbTintColor="#FA6900"
+					onTintColor="#ff2e63"
+					tintColor="#ff2e63"
+					thumbTintColor="#08d9d6"
 					value={this.state.trainer}
 					onValueChange={(trainer) => this.setState({trainer})}
 					/>
@@ -437,43 +437,46 @@ const styles = StyleSheet.create({
 		borderWidth: 0,
 		backgroundColor: 'transparent',
 		borderBottomWidth: 1,
-		borderColor: '#F38630',
-		width: '90%'
+		borderColor: '#ff2e63',
+		width: '90%',
+		color: '#08d9d6'
 	},
 	picker: {
 		height: 45,
 		borderWidth: 1,
-		borderColor: '#F38630',
+		borderColor: '#ff2e63',
+		color: '#08d9d6',
 		width: '90%',
 	},
 	buttonContainer: {
-		backgroundColor: '#69D2E7',
+		backgroundColor: '#ff2e63',
 		paddingVertical: 15,
-		marginTop: 10
+		marginTop: 5,
 	},
 	buttonText: {
 		textAlign: 'center',
-		color: '#FFFFFF',
+		color: '#FAFAFA',
 		fontWeight: '700'
 	},
 	imageContainer: {
-		flexDirection: 'row',
-		justifyContent: 'center'
+		flexDirection: 'column',
+		justifyContent: 'center',
+		alignItems: 'center',
 	},
 	imageHolder: {
-		height: 200,
-		width: 200,
+		width: 220,
+		height: 220,
 		borderWidth: 1,
-		borderColor: '#F38630',
+		borderColor: '#ff2e63',
 	},
 	icon: {
-		color: '#69D2E7',
+		color: '#ff2e63',
 		fontSize: 30,
 		marginRight: 10,
 		marginTop: 13
 	},
 	hints:{
-		color: '#69D2E7',		
+		color: '#08d9d6',		
 		marginBottom: 10,
 		marginRight: 10
 	}

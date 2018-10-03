@@ -84,22 +84,22 @@ export class BookModal extends Component {
 	    			Alert.alert('You cannot book a session when you have one pending!');
 	    		}else{
 	    			Alert.alert(
-				      'Book session with ' + this.state.trainer.name + ' for $' + price + ' at ' + this.dateToString(this.state.bookDuration),
+				      'Book session with ' + this.state.trainer.name + ' for $' + price + ' at ' + this.dateToString(this.state.bookDate),
 				      '',
 				     	[
 			        	{text: 'No'},
 			        	{text: 'Yes', onPress: () => {
-			         	pendingRef.child(user.uid).set({
-			          	trainee: user.uid,
-			          	traineeName: this.state.user.name,
-			          	trainer: this.props.trainer.key,
-			          	trainerName: this.state.trainer.name,
-			          	start: this.state.bookDate.toString(),
-			          	duration: this.state.bookDuration,
-			          	location: this.props.gym.location,
-			          	rate: this.state.trainer.rate,
-			          	read: false,
-			         });
+			         	pendingRef.push({
+				          	trainee: user.uid,
+				          	traineeName: this.state.user.name,
+				          	trainer: this.props.trainer.key,
+				          	trainerName: this.state.trainer.name,
+				          	start: this.state.bookDate.toString(),
+				          	duration: this.state.bookDuration,
+				          	location: this.props.gym.location,
+				          	rate: this.state.trainer.rate,
+				          	read: false,
+			         	});
 			         Alert.alert('Session Booked');
 			        }},
 			      ]);
@@ -163,13 +163,13 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		justifyContent: 'flex-start',
 		alignItems: 'center',
-		backgroundColor: '#E0E4CC',
+		backgroundColor: '#252a34',
 		borderRadius: 10,
 	},
 	trainerName: {
     	fontFamily: 'latoBold',
     	fontSize: 30,
-    	color: 'black',
+    	color: '#08d9d6',
     	fontWeight: '500'
   	},
 	nameContainer: {
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
 	    width: '100%',
 	    borderTopLeftRadius: 10,
 	    borderTopRightRadius: 10,
-	    backgroundColor: '#69D2E7',
+	    backgroundColor: '#252a34',
 	    flexDirection: 'column',
 	    justifyContent: 'center',
 	    alignItems: 'center'
@@ -207,17 +207,17 @@ const styles = StyleSheet.create({
 	datepicker: {
 		height: 200,
 		borderWidth: 1,
-		borderColor: '#F38630',
+		borderColor: '#08d9d6',
 	},
 	picker: {
 		height: 70,
 		borderWidth: 1,
-		borderColor: '#F38630',
+		borderColor: '#08d9d6',
 		width: '65%',
 	},
 	bookButton: {
     	paddingVertical: 15,
-    	backgroundColor: '#69D2E7',
+    	backgroundColor: '#ff2e63',
     	width: '70%',
     	marginTop: 10
   	},
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
 	},
   	buttonText: {
     	textAlign: 'center',
-    	color: '#FFFFFF',
+    	color: '#FAFAFA',
     	fontWeight: '700'
   	}
 })

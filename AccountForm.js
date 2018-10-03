@@ -1,16 +1,5 @@
 import React, { Component } from 'react';
-import {
-  Platform,
-  StyleSheet,
-  Text,
-  View,
-  TextInput,
-  TouchableOpacity,
-  StatusBar,
-  ScrollView,
-  Alert,
-  Switch
-} from 'react-native';
+import {Platform, StyleSheet, Text, View, TextInput, TouchableOpacity, StatusBar, ScrollView, Alert, Switch} from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
 import { ImagePicker} from 'expo';
@@ -152,7 +141,7 @@ export class AccountForm extends Component {
 				returnKeyType="done"
 				style={styles.input}
 				selectionColor="#FFF"
-				placeholderTextColor='#FFF'
+				placeholderTextColor='#08d9d6'
 				onChangeText={(name) => this.setState({name})}
 				value={this.state.name}
 				autoCorrect={false}
@@ -165,9 +154,9 @@ export class AccountForm extends Component {
 						Active?
 					</Text>			
 					<Switch
-						onTintColor="#69D2E7"
-						tintColor="#FA6900"
-						thumbTintColor="#FA6900"
+						onTintColor="#ff2e63"
+						tintColor="#ff2e63"
+						thumbTintColor="#08d9d6"
 						style={styles.switch}
 						value={this.state.active}
 						onValueChange={(active) => this.setState({active})}
@@ -182,7 +171,7 @@ export class AccountForm extends Component {
 						placeholder="Rate"
 						style={styles.input}
 						selectionColor="#FFF"
-						placeholderTeaxtColor='#FFF'
+						placeholderTeaxtColor='#08d9d6'
 						onChangeText={(rate) => this.setState({rate})}
 						value={this.state.rate.toString()}
 						keyboardType="number-pad"
@@ -199,7 +188,7 @@ export class AccountForm extends Component {
 						returnKeyType="done"
 						style={styles.input}
 						selectionColor="#FFF"
-						placeholderTextColor='#FFF'
+						placeholderTextColor='#08d9d6'
 						onChangeText={(cert) => this.setState({cert})}
 						value={this.state.cert}
 						autoCorrect={false}
@@ -218,7 +207,7 @@ export class AccountForm extends Component {
 						multiline={true}
 						style={styles.input}
 						selectionColor="#FFF"
-						placeholderTextColor='#FFF'
+						placeholderTextColor='#08d9d6'
 						onChangeText = {(bio) => this.setState({bio})}
 						value={this.state.bio}
 						/>
@@ -267,8 +256,9 @@ const styles = StyleSheet.create({
 		borderWidth: 0,
 		backgroundColor: 'transparent',
 		borderBottomWidth: 1,
-		borderColor: '#F38630',
-		width: '90%'
+		borderColor: '#ff2e63',
+		width: '90%',
+		color: '#08d9d6'
 	},
 	inputRow: {
 		width: '100%',
@@ -285,23 +275,23 @@ const styles = StyleSheet.create({
 		marginBottom: 5
 	},
 	icon: {
-		color: '#69D2E7',
+		color: '#ff2e63',
 		fontSize: 30,
 		marginRight: 10,
 		marginTop: 13
 	},
 	buttonContainer: {
-		backgroundColor: '#69D2E7',
+		backgroundColor: '#ff2e63',
 		paddingVertical: 15,
 		marginTop: 10
 	},
 	buttonText: {
 		textAlign: 'center',
-		color: '#FFFFFF',
+		color: '#FAFAFA',
 		fontWeight: '700'
 	},
 	hints:{
-		color: "#69D2E7",
+		color: "#08d9d6",
 		fontSize: 25,		
 		fontWeight: "500"
 	}

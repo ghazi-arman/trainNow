@@ -41,10 +41,12 @@ export class RatingPage extends Component {
 
 		this._interval = setInterval(() => {
 
-			Font.loadAsync({
-			  fontAwesome: require('./fonts/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf'),
-			});
-			this.setState({ fontLoaded: true });
+			if(!this.state.fontLoaded){	
+				Font.loadAsync({
+				  fontAwesome: require('./fonts/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf'),
+				});
+				this.setState({ fontLoaded: true });
+			}
 
 			var user = firebase.auth().currentUser;
 			var sessionRef = firebase.database().ref('trainSessions');
@@ -61,9 +63,9 @@ export class RatingPage extends Component {
 	}
 
 	rateSession(){
+		var session = this.state.session;
 		var user = firebase.auth().currentUser;
 		var sessionRef = firebase.database().ref('/trainSessions/' + this.state.session.trainee)
-		var displayDate = this.dateToString(this.state.session.start);
 		
 		var duration = new Date(this.state.session.end) - new Date(this.state.session.start);
 		var minutes = Math.floor((duration/1000)/60);
@@ -75,27 +77,22 @@ export class RatingPage extends Component {
 		}
 
 		if(this.state.session.trainer == user.uid){
-			var userRef = firebase.database().ref('/users/' + this.state.session.trainee + '/trainerHistory/');
 			sessionRef.update({trainerRating: this.state.rating});
+			session.trainerRating = this.state.rating;
+			firebase.database().ref('/pastSessions/' + user.uid).push({session});
 			if(this.state.session.traineeRating){
+				firebase.database().ref('/pastSessions/' + session.trainee).update({trainerRating: this.state.rating});
 				sessionRef.remove();
 			}
 		}else{
-			var userRef = firebase.database().ref('/users/' + this.state.session.trainer + '/trainerHistory/');
 			sessionRef.update({traineeRating: this.state.rating});
+			session.traineeRating = this.state.rating;
+			firebase.database().ref('/pastSessions/' + user.uid).push({session});
 			if(this.state.session.trainerRating){
+				firebase.database().ref('/pastSessions/' + session.trainer).update({traineeRating: this.state.rating});
 				sessionRef.remove();
 			}
 		}
-
-		userRef.child(displayDate).set({
-			start: this.state.session.start,
-			end: this.state.session.end,
-			price: rate,
-			rating: this.state.rating,
-			trainerKey: this.state.session.trainer,
-			traineeKey: this.state.session.trainee,
-		});
 		Actions.reset('map');
 	}
 
@@ -179,12 +176,12 @@ const styles = StyleSheet.create({
   	picker: {
 		height: 60,
 		borderWidth: 1,
-		borderColor: '#F38630',
+		borderColor: '#08d9d6',
 		width: '90%',
 	},
 	container: {
 		flex: 1,
-		backgroundColor: '#E0E4CC',
+		backgroundColor: '#252a34',
 		flexDirection: 'column',
 		justifyContent: 'center',
 		alignItems: 'center'
@@ -206,13 +203,13 @@ const styles = StyleSheet.create({
   		alignItems: 'center',
   	},	
 	buttonContainer: {
-		backgroundColor: '#2980b9',
+		backgroundColor: '#ff2e63',
 		paddingVertical: 15,
 		width: '100%'
 	},
 	buttonText: {
 		textAlign: 'center',
-		color: '#FFFFFF',
+		color: '#FAFAFA',
 		fontWeight: '700'
 	}
 });

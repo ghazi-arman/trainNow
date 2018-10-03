@@ -68,7 +68,7 @@ export class ForgotForm extends Component {
 						</Text>
 					<TextInput 
 						placeholder="Email"
-						placeholderTextColor='#69D2E7'
+						placeholderTextColor='#08d9d6'
 						returnKeyType="next"
 						keyboardType="email-address"
 						autoCapitalize="none"
@@ -104,11 +104,12 @@ const styles = StyleSheet.create({
 		borderWidth: 0,
 		backgroundColor: 'transparent',
 		borderBottomWidth: 1,
-		borderColor: '#F38630',
-		width: '90%'
+		borderColor: '#ff2e63',
+		width: '90%',
+		color: '#08d9d6'
 	},
 	buttonContainer: {
-		backgroundColor: '#69D2E7',
+		backgroundColor: '#ff2e63',
 		paddingVertical: 15,
 		marginTop: 20
 	},
@@ -118,7 +119,7 @@ const styles = StyleSheet.create({
 		fontWeight: '700'
 	},
 	icon: {
-		color: '#69D2E7',
+		color: '#ff2e63',
 		fontSize: 30,
 		marginRight: 10,
 		marginTop: 13

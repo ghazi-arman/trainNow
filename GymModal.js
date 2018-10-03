@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Platform, StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert, TouchableWithoutFeedback} from 'react-native';
 import firebase from 'firebase';
 import { MapView, AppLoading} from 'expo';
+import { PROVIDER_GOOGLE } from 'react-native-maps'
 
 export class GymModal extends Component {
 	
@@ -68,7 +69,7 @@ export class GymModal extends Component {
 	          <View style={styles.trainerRow} key={trainer.key}>
 	            <View style={styles.trainerInfoContainer}>
 	              <View style={styles.trainerView}><Text style={styles.trainerInfo}>{trainer.name}</Text></View>
-	              <View style={styles.rateView}><Text style={styles.trainerInfo}>${trainer.rate}</Text></View>
+	              <View style={styles.rateView}><Text style={styles.rateInfo}>${trainer.rate}</Text></View>
 	              {activeField}
 	            </View> 
 	            <View style={{width: '25%', height: 50}}>
@@ -92,10 +93,12 @@ export class GymModal extends Component {
 
 	//Loads map object
 	loadMap(){
+		// var mapStyle = [{"elementType":"geometry","stylers":[{"color":"#1d2c4d"}]},{"elementType":"labels.text.fill","stylers":[{"color":"#8ec3b9"}]},{"elementType":"labels.text.stroke","stylers":[{"color":"#1a3646"}]},{"featureType":"administrative.country","elementType":"geometry.stroke","stylers":[{"color":"#4b6878"}]},{"featureType":"administrative.land_parcel","elementType":"labels.text.fill","stylers":[{"color":"#64779e"}]},{"featureType":"administrative.province","elementType":"geometry.stroke","stylers":[{"color":"#4b6878"}]},{"featureType":"landscape.man_made","elementType":"geometry.stroke","stylers":[{"color":"#334e87"}]},{"featureType":"landscape.natural","elementType":"geometry","stylers":[{"color":"#023e58"}]},{"featureType":"poi","elementType":"geometry","stylers":[{"color":"#283d6a"}]},{"featureType":"poi","elementType":"labels.text.fill","stylers":[{"color":"#6f9ba5"}]},{"featureType":"poi","elementType":"labels.text.stroke","stylers":[{"color":"#1d2c4d"}]},{"featureType":"poi.park","elementType":"geometry.fill","stylers":[{"color":"#023e58"}]},{"featureType":"poi.park","elementType":"labels.text.fill","stylers":[{"color":"#3C7680"}]},{"featureType":"road","elementType":"geometry","stylers":[{"color":"#304a7d"}]},{"featureType":"road","elementType":"labels.text.fill","stylers":[{"color":"#98a5be"}]},{"featureType":"road","elementType":"labels.text.stroke","stylers":[{"color":"#1d2c4d"}]},{"featureType":"road.highway","elementType":"geometry","stylers":[{"color":"#2c6675"}]},{"featureType":"road.highway","elementType":"geometry.stroke","stylers":[{"color":"#255763"}]},{"featureType":"road.highway","elementType":"labels.text.fill","stylers":[{"color":"#b0d5ce"}]},{"featureType":"road.highway","elementType":"labels.text.stroke","stylers":[{"color":"#023e58"}]},{"featureType":"transit","elementType":"labels.text.fill","stylers":[{"color":"#98a5be"}]},{"featureType":"transit","elementType":"labels.text.stroke","stylers":[{"color":"#1d2c4d"}]},{"featureType":"transit.line","elementType":"geometry.fill","stylers":[{"color":"#283d6a"}]},{"featureType":"transit.station","elementType":"geometry","stylers":[{"color":"#3a4762"}]},{"featureType":"water","elementType":"geometry","stylers":[{"color":"#0e1626"}]},{"featureType":"water","elementType":"labels.text.fill","stylers":[{"color":"#4e6d70"}]}]
 		return (
 		<MapView
 			style={styles.map}
-	        ref = {(mapView) => { _map = mapView; }}
+			// customMapStyle={mapStyle}
+			provider={PROVIDER_GOOGLE}
 	        region={{
 	            latitude: this.state.gym.location.latitude,
 	            longitude: this.state.gym.location.longitude,
@@ -104,7 +107,6 @@ export class GymModal extends Component {
 	        }}
 	        pitchEnabled = {false} rotateEnabled = {false} scrollEnabled = {false} zoomEnabled = {false}>
             <MapView.Marker
-                ref={marker => (this.marker = marker)}
                 key={this.state.gym.key}
                 coordinate={this.state.gym.location} />
 		</MapView>);
@@ -140,13 +142,13 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		justifyContent: 'flex-start',
 		alignItems: 'center',
-		backgroundColor: '#E0E4CC',
+		backgroundColor: '#252a34',
 		borderRadius: 10,
 	},
 	gymName: {
     	fontFamily: 'latoBold',
     	fontSize: 30,
-    	color: 'black',
+    	color: '#08d9d6',
     	fontWeight: '500'
   	},
 	nameContainer: {
@@ -154,7 +156,7 @@ const styles = StyleSheet.create({
 	    width: '100%',
 	    borderTopLeftRadius: 10,
 	    borderTopRightRadius: 10,
-	    backgroundColor: '#69D2E7',
+	    backgroundColor: '#252a34',
 	    flexDirection: 'column',
 	    justifyContent: 'center',
 	    alignItems: 'center'
@@ -172,7 +174,7 @@ const styles = StyleSheet.create({
 	    justifyContent: 'space-between',
 	    height: 50,
 	    borderWidth: 1,
-	   	borderColor: 'black',
+	   	borderColor: '#08d9d6',
 	   	marginTop: 10
   	},
   	trainers: {
@@ -199,70 +201,80 @@ const styles = StyleSheet.create({
     	textAlign: 'center', 
     	fontSize: 15,
     	fontWeight: '600',
+    	color: '#FAFAFA'
+  	},
+  	rateInfo: {
+  		paddingVertical: 15,
+    	textAlign: 'center', 
+    	fontSize: 15,
+    	fontWeight: '600',
+    	color: '#08d9d6'
   	},
   	biocertTitle: {
   		fontSize: 17,
   		fontWeight: '700',
   		textAlign: 'center',
-  		textDecoration: 'underline'
+  		textDecoration: 'underline',
+  		color: '#08d9d6'
   	},
   	biocertText: {
   		fontSize: 15,
   		fontWeight: '400',
-  		textAlign: 'center'
+  		textAlign: 'center',
+  		color: '#FAFAFA'
   	},
   	biocert: {
   		flexDirection: 'row',
   		justifyContent: 'center',
   		alignItems: 'flex-start',
 	    width: '90%',
-	    backgroundColor: '#c9cdb7',
+	    backgroundColor: '#252a34',
 	    padding: 5
   	},
   	activeView: {
-    	width: '30%',
+    	width: '32%',
     	height: 50
   	},
   	certView: {
     	width: '50%'
   	},
   	rateView: {
-    	width: '20%',
+    	width: '18%',
     	height: 50
   	},
   	hourDetails: {
 	    fontFamily: 'lato',
 	    fontSize: 16,
-	    color: 'black',
+	    color: '#ff2e63',
 	    fontWeight: '400',
 	    marginTop: 10,
   	},
   	trainerTitle: {
 	    fontFamily: 'lato',
 	    fontSize: 24,
-	    color: 'black',
+	    color: '#ff2e63',
 	    fontWeight: '400',
 	    marginTop: 5,
   	},
   	buttonContainer: {
     	height: 48,
-    	backgroundColor: '#C51162',
+    	backgroundColor: '#ff2e63',
     	flexDirection: 'column',
     	justifyContent: 'center'
   	},
   	buttonText: {
     	textAlign: 'center',
-    	color: '#FFFFFF',
+    	color: '#FAFAFA',
     	fontWeight: '700'
   	},
   	active:{
-    	color: 'green'
+    	color: '#08d9d6'
   	},
   	away:{
-    	color: 'red'
+    	color: '#ff2e63'
   	},
   	trainerView: {
-    	width: '45%',
+    	width: '50%',
     	height: 50
   	},
 });

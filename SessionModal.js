@@ -4,8 +4,6 @@ import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
 import { MapView, AppLoading} from 'expo';
 
-
-
 export class SessionModal extends Component {
 	
 	constructor(props) {
@@ -30,43 +28,61 @@ export class SessionModal extends Component {
 	async loadSessions(userKey){
 		var pendingRef = firebase.database().ref('pendingSessions');
 		var acceptRef = firebase.database().ref('trainSessions');
+		var usersRef = firebase.database().ref('users');
     	var acceptSession = null;
     	var acceptSessions = [];
 		var pendingSession = null;
 		var pendingSessions = [];
+		var rv;
 
-		var rv = await pendingRef.orderByChild('trainer').equalTo(userKey).once('value', function(snapshot) {
-    	  pendingSession = snapshot.val();
-	      if(pendingSession != null){
-	      	var key = Object.keys(pendingSession);
-	      	pendingSessions.push(pendingSession[key[0]]);
-	      }
-   	 	}.bind(this)); 
+		rv = await usersRef.orderByKey().equalTo(userKey).on("child_added", function(snapshot) {
+	   		var currentUser = snapshot.val();
 
-	    rv = await pendingRef.orderByKey().equalTo(userKey).once('value', function(snapshot) {
-	      pendingSession = snapshot.val();
-	      if(pendingSession != null){
-	      	pendingSessions.push(pendingSession[userKey]);
-	      }	    
-	  	}.bind(this));
+		   	if(currentUser.trainer){
 
-	  	rv = await acceptRef.orderByChild('trainer').equalTo(userKey).once('value', function(snapshot) {
-	      acceptSession = snapshot.val();
-	      if(acceptSession != null){
-	      	var key = Object.keys(acceptSession);
-	      	if(acceptSession[key[0]].end == null){
-	      		acceptSessions.push(acceptSession[key[0]]);
-	      	}
-	      }
-	    }.bind(this));
+		   		pendingRef.orderByChild('trainer').equalTo(userKey).once('child_added', function(snapshot) {
+		    	  	pendingSession = snapshot.val();
+			      	if(pendingSession != null){
+			      		if(pendingSession.end == null){
+			      			pendingSession.key = snapshot.key;
+			      			pendingSessions.push(pendingSession);
+			      		}
+			      	}
+		   	 	});
 
-	    rv = await acceptRef.orderByKey().equalTo(userKey).once('value', function(snapshot) {
-	      acceptSession = snapshot.val();
-	      if(acceptSession != null && acceptSession[userKey].end == null){
-	      	acceptSessions.push(acceptSession[userKey]);
-	      }
-	    }.bind(this));
-		
+		   	 	acceptRef.orderByChild('trainer').equalTo(userKey).once('value', function(snapshot) {
+		      		acceptSession = snapshot.val();
+		      		if(acceptSession != null){
+		      			if(acceptSession.end == null){
+			      			acceptSession.key = snapshot.key;
+		      				acceptSessions.push(acceptSession);
+		      			}
+		      		}
+		    	}); 
+		   	}else{
+
+			    pendingRef.orderByChild('trainee').equalTo(userKey).once('child_added', function(snapshot) {
+			      	pendingSession = snapshot.val();
+			      	if(pendingSession != null){
+			      		if(pendingSession.end == null){
+			      			pendingSession.key = snapshot.key;
+				    	  	pendingSessions.push(pendingSession);
+			      		}
+			      	}	    
+			  	});
+
+			    acceptRef.orderByChild('trainee').equalTo(userKey).once('value', function(snapshot) {
+			    	acceptSession = snapshot.val();
+			      	if(acceptSession != null){
+			      		if(acceptSession.end == null){
+			      			acceptSession.key = snapshot.key;
+			      			acceptSessions.push(acceptSession);
+			      		}
+			    	}
+			    });
+			}
+		});
+	    		
 		this.setState({pendingSessions: pendingSessions, acceptSessions: acceptSessions, loaded: true});
 		this.markRead();
 
@@ -75,20 +91,24 @@ export class SessionModal extends Component {
   	//mark all sessions shown to user as read in db
   	markRead(){
 	    var user = firebase.auth().currentUser;
-      	this.state.pendingSessions.map(function(session){
-      	  	if(user.uid == session.trainer){
-         		firebase.database().ref('/pendingSessions/'+ session.trainee).update({
-            		read: true
-          		});
+	    if(this.state.pendingSessions.length > 0){
+	    	this.state.pendingSessions.map(function(session){
+      	  		if(user.uid == session.trainer){
+         			firebase.database().ref('/pendingSessions/'+ session.key).update({
+            			read: true
+          			});
         		}
-      	});
-	    this.state.acceptSessions.map(function(session){
-	      	if(user.uid == session.trainee){
-	        	firebase.database().ref('/trainSessions/'+ session.trainee).update({
-	          		read: true
-	        	});
-	      	}
-	    });
+      		});
+	    }
+	   	if(this.state.acceptSessions.length > 0){
+	    	this.state.acceptSessions.map(function(session){
+	      		if(user.uid == session.trainee){
+	        		firebase.database().ref('/trainSessions/'+ session.key).update({
+	        	  		read: true
+	        		});
+	      		}
+	    	});
+	    }
   	}
 
 	//Accept pending Session as trainer
@@ -104,7 +124,7 @@ export class SessionModal extends Component {
 	      [
 	        {text: 'No'},
 	        {text: 'Yes', onPress: () => {
-	          sessionRef.child(session.trainee).set({
+	          sessionRef.child(session.key).set({
 	            trainee: session.trainee,
 	            trainer: session.trainer,
 	            traineeName: session.traineeName,
@@ -125,8 +145,8 @@ export class SessionModal extends Component {
 	            traineeEnd: false,
 	            trainerEnd: false,
 	          });
-	          pendingRef.child(session.trainee).remove();
-	          pendingSessions.splice(pendingSessions.indexOf(session.trainee), 1);
+	          pendingRef.child(session.key).remove();
+	          pendingSessions.splice(pendingSessions.indexOf(session.key), 1);
 	          this.setState({pendingSessions: pendingSessions});
 	        }
 	      }]);
@@ -142,8 +162,8 @@ export class SessionModal extends Component {
 	      [
 	        {text: 'No'},
 	        {text: 'Yes', onPress: () => {
-	          pendingRef.child(session.trainee).remove();
-	          pendingSessions.splice(pendingSessions.indexOf(session.trainee), 1);
+	          pendingRef.child(session.key).remove();
+	          pendingSessions.splice(pendingSessions.indexOf(session.key), 1);
 	          this.setState({pendingSessions: pendingSessions});
 	        }
 	      }]);
@@ -159,8 +179,8 @@ export class SessionModal extends Component {
 	      [
 	        {text: 'No'},
 	        {text: 'Yes', onPress: () => {
-	          sessionRef.child(session.trainee).remove();
-	          acceptSessions.splice(acceptSessions.indexOf(session.trainee), 1);
+	          sessionRef.child(session.key).remove();
+	          acceptSessions.splice(acceptSessions.indexOf(session.key), 1);
 	          this.setState({acceptSessions: acceptSessions});
 	        }
 	      }]);
@@ -193,7 +213,7 @@ export class SessionModal extends Component {
   	}
 
 	render(){
-		if(this.state.pendingSessions == 'null' || this.state.acceptSessions == 'null' || typeof this.state.pendingSessions === 'undefined' || this.state.acceptSessions === 'undefined' || !this.state.loaded){
+		if((this.state.pendingSessions == 'null' && this.state.acceptSessions == 'null') || !this.state.loaded){
 			return <Expo.AppLoading />;
 		}else{
 			var acceptSessions = this.state.acceptSessions;
@@ -272,9 +292,9 @@ export class SessionModal extends Component {
 		    }.bind(this));
 			return(
 			 <View style={styles.modal}>
-	            <Text style={styles.gymName}>Upcoming Sessions</Text>
+	            <Text style={styles.upcomingName}>Upcoming Sessions</Text>
 	            {acceptList}
-	            <Text style={styles.gymName}>Pending Sessions</Text>
+	            <Text style={styles.pendingName}>Pending Sessions</Text>
 	            {pendingList}
 	        </View>)
 		}
@@ -287,7 +307,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		justifyContent: 'flex-start',
 		alignItems: 'center',
-		backgroundColor: '#fff',
+		backgroundColor: '#252a34',
 		borderRadius: 10,
 	},
 	trainerView: {
@@ -303,10 +323,17 @@ const styles = StyleSheet.create({
     	fontWeight: '500',
     	width: '35%'
   	},
-	gymName: {
+	upcomingName: {
     	fontFamily: 'latoBold',
     	fontSize: 30,
-    	color: 'black',
+    	color: '#ff2e63',
+    	fontWeight: '500',
+    	marginTop: 15,
+  	},
+  	pendingName: {
+    	fontFamily: 'latoBold',
+    	fontSize: 30,
+    	color: '#08d9d6',
     	fontWeight: '500',
     	marginTop: 15,
   	},
@@ -315,6 +342,7 @@ const styles = StyleSheet.create({
     	textAlign: 'center', 
     	fontSize: 15,
     	fontWeight: '700',
+    	color: '#FAFAFA',
   	},
   	rateView: {
     	width: '15%',
@@ -322,13 +350,13 @@ const styles = StyleSheet.create({
   	},
   	buttonContainer: {
     	height: 48,
-    	backgroundColor: '#C51162',
+    	backgroundColor: '#ff2e63',
     	flexDirection: 'column',
     	justifyContent: 'center'
   	},
   	buttonText: {
     	textAlign: 'center',
-    	color: '#FFFFFF',
+    	color: '#FAFAFA',
     	fontWeight: '700'
   	},
 })

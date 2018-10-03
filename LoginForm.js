@@ -86,7 +86,7 @@ export class LoginForm extends Component {
 						autoCorrect={false}
 						style={styles.input}
 						selectionColor="#FFF"
-						placeholderTextColor='#69D2E7'
+						placeholderTextColor='#08d9d6'
 						onChangeText={(email) => this.setState({email})}
 						value={this.state.email} />
 				</View>
@@ -101,7 +101,7 @@ export class LoginForm extends Component {
 						secureTextEntry
 						style={styles.input}
 						selectionColor="#FFF"
-						placeholderTextColor='#69D2E7'
+						placeholderTextColor='#08d9d6'
 						onChangeText={(password) => this.setState({password})}
 						value={this.state.password}
 						ref={(input) => this.passwordInput = input}/>
@@ -129,11 +129,12 @@ const styles = StyleSheet.create({
 		borderWidth: 0,
 		backgroundColor: 'transparent',
 		borderBottomWidth: 1,
-		borderColor: '#F38630',
-		width: '90%'
+		borderColor: '#ff2e63',
+		width: '90%',
+		color: '#08d9d6'
 	},
 	buttonContainer: {
-		backgroundColor: '#69D2E7',
+		backgroundColor: '#ff2e63',
 		paddingVertical: 15,
 		marginTop: 20
 	},
@@ -143,7 +144,7 @@ const styles = StyleSheet.create({
 		fontWeight: '700'
 	},
 	icon: {
-		color: '#69D2E7',
+		color: '#ff2e63',
 		fontSize: 30,
 		marginRight: 10,
 		marginTop: 13

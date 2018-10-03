@@ -25,16 +25,16 @@ export class Forgot extends Component {
 				style = {styles.container}
 				>
 				<View style = {styles.logoContainer}>
-					<Image style = {styles.logo} source = {require('./logo.png')} />
+					<Text style={styles.header}>Train</Text><Text style={styles.header2}>Now</Text>
 				</View>
 				<View style={styles.formContainer}>
 					<ForgotForm />
-					<View style={styles.linkContainer}>
-						<View style={styles.textContain}>
-							<TouchableOpacity onPress={this.goback}>
-								<Text style={styles.linkText}>Have an Account?</Text>
-							</TouchableOpacity>
-						</View>
+				</View>
+				<View style={styles.linkContainer}>
+					<View style={styles.textContain}>
+						<TouchableOpacity onPress={this.goback}>
+							<Text style={styles.linkText}>Have an Account?</Text>
+						</TouchableOpacity>
 					</View>
 				</View>
 			</KeyboardAvoidingView>
@@ -45,37 +45,46 @@ export class Forgot extends Component {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
+		flexDirection: 'column',
 		alignItems: 'center',
-		justifyContent: 'center',
-		backgroundColor: '#E0E4CC'
+		justifyContent: 'space-around',
+		backgroundColor: '#252a34'
 	},
-	logo: {
-		width: '65%',
-		height: '65%'
+	header: {
+		color: '#08d9d6',
+		fontSize: 50,
+		fontWeight: '600'
+	},
+	header2: {
+		color: '#ff2e63',
+		fontSize: 50,
+		fontWeight: '600'
 	},
 	logoContainer: {
 		flexDirection: 'row',
 		justifyContent: 'center',
 		alignItems: 'center',
-		height: '25%',
+		height: '20%',
 		width: '80%'
 	},
 	textContain:{
 		height: 30
 	},
 	formContainer: {
-		height: '45%',
-		width: '80%'
+		height: '35%',
+		width: '80%',
+		flexDirection: 'column',
+		alignItems: 'center',
+		justifyContent: 'center'
 	},
 	linkContainer: {
 		flexDirection: 'column',
 		alignItems: 'center',
 		justifyContent: 'center',
-		height: "15%",
-		paddingTop: 10
+		height: "20%",
 	},
 	linkText: {
-		color: '#FA6900',
+		color: '#08d9d6',
 		fontSize: 16,
 		fontWeight: '500',
 	}

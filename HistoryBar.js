@@ -3,7 +3,7 @@ import { Platform, StyleSheet, Text, View, TouchableOpacity} from 'react-native'
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { Font} from 'expo';
 
-export class BottomBar extends Component {
+export class HistoryBar extends Component {
 	
 	constructor(props) {
 		super(props);
@@ -13,8 +13,6 @@ export class BottomBar extends Component {
 		Font.loadAsync({
       		FontAwesome: require('./fonts/font-awesome-4.7.0/fonts/FontAwesome.otf'),
       		fontAwesome: require('./fonts/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf'),
-      		lato: require('./fonts/Lato/Lato-Regular.ttf'),
-      		latoBold: require('./fonts/Lato/Lato-Bold.ttf')
     	});
 	}
 
@@ -24,9 +22,9 @@ export class BottomBar extends Component {
 
           <TouchableOpacity
               style={styles.centerButton}
-              onPressIn={this.props.location}>
+              onPressIn={this.props.map}>
             <Text style={{ fontSize: 50, color: '#08d9d6' }}>
-                <FontAwesome>{Icons.compass}</FontAwesome>
+                <FontAwesome>{Icons.map}</FontAwesome>
             </Text>
           </TouchableOpacity>
 

@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import { Platform, StyleSheet, Text, View, Button, Alert, TouchableOpacity } from 'react-native';
 import { Permissions, Location, AppLoading, MapView } from 'expo';
+import { PROVIDER_GOOGLE } from 'react-native-maps'
 import firebase from 'firebase';
 import Modal from 'react-native-modal';
 import { Actions } from 'react-native-router-flux';
@@ -40,6 +41,7 @@ export class Map extends Component {
 
    if(!this.state.locationLoaded){
       this.getLocationAsync();
+      console.log('location');
    }
 
    //get gyms from db
@@ -84,7 +86,8 @@ export class Map extends Component {
         longitude: Number(JSON.stringify(location.coords.longitude)),
         latitudeDelta: 0.0422,
         longitudeDelta: 0.0221
-      }, mapRegion: {
+      },
+      mapRegion: {
         latitude:  Number(JSON.stringify(location.coords.latitude)),
         longitude: Number(JSON.stringify(location.coords.longitude)),
         latitudeDelta: 0.0422,
@@ -108,7 +111,7 @@ export class Map extends Component {
       //Check for Session in Progress
       var sessionRef = firebase.database().ref('trainSessions');
       var currDate = new Date();
-      sessionRef.orderByKey().equalTo(userKey).on('child_added', function(snapshot){
+      sessionRef.orderByChild('trainee').equalTo(userKey).on('child_added', function(snapshot){
         var session = snapshot.val();
         if(new Date(session.start) < currDate && session.end == null){
           Actions.reset('session');
@@ -142,7 +145,7 @@ export class Map extends Component {
     }.bind(this));
 
     //Only need to send trainees a notification for accepted Sessions
-    acceptRef.orderByKey().equalTo(userKey).once('child_added', function(snapshot) {
+    acceptRef.orderByChild('trainer').equalTo(userKey).once('child_added', function(snapshot) {
       acceptSession = snapshot.val();
       if(typeof acceptSession.read !== 'undefined' && acceptSession.read == false){
         	this.setState({unRead: true});
@@ -204,7 +207,9 @@ export class Map extends Component {
   }
 
   setLocation(){
-    _map.animateToRegion(this.state.userRegion, 499);
+    if(this.state.userRegion !== null){
+      _map.animateToRegion(this.state.userRegion, 499);
+    }
   }
 
   //Hide Modal Functions
@@ -218,9 +223,10 @@ export class Map extends Component {
   }
 
   render() {
-    if(typeof this.state.userRegion.latitude === 'undefined' || this.state.userRegion === null){
+    if(typeof this.state.mapRegion.latitude === 'undefined' || this.state.mapRegion === null){
       return <Expo.AppLoading />;
     }
+    // var mapStyle = [{"elementType":"geometry","stylers":[{"color":"#1d2c4d"}]},{"elementType":"labels.text.fill","stylers":[{"color":"#8ec3b9"}]},{"elementType":"labels.text.stroke","stylers":[{"color":"#1a3646"}]},{"featureType":"administrative.country","elementType":"geometry.stroke","stylers":[{"color":"#4b6878"}]},{"featureType":"administrative.land_parcel","elementType":"labels.text.fill","stylers":[{"color":"#64779e"}]},{"featureType":"administrative.province","elementType":"geometry.stroke","stylers":[{"color":"#4b6878"}]},{"featureType":"landscape.man_made","elementType":"geometry.stroke","stylers":[{"color":"#334e87"}]},{"featureType":"landscape.natural","elementType":"geometry","stylers":[{"color":"#023e58"}]},{"featureType":"poi","elementType":"geometry","stylers":[{"color":"#283d6a"}]},{"featureType":"poi","elementType":"labels.text.fill","stylers":[{"color":"#6f9ba5"}]},{"featureType":"poi","elementType":"labels.text.stroke","stylers":[{"color":"#1d2c4d"}]},{"featureType":"poi.park","elementType":"geometry.fill","stylers":[{"color":"#023e58"}]},{"featureType":"poi.park","elementType":"labels.text.fill","stylers":[{"color":"#3C7680"}]},{"featureType":"road","elementType":"geometry","stylers":[{"color":"#304a7d"}]},{"featureType":"road","elementType":"labels.text.fill","stylers":[{"color":"#98a5be"}]},{"featureType":"road","elementType":"labels.text.stroke","stylers":[{"color":"#1d2c4d"}]},{"featureType":"road.highway","elementType":"geometry","stylers":[{"color":"#2c6675"}]},{"featureType":"road.highway","elementType":"geometry.stroke","stylers":[{"color":"#255763"}]},{"featureType":"road.highway","elementType":"labels.text.fill","stylers":[{"color":"#b0d5ce"}]},{"featureType":"road.highway","elementType":"labels.text.stroke","stylers":[{"color":"#023e58"}]},{"featureType":"transit","elementType":"labels.text.fill","stylers":[{"color":"#98a5be"}]},{"featureType":"transit","elementType":"labels.text.stroke","stylers":[{"color":"#1d2c4d"}]},{"featureType":"transit.line","elementType":"geometry.fill","stylers":[{"color":"#283d6a"}]},{"featureType":"transit.station","elementType":"geometry","stylers":[{"color":"#3a4762"}]},{"featureType":"water","elementType":"geometry","stylers":[{"color":"#0e1626"}]},{"featureType":"water","elementType":"labels.text.fill","stylers":[{"color":"#4e6d70"}]}]
     return (
       <View
         style={styles.container}
@@ -231,6 +237,8 @@ export class Map extends Component {
           onRegionChange={this.handleMapRegionChange}
           region={this.state.mapRegion}
           showsUserLocation={true}
+          // provider={PROVIDER_GOOGLE}
+          // customMapStyle={mapStyle}
           onMapReady={() => {
             this.setState({ regionSet: true });
           }}
@@ -246,7 +254,7 @@ export class Map extends Component {
           ))}
         </MapView>
 
-        <BottomBar location={this.setLocation} account={this.showAccount} pending={() => this.showModal('pending')}/>
+        <BottomBar location={this.setLocation} account={this.showAccount} pending={() => this.showModal('pending')} history={() => Actions.history()}/>
 
         {/*Gym Modal Info*/}
         <Modal isVisible={this.state.gymModal}
