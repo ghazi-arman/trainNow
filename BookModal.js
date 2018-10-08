@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
 	trainerName: {
     	fontFamily: 'latoBold',
     	fontSize: 30,
-    	color: '#08d9d6',
+    	color: '#FAFAFA',
     	fontWeight: '500'
   	},
 	nameContainer: {
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
 	    width: '100%',
 	    borderTopLeftRadius: 10,
 	    borderTopRightRadius: 10,
-	    backgroundColor: '#252a34',
+	    backgroundColor: '#08d9d6',
 	    flexDirection: 'column',
 	    justifyContent: 'center',
 	    alignItems: 'center'
@@ -185,13 +185,14 @@ const styles = StyleSheet.create({
 	bookDetails:{
     	fontSize: 20,
     	fontWeight: '500',
-    	marginTop: 10
+    	color: '#ff2e63'
   	},
   	bookFormLabel: {
     	fontSize: 20,
     	fontWeight: '500',
     	width: '33%',
-    	textAlign: 'center'
+    	textAlign: 'center',
+    	color: '#08d9d6'
   	},
   	formContainer: {
 		flexDirection: 'column',
@@ -207,13 +208,15 @@ const styles = StyleSheet.create({
 	datepicker: {
 		height: 200,
 		borderWidth: 1,
-		borderColor: '#08d9d6',
+		borderColor: '#ff2e63',
+		color: '#08d9d6',
 	},
 	picker: {
 		height: 70,
 		borderWidth: 1,
-		borderColor: '#08d9d6',
+		borderColor: '#ff2e63',
 		width: '65%',
+		color: '#08d9d6'
 	},
 	bookButton: {
     	paddingVertical: 15,

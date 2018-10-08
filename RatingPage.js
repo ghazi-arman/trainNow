@@ -49,13 +49,18 @@ export class RatingPage extends Component {
 			}
 
 			var user = firebase.auth().currentUser;
+			var currentSession;
 			var sessionRef = firebase.database().ref('trainSessions');
-			sessionRef.orderByKey().equalTo(user.uid).on("child_added", function(snapshot){
-				this.setState({session: snapshot.val()});
+			sessionRef.orderByChild('trainee').equalTo(user.uid).once("child_added", function(snapshot){
+				currentSession = snapshot.val();
+				currentSession.key = snapshot.key;
+				this.setState({session: currentSession});
 			}.bind(this));
 
-			sessionRef.orderByChild('trainer').equalTo(user.uid).on("child_added", function(snapshot){
-				this.setState({session: snapshot.val()});
+			sessionRef.orderByChild('trainer').equalTo(user.uid).once("child_added", function(snapshot){
+				currentSession = snapshot.val();
+				currentSession.key = snapshot.key;
+				this.setState({session: currentSession});
 			}.bind(this));
 
 		}, 2000);
@@ -65,7 +70,7 @@ export class RatingPage extends Component {
 	rateSession(){
 		var session = this.state.session;
 		var user = firebase.auth().currentUser;
-		var sessionRef = firebase.database().ref('/trainSessions/' + this.state.session.trainee)
+		var sessionRef = firebase.database().ref('/trainSessions/' + this.state.session.key)
 		
 		var duration = new Date(this.state.session.end) - new Date(this.state.session.start);
 		var minutes = Math.floor((duration/1000)/60);
@@ -80,16 +85,16 @@ export class RatingPage extends Component {
 			sessionRef.update({trainerRating: this.state.rating});
 			session.trainerRating = this.state.rating;
 			firebase.database().ref('/pastSessions/' + user.uid).push({session});
-			if(this.state.session.traineeRating){
-				firebase.database().ref('/pastSessions/' + session.trainee).update({trainerRating: this.state.rating});
+			if(session.traineeRating != null){
+				firebase.database().ref('/pastSessions/' + session.trainee + '/' + session.key + '/session/').update({trainerRating: this.state.rating});
 				sessionRef.remove();
 			}
 		}else{
 			sessionRef.update({traineeRating: this.state.rating});
 			session.traineeRating = this.state.rating;
 			firebase.database().ref('/pastSessions/' + user.uid).push({session});
-			if(this.state.session.trainerRating){
-				firebase.database().ref('/pastSessions/' + session.trainer).update({traineeRating: this.state.rating});
+			if(session.trainerRating != null){
+				firebase.database().ref('/pastSessions/' + session.trainer + '/' + session.key + '/session/').update({traineeRating: this.state.rating});
 				sessionRef.remove();
 			}
 		}
@@ -139,7 +144,7 @@ export class RatingPage extends Component {
 						<Text style={styles.bookDetails}>Total Cost: ${rate}</Text>
 						<Picker
 							style={styles.picker}
-							itemStyle={{height: 60}}
+							itemStyle={{height: 60, color: '#08d9d6'}}
 						  	selectedValue={this.state.rating}
 						  	onValueChange={(itemValue, itemIndex) => this.setState({rating: itemValue})}>
 						  	<Picker.Item label="Rate Session (Scroll)" value='null' />
@@ -166,17 +171,19 @@ const styles = StyleSheet.create({
 	bookDetails:{
     	fontSize: 25,
     	fontWeight: '500',
+    	color: '#FAFAFA'
   	},
   	header: {
   		fontSize: 35,
   		fontWeight: '700',
-  		textDecorationLine: 'underline'
-
+  		textDecorationLine: 'underline',
+  		color: '#08d9d6'
   	},
   	picker: {
 		height: 60,
 		borderWidth: 1,
 		borderColor: '#08d9d6',
+		color: '#08d9d6',
 		width: '90%',
 	},
 	container: {
@@ -196,7 +203,7 @@ const styles = StyleSheet.create({
   		width: '50%'
   	},
   	infoContainer: {
-  		height: '70%',
+  		height: '65%',
   		width: '100%',
   		flexDirection: 'column',
   		justifyContent: 'center',

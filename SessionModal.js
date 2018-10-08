@@ -35,8 +35,9 @@ export class SessionModal extends Component {
 		var pendingSessions = [];
 		var rv;
 
-		rv = await usersRef.orderByKey().equalTo(userKey).on("child_added", function(snapshot) {
+		rv = await usersRef.orderByKey().equalTo(userKey).once("value", function(snapshot) {
 	   		var currentUser = snapshot.val();
+	   		console.log(currentUser);
 
 		   	if(currentUser.trainer){
 
@@ -50,7 +51,7 @@ export class SessionModal extends Component {
 			      	}
 		   	 	});
 
-		   	 	acceptRef.orderByChild('trainer').equalTo(userKey).once('value', function(snapshot) {
+		   	 	acceptRef.orderByChild('trainer').equalTo(userKey).once('child_added', function(snapshot) {
 		      		acceptSession = snapshot.val();
 		      		if(acceptSession != null){
 		      			if(acceptSession.end == null){
@@ -71,7 +72,7 @@ export class SessionModal extends Component {
 			      	}	    
 			  	});
 
-			    acceptRef.orderByChild('trainee').equalTo(userKey).once('value', function(snapshot) {
+			    acceptRef.orderByChild('trainee').equalTo(userKey).once('child_added', function(snapshot) {
 			    	acceptSession = snapshot.val();
 			      	if(acceptSession != null){
 			      		if(acceptSession.end == null){

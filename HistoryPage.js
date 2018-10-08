@@ -11,7 +11,7 @@ import {
   TouchableOpacity,
   Alert
 } from 'react-native';
-import {Permissions, Location, Font, ImagePicker} from 'expo';
+import {Permissions, Location, Font, ImagePicker, AppLoading} from 'expo';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import Modal from 'react-native-modal';
@@ -26,7 +26,8 @@ export class HistoryPage extends Component {
 		super(props);
 		
 		this.state = {
-      		pendingModal: false
+      		pendingModal: false,
+      		sessions: 'null'
       	}
 	}
 
@@ -41,21 +42,64 @@ export class HistoryPage extends Component {
 	hidependingModal = () => this.setState({pendingModal: false});
 
 	// load font after render the page
-	async componentDidMount() {
-		await Font.loadAsync({
+	componentDidMount() {
+		Font.loadAsync({
 		  fontAwesome: require('./fonts/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf'),
 		});
-		this.setState({ fontLoaded: true });
+		var user = firebase.auth().currentUser;
+		var sessions = this.loadSessions(user.uid);
+		console.log(sessions);
+		this.setState({sessions: sessions});
+	}
+
+	loadSessions(userKey){
+		var sessions = [];
+    	var gymsRef = firebase.database().ref('pastSessions/' + userKey);
+    	gymsRef.on('value', function(data) {
+    		data.forEach(function(dbevent) {
+        		var item = dbevent.val();
+        		item.session.key = dbevent.key;
+        		sessions.push(item.session);
+      		});
+    	});
+    	console.log(sessions[0]);
+   		return sessions;
+	}
+
+	renderSessions(){
+		var sessions = this.state.sessions;
+		console.log(sessions);
+		var sessionsList = sessions.map(function(session){
+			console.log(session);
+	       	var displayDate = this.dateToString(session.end);
+			var duration = new Date(session.end) - new Date(session.start);
+			var minutes = Math.floor((duration/1000)/60);
+			var rate = (parseInt(minutes) * (parseInt(session.rate) / 60)).toFixed(2);
+			return(
+		        <View style={styles.trainerContainer} key={key}>
+		          <View style={styles.trainerRow} key={trainer.key}>
+		            <View style={styles.trainerInfoContainer}>
+		              <View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.date}</Text></View>
+		              <View style={styles.rateView}><Text style={styles.rateInfo}>${rate}</Text></View>
+		            </View> 
+		          </View>
+		        </View>
+	        );
+	    });
+	    return sessionsList;
 	}
 
 	render() {
+		if(this.state.sessions == 'null' || this.state.sessions == null){
+			return <Expo.AppLoading />;
+		}
 		return (
 			<KeyboardAvoidingView 
 				behavior="padding"
 				style = {styles.container}
 				>		
 				<ScrollView style = {styles.historyContainer}>
-					
+					{this.renderSessions()}
 				</ScrollView>
 				<Modal 
 					isVisible={this.state.pendingModal}
@@ -84,4 +128,42 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		alignItems: 'center'
 	},
+	trainerContainer: {
+  		width: '90%',
+  		flexDirection: 'column',
+  		justifyContent: 'center',
+  		alignItems: 'center'
+  	},
+  	trainerInfoContainer:{
+    	width: '70%',
+    	flexDirection: 'row',
+    	justifyContent: 'space-around',
+    	height: 50
+  	},
+  	trainerInfo: {
+  		paddingVertical: 15,
+    	textAlign: 'center', 
+    	fontSize: 15,
+    	fontWeight: '600',
+    	color: '#FAFAFA'
+  	},
+  	rateInfo: {
+  		paddingVertical: 15,
+    	textAlign: 'center', 
+    	fontSize: 15,
+    	fontWeight: '600',
+    	color: '#08d9d6'
+  	},
+  	trainerRow: {
+	    flexDirection: 'row',
+	    justifyContent: 'space-between',
+	    height: 50,
+	    borderWidth: 1,
+	   	borderColor: '#08d9d6',
+	   	marginTop: 10
+  	},
+  	trainerView: {
+    	width: '50%',
+    	height: 50
+  	},
 });

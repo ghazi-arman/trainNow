@@ -41,7 +41,6 @@ export class Map extends Component {
 
    if(!this.state.locationLoaded){
       this.getLocationAsync();
-      console.log('location');
    }
 
    //get gyms from db
@@ -158,7 +157,7 @@ export class Map extends Component {
   loadGyms(){
     var items = [];
     var gymsRef = firebase.database().ref('gyms');
-    gymsRef.once('value', function(data) {
+    gymsRef.on('value', function(data) {
       data.forEach(function(dbevent) {
         var item = dbevent.val();
         item.key = dbevent.key;

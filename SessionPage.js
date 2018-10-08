@@ -33,11 +33,6 @@ export class SessionPage extends Component {
 	      }
 	    });
   	};
-
-  	//updates mapRegion object in state
-	handleMapRegionChange = mapRegion => {
-		this.setState({ mapRegion });
-	};
 	
 	endSession(){
 		var user = firebase.auth().currentUser;
@@ -82,7 +77,7 @@ export class SessionPage extends Component {
 			}
 
 			//Update session in state with changes just pushed
-			sessionRef.on("value", function(snapshot){
+			sessionRef.once("child_added", function(snapshot){
 				var currentSession = snapshot.val();
 				currentSession.key = snapshot.key;
 				this.setState({session: currentSession});
@@ -98,7 +93,7 @@ export class SessionPage extends Component {
 			}
 
 			//Update session in state with changes just pushed
-			sessionRef.on("value", function(snapshot){
+			sessionRef.once("child_added", function(snapshot){
 				var currentSession = snapshot.val();
 				currentSession.key = snapshot.key;
 				this.setState({session: currentSession});
@@ -197,11 +192,8 @@ export class SessionPage extends Component {
 					  rotateEnabled = {false}
 					  scrollEnabled = {false}
 					  zoomEnabled = {false}
-			          ref = {(mapView) => { _map = mapView; }}
 			          style={styles.mapContainer}
-			          onRegionChange={this.handleMapRegionChange}
 			          region={this.state.mapRegion}
-			          showUserLocation={true}
 			          showsUserLocation={true}
 			        >
 			            <MapView.Marker
@@ -294,6 +286,7 @@ const styles = StyleSheet.create({
 	bookDetails:{
     	fontSize: 18,
     	fontWeight: '500',
+    	color: '#FAFAFA'
   	},
   	smallText:{
   		fontSize: 15,
@@ -303,8 +296,8 @@ const styles = StyleSheet.create({
   	header: {
   		fontSize: 30,
   		fontWeight: '700',
-  		textDecorationLine: 'underline'
-
+  		textDecorationLine: 'underline',
+  		color: '#08d9d6'
   	},
 	container: {
 		flex: 1,
@@ -326,7 +319,8 @@ const styles = StyleSheet.create({
   	buttonContain: {
   		width: '50%',
   		height: '20%',
-  		marginTop: 10
+  		marginTop: 10,
+  		textAlign: 'center'
   	},
   	infoContainer: {
   		height: '35%',
