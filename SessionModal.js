@@ -9,9 +9,10 @@ export class SessionModal extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			pendingSessions: 'null',
-			acceptSessions: 'null',
-			loaded: false
+			pendingSessions: [],
+			acceptSessions: [],
+			pendingLoaded: false,
+			acceptLoaded: false
 		}
 		this.acceptSession=this.acceptSession.bind(this);
 		this.loadSessions=this.loadSessions.bind(this);
@@ -19,74 +20,75 @@ export class SessionModal extends Component {
 
 	componentDidMount(){
 		var user = firebase.auth().currentUser;
-		if(!this.state.loaded){
+		if(this.state.pendingLoaded == false && this.state.acceptLoaded == false){
 			this.loadSessions(user.uid);
 		}
 	}
 
 	//Load Pending sessions still awaiting accept by trainer
-	async loadSessions(userKey){
+	loadSessions(userKey){
 		var pendingRef = firebase.database().ref('pendingSessions');
 		var acceptRef = firebase.database().ref('trainSessions');
 		var usersRef = firebase.database().ref('users');
-    	var acceptSession = null;
-    	var acceptSessions = [];
-		var pendingSession = null;
 		var pendingSessions = [];
-		var rv;
+		var acceptSessions = [];
+    	var acceptSession = null;
+		var pendingSession = null;
 
-		rv = await usersRef.orderByKey().equalTo(userKey).once("value", function(snapshot) {
+		usersRef.orderByKey().equalTo(userKey).once('child_added', function(snapshot) {
 	   		var currentUser = snapshot.val();
-	   		console.log(currentUser);
 
 		   	if(currentUser.trainer){
 
-		   		pendingRef.orderByChild('trainer').equalTo(userKey).once('child_added', function(snapshot) {
-		    	  	pendingSession = snapshot.val();
-			      	if(pendingSession != null){
-			      		if(pendingSession.end == null){
-			      			pendingSession.key = snapshot.key;
-			      			pendingSessions.push(pendingSession);
-			      		}
-			      	}
-		   	 	});
-
-		   	 	acceptRef.orderByChild('trainer').equalTo(userKey).once('child_added', function(snapshot) {
-		      		acceptSession = snapshot.val();
-		      		if(acceptSession != null){
-		      			if(acceptSession.end == null){
-			      			acceptSession.key = snapshot.key;
-		      				acceptSessions.push(acceptSession);
+		   		pendingRef.orderByChild('trainer').equalTo(userKey).once('value', function(data) {
+		    	  	data.forEach(function(snapshot){
+			    		pendingSession = snapshot.val();
+		      			if(pendingSession != null && pendingSession.end == null){
+		      				pendingSession.key = snapshot.key;
+			    	  		pendingSessions.push(pendingSession);
 		      			}
-		      		}
-		    	}); 
-		   	}else{
+			    	});
+			    	this.setState({pendingSessions: pendingSessions, pendingLoaded: true});  
+		   	 	}.bind(this));
 
-			    pendingRef.orderByChild('trainee').equalTo(userKey).once('child_added', function(snapshot) {
-			      	pendingSession = snapshot.val();
-			      	if(pendingSession != null){
-			      		if(pendingSession.end == null){
-			      			pendingSession.key = snapshot.key;
-				    	  	pendingSessions.push(pendingSession);
-			      		}
-			      	}	    
-			  	});
-
-			    acceptRef.orderByChild('trainee').equalTo(userKey).once('child_added', function(snapshot) {
-			    	acceptSession = snapshot.val();
-			      	if(acceptSession != null){
-			      		if(acceptSession.end == null){
+		   	 	acceptRef.orderByChild('trainer').equalTo(userKey).once('value', function(data) {
+		      		data.forEach(function(snapshot){
+			    		acceptSession = snapshot.val();
+			    		if(acceptSession != null && acceptSession.end == null){
 			      			acceptSession.key = snapshot.key;
 			      			acceptSessions.push(acceptSession);
 			      		}
-			    	}
-			    });
-			}
-		});
-	    		
-		this.setState({pendingSessions: pendingSessions, acceptSessions: acceptSessions, loaded: true});
-		this.markRead();
+			    	});
+			    	this.setState({acceptSessions: acceptSessions, acceptLoaded: true});
+		    	}.bind(this)); 
 
+		   	}else{
+
+			    pendingRef.orderByChild('trainee').equalTo(userKey).once('value', function(data) {
+			    	data.forEach(function(snapshot){
+			    		pendingSession = snapshot.val();
+		      			if(pendingSession != null && pendingSession.end == null){
+		      				pendingSession.key = snapshot.key;
+			    	  		pendingSessions.push(pendingSession);
+		      			}
+			    	});
+			    	console.log(pendingSessions.length);
+			    	this.setState({pendingSessions: pendingSessions, pendingLoaded: true});  
+			  	}.bind(this));
+
+			    acceptRef.orderByChild('trainee').equalTo(userKey).once('value', function(data) {
+			    	data.forEach(function(snapshot){
+			    		acceptSession = snapshot.val();
+			    		if(acceptSession != null && acceptSession.end == null){
+			      			acceptSession.key = snapshot.key;
+			      			acceptSessions.push(acceptSession);
+			      		}
+			    	});
+			    	console.log(acceptSessions.length);
+			    	this.setState({acceptSessions: acceptSessions, acceptLoaded: true});
+			    }.bind(this));
+			}
+		}.bind(this));
 	}
 
   	//mark all sessions shown to user as read in db
@@ -147,7 +149,8 @@ export class SessionModal extends Component {
 	            trainerEnd: false,
 	          });
 	          pendingRef.child(session.key).remove();
-	          pendingSessions.splice(pendingSessions.indexOf(session.key), 1);
+	          pendingSessions.splice(pendingSessions.indexOf(session), 1);
+	          this.state.acceptSessions.push(session);
 	          this.setState({pendingSessions: pendingSessions});
 	        }
 	      }]);
@@ -155,8 +158,8 @@ export class SessionModal extends Component {
 
 	//Cancel pending session as trainee
 	cancelSession(session){
+		var pendingSessions = this.state.pendingSessions;
 	    var pendingRef = firebase.database().ref('pendingSessions');
-	    var pendingSessions = this.state.pendingSessions
 	    Alert.alert(
 	      'Are you sure you want to cancel this session?', 
 	      '',
@@ -164,7 +167,7 @@ export class SessionModal extends Component {
 	        {text: 'No'},
 	        {text: 'Yes', onPress: () => {
 	          pendingRef.child(session.key).remove();
-	          pendingSessions.splice(pendingSessions.indexOf(session.key), 1);
+	          pendingSessions.splice(pendingSessions.indexOf(session), 1);
 	          this.setState({pendingSessions: pendingSessions});
 	        }
 	      }]);
@@ -173,7 +176,7 @@ export class SessionModal extends Component {
 	//Cancel accept session as trainee
   	cancelAccept(session){
 	    var sessionRef = firebase.database().ref('trainSessions');
-	    acceptSessions = this.state.acceptSessions;
+	    var acceptSessions = this.state.acceptSessions;
 	        Alert.alert(
 	      'Are you sure you want to cancel this session?', 
 	      '',
@@ -181,10 +184,91 @@ export class SessionModal extends Component {
 	        {text: 'No'},
 	        {text: 'Yes', onPress: () => {
 	          sessionRef.child(session.key).remove();
-	          acceptSessions.splice(acceptSessions.indexOf(session.key), 1);
+	          acceptSessions.splice(acceptSessions.indexOf(session), 1);
 	          this.setState({acceptSessions: acceptSessions});
 	        }
 	      }]);
+  	}
+
+  	renderAccept(){
+		var userKey = firebase.auth().currentUser.uid;	 	
+	    var acceptList = this.state.acceptSessions.map(function(session){
+
+	        var displayDate = this.dateToString(session.start);
+	        if(session.trainee == userKey){
+	          var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.trainerName}</Text></View>);
+	        }else{
+	            var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.traineeName}</Text></View>);
+	        }
+	        return(
+	        <View style={{flexDirection: 'column', justifyContent: 'flex-start'}} key={session.trainee}>
+	          <View style={{flexDirection: 'row', justifyContent: 'space-around', height: 50}} key={session.trainee}>
+	            <View style={{width: '70%', flexDirection: 'row', justifyContent: 'space-around', height: 50}}>
+	              {name}
+	              <View style={styles.rateView}><Text style={styles.trainerInfo}>{session.duration} min</Text></View>
+	              <View style={styles.timeView}><Text style={styles.trainerInfo}>{displayDate}</Text></View>
+	            </View> 
+	            <View style={{width: '25%', height: 50}}>
+	              <TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.cancelAccept(session)}>
+	                <Text 
+	                  style={styles.buttonText}
+	                >
+	                Cancel
+	                </Text>
+	              </TouchableOpacity>
+	            </View>
+	          </View>
+	        </View>
+	        );
+	    }.bind(this));
+	    return acceptList;
+  	}
+
+  	renderPending(){
+		var userKey = firebase.auth().currentUser.uid;
+  		var pendingList = this.state.pendingSessions.map(function(session){
+
+	    	var displayDate = this.dateToString(session.start);
+	        if(session.trainee == userKey){
+
+	          var button = (
+	            <TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.cancelSession(session)}>
+	              <Text 
+	                style={styles.buttonText}
+	              >
+	              Cancel
+	              </Text>
+	            </TouchableOpacity>);
+	          var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.trainerName}</Text></View>);
+	        
+	        }else{
+
+	          var button = (
+	            <TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.acceptSession(session)}>
+	              <Text 
+	                style={styles.buttonText}
+	              >
+	              Accept
+	              </Text>
+	            </TouchableOpacity>);
+	            var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.traineeName}</Text></View>);
+	        }
+	        return(
+	        <View style={{flexDirection: 'column', justifyContent: 'flex-start'}} key={session.trainee}>
+	          <View style={{flexDirection: 'row', justifyContent: 'space-around', height: 50}} key={session.trainee}>
+	            <View style={{width: '70%', flexDirection: 'row', justifyContent: 'space-around', height: 50}}>
+	              {name}
+	              <View style={styles.rateView}><Text style={styles.trainerInfo}>{session.duration} min</Text></View>
+	              <View style={styles.timeView}><Text style={styles.trainerInfo}>{displayDate}</Text></View>
+	            </View> 
+	            <View style={{width: '25%', height: 50}}>
+	              {button}
+	            </View>
+	          </View>
+	        </View>
+	        );
+	    }.bind(this));
+	    return pendingList;
   	}
 
 	//Convert Date to readable format
@@ -214,90 +298,18 @@ export class SessionModal extends Component {
   	}
 
 	render(){
-		if((this.state.pendingSessions == 'null' && this.state.acceptSessions == 'null') || !this.state.loaded){
+		if(this.state.pendingLoaded == false || this.state.acceptLoaded == false){
 			return <Expo.AppLoading />;
 		}else{
-			var acceptSessions = this.state.acceptSessions;
-			var pendingSessions = this.state.pendingSessions;
-			var userKey = firebase.auth().currentUser.uid;
-		 	var pendingList = pendingSessions.map(function(session){
-
-		    	var displayDate = this.dateToString(session.start);
-		        if(session.trainee == userKey){
-
-		          var button = (
-		            <TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.cancelSession(session)}>
-		              <Text 
-		                style={styles.buttonText}
-		              >
-		              Cancel
-		              </Text>
-		            </TouchableOpacity>);
-		          var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.trainerName}</Text></View>);
-		        
-		        }else{
-
-		          var button = (
-		            <TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.acceptSession(session)}>
-		              <Text 
-		                style={styles.buttonText}
-		              >
-		              Accept
-		              </Text>
-		            </TouchableOpacity>);
-		            var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.traineeName}</Text></View>);
-		        }
-		        return(
-		        <View style={{flexDirection: 'column', justifyContent: 'flex-start'}} key={session.trainee}>
-		          <View style={{flexDirection: 'row', justifyContent: 'space-around', height: 50}} key={session.trainee}>
-		            <View style={{width: '70%', flexDirection: 'row', justifyContent: 'space-around', height: 50}}>
-		              {name}
-		              <View style={styles.rateView}><Text style={styles.trainerInfo}>{session.duration} min</Text></View>
-		              <View style={styles.trainerView}><Text style={styles.trainerInfo}>{displayDate}</Text></View>
-		            </View> 
-		            <View style={{width: '25%', height: 50}}>
-		              {button}
-		            </View>
-		          </View>
-		        </View>
-		        );
-		    }.bind(this));
-		    var acceptList = acceptSessions.map(function(session){
-
-		        var displayDate = this.dateToString(session.start);
-		        if(session.trainee == userKey){
-		          var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.trainerName}</Text></View>);
-		        }else{
-		            var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.traineeName}</Text></View>);
-		        }
-		        return(
-		        <View style={{flexDirection: 'column', justifyContent: 'flex-start'}} key={session.trainee}>
-		          <View style={{flexDirection: 'row', justifyContent: 'space-around', height: 50}} key={session.trainee}>
-		            <View style={{width: '70%', flexDirection: 'row', justifyContent: 'space-around', height: 50}}>
-		              {name}
-		              <View style={styles.rateView}><Text style={styles.trainerInfo}>{session.duration} min</Text></View>
-		              <View style={styles.trainerView}><Text style={styles.trainerInfo}>{displayDate}</Text></View>
-		            </View> 
-		            <View style={{width: '25%', height: 50}}>
-		              <TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.cancelAccept(session)}>
-		                <Text 
-		                  style={styles.buttonText}
-		                >
-		                Cancel
-		                </Text>
-		              </TouchableOpacity>
-		            </View>
-		          </View>
-		        </View>
-		        );
-		    }.bind(this));
+			this.markRead();
 			return(
-			 <View style={styles.modal}>
-	            <Text style={styles.upcomingName}>Upcoming Sessions</Text>
-	            {acceptList}
-	            <Text style={styles.pendingName}>Pending Sessions</Text>
-	            {pendingList}
-	        </View>)
+		 		<View style={styles.modal}>
+            		<Text style={styles.upcomingName}>Upcoming Sessions</Text>
+            		{this.renderAccept()}
+            		<Text style={styles.pendingName}>Pending Sessions</Text>
+            		{this.renderPending()}
+        		</View>
+        	);
 		}
 	}
 }
@@ -312,8 +324,12 @@ const styles = StyleSheet.create({
 		borderRadius: 10,
 	},
 	trainerView: {
-    	width: '30%',
+    	width: '35%',
     	height: 50
+  	},
+  	timeView: {
+  		width: '30%',
+  		height: 50
   	},
 	bookDetails:{
     	fontSize: 20,
@@ -346,7 +362,7 @@ const styles = StyleSheet.create({
     	color: '#FAFAFA',
   	},
   	rateView: {
-    	width: '15%',
+    	width: '18%',
     	height: 50
   	},
   	buttonContainer: {

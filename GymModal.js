@@ -127,7 +127,7 @@ export class GymModal extends Component {
 	            </View>
 	            <Text style={styles.hourDetails}>Hours: {this.state.gym.hours}</Text>
 	            <Text style={styles.trainerTitle}>Trainers</Text>
-	            <ScrollView style={styles.trainers}>
+	            <ScrollView contentContainerStyle={styles.trainers}>
 	              {this.getTrainers()}
 	            </ScrollView>
 	          </View>
@@ -146,7 +146,6 @@ const styles = StyleSheet.create({
 		borderRadius: 10,
 	},
 	gymName: {
-    	fontFamily: 'latoBold',
     	fontSize: 30,
     	color: '#08d9d6',
     	fontWeight: '500'
@@ -214,7 +213,6 @@ const styles = StyleSheet.create({
   		fontSize: 17,
   		fontWeight: '700',
   		textAlign: 'center',
-  		textDecoration: 'underline',
   		color: '#08d9d6'
   	},
   	biocertText: {
@@ -243,14 +241,12 @@ const styles = StyleSheet.create({
     	height: 50
   	},
   	hourDetails: {
-	    fontFamily: 'lato',
 	    fontSize: 16,
 	    color: '#ff2e63',
 	    fontWeight: '400',
 	    marginTop: 10,
   	},
   	trainerTitle: {
-	    fontFamily: 'lato',
 	    fontSize: 24,
 	    color: '#ff2e63',
 	    fontWeight: '400',

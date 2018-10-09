@@ -27,7 +27,8 @@ export class HistoryPage extends Component {
 		
 		this.state = {
       		pendingModal: false,
-      		sessions: 'null'
+      		sessions: 'null',
+      		loaded: false
       	}
 	}
 
@@ -43,13 +44,11 @@ export class HistoryPage extends Component {
 
 	// load font after render the page
 	componentDidMount() {
-		Font.loadAsync({
+		Expo.Font.loadAsync({
 		  fontAwesome: require('./fonts/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf'),
 		});
 		var user = firebase.auth().currentUser;
-		var sessions = this.loadSessions(user.uid);
-		console.log(sessions);
-		this.setState({sessions: sessions});
+		this.loadSessions(user.uid);
 	}
 
 	loadSessions(userKey){
@@ -59,12 +58,12 @@ export class HistoryPage extends Component {
     		data.forEach(function(dbevent) {
         		var item = dbevent.val();
         		item.session.key = dbevent.key;
+        		console.log(item.session);
         		sessions.push(item.session);
-      		});
-    	});
-    	console.log(sessions[0]);
-   		return sessions;
-	}
+      		}.bind(this));
+      		this.setState({sessions: sessions, loaded: true});
+    	}.bind(this));
+    }
 
 	renderSessions(){
 		var sessions = this.state.sessions;
@@ -90,7 +89,7 @@ export class HistoryPage extends Component {
 	}
 
 	render() {
-		if(this.state.sessions == 'null' || this.state.sessions == null){
+		if(this.state.loaded == false){
 			return <Expo.AppLoading />;
 		}
 		return (
@@ -98,7 +97,7 @@ export class HistoryPage extends Component {
 				behavior="padding"
 				style = {styles.container}
 				>		
-				<ScrollView style = {styles.historyContainer}>
+				<ScrollView contentContainerStyle = {styles.historyContainer}>
 					{this.renderSessions()}
 				</ScrollView>
 				<Modal 

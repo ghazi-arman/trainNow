@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import { Platform, StyleSheet, Text, View, Button, Alert, TouchableOpacity } from 'react-native';
 import { Permissions, Location, AppLoading, MapView } from 'expo';
-import { PROVIDER_GOOGLE } from 'react-native-maps'
 import firebase from 'firebase';
 import Modal from 'react-native-modal';
 import { Actions } from 'react-native-router-flux';
@@ -19,6 +18,7 @@ export class Map extends Component {
       userRegion: {},
       mapRegion: {},
       gyms: [],
+      gymLoaded: false,
       selectedGym: 'null',
       bookingTrainer: 'null',
       locationLoaded: false,
@@ -44,12 +44,7 @@ export class Map extends Component {
    }
 
    //get gyms from db
-   var gyms = this.loadGyms();
-
-   //send info to the state
-   this.setState({
-      gyms: gyms,
-   });
+   this.loadGyms();
 
    var user = firebase.auth().currentUser;
 
@@ -157,15 +152,18 @@ export class Map extends Component {
   loadGyms(){
     var items = [];
     var gymsRef = firebase.database().ref('gyms');
-    gymsRef.on('value', function(data) {
+    gymsRef.once('value', function(data) {
       data.forEach(function(dbevent) {
         var item = dbevent.val();
         item.key = dbevent.key;
         items.push(item);
       });
-    });
-
-    return items;
+        //send info to the state
+        this.setState({
+          gyms: items,
+          gymLoaded: true
+        });
+    }.bind(this));
   }
 
   //ShowModal function to open up different modals
@@ -222,10 +220,9 @@ export class Map extends Component {
   }
 
   render() {
-    if(typeof this.state.mapRegion.latitude === 'undefined' || this.state.mapRegion === null){
+    if(typeof this.state.mapRegion.latitude === 'undefined' || this.state.mapRegion === null || this.state.gymLoaded == false){
       return <Expo.AppLoading />;
     }
-    // var mapStyle = [{"elementType":"geometry","stylers":[{"color":"#1d2c4d"}]},{"elementType":"labels.text.fill","stylers":[{"color":"#8ec3b9"}]},{"elementType":"labels.text.stroke","stylers":[{"color":"#1a3646"}]},{"featureType":"administrative.country","elementType":"geometry.stroke","stylers":[{"color":"#4b6878"}]},{"featureType":"administrative.land_parcel","elementType":"labels.text.fill","stylers":[{"color":"#64779e"}]},{"featureType":"administrative.province","elementType":"geometry.stroke","stylers":[{"color":"#4b6878"}]},{"featureType":"landscape.man_made","elementType":"geometry.stroke","stylers":[{"color":"#334e87"}]},{"featureType":"landscape.natural","elementType":"geometry","stylers":[{"color":"#023e58"}]},{"featureType":"poi","elementType":"geometry","stylers":[{"color":"#283d6a"}]},{"featureType":"poi","elementType":"labels.text.fill","stylers":[{"color":"#6f9ba5"}]},{"featureType":"poi","elementType":"labels.text.stroke","stylers":[{"color":"#1d2c4d"}]},{"featureType":"poi.park","elementType":"geometry.fill","stylers":[{"color":"#023e58"}]},{"featureType":"poi.park","elementType":"labels.text.fill","stylers":[{"color":"#3C7680"}]},{"featureType":"road","elementType":"geometry","stylers":[{"color":"#304a7d"}]},{"featureType":"road","elementType":"labels.text.fill","stylers":[{"color":"#98a5be"}]},{"featureType":"road","elementType":"labels.text.stroke","stylers":[{"color":"#1d2c4d"}]},{"featureType":"road.highway","elementType":"geometry","stylers":[{"color":"#2c6675"}]},{"featureType":"road.highway","elementType":"geometry.stroke","stylers":[{"color":"#255763"}]},{"featureType":"road.highway","elementType":"labels.text.fill","stylers":[{"color":"#b0d5ce"}]},{"featureType":"road.highway","elementType":"labels.text.stroke","stylers":[{"color":"#023e58"}]},{"featureType":"transit","elementType":"labels.text.fill","stylers":[{"color":"#98a5be"}]},{"featureType":"transit","elementType":"labels.text.stroke","stylers":[{"color":"#1d2c4d"}]},{"featureType":"transit.line","elementType":"geometry.fill","stylers":[{"color":"#283d6a"}]},{"featureType":"transit.station","elementType":"geometry","stylers":[{"color":"#3a4762"}]},{"featureType":"water","elementType":"geometry","stylers":[{"color":"#0e1626"}]},{"featureType":"water","elementType":"labels.text.fill","stylers":[{"color":"#4e6d70"}]}]
     return (
       <View
         style={styles.container}
@@ -236,8 +233,6 @@ export class Map extends Component {
           onRegionChange={this.handleMapRegionChange}
           region={this.state.mapRegion}
           showsUserLocation={true}
-          // provider={PROVIDER_GOOGLE}
-          // customMapStyle={mapStyle}
           onMapReady={() => {
             this.setState({ regionSet: true });
           }}
@@ -264,7 +259,7 @@ export class Map extends Component {
         {/* Booking Modal */}
         <Modal isVisible={this.state.bookModal}
         onBackdropPress={this.hidebookModal}>
-          <BookModal trainer={this.state.bookingTrainer} gym={this.state.selectedGym}/>
+          <BookModal trainer={this.state.bookingTrainer} gym={this.state.selectedGym} hide={this.hidebookModal} confirm={() => Alert.alert('Session Booked!')}/>
         </Modal>
 
         {/*Pending Sessions Modal*/}

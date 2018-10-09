@@ -25,7 +25,7 @@ export class LoginForm extends Component {
 	}
 
 	loadFont = async () => {
-		await Font.loadAsync({
+		await Expo.Font.loadAsync({
 	      FontAwesome: require('./fonts/font-awesome-4.7.0/fonts/FontAwesome.otf'),
 	      fontAwesome: require('./fonts/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf')
 	    });

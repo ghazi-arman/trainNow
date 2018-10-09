@@ -100,7 +100,8 @@ export class BookModal extends Component {
 				          	rate: this.state.trainer.rate,
 				          	read: false,
 			         	});
-			         Alert.alert('Session Booked');
+			         	this.props.hide();
+			         	setTimeout(this.props.confirm, 1000);
 			        }},
 			      ]);
 	    		}
@@ -124,6 +125,8 @@ export class BookModal extends Component {
 			            <View style={styles.datePickerHolder}>
 				            <DatePickerIOS
 				                mode='time'
+				                itemStyle={{color: '#08d9d6'}}
+				                textColor='#08d9d6'
 				                style={styles.datepicker}
 				                minuteInterval={10}
 				                minimumDate={new Date(new Date().getTime() + 600000)}
@@ -136,7 +139,7 @@ export class BookModal extends Component {
 			              <Text style ={styles.bookFormLabel}>Session Duration</Text>
 			              <Picker
 			                style={styles.picker}
-			                itemStyle={{height: 70}}
+			                itemStyle={{height: 70, color: '#08d9d6'}}
 			                selectedValue={this.state.bookDuration}
 			                onValueChange={(itemValue, itemIndex) => this.setState({bookDuration: itemValue})}>
 			                <Picker.Item label='60' value='60' />
@@ -209,14 +212,12 @@ const styles = StyleSheet.create({
 		height: 200,
 		borderWidth: 1,
 		borderColor: '#ff2e63',
-		color: '#08d9d6',
 	},
 	picker: {
 		height: 70,
 		borderWidth: 1,
 		borderColor: '#ff2e63',
 		width: '65%',
-		color: '#08d9d6'
 	},
 	bookButton: {
     	paddingVertical: 15,

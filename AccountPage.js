@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {Platform, StyleSheet, Text, View, Button, Image, KeyboardAvoidingView, ScrollView, TouchableOpacity, Alert} from 'react-native';
-import {Permissions, Location, Font, ImagePicker} from 'expo';
+import {Permissions, Location, ImagePicker, Font} from 'expo';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import Modal from 'react-native-modal';
@@ -46,7 +46,7 @@ export class AccountPage extends Component {
 
 	// load font after render the page
 	async componentDidMount() {
-		await Font.loadAsync({
+		await Expo.Font.loadAsync({
 		  fontAwesome: require('./fonts/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf'),
 		});
 		this.setState({ fontLoaded: true });
@@ -57,8 +57,9 @@ export class AccountPage extends Component {
 			<KeyboardAvoidingView 
 				behavior="padding"
 				style = {styles.container}
-				>		
-				<ScrollView style = {styles.formContainer}>
+				>
+				<Text style={styles.title}>Settings</Text>		
+				<ScrollView style={styles.test}>
 					<AccountForm />
 				</ScrollView>
 				<Modal 
@@ -78,14 +79,17 @@ const styles = StyleSheet.create({
 		flex: 1,
 		backgroundColor: '#252a34',
 		flexDirection: 'column',
+		alignItems: 'center',
 		justifyContent: 'center',
-		alignItems: 'center'	
 	},
-	formContainer: {
+	title: {
+    	fontSize: 30,
+    	color: '#08d9d6',
+    	fontWeight: '500',
+    	marginTop: 30
+  	},
+	test: {
 		width: '90%',
-		height: '80%',
-		flexDirection: 'column',
-		justifyContent: 'center',
-		alignItems: 'center'
-	},
+		height: '70%',
+	}
 });

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Platform, StyleSheet, Text, View, TextInput, TouchableOpacity, StatusBar, Alert, Switch, Image, Picker } from 'react-native';
 import { Actions } from 'react-native-router-flux';
-import { ImagePicker } from 'expo';
+import { ImagePicker, Font } from 'expo';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 
@@ -40,7 +40,7 @@ export class SignupForm extends Component {
 	}
 
 	loadFont = async () => {
-		await Font.loadAsync({
+		await Expo.Font.loadAsync({
 	      FontAwesome: require('./fonts/font-awesome-4.7.0/fonts/FontAwesome.otf'),
 	      fontAwesome: require('./fonts/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf')
 	    });
@@ -203,9 +203,9 @@ export class SignupForm extends Component {
 					itemStyle={{height: 45, color: '#08d9d6'}}
 				  	selectedValue={this.state.gym}
 				  	onValueChange={(itemValue, itemIndex) => this.setState({gym: itemValue})}>
-				  	<Picker.Item label="Pick a Gym (Scroll)" value= '' />
+				  	<Picker.Item label="Pick a Gym (Scroll)" value= '' key='0'/>
 				  	{gyms.map(function(gym){
-				  		return (<Picker.Item label={gym.name} value={gym.key} />);
+				  		return (<Picker.Item label={gym.name} value={gym.key} key={gym.key}/>);
 				  	})}
 				</Picker>
 			</View>);
@@ -445,7 +445,6 @@ const styles = StyleSheet.create({
 		height: 45,
 		borderWidth: 1,
 		borderColor: '#ff2e63',
-		color: '#08d9d6',
 		width: '90%',
 	},
 	buttonContainer: {

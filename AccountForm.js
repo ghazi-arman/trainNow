@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import {Platform, StyleSheet, Text, View, TextInput, TouchableOpacity, StatusBar, ScrollView, Alert, Switch} from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
-import { ImagePicker} from 'expo';
+import { ImagePicker, Font} from 'expo';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 
 export class AccountForm extends Component {
@@ -48,7 +48,7 @@ export class AccountForm extends Component {
   	}
 
   	loadFont = async () => {
-		await Font.loadAsync({
+		await Expo.Font.loadAsync({
 	      FontAwesome: require('./fonts/font-awesome-4.7.0/fonts/FontAwesome.otf'),
 	      fontAwesome: require('./fonts/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf')
 	    });
