@@ -97,6 +97,7 @@ export class BookModal extends Component {
 				          	start: this.state.bookDate.toString(),
 				          	duration: this.state.bookDuration,
 				          	location: this.props.gym.location,
+				          	gym: this.props.gym.name,
 				          	rate: this.state.trainer.rate,
 				          	read: false,
 			         	});

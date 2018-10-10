@@ -59,7 +59,7 @@ export class AccountPage extends Component {
 				style = {styles.container}
 				>
 				<Text style={styles.title}>Settings</Text>		
-				<ScrollView style={styles.test}>
+				<ScrollView contentContainerStyle={styles.form}>
 					<AccountForm />
 				</ScrollView>
 				<Modal 
@@ -79,17 +79,20 @@ const styles = StyleSheet.create({
 		flex: 1,
 		backgroundColor: '#252a34',
 		flexDirection: 'column',
+		justifyContent: 'space-around',
 		alignItems: 'center',
-		justifyContent: 'center',
 	},
 	title: {
+		paddingVertical: 40,
     	fontSize: 30,
     	color: '#08d9d6',
-    	fontWeight: '500',
-    	marginTop: 30
+    	fontWeight: '700',
   	},
-	test: {
+	form: {
 		width: '90%',
-		height: '70%',
+		flex: .7,
+		flexDirection: 'column',
+		justifyContent: 'flex-start',
+		alignItems: 'center'
 	}
 });

@@ -58,33 +58,64 @@ export class HistoryPage extends Component {
     		data.forEach(function(dbevent) {
         		var item = dbevent.val();
         		item.session.key = dbevent.key;
-        		console.log(item.session);
         		sessions.push(item.session);
       		}.bind(this));
       		this.setState({sessions: sessions, loaded: true});
     	}.bind(this));
     }
 
+    //Convert Date to readable format
+	dateToString(start){
+
+	    var pendingDate = new Date(start);
+	    var hour = pendingDate.getHours();
+	    var minute = pendingDate.getMinutes();
+	    var abbr;
+
+	    if(minute < 10){
+	        minute = '0' + minute;
+	    }
+	    if(hour == 0){
+	    	hour = 12;
+	    }
+	    //Sets abbr to AM or PM
+	    if(hour > 12){
+	      hour = hour - 12;
+	      abbr = 'PM';
+	    }else{
+	      abbr = 'AM'
+	    }
+
+	    var displayDate = hour + ':' + minute + abbr;
+	    return displayDate;
+  	}
+
 	renderSessions(){
 		var sessions = this.state.sessions;
-		console.log(sessions);
+		var user = firebase.auth().currentUser.uid;
 		var sessionsList = sessions.map(function(session){
-			console.log(session);
-	       	var displayDate = this.dateToString(session.end);
-			var duration = new Date(session.end) - new Date(session.start);
-			var minutes = Math.floor((duration/1000)/60);
+
+	       	var startDate = this.dateToString(session.start);
+	       	var endDate = this.dateToString(session.end);
+			var minutes = Math.floor(((new Date(session.end) - new Date(session.start))/1000)/60);
 			var rate = (parseInt(minutes) * (parseInt(session.rate) / 60)).toFixed(2);
+			if(session.trainee == user){
+				var client = (<Text style={styles.titleText}>Trained by {session.trainerName}</Text>);
+			}else{
+				var client = (<Text style={styles.titleText}>You trained {session.traineeName}</Text>);
+			}
 			return(
-		        <View style={styles.trainerContainer} key={key}>
-		          <View style={styles.trainerRow} key={trainer.key}>
-		            <View style={styles.trainerInfoContainer}>
-		              <View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.date}</Text></View>
-		              <View style={styles.rateView}><Text style={styles.rateInfo}>${rate}</Text></View>
-		            </View> 
-		          </View>
+		        <View style={styles.sessionContainer} key={session.key}>
+		            <View style={styles.sessionRow}>{client}</View>
+		            <View style={styles.sessionRow}><Text style={styles.smallText}>{session.gym}</Text></View>
+		            <View style={styles.sessionRow}><Text style={styles.smallText}>${rate}</Text></View>
+		            <View style={styles.sessionRow}>
+		            	<View style={styles.halfRow}><Text style={styles.timeText}>Start: {startDate}</Text></View>
+		            	<View style={styles.halfRow}><Text style={styles.timeText}>End: {endDate}</Text></View>
+		            </View>
 		        </View>
 	        );
-	    });
+	    }.bind(this));
 	    return sessionsList;
 	}
 
@@ -96,7 +127,8 @@ export class HistoryPage extends Component {
 			<KeyboardAvoidingView 
 				behavior="padding"
 				style = {styles.container}
-				>		
+				>
+				<Text style={styles.header}>Trainer History</Text>		
 				<ScrollView contentContainerStyle = {styles.historyContainer}>
 					{this.renderSessions()}
 				</ScrollView>
@@ -117,52 +149,52 @@ const styles = StyleSheet.create({
 		flex: 1,
 		backgroundColor: '#252a34',
 		flexDirection: 'column',
-		justifyContent: 'center',
+		justifyContent: 'space-around',
 		alignItems: 'center'	
 	},
 	historyContainer: {
-		width: '90%',
-		height: '80%',
+		width: '100%',
+		flex: .7,
 		flexDirection: 'column',
-		justifyContent: 'center',
+		justifyContent: 'flex-start',
 		alignItems: 'center'
 	},
-	trainerContainer: {
+	sessionContainer: {
   		width: '90%',
   		flexDirection: 'column',
-  		justifyContent: 'center',
-  		alignItems: 'center'
+  		justifyContent: 'flex-start',
+  		alignItems: 'center',
+  		borderWidth: 1,
+	   	borderColor: '#08d9d6',
   	},
-  	trainerInfoContainer:{
-    	width: '70%',
-    	flexDirection: 'row',
-    	justifyContent: 'space-around',
-    	height: 50
+  	sessionRow: {
+  		flexDirection: 'row',
+  		justifyContent: 'center'
   	},
-  	trainerInfo: {
-  		paddingVertical: 15,
-    	textAlign: 'center', 
-    	fontSize: 15,
-    	fontWeight: '600',
-    	color: '#FAFAFA'
+  	halfRow: {
+  		width: '50%',
+  		flexDirection: 'row',
+  		justifyContent: 'center'
   	},
-  	rateInfo: {
-  		paddingVertical: 15,
-    	textAlign: 'center', 
-    	fontSize: 15,
+  	header: {
+  		paddingVertical: 40,
+  		fontSize: 30,
+  		fontWeight: '700',
+  		color: '#08d9d6'
+  	},
+  	titleText: {
+    	fontSize: 20,
     	fontWeight: '600',
     	color: '#08d9d6'
   	},
-  	trainerRow: {
-	    flexDirection: 'row',
-	    justifyContent: 'space-between',
-	    height: 50,
-	    borderWidth: 1,
-	   	borderColor: '#08d9d6',
-	   	marginTop: 10
+  	smallText: {
+  		fontSize: 15,
+  		fontWeight: '400',
+  		color: '#08d9d6'
   	},
-  	trainerView: {
-    	width: '50%',
-    	height: 50
-  	},
+  	timeText: {
+  		fontSize: 12,
+  		fontWeight: '400',
+  		color: '#08d9d6'
+  	}
 });

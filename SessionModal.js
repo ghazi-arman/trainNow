@@ -72,7 +72,6 @@ export class SessionModal extends Component {
 			    	  		pendingSessions.push(pendingSession);
 		      			}
 			    	});
-			    	console.log(pendingSessions.length);
 			    	this.setState({pendingSessions: pendingSessions, pendingLoaded: true});  
 			  	}.bind(this));
 
@@ -84,7 +83,6 @@ export class SessionModal extends Component {
 			      			acceptSessions.push(acceptSession);
 			      		}
 			    	});
-			    	console.log(acceptSessions.length);
 			    	this.setState({acceptSessions: acceptSessions, acceptLoaded: true});
 			    }.bind(this));
 			}
@@ -136,6 +134,7 @@ export class SessionModal extends Component {
 	            duration: session.duration,
 	            location: session.location,
 	            rate: session.rate,
+	            gym: session.gym,
 	            traineeLoc: null,
 	            trainerLoc: null,
 	            trainerReady: false,
