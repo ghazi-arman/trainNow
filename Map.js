@@ -139,7 +139,7 @@ export class Map extends Component {
     }.bind(this));
 
     //Only need to send trainees a notification for accepted Sessions
-    acceptRef.orderByChild('trainer').equalTo(userKey).once('child_added', function(snapshot) {
+    acceptRef.orderByChild('trainee').equalTo(userKey).once('child_added', function(snapshot) {
       acceptSession = snapshot.val();
       if(typeof acceptSession.read !== 'undefined' && acceptSession.read == false){
         	this.setState({unRead: true});

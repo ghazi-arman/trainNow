@@ -291,12 +291,12 @@ const styles = StyleSheet.create({
   	smallText:{
   		fontSize: 15,
   		fontWeight: '300',
-  		color: '#08d9d6'
+  		color: '#08d9d6',
+  		textAlign: 'center'
   	},
   	header: {
   		fontSize: 30,
   		fontWeight: '700',
-  		textDecorationLine: 'underline',
   		color: '#08d9d6'
   	},
 	container: {
@@ -320,7 +320,6 @@ const styles = StyleSheet.create({
   		width: '50%',
   		height: '20%',
   		marginTop: 10,
-  		textAlign: 'center'
   	},
   	infoContainer: {
   		height: '35%',
