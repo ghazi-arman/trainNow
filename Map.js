@@ -105,7 +105,7 @@ export class Map extends Component {
       //Check for Session in Progress
       var sessionRef = firebase.database().ref('trainSessions');
       var currDate = new Date();
-      sessionRef.orderByChild('trainee').equalTo(userKey).on('child_added', function(snapshot){
+      sessionRef.orderByChild('trainee').equalTo(userKey).once('child_added', function(snapshot){
         var session = snapshot.val();
         if(new Date(session.start) < currDate && session.end == null){
           Actions.reset('session');
@@ -114,7 +114,7 @@ export class Map extends Component {
         }
       });
 
-      sessionRef.orderByChild('trainer').equalTo(userKey).on('child_added', function(snapshot){
+      sessionRef.orderByChild('trainer').equalTo(userKey).once('child_added', function(snapshot){
         var session = snapshot.val();
         if(new Date(session.start) < currDate && session.end == null){
           Actions.reset('session');
@@ -131,7 +131,7 @@ export class Map extends Component {
     var acceptSession = pendingSession = null;
     
     //Only need to send trainers a notification for pending Sessions
-    pendingRef.orderByChild('trainer').equalTo(userKey).once('child_added', function(snapshot) {
+    pendingRef.orderByChild('trainer').equalTo(userKey).on('child_added', function(snapshot) {
       pendingSession = snapshot.val();
       if(typeof pendingSession.read !== 'undefined' && pendingSession.read == false){
         	this.setState({unRead: true});
@@ -139,7 +139,7 @@ export class Map extends Component {
     }.bind(this));
 
     //Only need to send trainees a notification for accepted Sessions
-    acceptRef.orderByChild('trainee').equalTo(userKey).once('child_added', function(snapshot) {
+    acceptRef.orderByChild('trainee').equalTo(userKey).on('child_added', function(snapshot) {
       acceptSession = snapshot.val();
       if(typeof acceptSession.read !== 'undefined' && acceptSession.read == false){
         	this.setState({unRead: true});

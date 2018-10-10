@@ -165,7 +165,8 @@ const styles = StyleSheet.create({
   		justifyContent: 'flex-start',
   		alignItems: 'center',
   		borderWidth: 1,
-	   	borderColor: '#08d9d6',
+	   	borderColor: '#ff2e63',
+	   	marginBottom: 10
   	},
   	sessionRow: {
   		flexDirection: 'row',
@@ -190,7 +191,7 @@ const styles = StyleSheet.create({
   	smallText: {
   		fontSize: 15,
   		fontWeight: '400',
-  		color: '#08d9d6'
+  		color: '#ff2e63'
   	},
   	timeText: {
   		fontSize: 12,

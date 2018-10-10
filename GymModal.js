@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     	width: '100%',
     	height: '65%',
     	flexDirection: 'column',
-    	justifyContent: 'space-between',
+    	justifyContent: 'flex-start',
     	alignItems: 'center'
   	},
   	trainerContainer: {

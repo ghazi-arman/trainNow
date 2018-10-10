@@ -150,14 +150,12 @@ export class AccountForm extends Component {
 		if(isTrainer){
 			activeField = (
 				<View style={styles.switchRow}>
-					<Text style={styles.hints}>
-						Active?
-					</Text>			
+					<Text style={styles.hints}>Active? </Text>			
 					<Switch
 						onTintColor="#ff2e63"
 						tintColor="#ff2e63"
 						thumbTintColor="#08d9d6"
-						style={styles.switch}
+						style={{marginLeft: 10}}
 						value={this.state.active}
 						onValueChange={(active) => this.setState({active})}
 						/>
@@ -269,8 +267,8 @@ const styles = StyleSheet.create({
 	},
 	switchRow: {
 		width: '100%',
-		flexDirection: 'column',
-		justifyContent: 'flex-start',
+		flexDirection: 'row',
+		justifyContent: 'center',
 		alignItems: 'center',
 		marginBottom: 5
 	},

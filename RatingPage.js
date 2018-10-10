@@ -84,7 +84,7 @@ export class RatingPage extends Component {
 		if(this.state.session.trainer == user.uid){
 			sessionRef.update({trainerRating: this.state.rating});
 			session.trainerRating = this.state.rating;
-			firebase.database().ref('/pastSessions/' + user.uid).push({session});
+			firebase.database().ref('/pastSessions/' + user.uid + '/' + session.key + '/').set({session: session});
 			if(session.traineeRating != null){
 				firebase.database().ref('/pastSessions/' + session.trainee + '/' + session.key + '/session/').update({trainerRating: this.state.rating});
 				sessionRef.remove();
@@ -92,7 +92,7 @@ export class RatingPage extends Component {
 		}else{
 			sessionRef.update({traineeRating: this.state.rating});
 			session.traineeRating = this.state.rating;
-			firebase.database().ref('/pastSessions/' + user.uid).push({session});
+			firebase.database().ref('/pastSessions/' + user.uid + '/' + session.key + '/').set({session: session});
 			if(session.trainerRating != null){
 				firebase.database().ref('/pastSessions/' + session.trainer + '/' + session.key + '/session/').update({traineeRating: this.state.rating});
 				sessionRef.remove();
@@ -176,7 +176,6 @@ const styles = StyleSheet.create({
   	header: {
   		fontSize: 35,
   		fontWeight: '700',
-  		textDecorationLine: 'underline',
   		color: '#08d9d6'
   	},
   	picker: {

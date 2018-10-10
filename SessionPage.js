@@ -103,7 +103,7 @@ export class SessionPage extends Component {
 	}
 
 	// load font after render the page
-	async componentDidMount() {
+	componentDidMount() {
 
 		this._interval = setInterval(() => {
 			if(!this.state.fontLoaded){
@@ -176,7 +176,7 @@ export class SessionPage extends Component {
 
 			var displayDate = this.dateToString(this.state.session.start);
 
-			var map, button, time, minutes, remaining, ready, ownReady;
+			var map, button, time, minutes, remaining, ready, ownReady, ownEnd;
 			var user = firebase.auth().currentUser;
 			if(this.state.session.trainee == user.uid){
 				description = <Text style={styles.bookDetails}>{this.state.session.trainerName} is training you!</Text>;
@@ -236,6 +236,7 @@ export class SessionPage extends Component {
 				}else if(this.state.session.trainerReady && user.uid == this.state.session.trainer){
 					ownReady = <Text style={styles.smallText}>You are ready!</Text>;
 				}
+
 			}else{
 				pendingDate = new Date(this.state.session.start);
 				displayDate = this.dateToString(this.state.session.start);
@@ -253,10 +254,11 @@ export class SessionPage extends Component {
 					</TouchableOpacity>
 				);
 				map = null;
-				if(this.state.session.traineeEnd && user.uid == this.state.session.trainer){
-					ready = <Text style={styles.smallText}>{this.state.session.traineeName} ended!</Text>;
-				}else if(this.state.session.trainerEnd && user.uid == this.state.session.trainee){
-					ready = <Text style={styles.smallText}>{this.state.session.trainerName} ended!</Text>
+
+				if(this.state.session.traineeEnd && user.uid == this.state.session.trainee){
+					ownEnd = <Text style={styles.smallText}>Waiting for {this.state.session.trainerName} to end!</Text>;
+				}else if(this.state.session.trainerEnd && user.uid == this.state.session.trainer){
+					ownEnd = <Text style={styles.smallText}>Waiting for {this.state.session.traineeName} to end!</Text>;
 				}
 			}
 		}
@@ -274,6 +276,7 @@ export class SessionPage extends Component {
             		<View style={styles.buttonContain}>
             			{button}
             			{ownReady}
+            			{ownEnd}
             		</View>
 				</View>
 			</KeyboardAvoidingView>	
