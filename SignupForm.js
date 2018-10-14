@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Platform, StyleSheet, Text, View, TextInput, TouchableOpacity, StatusBar, Alert, Switch, Image, Picker } from 'react-native';
 import { Actions } from 'react-native-router-flux';
-import { ImagePicker, Font } from 'expo';
+import { ImagePicker, Font, Permissions } from 'expo';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 
@@ -60,16 +60,31 @@ export class SignupForm extends Component {
     	return items;
   	}
 
-  	_pickImage = async () => {
-    	let result = await ImagePicker.launchImageLibraryAsync({
-     		allowsEditing: true,
-      		aspect: [4, 3],
-    	});
+  	  _pickImage = async () => {
+	    const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+	    if (status === 'granted') {
+	      let result = await ImagePicker.launchImageLibraryAsync({
+	        allowsEditing: true,
+	        aspect: [4, 3],
+	      });
+	      console.log(result);
 
-    	if (!result.cancelled) {
-      		this.setState({ image: result.uri });
-    	}
-    }
+	      if (!result.cancelled) {
+	        this.setState({ image: result.uri });
+	      }
+	    } else {
+	      throw new Error('Camera roll permission not granted');
+	    }
+  	}
+
+  	async uploadImageAsync(uri, uid) {
+	  	const response = await fetch(uri);
+	  	const blob = await response.blob();
+	  	const ref = firebase.storage().ref().child(uid);
+
+		  const snapshot = await ref.put(blob);
+		  return snapshot.downloadURL;
+	}
 
 	onSignUpPress() {
 		// client side authentication
@@ -82,7 +97,7 @@ export class SignupForm extends Component {
 		var cert = this.state.cert;
 		var bio = this.state.bio;
 		var trainer = this.state.trainer;
-		var image = this.state.image;
+		var uri = this.state.image;
 
 		//email missing
 		if(!email.length) {
@@ -148,19 +163,18 @@ export class SignupForm extends Component {
 			      		cert: cert,
 			      		rate: rate,
 			      		bio: bio,
-			      		image: image,
 			      		active: false
 			    	});
 				}else{
 					userRef.child(firebaseUser.uid).set({
 			      		trainer: false,
 			      		name: name,
-			      		image: image
 			    	});
 				}
-
+				
+				this.uploadImageAsync(uri, firebaseUser.uid);
 				Actions.pop();				
-			})
+			}.bind(this))
 			.catch(function(error) {
 			    // Handle Errors here.
 			    var errorMessage = error.message;
@@ -283,7 +297,7 @@ export class SignupForm extends Component {
 				imageHolder = (<View style={styles.imageContainer}><View style={styles.imageHolder}></View></View>);
 			}
 			pictureButton = (
-				<TouchableOpacity style={styles.buttonContainer} onPressIn={() => this._pickImage()}>
+				<TouchableOpacity style={styles.buttonContainer} onPressIn={this._pickImage}>
 					<Text 
 						style={styles.buttonText}
 						>

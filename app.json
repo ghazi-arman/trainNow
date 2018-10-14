@@ -4,7 +4,7 @@
     "icon": "./logo.png",
     "version": "1.0.0",
     "slug": "trainnow",
-    "sdkVersion": "23.0.0",
+    "sdkVersion": "26.0.0",
     "packagerOpts": {
       "nonPersistent": "--nonPersistent"
     },

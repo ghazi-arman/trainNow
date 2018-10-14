@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
-import {Platform, StyleSheet, Text, View, TextInput, TouchableOpacity, StatusBar, ScrollView, Alert, Switch} from 'react-native';
+import {Platform, StyleSheet, Text, View, TextInput, TouchableOpacity, StatusBar, ScrollView, Alert, Switch, Image} from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
-import { ImagePicker, Font} from 'expo';
+import { ImagePicker, Font, Permissions} from 'expo';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 
 export class AccountForm extends Component {
@@ -18,7 +18,9 @@ export class AccountForm extends Component {
 			bio:'',
 			cert:'',
 			gym: '',
-			user: {}
+			user: {},
+			image: null,
+			imageUpload: null
 		};
 		this.onUpdatePress=this.onUpdatePress.bind(this);
 	}
@@ -31,6 +33,9 @@ export class AccountForm extends Component {
 	    //pull user from database and check if trainer
 	    let usersRef = firebase.database().ref('users');
 	   	var user = firebase.auth().currentUser;
+	   	firebase.storage().ref().child(user.uid).getDownloadURL().then(function(url) { 
+	   		this.setState({image: url});
+	   	}.bind(this));
 	   	if(user){
 	   		usersRef.orderByKey().equalTo(user.uid).on("child_added", function(snapshot) {
 	   			var currentUser = snapshot.val();
@@ -56,15 +61,29 @@ export class AccountForm extends Component {
 	}
 
   	_pickImage = async () => {
-    	let result = await ImagePicker.launchImageLibraryAsync({
-     		allowsEditing: true,
-      		aspect: [4, 3],
-    	});
+    	const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+	    if (status === 'granted') {
+	      	let result = await ImagePicker.launchImageLibraryAsync({
+	        	allowsEditing: true,
+	    	    aspect: [4, 3],
+		      });
 
-    	if (!result.cancelled) {
-      		this.setState({ image: result.uri });
-    	}
+	    	if (!result.cancelled) {
+	        	this.setState({ imageUpload: result.uri, image: result.uri });
+	      	}
+	    } else {
+	      throw new Error('Camera roll permission not granted');
+	    }
     }
+
+    async uploadImageAsync(uri, uid) {
+	  	const response = await fetch(uri);
+	  	const blob = await response.blob();
+	  	const ref = firebase.storage().ref().child(uid);
+
+		  const snapshot = await ref.put(blob);
+		  return snapshot.downloadURL;
+	}
 
 	onUpdatePress() {
 		// client side authentication
@@ -74,7 +93,8 @@ export class AccountForm extends Component {
 		var cert = this.state.cert;
 		var bio = this.state.bio;
 		var trainer = this.state.trainer;
-		var active = this.state.active
+		var active = this.state.active;
+		var uri = this.state.imageUpload;
 
 		//name missing
 		if(!name.length) {
@@ -126,6 +146,9 @@ export class AccountForm extends Component {
 				trainer: false
 			});
 		}
+		if(uri != null){
+			this.uploadImageAsync(uri, user.uid);
+		}
 		Alert.alert("Updated");
 	}
 
@@ -147,6 +170,11 @@ export class AccountForm extends Component {
 				autoCorrect={false}
 				/>
 			</View>);
+		if(this.state.image != null){
+			imageHolder = (<View style={styles.imageContainer}><Image source={{ uri: this.state.image }} style={styles.imageHolder} /></View>);
+		}else{
+			imageHolder = (<View style={styles.imageContainer}><View style={styles.imageHolder}></View></View>);
+		}
 		if(isTrainer){
 			activeField = (
 				<View style={styles.switchRow}>
@@ -221,12 +249,13 @@ export class AccountForm extends Component {
 			<StatusBar 
 				barStyle="light-content"
 				/>
+				{imageHolder}
 				{activeField}
 				{nameField}
 				{rateField} 
 				{bioField}
 				{certField}
-				<TouchableOpacity style={styles.buttonContainer} onPressIn={() => this._pickImage()}>
+				<TouchableOpacity style={styles.buttonContainer} onPressIn={this._pickImage}>
 					<Text 
 						style={styles.buttonText}
 						>
@@ -292,5 +321,16 @@ const styles = StyleSheet.create({
 		color: "#08d9d6",
 		fontSize: 25,		
 		fontWeight: "500"
-	}
+	},
+	imageContainer: {
+		flexDirection: 'column',
+		justifyContent: 'center',
+		alignItems: 'center',
+	},
+	imageHolder: {
+		width: 220,
+		height: 220,
+		borderWidth: 1,
+		borderColor: '#ff2e63',
+	},
 });

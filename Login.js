@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		alignItems: 'center',
 		justifyContent: 'space-around',
-		backgroundColor: '#252a34'
+		backgroundColor: '#E0E0E0'
 	},
 	formContainer: {
 		height: '35%',
@@ -60,12 +60,12 @@ const styles = StyleSheet.create({
 		justifyContent: 'center'
 	},
 	header: {
-		color: '#08d9d6',
+		color: '#0097A7',
 		fontSize: 50,
 		fontWeight: '600'
 	},
 	header2: {
-		color: '#ff2e63',
+		color: '#E91E63',
 		fontSize: 50,
 		fontWeight: '600'
 	},
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
 		height: "20%",
 	},
 	linkText: {
-		color: '#08d9d6',
+		color: '#E91E63',
 		fontSize: 16,
 		fontWeight: '500',
 	}

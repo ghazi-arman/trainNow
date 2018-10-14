@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import { Platform, StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert, TouchableWithoutFeedback} from 'react-native';
 import firebase from 'firebase';
 import { MapView, AppLoading} from 'expo';
-import { PROVIDER_GOOGLE } from 'react-native-maps'
 
 export class GymModal extends Component {
 	
@@ -98,7 +97,6 @@ export class GymModal extends Component {
 		<MapView
 			style={styles.map}
 			// customMapStyle={mapStyle}
-			provider={PROVIDER_GOOGLE}
 	        region={{
 	            latitude: this.state.gym.location.latitude,
 	            longitude: this.state.gym.location.longitude,
