@@ -249,8 +249,8 @@ export class AccountForm extends Component {
 			<StatusBar 
 				barStyle="light-content"
 				/>
-				{imageHolder}
 				{activeField}
+				{imageHolder}
 				{nameField}
 				{rateField} 
 				{bioField}
