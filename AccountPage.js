@@ -58,10 +58,12 @@ export class AccountPage extends Component {
 				behavior="padding"
 				style = {styles.container}
 				>
-				<Text style={styles.title}>Settings</Text>		
-				<ScrollView contentContainerStyle={styles.form}>
-					<AccountForm />
-				</ScrollView>
+				<Text style={styles.title}>Settings</Text>
+				<View style={styles.form}>		
+					<ScrollView>
+						<AccountForm />
+					</ScrollView>
+				</View>
 				<Modal 
 					isVisible={this.state.pendingModal}
         			onBackdropPress={this.hidependingModal}>
@@ -79,20 +81,18 @@ const styles = StyleSheet.create({
 		flex: 1,
 		backgroundColor: '#252a34',
 		flexDirection: 'column',
-		justifyContent: 'space-around',
-		alignItems: 'center',
+		justifyContent: 'flex-start',
+		alignItems: 'center'
 	},
 	title: {
-		paddingVertical: 40,
-    	fontSize: 30,
+		marginTop: 40,
+    	fontSize: 38,
     	color: '#08d9d6',
     	fontWeight: '700',
   	},
 	form: {
 		width: '90%',
-		flex: .7,
-		flexDirection: 'column',
-		justifyContent: 'flex-start',
-		alignItems: 'center'
+		height: '100%',
+		paddingBottom: 50
 	}
 });

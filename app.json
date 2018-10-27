@@ -1,5 +1,5 @@
 {
-   "expo": {
+  "expo": {
     "name": "TrainNow",
     "icon": "./logo.png",
     "version": "1.0.0",
@@ -14,12 +14,15 @@
     "android": {
       "package": "com.soundduel.blog",
       "versionCode": 7,
-      "permissions": ["WAKE_LOCK"],
+      "permissions": [
+        "WAKE_LOCK"
+      ],
       "config": {
-       "googleMaps": {
-         "apiKey": "AIzaSyBpg1xqXwLSJmjpnqN1P2BIuL_4xHFDflw ",
-       }
-     }
-    }
-   }
- }
+        "googleMaps": {
+          "apiKey": "AIzaSyBpg1xqXwLSJmjpnqN1P2BIuL_4xHFDflw "
+        }
+      }
+    },
+    "description": ""
+  }
+}
