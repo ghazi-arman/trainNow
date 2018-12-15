@@ -11,8 +11,7 @@ export class SignupForm extends Component {
 		super(props);
 		this.state = {
 			trainer: false,
-			nextForm: false,
-			pictureForm: false,
+			page: 1,
 			fontLoaded: false,
 			gymLoaded: false,
 			name:'',
@@ -28,6 +27,8 @@ export class SignupForm extends Component {
 		}; 
 
 		this.onSignUpPress=this.onSignUpPress.bind(this);
+		this.goNext=this.goNext.bind(this);
+		this.goBack=this.goBack.bind(this);
 	}
 
 	async componentDidMount() {
@@ -99,49 +100,6 @@ export class SignupForm extends Component {
 		var trainer = this.state.trainer;
 		var uri = this.state.image;
 
-		//email missing
-		if(!email.length) {
-			Alert.alert("Please enter an email!");			
-			return;			
-		}
-
-		//name missing
-		if(!name.length) {
-			Alert.alert("Please enter a name!");	
-			return;			
-		}		
-
-		//pw length
-		if(pw.length < 6) {
-			Alert.alert("Password must be over 6 characters!");		
-			return;
-		}
-
-		//passwords don't match
-		if(pw != cpw){
-			Alert.alert("Passwords do not match!");
-			return;
-		}
-
-		if(trainer){
-			if(!gym.length){
-				Alert.alert("Please enter a gym!");
-				return;
-			}
-			if(!rate.length){
-				Alert.alert("Please enter a rate!");
-				return;
-			}
-			if(!cert.length){
-				Alert.alert("Please enter your certifications!");
-				return;
-			}
-			if(!bio.length){
-				Alert.alert("Please enter your bio!");
-				return;
-			}
-		}
-
 		Alert.alert("Loading...");
 		firebase.auth().createUserWithEmailAndPassword(this.state.email, pw)
 			.then(function(firebaseUser) {
@@ -187,251 +145,246 @@ export class SignupForm extends Component {
 
 	}
 
+	goBack(){
+		if(this.state.page == 2){
+			this.setState({page: 1});
+		}else if(this.state.page == 3 && !this.state.trainer){
+			this.setState({page: 1});
+		}else{
+			this.setState({page: 2});
+		}
+	}
+
+	goNext() {
+		if(this.state.page == 1){
+			
+			if(!this.state.name.length){
+				Alert.alert("Please enter a name!");
+				return;
+			}
+			if(!this.state.email.length){
+				Alert.alert("Please enter an email!");
+				return;
+			}
+			if(this.state.password.length < 6){
+				Alert.alert("Please enter a password at least 6 characters!");
+				return;
+			}
+			if(this.state.password != this.state.confirmPass){
+				Alert.alert("Passwords must match!");
+				return;
+			}
+
+			if(this.state.trainer){
+				this.setState({page: 2});
+			}else{
+				this.setState({page: 3});
+			}
+
+		}else{
+			
+			if(!this.state.gym.length){
+				Alert.alert("Please select a gym!");
+				return;
+			}
+			if(!this.state.rate.length){
+				Alert.alert("Please enter your rate!");
+				return;
+			}
+			if(!this.state.cert.length){
+				Alert.alert("Please enter your certifications!");
+				return;
+			}
+			if(!this.state.bio.length){
+				Alert.alert("Please fill out your bio!");
+				return;
+			}
+
+			this.setState({page: 3});
+		}
+	}
+
 
 	render() {
 
-		var isTrainer = this.state.trainer;
-		var nextForm = this.state.nextForm;
-		var pictureForm = this.state.pictureForm;
 		var image = this.state.image;
 		var gyms = this.state.gyms;
+		var page1 = page2 = page3 = null;
+		var submitButton = pictureButton = null;
 
-		if(nextForm){
-			nameField = emailField = passField = confirmField = pictureButton = trainerField = imageHolder = null;
+		prevButton = (
+			<TouchableOpacity style={styles.buttonContainer} onPressIn={this.goBack}>
+				<Text 
+					style={styles.buttonText}
+					>
+					Previous
+				</Text>
+			</TouchableOpacity>
+		);
 
-			submitButton = (
-				<TouchableOpacity style={styles.buttonContainer} onPressIn={this.onSignUpPress}>
-					<Text 
-						style={styles.buttonText}
-						>
-						Signup
+		nextButton = (
+			<TouchableOpacity style={styles.buttonContainer} onPressIn={this.goNext}>
+					<Text style={styles.buttonText}> Next </Text>
+			</TouchableOpacity>
+		);
+
+		if(this.state.page == 1){
+			prevButton = null;
+			page1 = (
+			<View>
+				<View style={styles.inputRow}>
+					<Text style={styles.icon}>
+						<FontAwesome>{Icons.user}</FontAwesome>
 					</Text>
-				</TouchableOpacity>);
-			gymField = (
-			<View style={styles.inputRow}>
-				<Text style={styles.icon}>
-					<FontAwesome>{Icons.building}</FontAwesome>
-				</Text>
-				<Picker
-					style={styles.picker}
-					itemStyle={{height: 45, color: '#08d9d6'}}
-				  	selectedValue={this.state.gym}
-				  	onValueChange={(itemValue, itemIndex) => this.setState({gym: itemValue})}>
-				  	<Picker.Item label="Pick a Gym (Scroll)" value= '' key='0'/>
-				  	{gyms.map(function(gym){
-				  		return (<Picker.Item label={gym.name} value={gym.key} key={gym.key}/>);
-				  	})}
-				</Picker>
-			</View>);
-			rateField = ( 
-			<View style={styles.inputRow}>
-				<Text style={styles.icon}>
-					<FontAwesome>{Icons.dollar}</FontAwesome>
-				</Text>
-				<TextInput
-					placeholder="Rate ($ hourly)"
-					style={styles.input}
-					selectionColor="#FFF"
-					placeholderTextColor='#08d9d6'
-					onChangeText={(rate) => this.setState({rate})}
-					value={this.state.rate}
-					keyboardType="number-pad"
-					returnKeyType="done" />
-			</View>);
-			certField = (
-			<View style={styles.inputRow}>
-				<Text style={styles.icon}>
-					<FontAwesome>{Icons.vcard}</FontAwesome>
-				</Text>
-				<TextInput
-					placeholder="Certifications"
-					returnKeyType="done"
-					style={styles.input}
-					selectionColor="#FFF"
-					placeholderTextColor='#08d9d6'
-					onChangeText={(cert) => this.setState({cert})}
-					value={this.state.cert}
-					autoCorrect={false} />
-			</View>);
-			bioField = (
-			<View style={styles.inputRow}>
-				<Text style={styles.icon}>
-					<FontAwesome>{Icons.info}</FontAwesome>
-				</Text>
-				<TextInput
-					autoCorrect={false}
-					blurOnSumbit={true}
-					placeholder="Enter your bio here (specialities, schedule, experience, etc.)"
-					multiline={true}
-					style={styles.input}
-					selectionColor="#FFF"
-					placeholderTextColor='#08d9d6'
-					onChangeText = {(bio) => this.setState({bio})}
-					value={this.state.bio} />
-			</View>);
-			prevButton = 
-				<TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.setState({nextForm: false})}>
-					<Text 
-						style={styles.buttonText}
-						>
-						Previous
+					<TextInput
+						placeholder="Full Name"
+						style={styles.input}
+						placeholderTextColor='#08d9d6'
+						onChangeText={(name) => this.setState({name})}
+						value={this.state.name}
+						autoCorrect={false} />
+				</View>
+				<View style={styles.inputRow}>
+					<Text style={styles.icon}>
+						<FontAwesome>{Icons.envelope}</FontAwesome>
 					</Text>
-				</TouchableOpacity>;
-		}else if(pictureForm){
-			nameField = emailField = passField = confirmField = trainerField = null;
-			 prevButton = gymField = rateField = bioField = certField = null;
-			prevButton = 
-				<TouchableOpacity style={styles.buttonContainer} 
-					onPressIn={() => 
-						(isTrainer) ? this.setState({nextForm: true, pictureForm: false})
-						: this.setState({pictureForm: false})}>
-					<Text 
-						style={styles.buttonText}
-						>
-						Previous
+					<TextInput 
+						placeholder="Email"
+						keyboardType="email-address"
+						autoCapitalize="none"
+						style={styles.input}
+						placeholderTextColor='#08d9d6'
+						onChangeText={(email) => this.setState({email})}
+						value={this.state.email} />
+				</View>
+				<View style={styles.inputRow}>
+					<Text style={styles.icon}>
+						<FontAwesome>{Icons.lock}</FontAwesome>
 					</Text>
-				</TouchableOpacity>;
-			if(image != 'null'){
-				imageHolder = (<View style={styles.imageContainer}><Image source={{ uri: image }} style={styles.imageHolder} /></View>);
-			}else{
-				imageHolder = (<View style={styles.imageContainer}><View style={styles.imageHolder}></View></View>);
-			}
-			pictureButton = (
-				<TouchableOpacity style={styles.buttonContainer} onPressIn={this._pickImage}>
-					<Text 
-						style={styles.buttonText}
-						>
-						Add Picture
+					<TextInput
+						placeholder="Password"
+						secureTextEntry
+						style={styles.input}
+						placeholderTextColor='#08d9d6'
+						onChangeText={(password) => this.setState({password})}
+						value={this.state.password} />
+				</View>
+				<View style={styles.inputRow}>
+					<Text style={styles.icon}>
+						<FontAwesome>{Icons.check}</FontAwesome>
 					</Text>
-				</TouchableOpacity>
+					<TextInput
+						placeholder="Confirm Password"
+						returnKeyType="done"
+						secureTextEntry
+						style={styles.input}
+						placeholderTextColor='#08d9d6'
+						onChangeText={(confirmPass) => this.setState({confirmPass})}
+						value={this.state.confirmPass} />
+				</View>
+				<View style={styles.inputRow}>
+					<Text style = {styles.hints}>Are you signing up as a trainer? </Text>
+					<Switch
+						onTintColor="#ff2e63"
+						tintColor="#ff2e63"
+						thumbTintColor="#08d9d6"
+						value={this.state.trainer}
+						onValueChange={(trainer) => this.setState({trainer})}
+						/>
+				</View>
+			</View>
+			);
+		}else if(this.state.page == 2){
+			page2 = (
+			<View>
+				<View style={styles.inputRow}>
+					<Text style={styles.icon}>
+						<FontAwesome>{Icons.building}</FontAwesome>
+					</Text>
+					<Picker
+						style={styles.picker}
+						itemStyle={{height: 45, color: '#08d9d6'}}
+					  	selectedValue={this.state.gym}
+					  	onValueChange={(itemValue, itemIndex) => this.setState({gym: itemValue})}>
+					  	<Picker.Item label="Pick a Gym (Scroll)" value= '' key='0'/>
+					  	{gyms.map(function(gym){
+					  		return (<Picker.Item label={gym.name} value={gym.key} key={gym.key}/>);
+					  	})}
+					</Picker>
+				</View>
+				<View style={styles.inputRow}>
+					<Text style={styles.icon}>
+						<FontAwesome>{Icons.dollar}</FontAwesome>
+					</Text>
+					<TextInput
+						placeholder="Rate ($ hourly)"
+						style={styles.input}
+						placeholderTextColor='#08d9d6'
+						onChangeText={(rate) => this.setState({rate})}
+						value={this.state.rate}
+						keyboardType="number-pad"
+						returnKeyType="done" />
+				</View>
+				<View style={styles.inputRow}>
+					<Text style={styles.icon}>
+						<FontAwesome>{Icons.vcard}</FontAwesome>
+					</Text>
+					<TextInput
+						placeholder="Certifications"
+						returnKeyType="done"
+						style={styles.input}
+						placeholderTextColor='#08d9d6'
+						onChangeText={(cert) => this.setState({cert})}
+						value={this.state.cert}
+						autoCorrect={false} />
+				</View>
+				<View style={styles.inputRow}>
+					<Text style={styles.icon}>
+						<FontAwesome>{Icons.info}</FontAwesome>
+					</Text>
+					<TextInput
+						autoCorrect={false}
+						blurOnSumbit={true}
+						placeholder="Enter your bio here (specialities, schedule, experience, etc.)"
+						multiline={true}
+						style={styles.input}
+						placeholderTextColor='#08d9d6'
+						onChangeText = {(bio) => this.setState({bio})}
+						value={this.state.bio} />
+				</View>
+			</View>
 			);
 		}else{
-			prevButton = gymField = rateField = bioField = certField = imageHolder = pictureButton = null;
+			nextButton = null;
+			
+			if(image != 'null'){
+				page3 = (<View style={styles.imageContainer}><Image source={{ uri: image }} style={styles.imageHolder} /></View>);
+			}else{
+				page3 = (<View style={styles.imageContainer}><View style={styles.imageHolder}></View></View>);
+			}
 
-			nameField = (
-			<View style={styles.inputRow}>
-				<Text style={styles.icon}>
-					<FontAwesome>{Icons.user}</FontAwesome>
-				</Text>
-				<TextInput
-					placeholder="Full Name"
-					returnKeyType="done"
-					style={styles.input}
-					selectionColor="#FFF"
-					placeholderTextColor='#08d9d6'
-					onChangeText={(name) => this.setState({name})}
-					value={this.state.name}
-					autoCorrect={false} />
-			</View>);
-			emailField = (
-			<View style={styles.inputRow}>
-				<Text style={styles.icon}>
-					<FontAwesome>{Icons.envelope}</FontAwesome>
-				</Text>
-				<TextInput 
-					placeholder="Email"
-					returnKeyType="done"
-					onSubmitEditing={() => this.passwordInput.focus()}
-					keyboardType="email-address"
-					autoCapitalize="none"
-					autoCorrect={false}
-					style={styles.input}
-					selectionColor="#FFF"
-					placeholderTextColor='#08d9d6'
-					onChangeText={(email) => this.setState({email})}
-					value={this.state.email} />
-			</View>);
-			passField = (
-			<View style={styles.inputRow}>
-				<Text style={styles.icon}>
-					<FontAwesome>{Icons.lock}</FontAwesome>
-				</Text>
-				<TextInput
-					placeholder="Password"
-					returnKeyType="done"
-					secureTextEntry
-					style={styles.input}
-					selectionColor="#FFF"
-					placeholderTextColor='#08d9d6'
-					onChangeText={(password) => this.setState({password})}
-					value={this.state.password}
-					ref={(input) => this.passwordInput = input} />
-			</View>);
-			confirmField = (
-			<View style={styles.inputRow}>
-				<Text style={styles.icon}>
-					<FontAwesome>{Icons.check}</FontAwesome>
-				</Text>
-				<TextInput
-					placeholder="Confirm Password"
-					returnKeyType="done"
-					secureTextEntry
-					style={styles.input}
-					selectionColor="#FFF"
-					placeholderTextColor='#08d9d6'
-					onChangeText={(confirmPass) => this.setState({confirmPass})}
-					value={this.state.confirmPass}
-					ref={(input) => this.passwordInput = input} />
-			</View>);
-			trainerField = (
-			<View style={styles.inputRow}>
-				<Text style = {styles.hints}>Are you signing up as a trainer? </Text>
-				<Switch
-					onTintColor="#ff2e63"
-					tintColor="#ff2e63"
-					thumbTintColor="#08d9d6"
-					value={this.state.trainer}
-					onValueChange={(trainer) => this.setState({trainer})}
-					/>
-			</View>);
-
+			pictureButton = (
+			<TouchableOpacity style={styles.buttonContainer} onPressIn={this._pickImage}>
+				<Text style={styles.buttonText}> Add Picture </Text>
+			</TouchableOpacity>
+			);
+			
+			submitButton = (
+			<TouchableOpacity style={styles.buttonContainer} onPressIn={this.onSignUpPress}>
+				<Text style={styles.buttonText}> Signup </Text>
+			</TouchableOpacity>
+			);
 		}
 
-		if(isTrainer && !nextForm && !pictureForm){
-			submitButton = (
-				<TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.setState({nextForm: true})}>
-					<Text 
-						style={styles.buttonText}
-						>
-						Next
-					</Text>
-				</TouchableOpacity>);
-
-		}else if((!isTrainer && !pictureForm) || (isTrainer && nextForm)){
-			submitButton = (
-				<TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.setState({pictureForm: true, nextForm: false})}>
-					<Text 
-						style={styles.buttonText}
-						>
-						Next
-					</Text>
-				</TouchableOpacity>);
-
-		}else if(pictureForm){
-			submitButton =(
-				<TouchableOpacity style={styles.buttonContainer} onPressIn={this.onSignUpPress}>
-					<Text 
-						style={styles.buttonText}
-						>
-						Signup
-					</Text>
-				</TouchableOpacity>);
-		}
 		return (
 			<View>
 			<StatusBar barStyle="dark-content" />
-				{nameField}
-				{emailField}
-				{passField}
-				{confirmField}
-				{gymField}
-				{rateField}
-				{bioField}
-				{certField}
-				{trainerField}
-				{imageHolder}
+				{page1}
+				{page2}
+				{page3}
+				{prevButton}
+				{nextButton}
 				{pictureButton}
-				{prevButton}				
 				{submitButton}
 			</View>
 		);

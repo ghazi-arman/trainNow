@@ -231,12 +231,12 @@ const styles = StyleSheet.create({
   	},
   	trainerName: {
     	fontSize: 25,
-    	fontWeight: '650',
+    	fontWeight: '700',
     	color: '#FAFAFA'
   	},
   	rate: {
     	fontSize: 20,
-    	fontWeight: '550',
+    	fontWeight: '600',
     	color: '#FAFAFA'
   	},
   	hourDetails: {
