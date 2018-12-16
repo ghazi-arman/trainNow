@@ -1,16 +1,5 @@
 import React, { Component } from 'react';
-import {
-  Platform,
-  StyleSheet,
-  Text,
-  View,
-  Button,
-  Image,
-  KeyboardAvoidingView,
-  ScrollView,
-  TouchableOpacity,
-  Alert
-} from 'react-native';
+import { Platform, StyleSheet, Text, View, Button, Image, KeyboardAvoidingView, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import {Permissions, Location, Font, ImagePicker, AppLoading} from 'expo';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
@@ -18,7 +7,6 @@ import Modal from 'react-native-modal';
 import {AccountForm} from './AccountForm';
 import { Actions } from 'react-native-router-flux';
 import { HistoryBar } from './HistoryBar';
-import { SessionModal } from './SessionModal';
 
 export class HistoryPage extends Component {
 
@@ -26,21 +14,10 @@ export class HistoryPage extends Component {
 		super(props);
 		
 		this.state = {
-      		pendingModal: false,
       		sessions: 'null',
       		loaded: false
       	}
 	}
-
-	backtomap() {
-		Actions.map();
-	}
-
-	gotoUser(){
-		Actions.account();
-	}
-
-	hidependingModal = () => this.setState({pendingModal: false});
 
 	// load font after render the page
 	componentDidMount() {
@@ -132,12 +109,7 @@ export class HistoryPage extends Component {
 				<ScrollView contentContainerStyle = {styles.historyContainer}>
 					{this.renderSessions()}
 				</ScrollView>
-				<Modal 
-					isVisible={this.state.pendingModal}
-        			onBackdropPress={this.hidependingModal}>
-          			<SessionModal />
-        		</Modal>
-				<HistoryBar map={this.backtomap} account={this.gotoUser} pending={() => this.setState({ pendingModal: true })} history={() => Actions.history()}/>
+				<HistoryBar map={() => Actions.reset('map')} account={() => Actions.reset('account')} pending={() => Actions.reset('modal')} history={() => Actions.reset('history')}/>
 			</KeyboardAvoidingView>	
 		);
 	}

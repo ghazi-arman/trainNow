@@ -111,7 +111,7 @@ export class BookModal extends Component {
   	}
 
 	render(){
-		if(this.state.trainer == 'null' || typeof this.state.trainer.name === 'undefined'){
+		if(this.state.trainer == 'null' || typeof this.state.trainer == undefined){
 			return <Expo.AppLoading />
 		}else{
 			return(

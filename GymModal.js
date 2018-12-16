@@ -21,10 +21,11 @@ export class GymModal extends Component {
 	}
 
 	//Loads selected gyms Info from db
-	loadGym(gymKey){
-		firebase.database().ref('/gyms/' + gymKey).once('value', function(snapshot){
+	async loadGym(gymKey){
+		await firebase.database().ref('/gyms/' + gymKey).once('value', function(snapshot){
 	   		this.setState({ gym: snapshot.val() });
       	}.bind(this));
+      	this.loadImages();
   	}
 
   	loadImages(){
@@ -51,6 +52,7 @@ export class GymModal extends Component {
 	getTrainers(){
 		var trainers = this.state.gym.trainers;
 		var trainersList = Object.keys(trainers).map(function(key, index){
+
 	        var trainer = trainers[key];
 	        trainer.key = key;
 
@@ -73,7 +75,7 @@ export class GymModal extends Component {
 	        //DOM Element for a trainer in gym modal
 	        return(
 	        <View style={styles.trainerContainer} key={key}>
-	          	<View style={styles.trainerRow}>
+	          	<View style={styles.trainerRow} key={key}>
 	          		{imageHolder}
 	            	<View style={styles.trainerInfoContainer}>
 	              		<Text style={styles.trainerName}>{trainer.name}</Text>
@@ -101,11 +103,9 @@ export class GymModal extends Component {
 
 	//Loads map object
 	loadMap(){
-		// var mapStyle = [{"elementType":"geometry","stylers":[{"color":"#1d2c4d"}]},{"elementType":"labels.text.fill","stylers":[{"color":"#8ec3b9"}]},{"elementType":"labels.text.stroke","stylers":[{"color":"#1a3646"}]},{"featureType":"administrative.country","elementType":"geometry.stroke","stylers":[{"color":"#4b6878"}]},{"featureType":"administrative.land_parcel","elementType":"labels.text.fill","stylers":[{"color":"#64779e"}]},{"featureType":"administrative.province","elementType":"geometry.stroke","stylers":[{"color":"#4b6878"}]},{"featureType":"landscape.man_made","elementType":"geometry.stroke","stylers":[{"color":"#334e87"}]},{"featureType":"landscape.natural","elementType":"geometry","stylers":[{"color":"#023e58"}]},{"featureType":"poi","elementType":"geometry","stylers":[{"color":"#283d6a"}]},{"featureType":"poi","elementType":"labels.text.fill","stylers":[{"color":"#6f9ba5"}]},{"featureType":"poi","elementType":"labels.text.stroke","stylers":[{"color":"#1d2c4d"}]},{"featureType":"poi.park","elementType":"geometry.fill","stylers":[{"color":"#023e58"}]},{"featureType":"poi.park","elementType":"labels.text.fill","stylers":[{"color":"#3C7680"}]},{"featureType":"road","elementType":"geometry","stylers":[{"color":"#304a7d"}]},{"featureType":"road","elementType":"labels.text.fill","stylers":[{"color":"#98a5be"}]},{"featureType":"road","elementType":"labels.text.stroke","stylers":[{"color":"#1d2c4d"}]},{"featureType":"road.highway","elementType":"geometry","stylers":[{"color":"#2c6675"}]},{"featureType":"road.highway","elementType":"geometry.stroke","stylers":[{"color":"#255763"}]},{"featureType":"road.highway","elementType":"labels.text.fill","stylers":[{"color":"#b0d5ce"}]},{"featureType":"road.highway","elementType":"labels.text.stroke","stylers":[{"color":"#023e58"}]},{"featureType":"transit","elementType":"labels.text.fill","stylers":[{"color":"#98a5be"}]},{"featureType":"transit","elementType":"labels.text.stroke","stylers":[{"color":"#1d2c4d"}]},{"featureType":"transit.line","elementType":"geometry.fill","stylers":[{"color":"#283d6a"}]},{"featureType":"transit.station","elementType":"geometry","stylers":[{"color":"#3a4762"}]},{"featureType":"water","elementType":"geometry","stylers":[{"color":"#0e1626"}]},{"featureType":"water","elementType":"labels.text.fill","stylers":[{"color":"#4e6d70"}]}]
 		return (
 		<MapView
 			style={styles.map}
-			// customMapStyle={mapStyle}
 	        region={{
 	            latitude: this.state.gym.location.latitude,
 	            longitude: this.state.gym.location.longitude,
@@ -121,9 +121,6 @@ export class GymModal extends Component {
 
 	render(){
 		if(this.state.gym == 'null' || typeof this.state.gym.location === 'undefined' || typeof this.state.gym.location.latitude === 'undefined'){
-			return <Expo.AppLoading />;
-		}else if(!this.state.imagesLoaded){
-			this.loadImages();
 			return <Expo.AppLoading />;
 		}else{
 			var map = this.loadMap();
@@ -202,7 +199,6 @@ const styles = StyleSheet.create({
 	    justifyContent: 'flex-start',
 	    alignItems: 'center',
 	    marginTop: 10,
-	    textAlign: 'left'
   	},
   	buttonRow: {
   		width: "100%",

@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
-import { Platform, StyleSheet, Text, View, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { Platform, StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Alert } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
 import { MapView, AppLoading} from 'expo';
+import { HistoryBar } from './HistoryBar';
 
 export class SessionModal extends Component {
 	
@@ -112,12 +113,18 @@ export class SessionModal extends Component {
 	    }
   	}
 
+  	//Enter session
+  	enterSession(session){
+  		Actions.session({session: session});
+  	}
+
 	//Accept pending Session as trainer
 	acceptSession(session){
 	    var user = firebase.auth().currentUser;
 	    var sessionRef = firebase.database().ref('trainSessions');
 	    var pendingRef = firebase.database().ref('pendingSessions');
 	    var pendingSessions = this.state.pendingSessions;
+	    var acceptSessions = this.state.acceptSessions;
 
 	    Alert.alert(
 	      'Are you sure you want to accept this session?', 
@@ -149,8 +156,8 @@ export class SessionModal extends Component {
 	          });
 	          pendingRef.child(session.key).remove();
 	          pendingSessions.splice(pendingSessions.indexOf(session), 1);
-	          this.state.acceptSessions.push(session);
-	          this.setState({pendingSessions: pendingSessions});
+	          acceptSessions.push(session);
+	          this.setState({pendingSessions: pendingSessions, acceptSessions: acceptSessions});
 	        }
 	      }]);
 	}
@@ -200,22 +207,19 @@ export class SessionModal extends Component {
 	            var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.traineeName}</Text></View>);
 	        }
 	        return(
-	        <View style={{flexDirection: 'column', justifyContent: 'flex-start'}} key={session.trainee}>
-	          <View style={{flexDirection: 'row', justifyContent: 'space-around', height: 50}} key={session.trainee}>
-	            <View style={{width: '70%', flexDirection: 'row', justifyContent: 'space-around', height: 50}}>
-	              {name}
-	              <View style={styles.rateView}><Text style={styles.trainerInfo}>{session.duration} min</Text></View>
-	              <View style={styles.timeView}><Text style={styles.trainerInfo}>{displayDate}</Text></View>
+	        <View style={{flexDirection: 'column', justifyContent: 'flex-start'}} key={session.key}>
+	         	<View style={{flexDirection: 'row', justifyContent: 'space-around', height: 50}}>
+	            	{name}
+	              	<View style={styles.rateView}><Text style={styles.trainerInfo}>{session.duration} min</Text></View>
+	              	<View style={styles.timeView}><Text style={styles.trainerInfo}>{displayDate}</Text></View>
 	            </View> 
-	            <View style={{width: '25%', height: 50}}>
-	              <TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.cancelAccept(session)}>
-	                <Text 
-	                  style={styles.buttonText}
-	                >
-	                Cancel
-	                </Text>
-	              </TouchableOpacity>
-	            </View>
+	           	<View style={{flexDirection: 'row', justifyContent: 'space-around', height: 50}}>
+	            	<TouchableOpacity style={styles.denyContainer} onPressIn={() => this.cancelAccept(session)}>
+	                	<Text style={styles.buttonText}> Cancel Session </Text>
+	              	</TouchableOpacity>
+	              	<TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.enterSession(session.key)}>
+	                	<Text style={styles.buttonText}> Enter Session </Text>
+	              	</TouchableOpacity>
 	          </View>
 	        </View>
 	        );
@@ -231,11 +235,11 @@ export class SessionModal extends Component {
 	        if(session.trainee == userKey){
 
 	          var button = (
-	            <TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.cancelSession(session)}>
+	            <TouchableOpacity style={styles.denyContainer} onPressIn={() => this.cancelSession(session)}>
 	              <Text 
 	                style={styles.buttonText}
 	              >
-	              Cancel
+	              Cancel Session
 	              </Text>
 	            </TouchableOpacity>);
 	          var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.trainerName}</Text></View>);
@@ -247,23 +251,30 @@ export class SessionModal extends Component {
 	              <Text 
 	                style={styles.buttonText}
 	              >
-	              Accept
+	              Accept Session
+	              </Text>
+	            </TouchableOpacity>);
+	          var button2 = (
+	            <TouchableOpacity style={styles.denyContainer} onPressIn={() => this.cancelSession(session)}>
+	              <Text 
+	                style={styles.buttonText}
+	              >
+	              Cancel Session
 	              </Text>
 	            </TouchableOpacity>);
 	            var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.traineeName}</Text></View>);
 	        }
 	        return(
-	        <View style={{flexDirection: 'column', justifyContent: 'flex-start'}} key={session.trainee}>
-	          <View style={{flexDirection: 'row', justifyContent: 'space-around', height: 50}} key={session.trainee}>
-	            <View style={{width: '70%', flexDirection: 'row', justifyContent: 'space-around', height: 50}}>
-	              {name}
-	              <View style={styles.rateView}><Text style={styles.trainerInfo}>{session.duration} min</Text></View>
-	              <View style={styles.timeView}><Text style={styles.trainerInfo}>{displayDate}</Text></View>
-	            </View> 
-	            <View style={{width: '25%', height: 50}}>
+	        <View style={{flexDirection: 'column', justifyContent: 'flex-start'}} key={session.key}>
+	          	<View style={{flexDirection: 'row', justifyContent: 'space-around', height: 50}}>
+              		{name}
+              		<View style={styles.rateView}><Text style={styles.trainerInfo}>{session.duration} min</Text></View>
+              		<View style={styles.timeView}><Text style={styles.trainerInfo}>{displayDate}</Text></View>
+	            </View>
+	            <View style={{flexDirection: 'row', justifyContent: 'space-around', height: 50}}>
+	              {button2}
 	              {button}
 	            </View>
-	          </View>
 	        </View>
 	        );
 	    }.bind(this));
@@ -302,25 +313,30 @@ export class SessionModal extends Component {
 		}else{
 			this.markRead();
 			return(
-		 		<View style={styles.modal}>
-            		<Text style={styles.upcomingName}>Upcoming Sessions</Text>
-            		{this.renderAccept()}
-            		<Text style={styles.pendingName}>Pending Sessions</Text>
-            		{this.renderPending()}
-        		</View>
+		 		<KeyboardAvoidingView 
+				behavior="padding"
+				style = {styles.container}
+				>
+					<ScrollView contentContainerStyle = {styles.sessionContainer}>
+	            		<Text style={styles.upcomingName}>Upcoming Sessions</Text>
+	            		{this.renderAccept()}
+	            		<Text style={styles.pendingName}>Pending Sessions</Text>
+	            		{this.renderPending()}
+	            	</ScrollView>
+	            	<HistoryBar map={() => Actions.reset('map')} account={() => Actions.reset('account')} pending={() => Actions.reset('modal')} history={() => Actions.reset('history')}/>
+        		</KeyboardAvoidingView>
         	);
 		}
 	}
 }
 
 const styles = StyleSheet.create({
-	modal: {
-		flex: .7,
-		flexDirection: 'column',
-		justifyContent: 'flex-start',
-		alignItems: 'center',
+	container: {
+		flex: 1,
 		backgroundColor: '#252a34',
-		borderRadius: 10,
+		flexDirection: 'column',
+		justifyContent: 'space-around',
+		alignItems: 'center'	
 	},
 	trainerView: {
     	width: '35%',
@@ -330,6 +346,14 @@ const styles = StyleSheet.create({
   		width: '30%',
   		height: 50
   	},
+  	sessionContainer: {
+  		marginTop: 50,
+		width: '100%',
+		flex: .7,
+		flexDirection: 'column',
+		justifyContent: 'flex-start',
+		alignItems: 'center'
+	},
 	bookDetails:{
     	fontSize: 20,
     	fontWeight: '500'
@@ -365,6 +389,14 @@ const styles = StyleSheet.create({
     	height: 50
   	},
   	buttonContainer: {
+  		padding: 10,
+    	height: 48,
+    	backgroundColor: '#08d9d6',
+    	flexDirection: 'column',
+    	justifyContent: 'center'
+  	},
+  	denyContainer: {
+  		padding: 10,
     	height: 48,
     	backgroundColor: '#ff2e63',
     	flexDirection: 'column',

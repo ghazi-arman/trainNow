@@ -6,7 +6,6 @@ import Modal from 'react-native-modal';
 import { Actions } from 'react-native-router-flux';
 import { GymModal } from './GymModal'
 import { BookModal } from './BookModal';
-import { SessionModal } from './SessionModal';
 import { BottomBar } from './BottomBar';
 
 export class Map extends Component {
@@ -23,7 +22,6 @@ export class Map extends Component {
       bookingTrainer: 'null',
       locationLoaded: false,
       gymModal: false,
-      pendingModal: false,
       bookModal: false,
       unRead: false,
       modalPresent: false
@@ -59,7 +57,7 @@ export class Map extends Component {
       		'You have a new Session!',
       		'',
       		[
-        			{text: 'View', onPress: () => {this.showModal('pending');}}
+        			{text: 'View', onPress: () => Actions.modal()}
       	]);
       	this.state.modalPresent = true;
      	}else if(!this.state.unRead){
@@ -108,7 +106,7 @@ export class Map extends Component {
       sessionRef.orderByChild('trainee').equalTo(userKey).once('child_added', function(snapshot){
         var session = snapshot.val();
         if(new Date(session.start) < currDate && session.end == null){
-          Actions.reset('session');
+          Actions.reset('session', {session: snapshot.key});
         }else if(session.end != null && session.traineeRating == null){
           Actions.reset('rating');
         }
@@ -117,7 +115,7 @@ export class Map extends Component {
       sessionRef.orderByChild('trainer').equalTo(userKey).once('child_added', function(snapshot){
         var session = snapshot.val();
         if(new Date(session.start) < currDate && session.end == null){
-          Actions.reset('session');
+          Actions.reset('session', {session: snapshot.key});
         }else if(session.end != null && session.trainerRating == null){
           Actions.reset('rating');
         }
@@ -168,7 +166,7 @@ export class Map extends Component {
 
   //ShowModal function to open up different modals
   showModal(type, option){
-    
+
     //open gym modal
     if(type == 'gym'){
       this.setState({
@@ -189,18 +187,14 @@ export class Map extends Component {
       setTimeout(() => this.setState({bookModal: true}), 800);
     }
 
-    //open pending modal
-    if(type == 'pending'){
-      this.setState({
-        pendingModal: true,
-        modalPresent: true,
-        unRead: false
-      });
-    }
   }
 
   setTrainer(trainer){
-    this.showModal('book', trainer);
+    if(!trainer.active){
+      Alert.alert("Please select an active trainer!");
+    }else{
+      this.showModal('book', trainer);
+    }
   }
 
   setLocation(){
@@ -212,12 +206,6 @@ export class Map extends Component {
   //Hide Modal Functions
   hidegymModal = () => this.setState({ gymModal: false });
   hidebookModal = () => this.setState({ bookModal: false, bookingTrainer: 'null' });
-  hidependingModal = () => this.setState({pendingModal: false});
-
-  //Go to account page
-  showAccount() {
-    Actions.account();
-  }
 
   render() {
     if(typeof this.state.mapRegion.latitude === 'undefined' || this.state.mapRegion === null || this.state.gymLoaded == false){
@@ -248,7 +236,7 @@ export class Map extends Component {
           ))}
         </MapView>
 
-        <BottomBar location={this.setLocation} account={this.showAccount} pending={() => this.showModal('pending')} history={() => Actions.history()}/>
+        <BottomBar location={this.setLocation} account={() => Actions.reset('account')} pending={() => Actions.reset('modal')} history={() => Actions.reset('history')}/>
 
         {/*Gym Modal Info*/}
         <Modal isVisible={this.state.gymModal}
@@ -260,12 +248,6 @@ export class Map extends Component {
         <Modal isVisible={this.state.bookModal}
         onBackdropPress={this.hidebookModal}>
           <BookModal trainer={this.state.bookingTrainer} gym={this.state.selectedGym} hide={this.hidebookModal} confirm={() => Alert.alert('Session Booked!')}/>
-        </Modal>
-
-        {/*Pending Sessions Modal*/}
-        <Modal isVisible={this.state.pendingModal}
-        onBackdropPress={this.hidependingModal}>
-          <SessionModal />
         </Modal>
 
       </View>

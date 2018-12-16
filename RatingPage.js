@@ -1,16 +1,5 @@
 import React, { Component } from 'react';
-import {
-  Platform,
-  StyleSheet,
-  Text,
-  View,
-  Button,
-  Image,
-  KeyboardAvoidingView,
-  TouchableOpacity,
-  Alert,
-  Picker
-} from 'react-native';
+import { Platform, StyleSheet, Text, View, Button, Image, KeyboardAvoidingView, TouchableOpacity, Alert, Picker } from 'react-native';
 import {Permissions, Location, Font, AppLoading, MapView} from 'expo';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
@@ -144,7 +133,7 @@ export class RatingPage extends Component {
 						<Text style={styles.bookDetails}>Total Cost: ${rate}</Text>
 						<Picker
 							style={styles.picker}
-							itemStyle={{height: 60, color: '#08d9d6'}}
+							itemStyle={{height: 60}}
 						  	selectedValue={this.state.rating}
 						  	onValueChange={(itemValue, itemIndex) => this.setState({rating: itemValue})}>
 						  	<Picker.Item label="Rate Session (Scroll)" value='null' />
@@ -182,7 +171,6 @@ const styles = StyleSheet.create({
 		height: 60,
 		borderWidth: 1,
 		borderColor: '#08d9d6',
-		color: '#08d9d6',
 		width: '90%',
 	},
 	container: {

@@ -7,16 +7,12 @@ import Modal from 'react-native-modal';
 import {AccountForm} from './AccountForm';
 import { Actions } from 'react-native-router-flux';
 import { AccountBar } from './AccountBar';
-import { SessionModal } from './SessionModal';
 
 export class AccountPage extends Component {
 
 	constructor(props) {
 		super(props);
 		
-		this.state = {
-      		pendingModal: false
-      	}
 	}
 
 	// user log out confirm
@@ -38,12 +34,6 @@ export class AccountPage extends Component {
 		);
 	}
 
-	backtomap() {
-		Actions.map();
-	}
-
-	hidependingModal = () => this.setState({pendingModal: false});
-
 	// load font after render the page
 	async componentDidMount() {
 		await Expo.Font.loadAsync({
@@ -64,17 +54,11 @@ export class AccountPage extends Component {
 						<AccountForm />
 					</ScrollView>
 				</View>
-				<Modal 
-					isVisible={this.state.pendingModal}
-        			onBackdropPress={this.hidependingModal}>
-          			<SessionModal />
-        		</Modal>
-				<AccountBar map={this.backtomap} logout={this.logout} pending={() => this.setState({ pendingModal: true })} history={() => Actions.history()}/>
+				<AccountBar map={() => Actions.reset('map')} logout={this.logout} pending={() => Actions.reset('modal')} history={() => Actions.reset('history')}/>
 			</KeyboardAvoidingView>	
 		);
 	}
 }
-
 
 const styles = StyleSheet.create({
 	container: {

@@ -9,6 +9,7 @@ import {AccountPage} from './AccountPage';
 import {SessionPage} from './SessionPage';
 import {RatingPage} from './RatingPage';
 import {HistoryPage} from './HistoryPage';
+import {SessionModal} from './SessionModal';
 
 
 export class Routes extends Component {
@@ -24,6 +25,7 @@ export class Routes extends Component {
 			    	<Scene key="session" component={SessionPage} title="SessionPage"/>
 			    	<Scene key="rating" component={RatingPage} title="RatingPage" />
 			    	<Scene key="history" component={HistoryPage} title="HistoryPage" />
+			    	<Scene key="modal" component={SessionModal} title="SessionModal" />
 			    </Stack>
 			</Router>
 		);

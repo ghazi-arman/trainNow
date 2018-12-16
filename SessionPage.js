@@ -5,6 +5,7 @@ import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { Actions } from 'react-native-router-flux';
 import geolib from 'geolib';
+import { HistoryBar } from './HistoryBar';
 
 export class SessionPage extends Component {
 
@@ -119,13 +120,7 @@ export class SessionPage extends Component {
 			var user = firebase.auth().currentUser;
 			var sessionRef = firebase.database().ref('trainSessions');
 
-			sessionRef.orderByChild('trainee').equalTo(user.uid).on("child_added", function(snapshot){
-				var currentSession = snapshot.val();
-				currentSession.key = snapshot.key;
-				this.setState({session: currentSession});
-			}.bind(this));
-
-			sessionRef.orderByChild('trainer').equalTo(user.uid).on("child_added", function(snapshot){
+			sessionRef.orderByKey().equalTo(this.props.session).on("child_added", function(snapshot){
 				var currentSession = snapshot.val();
 				currentSession.key = snapshot.key;
 				this.setState({session: currentSession});
@@ -279,6 +274,7 @@ export class SessionPage extends Component {
             			{ownEnd}
             		</View>
 				</View>
+				<HistoryBar map={() => Actions.reset('map')} account={() => Actions.reset('account')} pending={() => Actions.reset('modal')} history={() => Actions.reset('history')}/>
 			</KeyboardAvoidingView>	
 		);
 	}
