@@ -20,6 +20,7 @@ export class Map extends Component {
       gymLoaded: false,
       selectedGym: 'null',
       bookingTrainer: 'null',
+      currentSession: null,
       locationLoaded: false,
       gymModal: false,
       bookModal: false,
@@ -29,6 +30,7 @@ export class Map extends Component {
 
     this.setTrainer=this.setTrainer.bind(this);
     this.setLocation=this.setLocation.bind(this);
+    this.checkSessions=this.checkSessions.bind(this);
   }
 
   componentWillUnmount(){
@@ -37,19 +39,20 @@ export class Map extends Component {
 
   async componentDidMount() {
 
-   if(!this.state.locationLoaded){
+    if(!this.state.locationLoaded){
       this.getLocationAsync();
-   }
+    }
 
-   //get gyms from db
-   this.loadGyms();
+    //get gyms from db
+    this.loadGyms();
 
-   var user = firebase.auth().currentUser;
+    var user = firebase.auth().currentUser;
 
-   //Re Render every 10 seconds for pendingMessages
-   this._interval = setInterval(() => {
+    //Re Render every 10 seconds for pendingMessages
+    this._interval = setInterval(() => {
 
-   	//Checks for sessions in progress and unread messages/sessions
+   	  //Checks for sessions in progress and unread messages/sessions
+      this.goToRating(user.uid);
       this.checkSessions(user.uid);
 
      	if(this.state.unRead && !this.state.modalPresent){
@@ -57,9 +60,9 @@ export class Map extends Component {
       		'You have a new Session!',
       		'',
       		[
-        			{text: 'View', onPress: () => Actions.modal()}
+        			{text: 'View', onPress: () => Actions.reset('modal')}
       	]);
-      	this.state.modalPresent = true;
+        this.state.modalPresent = true;
      	}else if(!this.state.unRead){
      		this.checkRead(user.uid);
      	}
@@ -98,6 +101,22 @@ export class Map extends Component {
     }
   };
 
+  goToRating(userKey){
+    var sessionRef = firebase.database().ref('trainSessions');
+    sessionRef.orderByChild('trainee').equalTo(userKey).once('child_added', function(snapshot){
+      var session = snapshot.val();
+      if(session.end != null && session.traineeRating == null){
+        Actions.reset('rating', {session: snapshot.key});
+      }
+    });
+    sessionRef.orderByChild('trainer').equalTo(userKey).once('child_added', function(snapshot){
+      var session = snapshot.val();
+      if(session.end != null && session.trainerRating == null){
+        Actions.reset('rating', {session: snapshot.key});
+      }
+    });
+  }
+
   //Checks for Sessions in Progress and routes to appropriate page
   checkSessions(userKey){
       //Check for Session in Progress
@@ -105,21 +124,17 @@ export class Map extends Component {
       var currDate = new Date();
       sessionRef.orderByChild('trainee').equalTo(userKey).once('child_added', function(snapshot){
         var session = snapshot.val();
-        if(new Date(session.start) < currDate && session.end == null){
-          Actions.reset('session', {session: snapshot.key});
-        }else if(session.end != null && session.traineeRating == null){
-          Actions.reset('rating');
+        if(new Date(session.start) < currDate && session.traineeEnd == false){
+          this.setState({currentSession: snapshot.key});
         }
-      });
+      }.bind(this));
 
       sessionRef.orderByChild('trainer').equalTo(userKey).once('child_added', function(snapshot){
         var session = snapshot.val();
-        if(new Date(session.start) < currDate && session.end == null){
-          Actions.reset('session', {session: snapshot.key});
-        }else if(session.end != null && session.trainerRating == null){
-          Actions.reset('rating');
+        if(new Date(session.start) < currDate && session.trainerEnd == false){
+          this.setState({currentSession: snapshot.key});
         }
-      });
+      }.bind(this));
   }
 
   //Checks for unread sessions and sets unread in state to true if they exist
@@ -211,13 +226,26 @@ export class Map extends Component {
     if(typeof this.state.mapRegion.latitude === 'undefined' || this.state.mapRegion === null || this.state.gymLoaded == false){
       return <Expo.AppLoading />;
     }
+
+    var alertBox = null;
+    if(this.state.currentSession != null){
+      alertBox = (
+        <View style={styles.alertBox}>
+          <TouchableOpacity onPress = {() => Actions.reset('session', {session: this.state.currentSession})}>
+            <Text style={styles.alertText}>Enter Current Session!</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
     return (
       <View
         style={styles.container}
       >
+        {alertBox}
         <MapView
           ref = {(mapView) => { _map = mapView; }}
-          style={styles.container}
+          style={styles.map}
           onRegionChange={this.handleMapRegionChange}
           region={this.state.mapRegion}
           showsUserLocation={true}
@@ -257,12 +285,27 @@ export class Map extends Component {
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
     flex: 1,
     backgroundColor: '#fff',
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
     alignItems: 'center',
-    justifyContent: 'center',
-    height: '100%',
-    width: '100%',
   },
+  map: {
+    height: '100%',
+    width: '100%'
+  },
+  alertBox: {
+    height: 80,
+    width: '100%',
+    backgroundColor: '#252a34',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    paddingTop: 40
+  },
+  alertText: {
+    fontSize: 20,
+    color: '#08d9d6',
+    fontWeight: '600',
+  }
 });

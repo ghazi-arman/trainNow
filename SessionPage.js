@@ -20,6 +20,36 @@ export class SessionPage extends Component {
 		this.startSession=this.startSession.bind(this);
 	}
 
+	// load font after render the page
+	componentDidMount() {
+
+		this._interval = setInterval(() => {
+			if(!this.state.fontLoaded){
+				Font.loadAsync({
+			  		fontAwesome: require('./fonts/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf'),
+				});
+				this.setState({ fontLoaded: true });
+			}
+
+			this.getLocationAsync();
+			this.setState({mapRegion: this.state.userRegion});
+
+			var user = firebase.auth().currentUser;
+			var sessionRef = firebase.database().ref('trainSessions');
+
+			sessionRef.orderByKey().equalTo(this.props.session).on("child_added", function(snapshot){
+				var currentSession = snapshot.val();
+				currentSession.key = snapshot.key;
+				this.setState({session: currentSession});
+			}.bind(this));
+
+			if(typeof this.state.session.end !== 'undefined' && this.state.session.end != null){
+				Actions.reset('rating', {session: this.state.session.key});
+			}
+
+		}, 3000);
+	}
+
 	getLocationAsync = async () => {
 
 	    //grab user location and store it
@@ -42,14 +72,14 @@ export class SessionPage extends Component {
 		if(this.state.session.trainer == user.uid){
 			if(this.state.session.traineeEnd){
 				sessionRef.update({trainerEnd: true, end: new Date()});
-				Actions.reset('rating');
+				Actions.reset('rating', {session: this.state.session.key});
 			}else{
 				sessionRef.update({trainerEnd: true});
 			}
 		}else{
 			if(this.state.session.trainerEnd){
 				sessionRef.update({traineeEnd: true, end: new Date()});
-				Actions.reset('rating');
+				Actions.reset('rating', {session: this.state.session.key});
 			}else{
 				sessionRef.update({traineeEnd: true});
 			}
@@ -78,7 +108,7 @@ export class SessionPage extends Component {
 			}
 
 			//Update session in state with changes just pushed
-			sessionRef.once("child_added", function(snapshot){
+			sessionRef.on("child_added", function(snapshot){
 				var currentSession = snapshot.val();
 				currentSession.key = snapshot.key;
 				this.setState({session: currentSession});
@@ -99,38 +129,7 @@ export class SessionPage extends Component {
 				currentSession.key = snapshot.key;
 				this.setState({session: currentSession});
 			}.bind(this));
-			Alert.alert("You are now ready!");
 		}
-	}
-
-	// load font after render the page
-	componentDidMount() {
-
-		this._interval = setInterval(() => {
-			if(!this.state.fontLoaded){
-				Font.loadAsync({
-			  		fontAwesome: require('./fonts/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf'),
-				});
-				this.setState({ fontLoaded: true });
-			}
-
-			this.getLocationAsync();
-			this.setState({mapRegion: this.state.userRegion});
-
-			var user = firebase.auth().currentUser;
-			var sessionRef = firebase.database().ref('trainSessions');
-
-			sessionRef.orderByKey().equalTo(this.props.session).on("child_added", function(snapshot){
-				var currentSession = snapshot.val();
-				currentSession.key = snapshot.key;
-				this.setState({session: currentSession});
-			}.bind(this));
-
-			if(typeof this.state.session.end !== 'undefined' && this.state.session.end != null){
-				Actions.reset('rating');
-			}
-
-		}, 3000);
 	}
 
 	componentWillUnmount(){

@@ -40,13 +40,7 @@ export class RatingPage extends Component {
 			var user = firebase.auth().currentUser;
 			var currentSession;
 			var sessionRef = firebase.database().ref('trainSessions');
-			sessionRef.orderByChild('trainee').equalTo(user.uid).once("child_added", function(snapshot){
-				currentSession = snapshot.val();
-				currentSession.key = snapshot.key;
-				this.setState({session: currentSession});
-			}.bind(this));
-
-			sessionRef.orderByChild('trainer').equalTo(user.uid).once("child_added", function(snapshot){
+			sessionRef.orderByKey().equalTo(this.props.session).once("child_added", function(snapshot){
 				currentSession = snapshot.val();
 				currentSession.key = snapshot.key;
 				this.setState({session: currentSession});
