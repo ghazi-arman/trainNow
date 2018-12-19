@@ -60,7 +60,7 @@ export class Map extends Component {
       		'You have a new Session!',
       		'',
       		[
-        			{text: 'View', onPress: () => Actions.reset('modal')}
+        			{text: 'View', onPress: () => Actions.replace('modal')}
       	]);
         this.state.modalPresent = true;
      	}else if(!this.state.unRead){
@@ -106,13 +106,13 @@ export class Map extends Component {
     sessionRef.orderByChild('trainee').equalTo(userKey).once('child_added', function(snapshot){
       var session = snapshot.val();
       if(session.end != null && session.traineeRating == null){
-        Actions.reset('rating', {session: snapshot.key});
+        Actions.replace('rating', {session: snapshot.key});
       }
     });
     sessionRef.orderByChild('trainer').equalTo(userKey).once('child_added', function(snapshot){
       var session = snapshot.val();
       if(session.end != null && session.trainerRating == null){
-        Actions.reset('rating', {session: snapshot.key});
+        Actions.replace('rating', {session: snapshot.key});
       }
     });
   }
@@ -231,7 +231,7 @@ export class Map extends Component {
     if(this.state.currentSession != null){
       alertBox = (
         <View style={styles.alertBox}>
-          <TouchableOpacity onPress = {() => Actions.reset('session', {session: this.state.currentSession})}>
+          <TouchableOpacity onPress = {() => Actions.replace('session', {session: this.state.currentSession})}>
             <Text style={styles.alertText}>Enter Current Session!</Text>
           </TouchableOpacity>
         </View>
@@ -264,7 +264,7 @@ export class Map extends Component {
           ))}
         </MapView>
 
-        <BottomBar location={this.setLocation} account={() => Actions.reset('account')} pending={() => Actions.reset('modal')} history={() => Actions.reset('history')}/>
+        <BottomBar location={this.setLocation} account={() => Actions.replace('account')} pending={() => Actions.replace('modal')} history={() => Actions.replace('history')}/>
 
         {/*Gym Modal Info*/}
         <Modal isVisible={this.state.gymModal}

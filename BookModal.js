@@ -63,9 +63,10 @@ export class BookModal extends Component {
 	 }
 
   	//book a session with a trainer
-  	bookTrainer(){
+  	async bookTrainer(){
 	    var user = firebase.auth().currentUser;
 	    var pendingRef = firebase.database().ref('pendingSessions');
+	    var trainRef = firebase.database().ref('trainSessions');
 	    var price = (parseInt(this.state.trainer.rate) * (parseInt(this.state.bookDuration) / 60)).toFixed(2);
 
 	    if(user.uid == this.state.trainer.key){
@@ -79,35 +80,61 @@ export class BookModal extends Component {
 	      return;
 
 	    }else{
-	    	pendingRef.once('value', function(snapshot){
-	    		if(snapshot.hasChild(user.uid)){
-	    			Alert.alert('You cannot book a session when you have one pending!');
-	    		}else{
-	    			Alert.alert(
-				      'Book session with ' + this.state.trainer.name + ' for $' + price + ' at ' + this.dateToString(this.state.bookDate),
-				      '',
-				     	[
-			        	{text: 'No'},
-			        	{text: 'Yes', onPress: () => {
-			         	pendingRef.push({
-				          	trainee: user.uid,
-				          	traineeName: this.state.user.name,
-				          	trainer: this.props.trainer.key,
-				          	trainerName: this.state.trainer.name,
-				          	start: this.state.bookDate.toString(),
-				          	duration: this.state.bookDuration,
-				          	location: this.props.gym.location,
-				          	gym: this.props.gym.name,
-				          	rate: this.state.trainer.rate,
-				          	read: false,
-			         	});
-			         	this.props.hide();
-			         	setTimeout(this.props.confirm, 1000);
-			        }},
-			      ]);
-	    		}
+	    	//Pull session for trainer to be booked and trainee to check for time conflicts
+	    	var sessions = [];
+	    	const trainerSessions = await trainRef.orderByChild('trainer').equalTo(this.props.trainer.key).once('value', function(snapshot){
+	    		snapshot.forEach(function(child){
+	    			sessions.push(child.val());
+	    		});
 	    	}.bind(this));
-	   }
+
+	    	const userSessions = await trainRef.orderByChild('trainee').equalTo(user.uid).once('value', function(snapshot){
+	    		snapshot.forEach(function(child){
+	    			sessions.push(child.val());
+	    		});
+	    	});
+
+    		for(i = 0; i < sessions.length; i++){
+	    		var session = sessions[i];
+	    		var start2 = new Date(session.start).getTime();
+	    		var end2 = new Date(new Date(session.start).getTime() + (60000 * session.duration)).getTime();
+	    		var start1 = new Date(this.state.bookDate).getTime();
+	    		var end1 = new Date(new Date(this.state.bookDate).getTime() + (60000 * this.state.bookDuration)).getTime();
+
+	    		if(start1 > start2 && start1 < end2 || start2 > start1 && start2 < end1){
+	    			if(session.trainee == user.uid){
+	    				Alert.alert('You have a session at ' + this.dateToString(session.start) + ' for ' + session.duration + ' mins.');
+	    				return;
+	    			}else{
+	    				Alert.alert('This trainer has a session at ' + this.dateToString(session.start) + ' for ' + session.duration + ' mins.');
+	    				return;
+	    			}
+	    		}
+	    	}
+
+			Alert.alert(
+		      'Book session with ' + this.state.trainer.name + ' for $' + price + ' at ' + this.dateToString(this.state.bookDate),
+		      '',
+		     	[
+	        	{text: 'No'},
+	        	{text: 'Yes', onPress: () => {
+	         	pendingRef.push({
+		          	trainee: user.uid,
+		          	traineeName: this.state.user.name,
+		          	trainer: this.props.trainer.key,
+		          	trainerName: this.state.trainer.name,
+		          	start: this.state.bookDate.toString(),
+		          	duration: this.state.bookDuration,
+		          	location: this.props.gym.location,
+		          	gym: this.props.gym.name,
+		          	rate: this.state.trainer.rate,
+		          	read: false,
+	         	});
+	         	this.props.hide();
+	         	setTimeout(this.props.confirm, 1000);
+	        }},
+	      	]);
+	   	}
   	}
 
 	render(){
