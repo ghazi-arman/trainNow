@@ -106,7 +106,7 @@ export class BookModal extends Component {
 	    				Alert.alert('You have a session at ' + this.dateToString(session.start) + ' for ' + session.duration + ' mins.');
 	    				return;
 	    			}else{
-	    				Alert.alert('This trainer has a session at ' + this.dateToString(session.start) + ' for ' + session.duration + ' mins.');
+	    				Alert.alert(this.state.trainer.name + ' has a session at ' + this.dateToString(session.start) + ' for ' + session.duration + ' mins.');
 	    				return;
 	    			}
 	    		}

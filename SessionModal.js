@@ -119,12 +119,44 @@ export class SessionModal extends Component {
   	}
 
 	//Accept pending Session as trainer
-	acceptSession(session){
+	async acceptSession(session){
 	    var user = firebase.auth().currentUser;
 	    var sessionRef = firebase.database().ref('trainSessions');
 	    var pendingRef = firebase.database().ref('pendingSessions');
 	    var pendingSessions = this.state.pendingSessions;
 	    var acceptSessions = this.state.acceptSessions;
+
+	    //Pull session for trainer to be booked and trainee to check for time conflicts
+    	var sessions = [];
+    	const trainerSessions = await sessionRef.orderByChild('trainer').equalTo(user.uid).once('value', function(snapshot){
+    		snapshot.forEach(function(child){
+    			sessions.push(child.val());
+    		});
+    	});
+
+    	const userSessions = await sessionRef.orderByChild('trainee').equalTo(session.trainee).once('value', function(snapshot){
+    		snapshot.forEach(function(child){
+    			sessions.push(child.val());
+    		});
+    	});
+
+		for(i = 0; i < sessions.length; i++){
+    		var currSession = sessions[i];
+    		var start2 = new Date(currSession.start).getTime();
+    		var end2 = new Date(new Date(currSession.start).getTime() + (60000 * currSession.duration)).getTime();
+    		var start1 = new Date(session.start).getTime();
+    		var end1 = new Date(new Date(session.start).getTime() + (60000 * session.duration)).getTime();
+
+    		if(start1 > start2 && start1 < end2 || start2 > start1 && start2 < end1){
+    			if(session.trainer == user.uid){
+    				Alert.alert('You have a session at ' + this.dateToString(currSession.start) + ' for ' + currSession.duration + ' mins.');
+    				return;
+    			}else{
+    				Alert.alert(this.state.trainee.name + ' has a session at ' + this.dateToString(currSession.start) + ' for ' + currSession.duration + ' mins.');
+    				return;
+    			}
+    		}
+    	}
 
 	    Alert.alert(
 	      'Are you sure you want to accept this session?', 
