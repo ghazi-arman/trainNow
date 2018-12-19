@@ -51,10 +51,25 @@ export class GymModal extends Component {
   	//Returns list of trainers with corresponding view
 	getTrainers(){
 		var trainers = this.state.gym.trainers;
-		var trainersList = Object.keys(trainers).map(function(key, index){
+		var trainersArr = [];
+		
+		Object.keys(trainers).map(function(key, index){
+			var trainer = trainers[key];
+			trainer.key = key;
+			trainersArr.push(trainer);
+		});
 
-	        var trainer = trainers[key];
-	        trainer.key = key;
+		trainersArr.sort(function(a,b) {
+			if(b.active == true){
+				return 1;
+			}else{
+				return -1;
+			}
+		});
+
+		var trainersList = trainersArr.map(function(value){
+
+	        var trainer = value;
 
 	        //Get active status of trainer
 	        var activeField;
@@ -74,8 +89,8 @@ export class GymModal extends Component {
 
 	        //DOM Element for a trainer in gym modal
 	        return(
-	        <View style={styles.trainerContainer} key={key}>
-	          	<View style={styles.trainerRow} key={key}>
+	        <View style={styles.trainerContainer} key={trainer.key}>
+	          	<View style={styles.trainerRow} key={trainer.key}>
 	          		{imageHolder}
 	            	<View style={styles.trainerInfoContainer}>
 	              		<Text style={styles.trainerName}>{trainer.name}</Text>
