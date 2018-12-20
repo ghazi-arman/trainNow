@@ -105,10 +105,12 @@ export class HistoryPage extends Component {
 				behavior="padding"
 				style = {styles.container}
 				>
-				<Text style={styles.header}>Trainer History</Text>		
-				<ScrollView contentContainerStyle = {styles.historyContainer}>
-					{this.renderSessions()}
-				</ScrollView>
+				<Text style={styles.header}>Trainer History</Text>
+				<View style={styles.historyContainer}>		
+					<ScrollView showsVerticalScrollIndicator={false}>
+						{this.renderSessions()}
+					</ScrollView>
+				</View>
 				<HistoryBar map={() => Actions.reset('map')} account={() => Actions.reset('account')} pending={() => Actions.reset('modal')} history={() => Actions.reset('history')}/>
 			</KeyboardAvoidingView>	
 		);
@@ -121,12 +123,13 @@ const styles = StyleSheet.create({
 		flex: 1,
 		backgroundColor: '#252a34',
 		flexDirection: 'column',
-		justifyContent: 'space-around',
+		justifyContent: 'flex-start',
 		alignItems: 'center'	
 	},
 	historyContainer: {
+		paddingLeft: 27,
 		width: '100%',
-		flex: .7,
+		height: '80%',
 		flexDirection: 'column',
 		justifyContent: 'flex-start',
 		alignItems: 'center'
@@ -138,7 +141,7 @@ const styles = StyleSheet.create({
   		alignItems: 'center',
   		borderWidth: 1,
 	   	borderColor: '#ff2e63',
-	   	marginBottom: 10
+	   	marginTop: 20
   	},
   	sessionRow: {
   		flexDirection: 'row',
@@ -150,10 +153,11 @@ const styles = StyleSheet.create({
   		justifyContent: 'center'
   	},
   	header: {
-  		paddingVertical: 40,
+  		marginTop: 30,
+  		paddingVertical: 5,
   		fontSize: 30,
   		fontWeight: '700',
-  		color: '#08d9d6'
+  		color: '#08d9d6',
   	},
   	titleText: {
     	fontSize: 20,

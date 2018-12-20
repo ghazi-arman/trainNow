@@ -37,7 +37,7 @@ export class SessionPage extends Component {
 			var user = firebase.auth().currentUser;
 			var sessionRef = firebase.database().ref('trainSessions');
 
-			sessionRef.orderByKey().equalTo(this.props.session).on("child_added", function(snapshot){
+			sessionRef.orderByKey().equalTo(this.props.session).once("child_added", function(snapshot){
 				var currentSession = snapshot.val();
 				currentSession.key = snapshot.key;
 				this.setState({session: currentSession});
@@ -108,7 +108,7 @@ export class SessionPage extends Component {
 			}
 
 			//Update session in state with changes just pushed
-			sessionRef.on("child_added", function(snapshot){
+			sessionRef.once("child_added", function(snapshot){
 				var currentSession = snapshot.val();
 				currentSession.key = snapshot.key;
 				this.setState({session: currentSession});

@@ -41,7 +41,7 @@ export class BottomBar extends Component {
               style={styles.accountButton}
               onPressIn={this.props.pending}>
             <Text style={{ fontSize: 50, color: '#08d9d6' }}>
-                <FontAwesome>{Icons.comment}</FontAwesome>
+                <FontAwesome>{Icons.calendar}</FontAwesome>
             </Text>
           </TouchableOpacity>
           <TouchableOpacity

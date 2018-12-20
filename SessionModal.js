@@ -204,16 +204,21 @@ export class SessionModal extends Component {
 	      [
 	        {text: 'No'},
 	        {text: 'Yes', onPress: () => {
-	          pendingRef.child(session.key).remove();
-	          pendingSessions.splice(pendingSessions.indexOf(session), 1);
-	          this.setState({pendingSessions: pendingSessions});
+	        	pendingRef.child(session.key).remove();
+	          	pendingSessions.splice(pendingSessions.indexOf(session), 1);
+	          	this.setState({pendingSessions: pendingSessions});
 	        }
 	      }]);
 	}
 
 	//Cancel accept session as trainee
   	cancelAccept(session){
+  		if(new Date(session.start) <= new Date()){
+			Alert.alert("You cannot cancel a session after it has started!");
+			return;
+		}
 	    var sessionRef = firebase.database().ref('trainSessions');
+	    var cancelRef = firebase.database().ref('cancelSessions');
 	    var acceptSessions = this.state.acceptSessions;
 	        Alert.alert(
 	      'Are you sure you want to cancel this session?', 
@@ -221,9 +226,10 @@ export class SessionModal extends Component {
 	      [
 	        {text: 'No'},
 	        {text: 'Yes', onPress: () => {
-	          sessionRef.child(session.key).remove();
-	          acceptSessions.splice(acceptSessions.indexOf(session), 1);
-	          this.setState({acceptSessions: acceptSessions});
+	        	cancelRef.push(session);
+	          	sessionRef.child(session.key).remove();
+	          	acceptSessions.splice(acceptSessions.indexOf(session), 1);
+	          	this.setState({acceptSessions: acceptSessions});
 	        }
 	      }]);
   	}
@@ -349,12 +355,14 @@ export class SessionModal extends Component {
 				behavior="padding"
 				style = {styles.container}
 				>
-					<ScrollView contentContainerStyle = {styles.sessionContainer}>
-	            		<Text style={styles.upcomingName}>Upcoming Sessions</Text>
-	            		{this.renderAccept()}
-	            		<Text style={styles.pendingName}>Pending Sessions</Text>
-	            		{this.renderPending()}
-	            	</ScrollView>
+					<View style={styles.sessionContainer}>
+						<ScrollView showsVerticalScrollIndicator={false}>
+		            		<Text style={styles.upcomingName}>Upcoming Sessions</Text>
+		            		{this.renderAccept()}
+		            		<Text style={styles.pendingName}>Pending Sessions</Text>
+		            		{this.renderPending()}
+		            	</ScrollView>
+		            </View>
 	            	<HistoryBar map={() => Actions.reset('map')} account={() => Actions.reset('account')} pending={() => Actions.reset('modal')} history={() => Actions.reset('history')}/>
         		</KeyboardAvoidingView>
         	);
@@ -367,7 +375,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		backgroundColor: '#252a34',
 		flexDirection: 'column',
-		justifyContent: 'space-around',
+		justifyContent: 'flex-start',
 		alignItems: 'center'	
 	},
 	trainerView: {
@@ -397,17 +405,20 @@ const styles = StyleSheet.create({
   	},
 	upcomingName: {
     	fontFamily: 'latoBold',
-    	fontSize: 30,
+    	fontSize: 34,
     	color: '#ff2e63',
     	fontWeight: '500',
-    	marginTop: 15,
+    	paddingVertical: 5,
+    	textAlign: 'center'
   	},
   	pendingName: {
+  		marginTop: 10,
     	fontFamily: 'latoBold',
-    	fontSize: 30,
+    	fontSize: 34,
     	color: '#08d9d6',
     	fontWeight: '500',
-    	marginTop: 15,
+    	paddingVertical: 5,
+    	textAlign: 'center'
   	},
   	trainerInfo: {
     	paddingVertical: 15,

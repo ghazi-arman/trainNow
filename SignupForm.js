@@ -113,6 +113,7 @@ export class SignupForm extends Component {
 						cert: cert,
 						name: name,
 						rate: rate,
+						rating: 0,
 					});
 					userRef.child(firebaseUser.uid).set({
 						trainer: true,
@@ -121,12 +122,16 @@ export class SignupForm extends Component {
 			      		cert: cert,
 			      		rate: rate,
 			      		bio: bio,
-			      		active: false
+			      		active: false,
+			      		rating: 0,
+			      		sessions: 0,
 			    	});
 				}else{
 					userRef.child(firebaseUser.uid).set({
 			      		trainer: false,
 			      		name: name,
+			      		rating: 0,
+			      		sessions: 0
 			    	});
 				}
 				

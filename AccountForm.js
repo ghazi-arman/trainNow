@@ -37,7 +37,7 @@ export class AccountForm extends Component {
 	   		this.setState({image: url});
 	   	}.bind(this));
 	   	if(user){
-	   		usersRef.orderByKey().equalTo(user.uid).on("child_added", function(snapshot) {
+	   		usersRef.orderByKey().equalTo(user.uid).once("child_added", function(snapshot) {
 	   			var currentUser = snapshot.val();
 	    		var trainerState = currentUser.trainer;
 	  			this.setState({ trainer: trainerState,

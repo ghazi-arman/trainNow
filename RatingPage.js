@@ -40,7 +40,7 @@ export class RatingPage extends Component {
 			var user = firebase.auth().currentUser;
 			var currentSession;
 			var sessionRef = firebase.database().ref('trainSessions');
-			sessionRef.orderByKey().equalTo(this.props.session).once("child_added", function(snapshot){
+			sessionRef.orderByKey().equalTo(this.props.session).once('child_added', function(snapshot){
 				currentSession = snapshot.val();
 				currentSession.key = snapshot.key;
 				this.setState({session: currentSession});
@@ -50,10 +50,11 @@ export class RatingPage extends Component {
 
 	}
 
-	rateSession(){
+	async rateSession(){
 		var session = this.state.session;
 		var user = firebase.auth().currentUser;
-		var sessionRef = firebase.database().ref('/trainSessions/' + this.state.session.key)
+		var sessionRef = firebase.database().ref('/trainSessions/' + this.state.session.key);
+		var userRef = firebase.database().ref('users');
 		
 		var duration = new Date(this.state.session.end) - new Date(this.state.session.start);
 		var minutes = Math.floor((duration/1000)/60);
@@ -65,14 +66,40 @@ export class RatingPage extends Component {
 		}
 
 		if(this.state.session.trainer == user.uid){
+			//update average rating of trainee in users table
+			var trainee = null;
+			const traineeRating = await userRef.orderByKey().equalTo(session.trainee).once('value', function(snapshot){
+				snapshot.forEach(function(snapshotChild){
+					trainee = snapshotChild.val();
+				});
+			});
+			var newAvg = (((trainee.rating * trainee.sessions) + parseInt(this.state.rating)) / (trainee.sessions + 1)).toFixed(2);
+			var traineeRef = firebase.database().ref('/users/' + session.trainee);
+			traineeRef.update({rating: newAvg, sessions: trainee.sessions + 1});
+
 			sessionRef.update({trainerRating: this.state.rating});
 			session.trainerRating = this.state.rating;
 			firebase.database().ref('/pastSessions/' + user.uid + '/' + session.key + '/').set({session: session});
+
 			if(session.traineeRating != null){
 				firebase.database().ref('/pastSessions/' + session.trainee + '/' + session.key + '/session/').update({trainerRating: this.state.rating});
 				sessionRef.remove();
 			}
 		}else{
+			//update average rating of trainer in users and gym table
+			var trainer = null;
+			const traineeRating = await userRef.orderByKey().equalTo(session.trainer).once('value', function(snapshot){
+				snapshot.forEach(function(snapshotChild){
+					trainer = snapshotChild.val();
+				});
+			});
+			var newAvg = (((trainer.rating * trainer.sessions) + parseInt(this.state.rating)) / (trainer.sessions + 1)).toFixed(2);
+			var trainerRef = firebase.database().ref('/users/' + session.trainer);
+			trainerRef.update({rating: newAvg, sessions: trainer.sessions + 1});
+
+			var gymRef = firebase.database().ref('/gyms/' + trainer.gym + '/trainers/' + session.trainer);
+			gymRef.update({rating: newAvg});
+
 			sessionRef.update({traineeRating: this.state.rating});
 			session.traineeRating = this.state.rating;
 			firebase.database().ref('/pastSessions/' + user.uid + '/' + session.key + '/').set({session: session});
