@@ -33,9 +33,13 @@ export class AccountForm extends Component {
 	    //pull user from database and check if trainer
 	    let usersRef = firebase.database().ref('users');
 	   	var user = firebase.auth().currentUser;
-	   	firebase.storage().ref().child(user.uid).getDownloadURL().then(function(url) { 
+	   	firebase.storage().ref().child(user.uid).getDownloadURL().then(onSuccess, onFailure);
+	   	function onSuccess(url){
 	   		this.setState({image: url});
-	   	}.bind(this));
+	   	}
+	   	function onFailure(error){
+	   		console.log(error);
+	   	}
 	   	if(user){
 	   		usersRef.orderByKey().equalTo(user.uid).once("child_added", function(snapshot) {
 	   			var currentUser = snapshot.val();
