@@ -46,7 +46,7 @@ export class RatingPage extends Component {
 				this.setState({session: currentSession});
 			}.bind(this));
 
-		}, 2000);
+		}, 500);
 
 	}
 
