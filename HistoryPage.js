@@ -66,6 +66,20 @@ export class HistoryPage extends Component {
 	    var displayDate = hour + ':' + minute + abbr;
 	    return displayDate;
   	}
+  	renderStars(rating){
+  		var star = [];
+  		var numStars = 0;
+  		while(rating > 0){
+  			star.push(<FontAwesome key={numStars}>{Icons.star}</FontAwesome>);
+  			rating--;
+  			numStars++;
+  		}
+  		while(numStars < 5){
+  			star.push(<FontAwesome key={numStars}>{Icons.starO}</FontAwesome>);
+  			numStars++;
+  		}
+  		return star;
+  	}
 
 	renderSessions(){
 		var sessions = this.state.sessions;
@@ -78,12 +92,15 @@ export class HistoryPage extends Component {
 			var rate = (parseInt(minutes) * (parseInt(session.rate) / 60)).toFixed(2);
 			if(session.trainee == user){
 				var client = (<Text style={styles.titleText}>Trained by {session.trainerName}</Text>);
+				var stars = this.renderStars(session.traineeRating);
 			}else{
 				var client = (<Text style={styles.titleText}>You trained {session.traineeName}</Text>);
+				var stars = this.renderStars(session.trainerRating);
 			}
 			return(
 		        <View style={styles.sessionContainer} key={session.key}>
 		            <View style={styles.sessionRow}>{client}</View>
+		            <View style={styles.sessionRow}><Text style={styles.icon}>{stars}</Text></View>
 		            <View style={styles.sessionRow}><Text style={styles.smallText}>{session.gym}</Text></View>
 		            <View style={styles.sessionRow}><Text style={styles.smallText}>${rate}</Text></View>
 		            <View style={styles.sessionRow}>
@@ -173,5 +190,9 @@ const styles = StyleSheet.create({
   		fontSize: 12,
   		fontWeight: '400',
   		color: '#08d9d6'
+  	},
+  	icon: {
+  		color: '#08d9d6',
+		fontSize: 15,
   	}
 });

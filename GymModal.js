@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Platform, StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert, TouchableWithoutFeedback, Image} from 'react-native';
 import firebase from 'firebase';
 import { MapView, AppLoading} from 'expo';
+import FontAwesome, { Icons } from 'react-native-fontawesome';
 
 export class GymModal extends Component {
 	
@@ -46,6 +47,25 @@ export class GymModal extends Component {
     	}else{
       		return trainer;
     	}
+  	}
+
+  	renderStars(rating){
+  		var star = [];
+  		var numStars = 0;
+  		while(rating >= 1){
+  			star.push(<FontAwesome key={numStars}>{Icons.star}</FontAwesome>);
+  			rating--;
+  			numStars++;
+  		}
+  		if(rating > 0){
+  			star.push(<FontAwesome key={numStars}>{Icons.starHalfFull}</FontAwesome>);
+  			numStars++;
+  		}
+  		while(numStars < 5){
+  			star.push(<FontAwesome key={numStars}>{Icons.starO}</FontAwesome>);
+  			numStars++;
+  		}
+  		return star;
   	}
 
   	//Returns list of trainers with corresponding view
@@ -97,6 +117,9 @@ export class GymModal extends Component {
 	              		<Text style={styles.rate}>${trainer.rate}</Text>
 	              		{activeField}
 	            	</View>
+	          	</View>
+	          	<View style={styles.ratingRow}>
+	          		<Text style={styles.icon}>{this.renderStars(trainer.rating)}</Text>
 	          	</View>
 	          	<View style={styles.trainerRow}>
 	          		<Text style={styles.rate}>{trainer.bio}</Text>
@@ -209,14 +232,21 @@ const styles = StyleSheet.create({
 	   	marginTop: 10
   	},
   	trainerRow: {
-  		width: "90%",
+  		width: '90%',
 	    flexDirection: 'row',
 	    justifyContent: 'flex-start',
 	    alignItems: 'center',
 	    marginTop: 10,
   	},
+  	ratingRow: {
+  		width: '90%',
+  		flexDirection: 'row',
+  		justifyContent: 'center',
+  		alignItems: 'center',
+  		marginTop: 10
+  	},
   	buttonRow: {
-  		width: "100%",
+  		width: '100%',
   		flexDirection: 'row', 
   		justifyContent: 'center',
   		marginTop: 10
@@ -280,4 +310,8 @@ const styles = StyleSheet.create({
   	away:{
     	color: '#ff2e63'
   	},
+  	icon: {
+  		color: '#08d9d6',
+		fontSize: 15,
+  	}
 });
