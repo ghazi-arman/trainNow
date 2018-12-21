@@ -24,7 +24,6 @@ export class AccountPage extends Component {
 		    {text: 'Cancel'},
 		    {text: 'Yes', onPress: () => {
 		      firebase.auth().signOut().then(function() {
-		        Alert.alert('Signed Out');
 		        Actions.reset('login');
 		      }, function(error) {
 		        Alert.alert('Sign Out Error', error);

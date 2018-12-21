@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Platform, StyleSheet, Text, View, Button, Image, KeyboardAvoidingView, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { Platform, StyleSheet, Text, View, Button, Image, KeyboardAvoidingView, ScrollView, TouchableOpacity, Alert, TextInput } from 'react-native';
 import {Permissions, Location, Font, ImagePicker, AppLoading} from 'expo';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
@@ -15,7 +15,10 @@ export class HistoryPage extends Component {
 		
 		this.state = {
       		sessions: 'null',
-      		loaded: false
+      		loaded: false,
+      		reportModal: false,
+      		reportSession: '',
+      		report: ''
       	}
 	}
 
@@ -81,6 +84,28 @@ export class HistoryPage extends Component {
   		return star;
   	}
 
+  	hideReportModal = () => this.setState({ reportModal: false, report: '' });
+
+  	reportSession(session){
+  		var reportRef = firebase.database().ref('reportSessions');
+    	var user = firebase.auth().currentUser;
+    	var reason = this.state.report;
+    	if(user.uid  == session.trainee){
+    		var reporter = session.trainee;
+    	}else{
+    		var reporter = session.trainer;
+    	}
+  		reportRef.child(session.key).set({
+  			sessionKey: session.key,
+  			trainer: session.trainer,
+  			trainee: session.trainee,
+  			reportedBy: reporter,
+  			reason: reason,
+  		});
+  		this.hideReportModal();
+  		Alert.alert('Session Reported!');
+  	}
+
 	renderSessions(){
 		var sessions = this.state.sessions;
 		var user = firebase.auth().currentUser.uid;
@@ -107,6 +132,11 @@ export class HistoryPage extends Component {
 		            	<View style={styles.halfRow}><Text style={styles.timeText}>Start: {startDate}</Text></View>
 		            	<View style={styles.halfRow}><Text style={styles.timeText}>End: {endDate}</Text></View>
 		            </View>
+		            <View style={styles.sessionRow}>
+		            	<TouchableOpacity style={styles.buttonContainer} onPress={() => this.setState({reportModal: true, reportSession: session})}>
+		            		<Text style={styles.buttonText}>Report Session</Text>
+		            	</TouchableOpacity>
+		            </View>
 		        </View>
 	        );
 	    }.bind(this));
@@ -118,18 +148,31 @@ export class HistoryPage extends Component {
 			return <Expo.AppLoading />;
 		}
 		return (
-			<KeyboardAvoidingView 
-				behavior="padding"
-				style = {styles.container}
-				>
+			<View style = {styles.container}>
 				<Text style={styles.header}>Trainer History</Text>
 				<View style={styles.historyContainer}>		
 					<ScrollView showsVerticalScrollIndicator={false}>
 						{this.renderSessions()}
 					</ScrollView>
 				</View>
+				<Modal isVisible={this.state.reportModal}
+        			onBackdropPress={this.hideReportModal}>
+        			<View style={styles.reportModal}>
+        				<Text style={styles.titleText}>Report Session</Text>
+        				<TextInput 
+						placeholder="What was the problem?"
+						style={styles.input}
+						multiline={true}
+						placeholderTextColor='#08d9d6'
+						onChangeText = {(report) => this.setState({report})}
+						value={this.state.report} />
+        				<TouchableOpacity style={styles.submitButton} onPress={() => this.reportSession(this.state.reportSession)}>
+		            		<Text style={styles.buttonText}>Report Session</Text>
+		            	</TouchableOpacity>
+        			</View>
+        		</Modal>
 				<HistoryBar map={() => Actions.reset('map')} account={() => Actions.reset('account')} pending={() => Actions.reset('modal')} history={() => Actions.reset('history')}/>
-			</KeyboardAvoidingView>	
+			</View>	
 		);
 	}
 }
@@ -142,6 +185,14 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		justifyContent: 'flex-start',
 		alignItems: 'center'	
+	},
+	reportModal: {
+		flex: .3,
+		flexDirection: 'column',
+		justifyContent: 'space-around',
+		alignItems: 'center',
+		backgroundColor: '#252a34',
+		borderRadius: 10,
 	},
 	historyContainer: {
 		paddingLeft: 27,
@@ -194,5 +245,32 @@ const styles = StyleSheet.create({
   	icon: {
   		color: '#08d9d6',
 		fontSize: 15,
-  	}
+  	},
+  	buttonText: {
+		fontSize: 15,
+		textAlign: 'center',
+		color: '#FAFAFA',
+		fontWeight: '500'
+	},
+	buttonContainer: {
+		backgroundColor: '#ff2e63',
+		padding: 5,
+		margin: 5
+	},
+	submitButton: {
+		backgroundColor: '#ff2e63',
+		paddingVertical: 10,
+		margin: 5,
+		width: '80%'
+	},
+	input: {
+		height: 80,
+		width: '80%',
+		backgroundColor: 'transparent',
+		borderWidth: 1,
+		borderColor: '#ff2e63',
+		width: '80%',
+		color: '#08d9d6',
+		textAlign: 'center'
+	},
 });

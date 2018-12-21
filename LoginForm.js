@@ -50,19 +50,17 @@ export class LoginForm extends Component {
 		}
 
 		// Check email and password here
-		firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password)
-			.then(function() {
+		firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password).then(function() {
+			Actions.map();
+		}.bind(this)).catch(function(error) {
 
-				Actions.map();
-			}.bind(this)).catch(function(error) {
-
-				//Authentication Error check
-				var errorCode = error.code;
-				var errorMessage = error.message;
-				if (errorCode === 'auth/wrong-password') {
-					Alert.alert('Wrong password.');
-				} 
-			}.bind(this));
+			//Authentication Error check
+			var errorCode = error.code;
+			var errorMessage = error.message;
+			if (errorCode === 'auth/wrong-password') {
+				Alert.alert('Wrong password.');
+			} 
+		}.bind(this));
 
 	}
 
@@ -139,6 +137,7 @@ const styles = StyleSheet.create({
 		marginTop: 20
 	},
 	buttonText: {
+		fontSize: 20,
 		textAlign: 'center',
 		color: '#FAFAFA',
 		fontWeight: '700'

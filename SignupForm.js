@@ -68,7 +68,6 @@ export class SignupForm extends Component {
 	        allowsEditing: true,
 	        aspect: [4, 3],
 	      });
-	      console.log(result);
 
 	      if (!result.cancelled) {
 	        this.setState({ image: result.uri });
@@ -100,7 +99,6 @@ export class SignupForm extends Component {
 		var trainer = this.state.trainer;
 		var uri = this.state.image;
 
-		Alert.alert("Loading...");
 		firebase.auth().createUserWithEmailAndPassword(this.state.email, pw)
 			.then(function(firebaseUser) {
 				
@@ -135,17 +133,17 @@ export class SignupForm extends Component {
 			    	});
 				}
 				
-				this.uploadImageAsync(uri, firebaseUser.uid);
-				Actions.pop();				
+				if(uri != 'null'){
+					this.uploadImageAsync(uri, firebaseUser.uid);
+				}
+
+				firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password).then(function() {
+					Actions.map();
+				});
 			}.bind(this))
 			.catch(function(error) {
-			    // Handle Errors here.
 			    var errorMessage = error.message;
-			    alert(errorMessage);
-			    this.setState({
-			    	email: '',
-			    	password: '',
-			    });
+			    Alert.alert(errorMessage);
 			}.bind(this));
 
 	}
@@ -160,7 +158,7 @@ export class SignupForm extends Component {
 		}
 	}
 
-	goNext() {
+	async goNext() {
 		if(this.state.page == 1){
 			
 			if(!this.state.name.length){
@@ -177,6 +175,20 @@ export class SignupForm extends Component {
 			}
 			if(this.state.password != this.state.confirmPass){
 				Alert.alert("Passwords must match!");
+				return;
+			}
+
+			var emailExists;
+			const emailCheck = await firebase.auth().fetchSignInMethodsForEmail(this.state.email).then(function(methods){
+				if(methods.length == 0){
+					emailExists = false;
+				}else{
+					emailExists = true;
+				}
+			});
+
+			if(emailExists){
+				Alert.alert('That email is already in use!');
 				return;
 			}
 
@@ -215,7 +227,7 @@ export class SignupForm extends Component {
 		var image = this.state.image;
 		var gyms = this.state.gyms;
 		var page1 = page2 = page3 = null;
-		var submitButton = pictureButton = null;
+		var submitButton = null;
 
 		prevButton = (
 			<TouchableOpacity style={styles.buttonContainer} onPressIn={this.goBack}>
@@ -332,6 +344,19 @@ export class SignupForm extends Component {
 				</View>
 				<View style={styles.inputRow}>
 					<Text style={styles.icon}>
+						<FontAwesome>{Icons.info}</FontAwesome>
+					</Text>
+					<TextInput
+						placeholder="Enter your bio here (specialities, schedule, experience, etc.)"
+						multiline={true}
+						style={styles.input}
+						placeholderTextColor='#08d9d6'
+						onChangeText = {(bio) => this.setState({bio})}
+						maxLength={200}
+						value={this.state.bio} />
+				</View>
+				<View style={styles.inputRow}>
+					<Text style={styles.icon}>
 						<FontAwesome>{Icons.vcard}</FontAwesome>
 					</Text>
 					<TextInput
@@ -341,21 +366,8 @@ export class SignupForm extends Component {
 						placeholderTextColor='#08d9d6'
 						onChangeText={(cert) => this.setState({cert})}
 						value={this.state.cert}
-						autoCorrect={false} />
-				</View>
-				<View style={styles.inputRow}>
-					<Text style={styles.icon}>
-						<FontAwesome>{Icons.info}</FontAwesome>
-					</Text>
-					<TextInput
-						autoCorrect={false}
-						blurOnSumbit={true}
-						placeholder="Enter your bio here (specialities, schedule, experience, etc.)"
-						multiline={true}
-						style={styles.input}
-						placeholderTextColor='#08d9d6'
-						onChangeText = {(bio) => this.setState({bio})}
-						value={this.state.bio} />
+						spellCheck={true} 
+						maxLength={150}/>
 				</View>
 			</View>
 			);
@@ -363,16 +375,24 @@ export class SignupForm extends Component {
 			nextButton = null;
 			
 			if(image != 'null'){
-				page3 = (<View style={styles.imageContainer}><Image source={{ uri: image }} style={styles.imageHolder} /></View>);
+				page3 = (
+					<View style={styles.imageContainer}>
+						<Image source={{ uri: image }} style={styles.imageHolder} />
+						<TouchableOpacity style={styles.pictureButton} onPressIn={this._pickImage}>
+							<Text style={styles.buttonText}><FontAwesome>{Icons.plusSquare}</FontAwesome></Text>
+						</TouchableOpacity>
+					</View>);
 			}else{
-				page3 = (<View style={styles.imageContainer}><View style={styles.imageHolder}></View></View>);
+				page3 = (
+					<View style={styles.imageContainer}>
+						<View style={styles.imageHolder}>
+							<TouchableOpacity style={styles.pictureButton} onPressIn={this._pickImage}>
+								<Text style={styles.pictureIcon}><FontAwesome>{Icons.plusSquare}</FontAwesome></Text>
+							</TouchableOpacity>
+						</View>
+					</View>
+				);
 			}
-
-			pictureButton = (
-			<TouchableOpacity style={styles.buttonContainer} onPressIn={this._pickImage}>
-				<Text style={styles.buttonText}> Add Picture </Text>
-			</TouchableOpacity>
-			);
 			
 			submitButton = (
 			<TouchableOpacity style={styles.buttonContainer} onPressIn={this.onSignUpPress}>
@@ -389,7 +409,6 @@ export class SignupForm extends Component {
 				{page3}
 				{prevButton}
 				{nextButton}
-				{pictureButton}
 				{submitButton}
 			</View>
 		);
@@ -424,7 +443,21 @@ const styles = StyleSheet.create({
 		paddingVertical: 15,
 		marginTop: 5,
 	},
+	pictureButton: {
+		backgroundColor: '#ff2e63',
+		width: 40,
+		height: 40,
+		flexDirection: 'column',
+		justifyContent: 'center',
+		alignItems: 'center'
+	},
+	pictureIcon: {
+		color: '#FAFAFA',
+		fontSize: 30,
+		textAlign: 'center'
+	},
 	buttonText: {
+		fontSize: 20,
 		textAlign: 'center',
 		color: '#FAFAFA',
 		fontWeight: '700'
@@ -438,6 +471,9 @@ const styles = StyleSheet.create({
 		width: 220,
 		height: 220,
 		borderWidth: 1,
+		flexDirection: 'column',
+		justifyContent: 'center',
+		alignItems: 'center',
 		borderColor: '#ff2e63',
 	},
 	icon: {

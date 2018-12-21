@@ -10,16 +10,15 @@ export class Signup extends Component {
 	}
 	render() {
 		return (
-			<KeyboardAvoidingView
-				behavior = "padding"
-				style = {styles.container}
+			<View
+				style={styles.container}
 				>
 				<View style = {styles.logoContainer}>
 					<Text style={styles.header}>Train</Text><Text style={styles.header2}>Now</Text>
 				</View>
-				<View style={styles.formContainer}>
+				<KeyboardAvoidingView style={styles.formContainer} behavior='padding'>
 					<SignupForm />
-				</View>
+				</KeyboardAvoidingView>
 				<View style={styles.linkContainer}>
 					<View style={styles.textContain}>
 						<TouchableOpacity onPressIn={this.goback}>
@@ -27,7 +26,7 @@ export class Signup extends Component {
 						</TouchableOpacity>
 					</View>
 				</View>
-			</KeyboardAvoidingView>
+			</View>
 		);
 	}
 }
