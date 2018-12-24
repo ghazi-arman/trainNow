@@ -87,6 +87,7 @@ export class HistoryPage extends Component {
   	hideReportModal = () => this.setState({ reportModal: false, report: '' });
 
   	reportSession(session){
+  		this.hideReportModal();
   		var reportRef = firebase.database().ref('reportSessions');
     	var user = firebase.auth().currentUser;
     	var reason = this.state.report;
@@ -95,14 +96,13 @@ export class HistoryPage extends Component {
     	}else{
     		var reporter = session.trainer;
     	}
-  		reportRef.child(session.key).set({
+  		reportRef.child(session.key + reporter).set({
   			sessionKey: session.key,
   			trainer: session.trainer,
   			trainee: session.trainee,
   			reportedBy: reporter,
   			reason: reason,
   		});
-  		this.hideReportModal();
   		Alert.alert('Session Reported!');
   	}
 

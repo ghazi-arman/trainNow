@@ -20,7 +20,8 @@ export class AccountForm extends Component {
 			gym: '',
 			user: {},
 			image: null,
-			imageUpload: null
+			imageUpload: null,
+			change: false
 		};
 		this.onUpdatePress=this.onUpdatePress.bind(this);
 	}
@@ -71,7 +72,7 @@ export class AccountForm extends Component {
 		      });
 
 	    	if (!result.cancelled) {
-	        	this.setState({ imageUpload: result.uri, image: result.uri });
+	        	this.setState({ imageUpload: result.uri, image: result.uri, change: true});
 	      	}
 	    } else {
 	      throw new Error('Camera roll permission not granted');
@@ -132,25 +133,24 @@ export class AccountForm extends Component {
 		    	active: active
 		    })
 
-			userRef.child(user.uid).set({
+			userRef.child(user.uid).update({
 				name: name,
 				cert: cert,
 				rate: rate,
 				bio: bio,
 				gym: gym,
-				trainer: true,
 				active: active
 			});
 
 		}else{
-			userRef.child(user.uid).set({
+			userRef.child(user.uid).update({
 				name: name,
-				trainer: false
 			});
 		}
 		if(uri != null){
 			this.uploadImageAsync(uri, user.uid);
 		}
+		this.setState({change: false})
 		Alert.alert("Updated");
 	}
 
@@ -167,7 +167,7 @@ export class AccountForm extends Component {
 				style={styles.input}
 				selectionColor="#FFF"
 				placeholderTextColor='#08d9d6'
-				onChangeText={(name) => this.setState({name})}
+				onChangeText={(name) => this.setState({name, change: true})}
 				value={this.state.name}
 				autoCorrect={false}
 				/>
@@ -187,7 +187,7 @@ export class AccountForm extends Component {
 						thumbTintColor="#08d9d6"
 						style={{marginLeft: 10}}
 						value={this.state.active}
-						onValueChange={(active) => this.setState({active})}
+						onValueChange={(active) => this.setState({active, change: true})}
 						/>
 				</View>);
 			rateField = (
@@ -200,7 +200,7 @@ export class AccountForm extends Component {
 						style={styles.input}
 						selectionColor="#FFF"
 						placeholderTeaxtColor='#08d9d6'
-						onChangeText={(rate) => this.setState({rate})}
+						onChangeText={(rate) => this.setState({rate, change: true})}
 						value={this.state.rate.toString()}
 						keyboardType="number-pad"
 						returnKeyType="done"
@@ -217,7 +217,7 @@ export class AccountForm extends Component {
 						style={styles.input}
 						selectionColor="#FFF"
 						placeholderTextColor='#08d9d6'
-						onChangeText={(cert) => this.setState({cert})}
+						onChangeText={(cert) => this.setState({cert, change: true})}
 						value={this.state.cert}
 						autoCorrect={false}
 						/>
@@ -236,7 +236,7 @@ export class AccountForm extends Component {
 						style={styles.input}
 						selectionColor="#FFF"
 						placeholderTextColor='#08d9d6'
-						onChangeText = {(bio) => this.setState({bio})}
+						onChangeText = {(bio) => this.setState({bio, change: true})}
 						value={this.state.bio}
 						/>
 				</View>);

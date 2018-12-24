@@ -221,7 +221,6 @@ export class SignupForm extends Component {
 		}
 	}
 
-
 	render() {
 
 		var image = this.state.image;

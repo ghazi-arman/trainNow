@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Platform, StyleSheet, Text, View, Button, Image, KeyboardAvoidingView, TouchableOpacity, Alert, Picker } from 'react-native';
+import { Platform, StyleSheet, Text, View, Button, Image, KeyboardAvoidingView, TouchableOpacity, Alert } from 'react-native';
 import {Permissions, Location, Font, AppLoading, MapView} from 'expo';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
@@ -12,9 +12,10 @@ export class RatingPage extends Component {
 		super(props);
 		this.state = {
 			session: 'null',
-			rating: 'null',
+			rating: 0,
 		};
 		this.rateSession=this.rateSession.bind(this);
+		this.setRating=this.setRating.bind(this);
 	}
 
 	backtomap() {
@@ -22,45 +23,55 @@ export class RatingPage extends Component {
 	}
 
 	componentWillUnmount(){
-		clearInterval(this._interval);
+		firebase.database().ref('trainSessions').off();
 	}
 
 	// load font after render the page
 	async componentDidMount() {
-
-		this._interval = setInterval(() => {
-
-			if(!this.state.fontLoaded){	
-				Font.loadAsync({
-				  fontAwesome: require('./fonts/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf'),
-				});
-				this.setState({ fontLoaded: true });
-			}
-
-			var user = firebase.auth().currentUser;
-			var currentSession;
-			var sessionRef = firebase.database().ref('trainSessions');
-			sessionRef.orderByKey().equalTo(this.props.session).once('child_added', function(snapshot){
-				currentSession = snapshot.val();
-				currentSession.key = snapshot.key;
+		if(!this.state.fontLoaded){	
+			Font.loadAsync({
+			  fontAwesome: require('./fonts/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf'),
+			});
+			this.setState({ fontLoaded: true });
+		}
+		var user = firebase.auth().currentUser;
+		var sessionRef = firebase.database().ref('trainSessions');
+		sessionRef.orderByKey().equalTo(this.props.session).on('value', function(snapshot){
+			snapshot.forEach(function(child){
+				var currentSession = child.val();
+				currentSession.key = child.key;
+				if(currentSession.trainee == user.uid && currentSession.traineeRating != null){
+					Actions.reset('map');
+					return;
+				}else if(currentSession.trainer == user.uid && currentSession.trainerRating != null){
+					Actions.reset('map');
+					return;
+				}
 				this.setState({session: currentSession});
 			}.bind(this));
-
-		}, 500);
-
+		}.bind(this));
 	}
 
 	async rateSession(){
-		var session = this.state.session;
+		var session;
 		var user = firebase.auth().currentUser;
-		var sessionRef = firebase.database().ref('/trainSessions/' + this.state.session.key);
+		var currSessionRef = firebase.database().ref('/trainSessions/' + this.state.session.key);
+		var sessionRef = firebase.database().ref('trainSessions');
 		var userRef = firebase.database().ref('users');
+
+		const sessionLoad = await sessionRef.orderByKey().equalTo(this.state.session.key).on('value', function(snapshot){
+			snapshot.forEach(function(child){
+				var currentSession = child.val();
+				currentSession.key = child.key;
+				session = currentSession;
+			}.bind(this));
+		}.bind(this));
 		
 		var duration = new Date(this.state.session.end) - new Date(this.state.session.start);
 		var minutes = Math.floor((duration/1000)/60);
 		var rate = (parseInt(minutes) * (parseInt(this.state.session.rate) / 60)).toFixed(2);
 		
-		if(this.state.rating == 'null'){
+		if(this.state.rating == 0){
 			Alert.alert('Enter a rating!');
 			return;
 		}
@@ -68,48 +79,83 @@ export class RatingPage extends Component {
 		if(this.state.session.trainer == user.uid){
 			//update average rating of trainee in users table
 			var trainee = null;
-			const traineeRating = await userRef.orderByKey().equalTo(session.trainee).once('value', function(snapshot){
+			const traineeRating = await userRef.orderByKey().equalTo(this.state.session.trainee).once('value', function(snapshot){
 				snapshot.forEach(function(snapshotChild){
 					trainee = snapshotChild.val();
-				});
-			});
+				}.bind(this));
+			}.bind(this));
 			var newAvg = (((trainee.rating * trainee.sessions) + parseInt(this.state.rating)) / (trainee.sessions + 1)).toFixed(2);
 			var traineeRef = firebase.database().ref('/users/' + session.trainee);
 			traineeRef.update({rating: newAvg, sessions: trainee.sessions + 1});
 
-			sessionRef.update({trainerRating: this.state.rating});
+			currSessionRef.update({trainerRating: this.state.rating});
 			session.trainerRating = this.state.rating;
 			firebase.database().ref('/pastSessions/' + user.uid + '/' + session.key + '/').set({session: session});
 
 			if(session.traineeRating != null){
-				firebase.database().ref('/pastSessions/' + session.trainee + '/' + session.key + '/session/').update({trainerRating: this.state.rating});
-				sessionRef.remove();
+				firebase.database().ref('/pastSessions/' + this.state.session.trainee + '/' + session.key + '/session/').update({trainerRating: this.state.rating});
+				currSessionRef.remove();
 			}
 		}else{
 			//update average rating of trainer in users and gym table
 			var trainer = null;
-			const traineeRating = await userRef.orderByKey().equalTo(session.trainer).once('value', function(snapshot){
+			const traineeRating = await userRef.orderByKey().equalTo(this.state.session.trainer).once('value', function(snapshot){
 				snapshot.forEach(function(snapshotChild){
 					trainer = snapshotChild.val();
-				});
-			});
+				}.bind(this));
+			}.bind(this));
 			var newAvg = (((trainer.rating * trainer.sessions) + parseInt(this.state.rating)) / (trainer.sessions + 1)).toFixed(2);
 			var trainerRef = firebase.database().ref('/users/' + session.trainer);
 			trainerRef.update({rating: newAvg, sessions: trainer.sessions + 1});
 
-			var gymRef = firebase.database().ref('/gyms/' + trainer.gym + '/trainers/' + session.trainer);
+			var gymRef = firebase.database().ref('/gyms/' + trainer.gym + '/trainers/' + this.state.session.trainer);
 			gymRef.update({rating: newAvg});
 
-			sessionRef.update({traineeRating: this.state.rating});
+			currSessionRef.update({traineeRating: this.state.rating});
 			session.traineeRating = this.state.rating;
 			firebase.database().ref('/pastSessions/' + user.uid + '/' + session.key + '/').set({session: session});
 			if(session.trainerRating != null){
-				firebase.database().ref('/pastSessions/' + session.trainer + '/' + session.key + '/session/').update({traineeRating: this.state.rating});
-				sessionRef.remove();
+				firebase.database().ref('/pastSessions/' + this.state.session.trainer + '/' + session.key + '/session/').update({traineeRating: this.state.rating});
+				currSessionRef.remove();
 			}
 		}
 		Actions.reset('map');
 	}
+
+	setRating = (key) => {
+		this.setState({rating: key});
+	}
+
+	renderStar(number, outline){
+		if(outline == false){
+			return(
+				<TouchableOpacity key={number} onPress={() => this.setRating(number)}>
+	  				<Text style={styles.icon}><FontAwesome>{Icons.star}</FontAwesome></Text>
+	  			</TouchableOpacity>
+			);
+		}else{
+			return(
+				<TouchableOpacity key={number} onPress={() => this.setRating(number)}>
+  					<Text style={styles.icon}><FontAwesome>{Icons.starO}</FontAwesome></Text>
+  				</TouchableOpacity>
+			);
+		}
+	}
+
+	renderStars(rating){
+  		var star = [];
+  		let numStars = 0;
+  		while(rating >= 1){
+  			numStars++;
+  			star.push(this.renderStar(numStars, false));
+  			rating--;
+  		}
+  		while(numStars < 5){
+  			numStars++;
+  			star.push(this.renderStar(numStars, true));
+  		}
+  		return star;
+  	}
 
 	//Convert Date to readable format
 	dateToString(start){
@@ -144,26 +190,18 @@ export class RatingPage extends Component {
 			var minutes = Math.floor((duration/1000)/60);
 			var rate = (parseInt(minutes) * (parseInt(this.state.session.rate) / 60)).toFixed(2);
 		}
+		var stars = this.renderStars(this.state.rating);
 		return (
-			<KeyboardAvoidingView behavior="padding" style = {styles.container}>	
+			<View style = {styles.container}>	
 				<View style={styles.formContainer}>
 					<View style={styles.infoContainer}>
 						<Text style={styles.header}>Rate Session!</Text>
 						<Text style={styles.bookDetails}>Ended: {displayDate} </Text>
 						<Text style={styles.bookDetails}>Total Time: {minutes} min</Text>
 						<Text style={styles.bookDetails}>Total Cost: ${rate}</Text>
-						<Picker
-							style={styles.picker}
-							itemStyle={{height: 60}}
-						  	selectedValue={this.state.rating}
-						  	onValueChange={(itemValue, itemIndex) => this.setState({rating: itemValue})}>
-						  	<Picker.Item label="Rate Session (Scroll)" value='null' />
-						  		<Picker.Item label='1' value='1' />
-						  		<Picker.Item label='2' value='2' />
-						  		<Picker.Item label='3' value='3' />
-						  		<Picker.Item label='4' value='4' />
-						  		<Picker.Item label='5' value='5' />
-						</Picker>
+						<View style={styles.starContainer}>
+							{stars}
+						</View>
 					</View>
             		<View style={styles.buttonContain}>
             			<TouchableOpacity style={styles.buttonContainer} onPressIn={this.rateSession}>
@@ -171,7 +209,7 @@ export class RatingPage extends Component {
 						</TouchableOpacity>
             		</View>
 				</View>
-			</KeyboardAvoidingView>	
+			</View>	
 		);
 	}
 }
@@ -188,17 +226,11 @@ const styles = StyleSheet.create({
   		fontWeight: '700',
   		color: '#08d9d6'
   	},
-  	picker: {
-		height: 60,
-		borderWidth: 1,
-		borderColor: '#08d9d6',
-		width: '90%',
-	},
 	container: {
 		flex: 1,
 		backgroundColor: '#252a34',
 		flexDirection: 'column',
-		justifyContent: 'center',
+		justifyContent: 'space-around',
 		alignItems: 'center'
 	},
 	formContainer: {
@@ -209,6 +241,12 @@ const styles = StyleSheet.create({
   	},
   	buttonContain: {
   		width: '50%'
+  	},
+  	starContainer: {
+  		flexDirection: 'row',
+  		justifyContent: 'center',
+  		alignItems: 'center',
+  		marginTop: 10
   	},
   	infoContainer: {
   		height: '65%',
@@ -226,5 +264,9 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		color: '#FAFAFA',
 		fontWeight: '700'
-	}
+	},
+	icon: {
+  		color: '#08d9d6',
+		fontSize: 35,
+  	}
 });

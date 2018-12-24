@@ -156,8 +156,8 @@ export class BookModal extends Component {
 				                itemStyle={{color: '#08d9d6'}}
 				                textColor='#08d9d6'
 				                style={styles.datepicker}
-				                minuteInterval={10}
-				                minimumDate={new Date(new Date().getTime() + 600000)}
+				                minuteInterval={5}
+				                minimumDate={new Date(new Date().getTime())}
 				                date={this.state.bookDate}
 				                onDateChange={(bookDate) => this.setState({bookDate: bookDate})}
 				              />

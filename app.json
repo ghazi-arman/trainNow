@@ -2,27 +2,27 @@
   "expo": {
     "name": "TrainNow",
     "icon": "./logo.png",
-    "version": "1.0.0",
-    "slug": "trainnow",
+    "version": "1.0.1",
+    "slug": "trainNow",
     "sdkVersion": "26.0.0",
     "packagerOpts": {
       "nonPersistent": "--nonPersistent"
     },
     "ios": {
-      "bundleIdentifier": "com.soundduel.blog"
+      "bundleIdentifier": "com.trainNow.app",
+      "icon": "./logo-ios.png"
     },
     "android": {
-      "package": "com.soundduel.blog",
+      "package": "com.trainNow.app",
       "versionCode": 7,
       "permissions": [
         "WAKE_LOCK"
       ],
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyBpg1xqXwLSJmjpnqN1P2BIuL_4xHFDflw "
+          "apiKey": "AIzaSyDR3rFZrNLokQzfwOuh-c7dep75SFc0-m8"
         }
       }
     },
-    "description": ""
   }
 }

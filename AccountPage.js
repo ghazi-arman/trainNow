@@ -12,7 +12,7 @@ export class AccountPage extends Component {
 
 	constructor(props) {
 		super(props);
-		
+		this.goToMap=this.goToMap.bind(this);
 	}
 
 	// user log out confirm
@@ -21,7 +21,7 @@ export class AccountPage extends Component {
 		  "Are you sure you wish to logout?", 
 		  "",
 		  [
-		    {text: 'Cancel'},
+		    {text: 'No'},
 		    {text: 'Yes', onPress: () => {
 		      firebase.auth().signOut().then(function() {
 		        Actions.reset('login');
@@ -31,6 +31,23 @@ export class AccountPage extends Component {
 		    }},
 		  ],
 		);
+	}
+
+	goToMap(){
+		if(this.form.state.change == true){
+			Alert.alert(
+			  "Are you sure you want to abandon your changes?", 
+			  "",
+			  [
+			    {text: 'No'},
+			    {text: 'Yes', onPress: () => {
+			      Actions.reset('map');
+			    }},
+			  ],
+			);
+		}else{
+			Actions.reset('map');
+		}
 	}
 
 	// load font after render the page
@@ -50,10 +67,10 @@ export class AccountPage extends Component {
 				<Text style={styles.title}>Settings</Text>
 				<View style={styles.form}>		
 					<ScrollView>
-						<AccountForm />
+						<AccountForm ref={(form) => {this.form = form}}/>
 					</ScrollView>
 				</View>
-				<AccountBar map={() => Actions.reset('map')} logout={this.logout} pending={() => Actions.reset('modal')} history={() => Actions.reset('history')}/>
+				<AccountBar map={this.goToMap} logout={this.logout} pending={() => Actions.reset('modal')} history={() => Actions.reset('history')}/>
 			</KeyboardAvoidingView>	
 		);
 	}

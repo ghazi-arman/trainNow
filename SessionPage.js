@@ -23,31 +23,31 @@ export class SessionPage extends Component {
 	// load font after render the page
 	componentDidMount() {
 
-		this._interval = setInterval(() => {
-			if(!this.state.fontLoaded){
-				Font.loadAsync({
-			  		fontAwesome: require('./fonts/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf'),
-				});
-				this.setState({ fontLoaded: true });
-			}
+		if(!this.state.fontLoaded){
+			Font.loadAsync({
+		  		fontAwesome: require('./fonts/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf'),
+			});
+			this.setState({ fontLoaded: true });
+		}
 
-			this.getLocationAsync();
-			this.setState({mapRegion: this.state.userRegion});
-
-			var user = firebase.auth().currentUser;
-			var sessionRef = firebase.database().ref('trainSessions');
-
-			sessionRef.orderByKey().equalTo(this.props.session).once("child_added", function(snapshot){
-				var currentSession = snapshot.val();
-				currentSession.key = snapshot.key;
+		this.getLocationAsync();
+		var user = firebase.auth().currentUser;
+		var sessionRef = firebase.database().ref('trainSessions');
+		sessionRef.orderByKey().equalTo(this.props.session).on("value", function(snapshot){
+			snapshot.forEach(function(child){
+				var currentSession = child.val();
+				currentSession.key = child.key;
 				this.setState({session: currentSession});
 			}.bind(this));
+		}.bind(this));
 
-			if(typeof this.state.session.end !== 'undefined' && this.state.session.end != null){
-				Actions.reset('rating', {session: this.state.session.key});
-			}
+		if(this.state.session.end != null){
+			Actions.reset('rating', {session: this.state.session.key});
+		}
+	}
 
-		}, 3000);
+	componentWillUnmount(){
+		firebase.database().ref('trainSessions').off();
 	}
 
 	getLocationAsync = async () => {
@@ -55,13 +55,15 @@ export class SessionPage extends Component {
 	    //grab user location and store it
 	    let { status } = await Permissions.askAsync(Permissions.LOCATION);
 	    let location = await Location.getCurrentPositionAsync({});
-	    this.setState({
-	      userRegion: {
-	        latitude:  Number(JSON.stringify(location.coords.latitude)),
+	    var loc = {
+	    	latitude:  Number(JSON.stringify(location.coords.latitude)),
 	        longitude: Number(JSON.stringify(location.coords.longitude)),
 	        latitudeDelta: 0.0422,
 	        longitudeDelta: 0.0221
-	      }
+	    }
+	    this.setState({
+	      userRegion: loc,
+	      mapRegion: loc,
 	    });
   	};
 	
@@ -107,13 +109,6 @@ export class SessionPage extends Component {
 				sessionRef.update({trainerReady: true});
 			}
 
-			//Update session in state with changes just pushed
-			sessionRef.once("child_added", function(snapshot){
-				var currentSession = snapshot.val();
-				currentSession.key = snapshot.key;
-				this.setState({session: currentSession});
-			}.bind(this));
-
 		}else{
 
 			//If both are ready set metup true and start time
@@ -122,19 +117,9 @@ export class SessionPage extends Component {
 			}else{
 				sessionRef.update({traineeReady: true});
 			}
-
-			//Update session in state with changes just pushed
-			sessionRef.once("child_added", function(snapshot){
-				var currentSession = snapshot.val();
-				currentSession.key = snapshot.key;
-				this.setState({session: currentSession});
-			}.bind(this));
 		}
 	}
 
-	componentWillUnmount(){
-		clearInterval(this._interval);
-	}
 	//Convert Date to readable format
 	dateToString(start){
 
@@ -249,6 +234,13 @@ export class SessionPage extends Component {
 				);
 				map = null;
 
+				//Gives info about whether trainer/trainee is ready or en route
+				if(this.state.session.traineeEnd && user.uid == this.state.session.trainer){
+					ready = <Text style={styles.smallText}>{this.state.session.traineeName} has ended!</Text>;
+				}else if(this.state.session.trainerEnd && user.uid == this.state.session.trainee){
+					ready = <Text style={styles.smallText}>{this.state.session.trainerName} has ended!</Text>
+				}
+
 				if(this.state.session.traineeEnd && user.uid == this.state.session.trainee){
 					ownEnd = <Text style={styles.smallText}>Waiting for {this.state.session.trainerName} to end!</Text>;
 				}else if(this.state.session.trainerEnd && user.uid == this.state.session.trainer){
@@ -287,6 +279,7 @@ const styles = StyleSheet.create({
     	color: '#FAFAFA'
   	},
   	smallText:{
+  		marginTop: 5,
   		fontSize: 15,
   		fontWeight: '300',
   		color: '#08d9d6',

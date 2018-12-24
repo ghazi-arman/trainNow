@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
 		backgroundColor: '#252a34'
 	},
 	formContainer: {
-		height: '40%',
+		height: '60%',
 		width: '80%',
 		flexDirection: 'column',
 		alignItems: 'center',

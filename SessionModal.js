@@ -19,15 +19,16 @@ export class SessionModal extends Component {
 		this.loadSessions=this.loadSessions.bind(this);
 	}
 
-	componentDidMount(){
+	async componentDidMount(){
 		var user = firebase.auth().currentUser;
 		if(this.state.pendingLoaded == false && this.state.acceptLoaded == false){
-			this.loadSessions(user.uid);
+			const loading = await this.loadSessions(user.uid);
+			this.markRead();
 		}
 	}
 
 	//Load Pending sessions still awaiting accept by trainer
-	loadSessions(userKey){
+	async loadSessions(userKey){
 		var pendingRef = firebase.database().ref('pendingSessions');
 		var acceptRef = firebase.database().ref('trainSessions');
 		var usersRef = firebase.database().ref('users');
@@ -36,7 +37,7 @@ export class SessionModal extends Component {
     	var acceptSession = null;
 		var pendingSession = null;
 
-		usersRef.orderByKey().equalTo(userKey).once('child_added', function(snapshot) {
+		const loading = await usersRef.orderByKey().equalTo(userKey).once('child_added', function(snapshot) {
 	   		var currentUser = snapshot.val();
 
 		   	if(currentUser.trainer){
@@ -349,7 +350,6 @@ export class SessionModal extends Component {
 		if(this.state.pendingLoaded == false || this.state.acceptLoaded == false){
 			return <Expo.AppLoading />;
 		}else{
-			this.markRead();
 			return(
 		 		<KeyboardAvoidingView 
 				behavior="padding"
