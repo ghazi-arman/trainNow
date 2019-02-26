@@ -108,11 +108,13 @@ export class HistoryPage extends Component {
 
 	renderSessions(){
 		var sessions = this.state.sessions;
+		sessions.sort(function(a, b){ return (new Date(b.start) - new Date(a.start))});
 		var user = firebase.auth().currentUser.uid;
 		var sessionsList = sessions.map(function(session){
 
 	       	var startDate = this.dateToString(session.start);
 	       	var endDate = this.dateToString(session.end);
+	       	var day = (new Date(session.start).getMonth() + 1) + " / " + new Date(session.start).getDate();
 			var minutes = Math.floor(((new Date(session.end) - new Date(session.start))/1000)/60);
 			var rate = (parseInt(minutes) * (parseInt(session.rate) / 60)).toFixed(2);
 			if(session.trainee == user){
@@ -128,6 +130,7 @@ export class HistoryPage extends Component {
 		            <View style={styles.sessionRow}><Text style={styles.icon}>{stars}</Text></View>
 		            <View style={styles.sessionRow}><Text style={styles.smallText}>{session.gym}</Text></View>
 		            <View style={styles.sessionRow}><Text style={styles.smallText}>${rate}</Text></View>
+		            <View style={styles.sessionRow}><Text style={styles.icon}>{day}</Text></View>
 		            <View style={styles.sessionRow}>
 		            	<View style={styles.halfRow}><Text style={styles.timeText}>Start: {startDate}</Text></View>
 		            	<View style={styles.halfRow}><Text style={styles.timeText}>End: {endDate}</Text></View>

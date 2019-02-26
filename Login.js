@@ -7,11 +7,11 @@ import FontAwesome, { Icons } from 'react-native-fontawesome';
 export class Login extends Component {
 
 	signup() {
-		Actions.signup();
+		Actions.reset('signup');
 	}
 
 	forgot() {
-		Actions.forgot();
+		Actions.reset('forgot');
 	}
 
 	render() {

@@ -15,7 +15,7 @@ import { Actions } from 'react-native-router-flux';
 export class Forgot extends Component {
 	
 	goback() {
-		Actions.pop();
+		Actions.reset('login');
 	}
 
 	render() {

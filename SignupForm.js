@@ -138,7 +138,7 @@ export class SignupForm extends Component {
 				}
 
 				firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password).then(function() {
-					Actions.map();
+					Actions.reset('map');
 				});
 			}.bind(this))
 			.catch(function(error) {
@@ -179,14 +179,21 @@ export class SignupForm extends Component {
 			}
 
 			var emailExists;
+			var invalidEmail = false;
 			const emailCheck = await firebase.auth().fetchSignInMethodsForEmail(this.state.email).then(function(methods){
 				if(methods.length == 0){
 					emailExists = false;
 				}else{
 					emailExists = true;
 				}
+			}, function(error){
+				invalidEmail = true;
 			});
 
+			if(invalidEmail){
+				Alert.alert('Please enter a valid email!');
+				return;
+			}
 			if(emailExists){
 				Alert.alert('That email is already in use!');
 				return;
@@ -258,6 +265,7 @@ export class SignupForm extends Component {
 						placeholderTextColor='#08d9d6'
 						onChangeText={(name) => this.setState({name})}
 						value={this.state.name}
+						underlineColorAndroid='transparent'
 						autoCorrect={false} />
 				</View>
 				<View style={styles.inputRow}>
@@ -270,6 +278,7 @@ export class SignupForm extends Component {
 						autoCapitalize="none"
 						style={styles.input}
 						placeholderTextColor='#08d9d6'
+						underlineColorAndroid='transparent'
 						onChangeText={(email) => this.setState({email})}
 						value={this.state.email} />
 				</View>
@@ -282,6 +291,7 @@ export class SignupForm extends Component {
 						secureTextEntry
 						style={styles.input}
 						placeholderTextColor='#08d9d6'
+						underlineColorAndroid='transparent'
 						onChangeText={(password) => this.setState({password})}
 						value={this.state.password} />
 				</View>
@@ -295,6 +305,7 @@ export class SignupForm extends Component {
 						secureTextEntry
 						style={styles.input}
 						placeholderTextColor='#08d9d6'
+						underlineColorAndroid='transparent'
 						onChangeText={(confirmPass) => this.setState({confirmPass})}
 						value={this.state.confirmPass} />
 				</View>
@@ -336,6 +347,7 @@ export class SignupForm extends Component {
 						placeholder="Rate ($ hourly)"
 						style={styles.input}
 						placeholderTextColor='#08d9d6'
+						underlineColorAndroid='transparent'
 						onChangeText={(rate) => this.setState({rate})}
 						value={this.state.rate}
 						keyboardType="number-pad"
@@ -350,6 +362,7 @@ export class SignupForm extends Component {
 						multiline={true}
 						style={styles.input}
 						placeholderTextColor='#08d9d6'
+						underlineColorAndroid='transparent'
 						onChangeText = {(bio) => this.setState({bio})}
 						maxLength={200}
 						value={this.state.bio} />
@@ -363,6 +376,7 @@ export class SignupForm extends Component {
 						returnKeyType="done"
 						style={styles.input}
 						placeholderTextColor='#08d9d6'
+						underlineColorAndroid='transparent'
 						onChangeText={(cert) => this.setState({cert})}
 						value={this.state.cert}
 						spellCheck={true} 

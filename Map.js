@@ -7,6 +7,7 @@ import { Actions } from 'react-native-router-flux';
 import { GymModal } from './GymModal'
 import { BookModal } from './BookModal';
 import { BottomBar } from './BottomBar';
+console.ignoredYellowBox = ['Setting a timer'];
 
 export class Map extends Component {
   // Initialize Firebase
@@ -25,7 +26,8 @@ export class Map extends Component {
       gymModal: false,
       bookModal: false,
       unRead: false,
-      modalPresent: false
+      modalPresent: false,
+      menuOpen: true
     }
 
     this.setTrainer=this.setTrainer.bind(this);
@@ -224,7 +226,7 @@ export class Map extends Component {
   hidebookModal = () => this.setState({ bookModal: false, bookingTrainer: 'null', modalPresent: false });
 
   render() {
-    if(typeof this.state.mapRegion.latitude === 'undefined' || this.state.mapRegion === null || this.state.gymLoaded == false){
+    if(this.state.mapRegion === null || this.state.gymLoaded == false){
       return <Expo.AppLoading />;
     }
 
@@ -242,7 +244,7 @@ export class Map extends Component {
     if(this.state.currentSession != null){
       alertBox = (
         <View style={styles.alertBox}>
-          <TouchableOpacity onPress = {() => Actions.reset('session', {session: this.state.currentSession})}>
+          <TouchableOpacity onPress = {() => Actions.session({session: this.state.currentSession})}>
             <Text style={styles.alertText}>Enter Current Session!</Text>
           </TouchableOpacity>
         </View>
@@ -250,9 +252,9 @@ export class Map extends Component {
     }
 
     return (
-      <View
-        style={styles.container}
-      >
+      <View style={styles.container}>
+
+
         {alertBox}
         <MapView
           ref = {(mapView) => { _map = mapView; }}

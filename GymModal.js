@@ -3,6 +3,7 @@ import { Platform, StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert, 
 import firebase from 'firebase';
 import { MapView, AppLoading} from 'expo';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
+console.ignoredYellowBox = ['Setting a timer'];
 
 export class GymModal extends Component {
 	
@@ -185,7 +186,7 @@ export class GymModal extends Component {
 
 const styles = StyleSheet.create({
 	modal: {
-		flex: .7,
+		flex: .9,
 		flexDirection: 'column',
 		justifyContent: 'flex-start',
 		alignItems: 'center',

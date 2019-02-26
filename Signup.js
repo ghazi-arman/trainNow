@@ -6,13 +6,11 @@ import {AppLoading, Font} from 'expo';
 
 export class Signup extends Component {
 	goback() {
-		Actions.pop();
+		Actions.reset('login');
 	}
 	render() {
 		return (
-			<View
-				style={styles.container}
-				>
+			<View style={styles.container} behavior='padding'>
 				<View style = {styles.logoContainer}>
 					<Text style={styles.header}>Train</Text><Text style={styles.header2}>Now</Text>
 				</View>
@@ -40,7 +38,7 @@ const styles = StyleSheet.create({
 		backgroundColor: '#252a34'
 	},
 	formContainer: {
-		height: '60%',
+		height: '70%',
 		width: '80%',
 		flexDirection: 'column',
 		alignItems: 'center',
@@ -60,7 +58,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		justifyContent: 'center',
 		alignItems: 'center',
-		height: '15%',
+		height: '20%',
 		width: '80%',
 		marginTop: 25
 	},
@@ -71,7 +69,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		alignItems: 'center',
 		justifyContent: 'center',
-		height: '10%',
+		height: '15%',
 	},
 	linkText: {
 		color: '#08d9d6',

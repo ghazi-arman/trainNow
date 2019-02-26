@@ -6,6 +6,7 @@ import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { Actions } from 'react-native-router-flux';
 import geolib from 'geolib';
 import { HistoryBar } from './HistoryBar';
+console.ignoredYellowBox = ['Setting a timer'];
 
 export class SessionPage extends Component {
 

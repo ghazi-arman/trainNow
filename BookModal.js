@@ -3,6 +3,7 @@ import { Platform, StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, D
 import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
 import { AppLoading} from 'expo';
+console.ignoredYellowBox = ['Setting a timer'];
 
 export class BookModal extends Component {
 	
@@ -190,7 +191,7 @@ export class BookModal extends Component {
 
 const styles = StyleSheet.create({
 	modal: {
-		flex: .85,
+		flex: .9,
 		flexDirection: 'column',
 		justifyContent: 'flex-start',
 		alignItems: 'center',

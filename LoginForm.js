@@ -51,7 +51,7 @@ export class LoginForm extends Component {
 
 		// Check email and password here
 		firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password).then(function() {
-			Actions.map();
+			Actions.reset('map');
 		}.bind(this)).catch(function(error) {
 
 			//Authentication Error check
@@ -83,8 +83,9 @@ export class LoginForm extends Component {
 						autoCapitalize="none"
 						autoCorrect={false}
 						style={styles.input}
-						selectionColor="#FFF"
+						selectionColor='#FFF'
 						placeholderTextColor='#0097A7'
+						underlineColorAndroid='transparent'
 						onChangeText={(email) => this.setState({email})}
 						value={this.state.email} />
 				</View>
@@ -98,8 +99,9 @@ export class LoginForm extends Component {
 						returnKeyType="go"
 						secureTextEntry
 						style={styles.input}
-						selectionColor="#FFF"
+						selectionColor='#FFF'
 						placeholderTextColor='#0097A7'
+						underlineColorAndroid='transparent'
 						onChangeText={(password) => this.setState({password})}
 						value={this.state.password}
 						ref={(input) => this.passwordInput = input}/>
