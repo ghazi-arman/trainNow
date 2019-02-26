@@ -43,7 +43,7 @@ export class SessionPage extends Component {
 		}.bind(this));
 
 		if(this.state.session.end != null){
-			Actions.reset('rating', {session: this.state.session.key});
+			Actions.rating({session: this.state.session.key});
 		}
 	}
 
@@ -75,14 +75,14 @@ export class SessionPage extends Component {
 		if(this.state.session.trainer == user.uid){
 			if(this.state.session.traineeEnd){
 				sessionRef.update({trainerEnd: true, end: new Date()});
-				Actions.reset('rating', {session: this.state.session.key});
+				Actions.rating({session: this.state.session.key});
 			}else{
 				sessionRef.update({trainerEnd: true});
 			}
 		}else{
 			if(this.state.session.trainerEnd){
 				sessionRef.update({traineeEnd: true, end: new Date()});
-				Actions.reset('rating', {session: this.state.session.key});
+				Actions.rating({session: this.state.session.key});
 			}else{
 				sessionRef.update({traineeEnd: true});
 			}
