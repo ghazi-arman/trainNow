@@ -64,13 +64,15 @@ export class AccountPage extends Component {
 				behavior="padding"
 				style = {styles.container}
 				>
+				<Text style={styles.backButton} onPress={this.goToMap}>
+              		<FontAwesome>{Icons.arrowLeft}</FontAwesome>
+            	</Text>
 				<Text style={styles.title}>Settings</Text>
 				<View style={styles.form}>		
 					<ScrollView>
 						<AccountForm ref={(form) => {this.form = form}}/>
 					</ScrollView>
 				</View>
-				<AccountBar map={this.goToMap} logout={this.logout} pending={() => Actions.reset('modal')} history={() => Actions.reset('history')}/>
 			</KeyboardAvoidingView>	
 		);
 	}
@@ -95,5 +97,12 @@ const styles = StyleSheet.create({
 		width: '90%',
 		height: '100%',
 		paddingBottom: 50
+	},
+	backButton: {
+		position: 'absolute',
+		top: 45,
+		left: 20,
+		fontSize: 35, 
+		color: '#08d9d6', 
 	}
 });

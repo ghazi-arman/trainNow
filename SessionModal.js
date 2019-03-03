@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Platform, StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Alert } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
+import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { MapView, AppLoading} from 'expo';
 import { HistoryBar } from './HistoryBar';
 
@@ -117,6 +118,10 @@ export class SessionModal extends Component {
   	//Enter session
   	enterSession(session){
   		Actions.session({session: session});
+  	}
+  	//Go to map
+  	goToMap(){
+  		Actions.reset('map');
   	}
 
 	//Accept pending Session as trainer
@@ -355,6 +360,9 @@ export class SessionModal extends Component {
 				behavior="padding"
 				style = {styles.container}
 				>
+					<Text style={styles.backButton} onPress={this.goToMap}>
+              			<FontAwesome>{Icons.arrowLeft}</FontAwesome>
+            		</Text>
 					<View style={styles.sessionContainer}>
 						<ScrollView showsVerticalScrollIndicator={false}>
 		            		<Text style={styles.upcomingName}>Upcoming Sessions</Text>
@@ -363,7 +371,6 @@ export class SessionModal extends Component {
 		            		{this.renderPending()}
 		            	</ScrollView>
 		            </View>
-	            	<HistoryBar map={() => Actions.reset('map')} account={() => Actions.reset('account')} pending={() => Actions.reset('modal')} history={() => Actions.reset('history')}/>
         		</KeyboardAvoidingView>
         	);
 		}
@@ -387,7 +394,7 @@ const styles = StyleSheet.create({
   		height: 50
   	},
   	sessionContainer: {
-  		marginTop: 50,
+  		marginTop: 80,
 		width: '100%',
 		flex: .7,
 		flexDirection: 'column',
@@ -450,4 +457,11 @@ const styles = StyleSheet.create({
     	color: '#FAFAFA',
     	fontWeight: '700'
   	},
+  	backButton: {
+		position: 'absolute',
+		top: 45,
+		left: 20,
+		fontSize: 35, 
+		color: '#08d9d6', 
+	}
 })

@@ -32,6 +32,7 @@
     "react-native": "https://github.com/expo/react-native/archive/sdk-26.0.0.tar.gz",
     "react-native-action-button": "^2.8.2",
     "react-native-checkbox": "^2.0.0",
+    "react-native-drawer": "^2.5.1",
     "react-native-elements": "^0.19.1",
     "react-native-fontawesome": "^5.7.0",
     "react-native-modal": "^4.1.1",

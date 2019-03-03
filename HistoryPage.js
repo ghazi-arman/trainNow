@@ -44,6 +44,11 @@ export class HistoryPage extends Component {
     	}.bind(this));
     }
 
+    //go to map
+    goToMap(){
+    	Actions.reset('map');
+    }
+
     //Convert Date to readable format
 	dateToString(start){
 
@@ -152,6 +157,9 @@ export class HistoryPage extends Component {
 		}
 		return (
 			<View style = {styles.container}>
+				<Text style={styles.backButton} onPress={this.goToMap}>
+              		<FontAwesome>{Icons.arrowLeft}</FontAwesome>
+            	</Text>
 				<Text style={styles.header}>Trainer History</Text>
 				<View style={styles.historyContainer}>		
 					<ScrollView showsVerticalScrollIndicator={false}>
@@ -174,7 +182,6 @@ export class HistoryPage extends Component {
 		            	</TouchableOpacity>
         			</View>
         		</Modal>
-				<HistoryBar map={() => Actions.reset('map')} account={() => Actions.reset('account')} pending={() => Actions.reset('modal')} history={() => Actions.reset('history')}/>
 			</View>	
 		);
 	}
@@ -276,4 +283,11 @@ const styles = StyleSheet.create({
 		color: '#08d9d6',
 		textAlign: 'center'
 	},
+	backButton: {
+		position: 'absolute',
+		top: 45,
+		left: 20,
+		fontSize: 35, 
+		color: '#08d9d6', 
+	}
 });
