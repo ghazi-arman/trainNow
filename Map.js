@@ -237,7 +237,7 @@ export class Map extends Component {
   hidebookModal = () => this.setState({ bookModal: false, bookingTrainer: 'null', modalPresent: false });
 
   render() {
-    if(this.state.mapRegion === null || this.state.gymLoaded == false){
+    if(this.state.mapRegion === null || this.state.gymLoaded == false || this.state.mapRegion.latitude == undefined){
       return <Expo.AppLoading />;
     }
 

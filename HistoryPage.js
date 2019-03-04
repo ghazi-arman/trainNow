@@ -6,7 +6,6 @@ import FontAwesome, { Icons } from 'react-native-fontawesome';
 import Modal from 'react-native-modal';
 import {AccountForm} from './AccountForm';
 import { Actions } from 'react-native-router-flux';
-import { HistoryBar } from './HistoryBar';
 
 export class HistoryPage extends Component {
 
@@ -46,7 +45,7 @@ export class HistoryPage extends Component {
 
     //go to map
     goToMap(){
-    	Actions.reset('map');
+    	Actions.map();
     }
 
     //Convert Date to readable format
@@ -231,7 +230,7 @@ const styles = StyleSheet.create({
   		justifyContent: 'center'
   	},
   	header: {
-  		marginTop: 30,
+  		marginTop: 80,
   		paddingVertical: 5,
   		fontSize: 30,
   		fontWeight: '700',

@@ -4,7 +4,6 @@ import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { MapView, AppLoading} from 'expo';
-import { HistoryBar } from './HistoryBar';
 
 export class SessionModal extends Component {
 	
@@ -14,7 +13,8 @@ export class SessionModal extends Component {
 			pendingSessions: [],
 			acceptSessions: [],
 			pendingLoaded: false,
-			acceptLoaded: false
+			acceptLoaded: false,
+			currentTab: 'pending'
 		}
 		this.acceptSession=this.acceptSession.bind(this);
 		this.loadSessions=this.loadSessions.bind(this);
@@ -241,7 +241,10 @@ export class SessionModal extends Component {
   	}
 
   	renderAccept(){
-		var userKey = firebase.auth().currentUser.uid;	 	
+		var userKey = firebase.auth().currentUser.uid;	
+		if(this.state.acceptSessions.length == 0){
+			return (<Text style={styles.navText} >No Upcoming Sessions</Text>);
+		} 	
 	    var acceptList = this.state.acceptSessions.map(function(session){
 
 	        var displayDate = this.dateToString(session.start);
@@ -273,6 +276,9 @@ export class SessionModal extends Component {
 
   	renderPending(){
 		var userKey = firebase.auth().currentUser.uid;
+		if(this.state.pendingSessions.length == 0){
+			return (<Text style={styles.navText}>No Pending Sessions</Text>);
+		} 
   		var pendingList = this.state.pendingSessions.map(function(session){
 
 	    	var displayDate = this.dateToString(session.start);
@@ -352,26 +358,50 @@ export class SessionModal extends Component {
   	}
 
 	render(){
-		if(this.state.pendingLoaded == false || this.state.acceptLoaded == false){
+		if(this.state.pendingLoaded == false && this.state.acceptLoaded == false){
 			return <Expo.AppLoading />;
 		}else{
+			if(this.state.currentTab == 'pending'){
+				var navBar = (
+					<View style={styles.navigationBar}>
+						<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({currentTab: 'pending'})}>
+							<Text style={styles.navText}>Awaiting Response</Text>
+						</TouchableOpacity>
+						<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'accepted'})}>
+							<Text style={styles.navText}>Upcoming Schedule</Text>
+						</TouchableOpacity>
+					</View>
+				);
+				var content = (
+					<ScrollView showsVerticalScrollIndicator={false}>
+	            		{this.renderPending()}
+	            	</ScrollView>
+				);
+			}else{
+				var navBar = (
+					<View style={styles.navigationBar}>
+						<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'pending'})}>
+							<Text style={styles.navText}>Awaiting Response</Text>
+						</TouchableOpacity>
+						<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({currentTab: 'accepted'})}>
+							<Text style={styles.navText}>Upcoming Schedule</Text>
+						</TouchableOpacity>
+					</View>
+				);
+				var content = (
+					<ScrollView showsVerticalScrollIndicator={false}>
+	            		{this.renderAccept()}
+	            	</ScrollView>
+				);
+			}
 			return(
-		 		<KeyboardAvoidingView 
-				behavior="padding"
-				style = {styles.container}
-				>
+		 		<View style = {styles.container}>
 					<Text style={styles.backButton} onPress={this.goToMap}>
               			<FontAwesome>{Icons.arrowLeft}</FontAwesome>
             		</Text>
-					<View style={styles.sessionContainer}>
-						<ScrollView showsVerticalScrollIndicator={false}>
-		            		<Text style={styles.upcomingName}>Upcoming Sessions</Text>
-		            		{this.renderAccept()}
-		            		<Text style={styles.pendingName}>Pending Sessions</Text>
-		            		{this.renderPending()}
-		            	</ScrollView>
-		            </View>
-        		</KeyboardAvoidingView>
+            		{navBar}
+					{content}
+        		</View>
         	);
 		}
 	}
@@ -385,6 +415,31 @@ const styles = StyleSheet.create({
 		justifyContent: 'flex-start',
 		alignItems: 'center'	
 	},
+	navigationBar: {
+		width: '100%',
+		height: 100,
+		flexDirection: 'row',
+		justifyContent: 'flex-start',
+		alignItems: 'center',
+		marginTop: 80,
+	},
+	activeTab: {
+		width: '50%',
+		backgroundColor: '#08d9d6',
+		borderWidth: 1,
+		borderColor: '#fafafa'
+	},
+	inactiveTab: {
+		width: '50%',
+		backgroundColor: '#252a34',
+		borderWidth: 1, 
+		borderColor: '#fafafa'
+	},
+	navText: {
+		fontSize: 25,
+		color: '#FAFAFA',
+		textAlign: 'center'
+	},
 	trainerView: {
     	width: '35%',
     	height: 50
@@ -392,23 +447,6 @@ const styles = StyleSheet.create({
   	timeView: {
   		width: '30%',
   		height: 50
-  	},
-  	sessionContainer: {
-  		marginTop: 80,
-		width: '100%',
-		flex: .7,
-		flexDirection: 'column',
-		justifyContent: 'flex-start',
-		alignItems: 'center'
-	},
-	bookDetails:{
-    	fontSize: 20,
-    	fontWeight: '500'
-  	},
-  	bookFormLabel: {
-    	fontSize: 20,
-    	fontWeight: '500',
-    	width: '35%'
   	},
 	upcomingName: {
     	fontFamily: 'latoBold',
@@ -463,5 +501,6 @@ const styles = StyleSheet.create({
 		left: 20,
 		fontSize: 35, 
 		color: '#08d9d6', 
+		lineHeight: 20
 	}
 })

@@ -5,7 +5,6 @@ import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { Actions } from 'react-native-router-flux';
 import geolib from 'geolib';
-import { HistoryBar } from './HistoryBar';
 console.ignoredYellowBox = ['Setting a timer'];
 
 export class SessionPage extends Component {
@@ -266,7 +265,6 @@ export class SessionPage extends Component {
             			{ownEnd}
             		</View>
 				</View>
-				<HistoryBar map={() => Actions.reset('map')} account={() => Actions.reset('account')} pending={() => Actions.reset('modal')} history={() => Actions.reset('history')}/>
 			</KeyboardAvoidingView>	
 		);
 	}

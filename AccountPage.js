@@ -6,31 +6,12 @@ import FontAwesome, { Icons } from 'react-native-fontawesome';
 import Modal from 'react-native-modal';
 import {AccountForm} from './AccountForm';
 import { Actions } from 'react-native-router-flux';
-import { AccountBar } from './AccountBar';
 
 export class AccountPage extends Component {
 
 	constructor(props) {
 		super(props);
 		this.goToMap=this.goToMap.bind(this);
-	}
-
-	// user log out confirm
-	logout() {
-		Alert.alert(
-		  "Are you sure you wish to logout?", 
-		  "",
-		  [
-		    {text: 'No'},
-		    {text: 'Yes', onPress: () => {
-		      firebase.auth().signOut().then(function() {
-		        Actions.reset('login');
-		      }, function(error) {
-		        Alert.alert('Sign Out Error', error);
-		      });
-		    }},
-		  ],
-		);
 	}
 
 	goToMap(){
@@ -41,12 +22,12 @@ export class AccountPage extends Component {
 			  [
 			    {text: 'No'},
 			    {text: 'Yes', onPress: () => {
-			      Actions.reset('map');
+			      Actions.map();
 			    }},
 			  ],
 			);
 		}else{
-			Actions.reset('map');
+			Actions.reset();
 		}
 	}
 
@@ -87,7 +68,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	title: {
-		marginTop: 30,
+		marginTop: 80,
 		paddingVertical: 5,
     	fontSize: 34,
     	color: '#08d9d6',
