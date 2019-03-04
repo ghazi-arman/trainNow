@@ -27,7 +27,7 @@ export class AccountPage extends Component {
 			  ],
 			);
 		}else{
-			Actions.reset();
+			Actions.map();
 		}
 	}
 
