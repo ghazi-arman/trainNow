@@ -4,6 +4,7 @@ import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { Font } from 'expo';
 import firebase from 'firebase';
 import { Actions } from 'react-native-router-flux';
+var stripe = require('stripe-client')('pk_test_6sgeMvomvrZFucRqYhi6TSbO');
 
 export class SideMenu extends Component {
 	
@@ -67,6 +68,38 @@ export class SideMenu extends Component {
     );
   }
 
+    
+  chargeCard = async() => {
+    var information = {
+      card: {
+        number: '4242424242424242',
+        exp_month: '02',
+        exp_year: '21',
+        cvc: '999',
+        name: 'Billy Joe',
+      },
+    }
+    try {
+      var card = await stripe.createToken(information);
+      var token = card;
+      const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/stripe/charge/', {
+        method: 'POST',
+        body: JSON.stringify({
+            token: token,
+            charge: {
+                amount: 150,
+                currency: 'USD',
+            },
+        }),
+      });
+      const data = await res.json();
+      data.body = JSON.parse(data.body);
+      console.log(data);
+    } catch(error){
+      console.log(error);
+    }
+  }
+
 	render(){
 	return(
 		<View style={styles.container}>
@@ -97,6 +130,11 @@ export class SideMenu extends Component {
       <TouchableOpacity onPress={this.logout}>
         <Text style={styles.menuLink}>
           <FontAwesome>{Icons.powerOff}</FontAwesome> Sign Out
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={() => Actions.payment()}>
+        <Text style={styles.menuLink}>
+          <FontAwesome>{Icons.creditCard}</FontAwesome> Payment Page
         </Text>
       </TouchableOpacity>
     </View>

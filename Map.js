@@ -101,7 +101,7 @@ export class Map extends Component {
       snapshot.forEach(function(child){
         var session = child.val();
         if(session.end != null && session.traineeRating == null){
-          Actions.reset('rating', {session: child.key});
+          Actions.rating({session: child.key});
         }
       });
     });
@@ -109,7 +109,7 @@ export class Map extends Component {
       snapshot.forEach(function(child){
         var session = child.val();
         if(session.end != null && session.trainerRating == null){
-          Actions.reset('rating', {session: child.key});
+          Actions.rating({session: child.key});
         }
       });
     });
