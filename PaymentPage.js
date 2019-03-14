@@ -16,18 +16,15 @@ export class PaymentPage extends Component {
 			user: 'null',
 			cards: 'null'
 		}
-		this.loadCards=this.loadCards.bind(this);
 		this.renderCards=this.renderCards.bind(this);
 		this.getCardIcon=this.getCardIcon.bind(this);
 		this.deleteCard=this.deleteCard.bind(this);
-		this.hideCardModal=this.hideCardModal.bind(this);
 	}
 
 	async componentDidMount() {
 		await Expo.Font.loadAsync({
 		  fontAwesome: require('./fonts/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf'),
 		});
-		this.setState({ fontLoaded: true });
 		//Get user info for state
 	    var user = firebase.auth().currentUser;
 	    var usersRef = await firebase.database().ref('users');
@@ -116,8 +113,30 @@ export class PaymentPage extends Component {
 		]);
 	}
 
+	async createStripeTrainer(){
+		try {
+			var user = firebase.auth().currentUser;
+			const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/stripe/createTrainer/', {
+				method: 'POST',
+				body: JSON.stringify({
+					email: this.state.user.email,
+					id: user.uid,
+				}),
+			});
+			const data = await res.json();
+		    data.body = JSON.parse(data.body);
+		    var userRef = firebase.database().ref('users');
+		    userRef.child(user.uid).update({
+		        stripeId: data.body.trainer.id
+		    });
+		    console.log(data);
+		}catch(error) {
+			console.log(error);
+		}
+	}
+
 	renderCards(){
-		if(this.state.cards == 0){
+		if(this.state.cards == 0 || this.state.cards === undefined){
 			return (<Text>No Cards Added</Text>);
 		}
 		let index = 0;
@@ -141,6 +160,9 @@ export class PaymentPage extends Component {
 		if(this.state.user == 'null' || typeof this.state.user == undefined || this.state.cards == 'null' || typeof this.state.cards == undefined){
 			return <Expo.AppLoading />
 		}else{
+			if(this.state.user.stripeId === undefined && this.state.user.trainer){
+				this.createStripeTrainer();
+			}
 			return (
 				<KeyboardAvoidingView behavior="padding" style = {styles.container}>
 					<Text style={styles.backButton} onPress={this.goToMap}>

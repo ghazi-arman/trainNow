@@ -10,27 +10,32 @@ const stripe = require('stripe')(functions.config().stripe.token);
 
 function charge(req, res) {
     const body = JSON.parse(req.body);
-    const token = body.token.id;
+    const traineeStripe = body.charge.traineeId;
+    const trainerStripe = body.charge.trainerId;
     const amount = body.charge.amount;
+    const cut = body.charge.cut;
     const currency = body.charge.currency;
 
-    // Charge card
-    stripe.charges.create({
-        amount: amount,
-        currency: currency,
-        description: 'Firebase Example',
-        source: token,
-    }).then(charge => {
+    //Create token and charge
+    stripe.tokens.create({ customer: traineeStripe}, {stripe_account: trainerStripe }).then(token => {
+        return Promise.all([token.id,
+            stripe.charges.create({
+                amount: amount,
+                currency: currency,
+                source: token.id, 
+                description: 'trainNow Session',
+                application_fee_amount: cut,
+            }, {stripe_account: trainerStripe})
+        ]);
+    }).then(results => {
         send(res, 200, {
             message: 'Success',
-            charge: charge,
+            charge: results[1]
         });
         return;
     }).catch(err => {
         console.log(err);
-        send(res, 500, {
-            error: err.message,
-        });
+        send(res, 500, { error: err.message });
     });
 }
 
@@ -49,6 +54,31 @@ function createCustomer(req, res) {
         send(res, 200, {
             message: 'Success',
             customer: customer,
+        });
+        return;
+    }).catch(err => {
+        console.log(err);
+        send(res, 500, {
+            error: err.message
+        });
+    });
+}
+
+function createTrainer(req, res) {
+    const body = JSON.parse(req.body);
+    const email = body.email;
+    const id = body.id;
+
+    //Create connected account
+    stripe.accounts.create({
+        type: 'custom',
+        country: 'US',
+        email: email,
+        description: id,
+    }).then(trainer => {
+        send(res, 200, {
+            message: 'Success',
+            trainer: trainer,
         });
         return;
     }).catch(err => {
@@ -104,9 +134,7 @@ function deleteCard(req, res){
 function listCards(req, res) {
     const body = JSON.parse(req.body);
     const stripeid = body.id;
-    stripe.customers.listCards(stripeid, {
-
-    }).then(cards => {
+    stripe.customers.listCards(stripeid).then(cards => {
         send(res, 200, {
             message: 'Success',
             cards: cards
@@ -181,6 +209,18 @@ app.post('/listCards', (req, res) => {
     //Catch any unexpected errors to prevent crashing
     try {
         listCards(req, res);
+    } catch(e) {
+        console.log(e);
+        send(res, 500, {
+            error: JSON.stringify(e)
+        });
+    }   
+});
+
+app.post('/createTrainer', (req, res) => {
+    //Catch any unexpected errors to prevent crashing
+    try {
+        createTrainer(req, res);
     } catch(e) {
         console.log(e);
         send(res, 500, {

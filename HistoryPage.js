@@ -280,7 +280,6 @@ const styles = StyleSheet.create({
 		borderColor: '#ff2e63',
 		width: '80%',
 		color: '#08d9d6',
-		textAlign: 'center'
 	},
 	backButton: {
 		position: 'absolute',

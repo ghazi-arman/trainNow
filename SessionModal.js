@@ -26,6 +26,10 @@ export class SessionModal extends Component {
 			const loading = await this.loadSessions(user.uid);
 			this.markRead();
 		}
+		var usersRef = firebase.database().ref('users');
+	    usersRef.orderByKey().equalTo(user.uid).on('child_added', function(snapshot) {
+	    	this.setState({user: snapshot.val()});
+	    }.bind(this));
 	}
 
 	//Load Pending sessions still awaiting accept by trainer
@@ -180,6 +184,8 @@ export class SessionModal extends Component {
 	            location: session.location,
 	            rate: session.rate,
 	            gym: session.gym,
+	            traineeStripe: session.traineeStripe,
+	            trainerStripe: this.state.user.stripeId,
 	            traineeLoc: null,
 	            trainerLoc: null,
 	            trainerReady: false,

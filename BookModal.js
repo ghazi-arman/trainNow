@@ -70,8 +70,12 @@ export class BookModal extends Component {
 	    var trainRef = firebase.database().ref('trainSessions');
 	    var price = (parseInt(this.state.trainer.rate) * (parseInt(this.state.bookDuration) / 60)).toFixed(2);
 
+	    if(this.state.user.stripeId === undefined){
+	    	Alert.alert('You must have a card on file to book a session.');
+	    	return;
+	    }
+
 	    if(user.uid == this.state.trainer.key){
-	  
 	      Alert.alert('You cannot book yourself as a Trainer!');
 	      return;
 
@@ -130,6 +134,7 @@ export class BookModal extends Component {
 		          	gym: this.props.gym.name,
 		          	rate: this.state.trainer.rate,
 		          	read: false,
+		          	traineeStripe: this.state.user.stripeId
 	         	});
 	         	this.props.hide();
 	         	setTimeout(this.props.confirm, 1000);
@@ -199,7 +204,6 @@ const styles = StyleSheet.create({
 		borderRadius: 10,
 	},
 	trainerName: {
-    	fontFamily: 'latoBold',
     	fontSize: 30,
     	color: '#FAFAFA',
     	fontWeight: '500'

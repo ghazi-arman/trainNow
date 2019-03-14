@@ -66,15 +66,44 @@ export class SessionPage extends Component {
 	      mapRegion: loc,
 	    });
   	};
+
+  	async charge(traineeStripe, trainerStripe, amount, cut){
+		try{
+			const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/stripe/charge/', {
+				method: 'POST',
+				body: JSON.stringify({
+				    charge: {
+				        amount: amount,
+				        cut: cut,
+				        traineeId: traineeStripe,
+				        trainerId: trainerStripe,
+				        currency: 'USD',
+				    },
+				}),
+			});
+			const data = await res.json();
+			data.body = JSON.parse(data.body);
+			console.log(data);
+		} catch(error){
+			console.log(error);
+		}
+  	}
 	
 	endSession(){
 		var user = firebase.auth().currentUser;
-		var sessionRef = firebase.database().ref('/trainSessions/' + this.state.session.key)
+		var sessionRef = firebase.database().ref('/trainSessions/' + this.state.session.key);
+		var duration = new Date() - new Date(this.state.session.start);
+		var minutes = Math.floor((duration/1000)/60);
+		var rate = ((parseInt(minutes) * (parseInt(this.state.session.rate) / 60)) * 100).toFixed(0);
+		var payout = (parseInt(rate) - (parseInt(rate) * .2)).toFixed(0);
+		console.log(rate);
+		console.log(payout);
 
 		if(this.state.session.trainer == user.uid){
 			if(this.state.session.traineeEnd){
 				sessionRef.update({trainerEnd: true, end: new Date()});
 				Actions.rating({session: this.state.session.key});
+				this.charge(this.state.session.traineeStripe, this.state.session.trainerStripe, rate, rate - payout);
 			}else{
 				sessionRef.update({trainerEnd: true});
 			}
@@ -82,6 +111,7 @@ export class SessionPage extends Component {
 			if(this.state.session.trainerEnd){
 				sessionRef.update({traineeEnd: true, end: new Date()});
 				Actions.rating({session: this.state.session.key});
+				this.charge(this.state.session.traineeStripe, this.state.session.trainerStripe, rate, rate - payout);
 			}else{
 				sessionRef.update({traineeEnd: true});
 			}
@@ -220,7 +250,7 @@ export class SessionPage extends Component {
 				pendingDate = new Date(this.state.session.start);
 				displayDate = this.dateToString(this.state.session.start);
 				remaining = ((pendingDate.getTime() + (parseInt(this.state.session.duration) * 1000 * 60)) - new Date().getTime());
-				minutes = Math.floor((remaining/1000)/60);
+				minutes = Math.max(Math.floor((remaining/1000)/60), 0);
 				time = <Text style={styles.bookDetails}>{displayDate}</Text>;
 				length = <Text style={styles.bookDetails}>You have {minutes} min left</Text>;
 				button = (

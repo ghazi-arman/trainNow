@@ -4,22 +4,14 @@ import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { Font } from 'expo';
 import firebase from 'firebase';
 import { Actions } from 'react-native-router-flux';
-var stripe = require('stripe-client')('pk_test_6sgeMvomvrZFucRqYhi6TSbO');
 
 export class SideMenu extends Component {
 	
 	constructor(props) {
 		super(props);
     this.state = {
-      fontLoaded: false,
-      trainer: false,
-      active: false,
       name:'',
-      rate:'',
-      bio:'',
-      cert:'',
-      gym: '',
-      user: {},
+      rating:''
     }
 	}
 
@@ -27,8 +19,6 @@ export class SideMenu extends Component {
 		Font.loadAsync({
   		FontAwesome: require('./fonts/font-awesome-4.7.0/fonts/FontAwesome.otf'),
   		fontAwesome: require('./fonts/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf'),
-  		lato: require('./fonts/Lato/Lato-Regular.ttf'),
-  		latoBold: require('./fonts/Lato/Lato-Bold.ttf')
   	});
     //pull user from database and check if trainer
     let usersRef = firebase.database().ref('users');
@@ -37,15 +27,10 @@ export class SideMenu extends Component {
       usersRef.orderByKey().equalTo(user.uid).once("child_added", function(snapshot) {
         var currentUser = snapshot.val();
         var trainerState = currentUser.trainer;
-        this.setState({ trainer: trainerState,
-                  user: currentUser,
-                  name: currentUser.name,
-                  rate: currentUser.rate,
-                  cert: currentUser.cert,
-                  bio: currentUser.bio,
-                  gym: currentUser.gym,
-                  rating: currentUser.rating,
-                  active: currentUser.active });
+        this.setState({ 
+          name: currentUser.name,
+          rating: currentUser.rating,
+        });
     }.bind(this));
     }
 	}
@@ -66,38 +51,6 @@ export class SideMenu extends Component {
         }},
       ],
     );
-  }
-
-    
-  chargeCard = async() => {
-    var information = {
-      card: {
-        number: '4242424242424242',
-        exp_month: '02',
-        exp_year: '21',
-        cvc: '999',
-        name: 'Billy Joe',
-      },
-    }
-    try {
-      var card = await stripe.createToken(information);
-      var token = card;
-      const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/stripe/charge/', {
-        method: 'POST',
-        body: JSON.stringify({
-            token: token,
-            charge: {
-                amount: 150,
-                currency: 'USD',
-            },
-        }),
-      });
-      const data = await res.json();
-      data.body = JSON.parse(data.body);
-      console.log(data);
-    } catch(error){
-      console.log(error);
-    }
   }
 
 	render(){
@@ -134,7 +87,7 @@ export class SideMenu extends Component {
       </TouchableOpacity>
       <TouchableOpacity onPress={() => Actions.payment()}>
         <Text style={styles.menuLink}>
-          <FontAwesome>{Icons.creditCard}</FontAwesome> Payment Page
+          <FontAwesome>{Icons.creditCard}</FontAwesome> Payments
         </Text>
       </TouchableOpacity>
     </View>
