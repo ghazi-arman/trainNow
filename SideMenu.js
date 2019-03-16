@@ -80,14 +80,14 @@ export class SideMenu extends Component {
             <FontAwesome>{Icons.list}</FontAwesome> History
         </Text>
       </TouchableOpacity>
-      <TouchableOpacity onPress={this.logout}>
-        <Text style={styles.menuLink}>
-          <FontAwesome>{Icons.powerOff}</FontAwesome> Sign Out
-        </Text>
-      </TouchableOpacity>
       <TouchableOpacity onPress={() => Actions.payment()}>
         <Text style={styles.menuLink}>
           <FontAwesome>{Icons.creditCard}</FontAwesome> Payments
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={this.logout}>
+        <Text style={styles.menuLink}>
+          <FontAwesome>{Icons.powerOff}</FontAwesome> Sign Out
         </Text>
       </TouchableOpacity>
     </View>

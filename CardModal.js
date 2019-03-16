@@ -37,9 +37,12 @@ export class CardModal extends Component {
 				exp_month: this.state.expMonth,
 				exp_year: this.state.expYear,
 				cvc: this.state.cvc,
-				name: this.state.name
+				name: this.state.name,
 			}
 
+		}
+		if(this.state.user.trainer){
+			information.card.currency = 'usd';
 		}
 		var user = firebase.auth().currentUser;
 	    var card = await stripe.createToken(information);
@@ -66,20 +69,38 @@ export class CardModal extends Component {
 		      console.log(error);
 		    }
 		}else{
-			try {
-				const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/stripe/addCard/', {
-					method: 'POST',
-					body: JSON.stringify({
-						token: card,
-						id: this.state.user.stripeId,
-					}),
-				});
-				const data = await res.json();
-				data.body = JSON.parse(data.body);
-				console.log(data.body);
-				this.props.hide();
-			} catch(error){
-				console.log(error);
+			if(this.state.user.trainer){
+				try {
+					const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/stripe/addTrainerCard/', {
+						method: 'POST',
+						body: JSON.stringify({
+							token: card,
+							id: this.state.user.stripeId
+						})
+					})
+					const data = await res.json();
+					data.body = JSON.parse(data.body);
+					console.log(data.body);
+					this.props.hide();
+				} catch(error){
+					console.log(error);
+				}
+			}else{
+				try {
+					const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/stripe/addCard/', {
+						method: 'POST',
+						body: JSON.stringify({
+							token: card,
+							id: this.state.user.stripeId,
+						}),
+					});
+					const data = await res.json();
+					data.body = JSON.parse(data.body);
+					console.log(data.body);
+					this.props.hide();
+				} catch(error){
+					console.log(error);
+				}
 			}
 			
 		}
@@ -90,7 +111,7 @@ export class CardModal extends Component {
 			return <Expo.AppLoading />
 		}else{
 			return(
-				<KeyboardAvoidingView style={styles.formContainer}>
+				<KeyboardAvoidingView behavior="padding" style={styles.formContainer}>
 					<Text style={styles.title}>Add Card</Text>
 					<View style={styles.inputRow}>
 						<Text style={styles.icon}>

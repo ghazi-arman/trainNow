@@ -111,6 +111,28 @@ function addCard(req, res) {
     });
 }
 
+function addTrainerCard(req, res) {
+    const body = JSON.parse(req.body);
+    const stripeid = body.id;
+    const token = body.token.id;
+
+    //Add Card to Customer
+    stripe.accounts.createExternalAccount(stripeid, {
+        external_account: token
+    }).then(card => {
+        send(res, 200, {
+            message: 'Success',
+            card: card,
+        });
+        return;
+    }).catch(err => {
+        console.log(err);
+        send(res, 500, {
+            error: err.message
+        });
+    });
+}
+
 function deleteCard(req, res){
     const body = JSON.parse(req.body);
     const cardId = body.cardId;
@@ -131,6 +153,26 @@ function deleteCard(req, res){
     });
 }
 
+function deleteTrainerCard(req, res){
+    const body = JSON.parse(req.body);
+    const cardId = body.cardId;
+    const stripeId = body.stripeId;
+
+    //Remove card from customer
+    stripe.accounts.deleteExternalAccount(stripeId, cardId).then(card => {
+        send(res, 200, {
+            message: 'Success',
+            card: card
+        });
+        return;
+    }).catch(err => {
+        console.log(err);
+        send(res, 500, {
+            error: err.message
+        });
+    });
+}
+
 function listCards(req, res) {
     const body = JSON.parse(req.body);
     const stripeid = body.id;
@@ -138,6 +180,98 @@ function listCards(req, res) {
         send(res, 200, {
             message: 'Success',
             cards: cards
+        });
+        return;
+    }).catch(err => {
+        console.log(err);
+        send(res, 500, {
+            error: err.message
+        });
+    });
+}
+
+function listTrainerCards(req, res) {
+    const body = JSON.parse(req.body);
+    const stripeid = body.id;
+    stripe.accounts.listExternalAccounts(stripeid, {object: 'card'}).then(cards => {
+        send(res, 200, {
+            message: 'Success',
+            cards: cards
+        });
+        return;
+    }).catch(err => {
+        console.log(err);
+        send(res, 500, {
+            error: err.message
+        });
+    });
+}
+
+function getBalance(req, res) {
+    const body = JSON.parse(req.body);
+    const stripeid = body.id;
+    stripe.balance.retrieve({stripe_account: stripeid}).then(balance => {
+        send(res, 200, {
+            message: 'Success',
+            balance: balance
+        });
+        return;
+    }).catch(err => {
+        console.log(err);
+        send(res, 500, {
+            error: err.message
+        });
+    });
+}
+
+// function transferBalance(req, res) {
+//     const body = JSON.parse(req.body);
+//     const stripeid = body.id;
+//     const balance = parseInt(body.balance);
+//     stripe.payouts.create({
+//         amount: balance,
+//         currency: 'usd',
+//     }, {stripe_account: stripeid}).then(transfer => {
+//         send(res, 200, {
+//             message: 'Success',
+//             transfer: transfer
+//         });
+//         return;
+//     }).catch(err => {
+//         console.log(err);
+//         send(res, 500, {
+//             error: err.message
+//         });
+//     });
+// }
+
+function setDefault(req, res) {
+    const body = JSON.parse(req.body);
+    const stripeId =  body.id;
+    const cardId = body.card;
+    stripe.customers.update(stripeId, {
+        default_source: cardId
+    }).then(result => {
+        send(res, 200, {
+            message: 'Success',
+            result: result
+        });
+        return;
+    }).catch(err => {
+        console.log(err);
+        send(res, 500, {
+            error: err.message
+        });
+    });
+}
+
+function getLink(req, res) {
+    const body = JSON.parse(req.body);
+    const id = body.id;
+    stripe.accounts.createLoginLink(id).then(link => {
+        send(res, 200, {
+            message: 'Success',
+            link: link
         });
         return;
     }).catch(err => {
@@ -181,10 +315,34 @@ app.post('/createCustomer', (req, res) => {
     }
 });
 
+app.post('/setDefault', (req, res) => {
+    //Catch any unexpected errors to prevent crashing
+    try {
+        setDefault(req, res);
+    } catch(e) {
+        console.log(e);
+        send(res, 500, {
+            error: JSON.stringify(e)
+        });
+    }
+})
+
 app.post('/addCard', (req, res) => {
     //Catch any unexpected errors to prevent crashing
     try {
         addCard(req, res);
+    } catch(e) {
+        console.log(e);
+        send(res, 500, {
+            error: JSON.stringify(e)
+        });
+    }
+});
+
+app.post('/addTrainerCard', (req, res) => {
+    //Catch any unexpected errors to prevent crashing
+    try {
+        addTrainerCard(req, res);
     } catch(e) {
         console.log(e);
         send(res, 500, {
@@ -205,6 +363,18 @@ app.post('/deleteCard', (req, res) => {
     }
 });
 
+app.post('/deleteTrainerCard', (req, res) => {
+    //Catch any unexpected errors to prevent crashing
+    try {
+        deleteTrainerCard(req, res);
+    } catch(e) {
+        console.log(e);
+        send(res, 500, {
+            error: JSON.stringify(e)
+        });
+    }
+});
+
 app.post('/listCards', (req, res) => {
     //Catch any unexpected errors to prevent crashing
     try {
@@ -217,10 +387,46 @@ app.post('/listCards', (req, res) => {
     }   
 });
 
+app.post('/listTrainerCards', (req, res) => {
+    //Catch any unexpected errors to prevent crashing
+    try {
+        listTrainerCards(req, res);
+    } catch(e) {
+        console.log(e);
+        send(res, 500, {
+            error: JSON.stringify(e)
+        });
+    }   
+});
+
 app.post('/createTrainer', (req, res) => {
     //Catch any unexpected errors to prevent crashing
     try {
         createTrainer(req, res);
+    } catch(e) {
+        console.log(e);
+        send(res, 500, {
+            error: JSON.stringify(e)
+        });
+    }   
+});
+
+app.post('/getBalance', (req, res) => {
+    //Catch any unexpected errors to prevent crashing
+    try {
+        getBalance(req, res);
+    } catch(e) {
+        console.log(e);
+        send(res, 500, {
+            error: JSON.stringify(e)
+        });
+    }   
+});
+
+app.post('/getLink', (req, res) => {
+    //Catch any unexpected errors to prevent crashing
+    try {
+        getLink(req, res);
     } catch(e) {
         console.log(e);
         send(res, 500, {
