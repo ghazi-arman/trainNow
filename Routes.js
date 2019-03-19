@@ -11,6 +11,8 @@ import {RatingPage} from './RatingPage';
 import {HistoryPage} from './HistoryPage';
 import {SessionModal} from './SessionModal';
 import {PaymentPage} from './PaymentPage';
+import {ClientPage} from './ClientPage';
+import {TrainerPage} from './TrainerPage';
 
 export class Routes extends Component {
 	render() {
@@ -27,7 +29,9 @@ export class Routes extends Component {
 			    	<Scene key="history" component={HistoryPage} title="HistoryPage" />
 			    	<Scene key="modal" component={SessionModal} title="SessionModal" />
 			    	<Scene key="payment" component={PaymentPage} title="PaymentPage" />
-			    </Stack>
+			    	<Scene key="clients" component={ClientPage} title="ClientPage" />
+			    	<Scene key="trainers" component={TrainerPage} title="TrainerPage" />
+ 			    </Stack>
 			</Router>
 		);
 	}

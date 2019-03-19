@@ -80,7 +80,7 @@ export class PaymentPage extends Component {
 
 	async loadCards(stripeId) {
 		if(stripeId === undefined){
-			return 0;
+			return [];
 		}
 		try {
 	      	const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/stripe/listCards/', {
@@ -92,7 +92,7 @@ export class PaymentPage extends Component {
 		    const data = await res.json();
 		    data.body = JSON.parse(data.body);
 		    if(data.body.cards === undefined){
-		    	return 0;
+		    	return [];
 		    }
 		    return data.body.cards.data;
 		}catch(error){
@@ -102,7 +102,7 @@ export class PaymentPage extends Component {
 
 	async loadTrainerCards(stripeId){
 		if(stripeId === undefined){
-			return 0;
+			return [];
 		}
 		try {
 	      	const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/stripe/listTrainerCards/', {
@@ -115,7 +115,7 @@ export class PaymentPage extends Component {
 		    data.body = JSON.parse(data.body);
 		    console.log(data.body);
 		    if(data.body.cards === undefined){
-		    	return 0;
+		    	return [];
 		    }
 		    return data.body.cards.data;
 		}catch(error){
@@ -251,7 +251,7 @@ export class PaymentPage extends Component {
 	}
 
 	renderCards(){
-		if(this.state.cards == 0 || this.state.cards === undefined){
+		if(this.state.cards === undefined || this.state.cards.length == 0){
 			return (<Text>No Cards Added</Text>);
 		}
 		var index = 0;

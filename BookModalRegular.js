@@ -4,7 +4,7 @@ import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
 import { AppLoading} from 'expo';
 
-export class BookModal extends Component {
+export class BookModalRegular extends Component {
 	
 	constructor(props) {
 		super(props);
@@ -13,29 +13,40 @@ export class BookModal extends Component {
 			bookDate: new Date(),
 			bookDuration: '60',
 			user: 'null',
+			gym: 'null'
 		};
 		this.bookTrainer=this.bookTrainer.bind(this);
 		this.loadTrainer=this.loadTrainer.bind(this);
+		this.loadGym=this.loadGym.bind(this);
 	}
 
-	componentDidMount(){
-		this.loadTrainer(this.props.trainer.key);
+	async componentDidMount(){
+		var trainer = await this.loadTrainer(this.props.trainer);
+		var gym = await this.loadGym(this.props.gym);
 
 		//Get user info for state
 	    var user = firebase.auth().currentUser;
 	    var usersRef = firebase.database().ref('users');
 	    usersRef.orderByKey().equalTo(user.uid).on('child_added', function(snapshot) {
-	    	this.setState({user: snapshot.val()});
+	    	this.setState({user: snapshot.val(), gym: gym, trainer: trainer});
 	    }.bind(this));
 	}
 
 	//Loads selected trainer Info from db
-	loadTrainer(trainerKey){
-	    firebase.database().ref('/users/' + trainerKey).once('value', function(snapshot){
-        this.setState({
-          trainer: snapshot.val()
-        });
-      }.bind(this));
+	async loadTrainer(trainerKey){
+		var trainer;
+	    await firebase.database().ref('users').child(trainerKey).once('value', function(snapshot){
+        	trainer = snapshot.val();
+      	}.bind(this));
+	    return trainer;
+  	}
+
+  	async loadGym(gymKey){
+  		var gym;
+  		await firebase.database().ref('gyms').child(gymKey).once('value', function(snapshot){
+  			gym = snapshot.val()
+  		}.bind(this));
+  		return gym;
   	}
 
   	//Convert date to readable format
@@ -86,7 +97,7 @@ export class BookModal extends Component {
 	    }else{
 	    	//Pull session for trainer to be booked and trainee to check for time conflicts
 	    	var sessions = [];
-	    	const trainerSessions = await trainRef.orderByChild('trainer').equalTo(this.props.trainer.key).once('value', function(snapshot){
+	    	const trainerSessions = await trainRef.orderByChild('trainer').equalTo(this.props.trainer).once('value', function(snapshot){
 	    		snapshot.forEach(function(child){
 	    			sessions.push(child.val());
 	    		});
@@ -125,12 +136,12 @@ export class BookModal extends Component {
 	         	pendingRef.push({
 		          	trainee: user.uid,
 		          	traineeName: this.state.user.name,
-		          	trainer: this.props.trainer.key,
+		          	trainer: this.props.trainer,
 		          	trainerName: this.state.trainer.name,
 		          	start: this.state.bookDate.toString(),
 		          	duration: this.state.bookDuration,
-		          	location: this.props.gym.location,
-		          	gym: this.props.gym.name,
+		          	location: this.state.gym.location,
+		          	gym: this.state.gym.name,
 		          	rate: this.state.trainer.rate,
 		          	read: false,
 		          	traineeStripe: this.state.user.stripeId
@@ -143,7 +154,7 @@ export class BookModal extends Component {
   	}
 
 	render(){
-		if(this.state.trainer == 'null' || typeof this.state.trainer == undefined){
+		if(this.state.trainer == 'null' || this.state.trainer == null || this.state.gym == 'null'){
 			return <Expo.AppLoading />
 		}else{
 			return(
@@ -152,7 +163,7 @@ export class BookModal extends Component {
 	              		<Text style={styles.trainerName}>{this.state.trainer.name}</Text>
 	            	</View>
 					<View style={styles.formContainer}>
-			            <Text style={styles.bookDetails}>{this.props.gym.name}</Text>
+			            <Text style={styles.bookDetails}>{this.state.gym.name}</Text>
 			            <View style={styles.inputRow}>
 			            <Text style ={styles.bookFormLabel}>Session Time</Text>
 			            <View style={styles.datePickerHolder}>

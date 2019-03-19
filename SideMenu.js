@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Platform, StyleSheet, Text, View, TouchableOpacity, Alert} from 'react-native';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
-import { Font } from 'expo';
+import { Font, AppLoading } from 'expo';
 import firebase from 'firebase';
 import { Actions } from 'react-native-router-flux';
 
@@ -11,7 +11,8 @@ export class SideMenu extends Component {
 		super(props);
     this.state = {
       name:'',
-      rating:''
+      rating:'',
+      trainerState: 'null'
     }
 	}
 
@@ -28,6 +29,7 @@ export class SideMenu extends Component {
         var currentUser = snapshot.val();
         var trainerState = currentUser.trainer;
         this.setState({ 
+          trainerState: trainerState,
           name: currentUser.name,
           rating: currentUser.rating,
         });
@@ -54,44 +56,67 @@ export class SideMenu extends Component {
   }
 
 	render(){
-	return(
-		<View style={styles.container}>
-      <View style={styles.nameContainer}>
-        <Text style={{fontSize: 30, color: '#FAFAFA'}}>{this.state.name}</Text>
-        <Text style={{fontSize: 20, color: '#FAFAFA'}}>Rating: {this.state.rating}</Text>
-      </View>
-      <TouchableOpacity onPress={() => Actions.map()}>
-        <Text style={styles.menuLink}>
-            <FontAwesome>{Icons.compass}</FontAwesome> Map
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity>
-        <Text style={styles.menuLink} onPress={() => Actions.account()}>
-            <FontAwesome>{Icons.user}</FontAwesome> Settings
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => Actions.modal()}>
-        <Text style={styles.menuLink}>
-            <FontAwesome>{Icons.calendar}</FontAwesome> Calendar
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => Actions.history()}>
-        <Text style={styles.menuLink}>
-            <FontAwesome>{Icons.list}</FontAwesome> History
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => Actions.payment()}>
-        <Text style={styles.menuLink}>
-          <FontAwesome>{Icons.creditCard}</FontAwesome> Payments
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={this.logout}>
-        <Text style={styles.menuLink}>
-          <FontAwesome>{Icons.powerOff}</FontAwesome> Sign Out
-        </Text>
-      </TouchableOpacity>
-    </View>
-		)
+    if(this.state.trainerState == 'null'){
+      return <Expo.AppLoading />
+    }else{
+      var clientLink;
+      if(this.state.trainerState){
+        clientLink = (
+          <TouchableOpacity onPress={() => Actions.clients()}>
+            <Text style={styles.menuLink}>
+                <FontAwesome>{Icons.users}</FontAwesome> Clients
+            </Text>
+          </TouchableOpacity>
+        );
+      }else{
+        clientLink = (
+          <TouchableOpacity onPress={() => Actions.trainers()}>
+            <Text style={styles.menuLink}>
+                <FontAwesome>{Icons.users}</FontAwesome> Trainers
+            </Text>
+          </TouchableOpacity>
+        );
+      }
+    	return(
+    		<View style={styles.container}>
+          <View style={styles.nameContainer}>
+            <Text style={{fontSize: 30, color: '#FAFAFA'}}>{this.state.name}</Text>
+            <Text style={{fontSize: 20, color: '#FAFAFA'}}>Rating: {this.state.rating}</Text>
+          </View>
+          <TouchableOpacity onPress={() => Actions.map()}>
+            <Text style={styles.menuLink}>
+                <FontAwesome>{Icons.compass}</FontAwesome> Map
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity>
+            <Text style={styles.menuLink} onPress={() => Actions.account()}>
+                <FontAwesome>{Icons.user}</FontAwesome> Settings
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => Actions.modal()}>
+            <Text style={styles.menuLink}>
+                <FontAwesome>{Icons.calendar}</FontAwesome> Calendar
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => Actions.history()}>
+            <Text style={styles.menuLink}>
+                <FontAwesome>{Icons.list}</FontAwesome> History
+            </Text>
+          </TouchableOpacity>
+          {clientLink}
+          <TouchableOpacity onPress={() => Actions.payment()}>
+            <Text style={styles.menuLink}>
+              <FontAwesome>{Icons.creditCard}</FontAwesome> Payments
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={this.logout}>
+            <Text style={styles.menuLink}>
+              <FontAwesome>{Icons.powerOff}</FontAwesome> Sign Out
+            </Text>
+          </TouchableOpacity>
+        </View>
+    		)
+    }
 	}
 }
 
