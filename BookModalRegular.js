@@ -128,7 +128,7 @@ export class BookModalRegular extends Component {
 	    	}
 
 			Alert.alert(
-		      'Book session with ' + this.state.trainer.name + ' for $' + price + ' at ' + this.dateToString(this.state.bookDate),
+		      'Request session with ' + this.state.trainer.name + ' for $' + price + ' at ' + this.dateToString(this.state.bookDate),
 		      '',
 		     	[
 	        	{text: 'No'},
@@ -144,7 +144,9 @@ export class BookModalRegular extends Component {
 		          	gym: this.state.gym.name,
 		          	rate: this.state.trainer.rate,
 		          	read: false,
-		          	traineeStripe: this.state.user.stripeId
+		          	traineeStripe: this.state.user.stripeId,
+		          	trainerStripe: this.state.trainer.stripeId,
+		          	sentBy: 'trainee'
 	         	});
 	         	this.props.hide();
 	         	setTimeout(this.props.confirm, 1000);

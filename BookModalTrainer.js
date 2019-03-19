@@ -4,38 +4,48 @@ import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
 import { AppLoading} from 'expo';
 
-export class BookModal extends Component {
+export class BookModalTrainer extends Component {
 	
 	constructor(props) {
 		super(props);
 		this.state = {
-			trainer: 'null',
+			client: 'null',
 			bookDate: new Date(),
 			bookDuration: '60',
 			user: 'null',
+			gym: 'null'
 		};
-		this.bookTrainer=this.bookTrainer.bind(this);
-		this.loadTrainer=this.loadTrainer.bind(this);
+		this.bookClient=this.bookClient.bind(this);
+		this.loadClient=this.loadClient.bind(this);
+		this.loadGym=this.loadGym.bind(this);
 	}
 
-	componentDidMount(){
-		this.loadTrainer(this.props.trainer.key);
+	async componentDidMount(){
+		var client = await this.loadClient(this.props.client);
+		var gym = await this.loadGym(this.props.gym);
 
 		//Get user info for state
 	    var user = firebase.auth().currentUser;
 	    var usersRef = firebase.database().ref('users');
-	    usersRef.orderByKey().equalTo(user.uid).on('child_added', function(snapshot) {
-	    	this.setState({user: snapshot.val()});
+	    await usersRef.orderByKey().equalTo(user.uid).on('child_added', function(snapshot) {
+	    	this.setState({user: snapshot.val(), gym: gym, client: client});
 	    }.bind(this));
 	}
 
-	//Loads selected trainer Info from db
-	loadTrainer(trainerKey){
-	    firebase.database().ref('/users/' + trainerKey).once('value', function(snapshot){
-        this.setState({
-          trainer: snapshot.val()
-        });
-      }.bind(this));
+	async loadClient(clientKey){
+		var client;
+	    await firebase.database().ref('users').child(clientKey).once('value', function(snapshot){
+        	client = snapshot.val();
+      	}.bind(this));
+	    return client;
+  	}
+
+  	async loadGym(gymKey){
+  		var gym;
+  		await firebase.database().ref('gyms').child(gymKey).once('value', function(snapshot){
+  			gym = snapshot.val()
+  		}.bind(this));
+  		return gym;
   	}
 
   	//Convert date to readable format
@@ -63,36 +73,31 @@ export class BookModal extends Component {
 	 }
 
   	//book a session with a trainer
-  	async bookTrainer(){
+  	async bookClient(){
 	    var user = firebase.auth().currentUser;
 	    var pendingRef = firebase.database().ref('pendingSessions');
 	    var trainRef = firebase.database().ref('trainSessions');
-	    var price = (parseInt(this.state.trainer.rate) * (parseInt(this.state.bookDuration) / 60)).toFixed(2);
+	    var price = (parseInt(this.state.user.rate) * (parseInt(this.state.bookDuration) / 60)).toFixed(2);
 
 	    if(this.state.user.stripeId === undefined){
-	    	Alert.alert('You must have a card on file to book a session.');
+	    	Alert.alert('You must have a card on file to book a session for payouts.');
 	    	return;
 	    }
 
-	    if(user.uid == this.state.trainer.key){
+	    if(user.uid == this.state.user.key){
 	      Alert.alert('You cannot book yourself as a Trainer!');
 	      return;
-
-	    }else if(this.state.trainer.active == false){
-	      
-	      Alert.alert('Sorry, this trainer is no longer active.');
-	      return;
-
 	    }else{
 	    	//Pull session for trainer to be booked and trainee to check for time conflicts
+	    	var user = firebase.auth().currentUser;
 	    	var sessions = [];
-	    	const trainerSessions = await trainRef.orderByChild('trainer').equalTo(this.props.trainer.key).once('value', function(snapshot){
+	    	const trainerSessions = await trainRef.orderByChild('trainer').equalTo(user.uid).once('value', function(snapshot){
 	    		snapshot.forEach(function(child){
 	    			sessions.push(child.val());
 	    		});
 	    	}.bind(this));
 
-	    	const userSessions = await trainRef.orderByChild('trainee').equalTo(user.uid).once('value', function(snapshot){
+	    	const userSessions = await trainRef.orderByChild('trainee').equalTo(this.props.client).once('value', function(snapshot){
 	    		snapshot.forEach(function(child){
 	    			sessions.push(child.val());
 	    		});
@@ -107,35 +112,35 @@ export class BookModal extends Component {
 
 	    		if(start1 > start2 && start1 < end2 || start2 > start1 && start2 < end1){
 	    			if(session.trainee == user.uid){
-	    				Alert.alert('You have a session at ' + this.dateToString(session.start) + ' for ' + session.duration + ' mins.');
+	    				Alert.alert(this.state.client.name + 'has a session at ' + this.dateToString(session.start) + ' for ' + session.duration + ' mins.');
 	    				return;
 	    			}else{
-	    				Alert.alert(this.state.trainer.name + ' has a session at ' + this.dateToString(session.start) + ' for ' + session.duration + ' mins.');
+	    				Alert.alert('You has a session at ' + this.dateToString(session.start) + ' for ' + session.duration + ' mins.');
 	    				return;
 	    			}
 	    		}
 	    	}
 
 			Alert.alert(
-		      'Request session with ' + this.state.trainer.name + ' for $' + price + ' at ' + this.dateToString(this.state.bookDate),
+		      'Request session with ' + this.state.client.name + ' for $' + price + ' at ' + this.dateToString(this.state.bookDate),
 		      '',
 		     	[
 	        	{text: 'No'},
 	        	{text: 'Yes', onPress: () => {
 	         	pendingRef.push({
-		          	trainee: user.uid,
-		          	traineeName: this.state.user.name,
-		          	trainer: this.props.trainer.key,
-		          	trainerName: this.state.trainer.name,
+		          	trainee: this.props.client,
+		          	traineeName: this.state.client.name,
+		          	trainer: user.uid,
+		          	trainerName: this.state.user.name,
 		          	start: this.state.bookDate.toString(),
 		          	duration: this.state.bookDuration,
-		          	location: this.props.gym.location,
-		          	gym: this.props.gym.name,
-		          	rate: this.state.trainer.rate,
+		          	location: this.state.gym.location,
+		          	gym: this.state.gym.name,
+		          	rate: this.state.user.rate,
 		          	read: false,
-		          	traineeStripe: this.state.user.stripeId,
-		          	trainerStripe: this.state.trainer.stripeId,
-		          	sentBy: 'trainee'
+		          	traineeStripe: this.state.client.stripeId,
+		          	trainerStripe: this.state.user.stripeId,
+		          	sentBy: 'trainer'
 	         	});
 	         	this.props.hide();
 	         	setTimeout(this.props.confirm, 1000);
@@ -145,16 +150,16 @@ export class BookModal extends Component {
   	}
 
 	render(){
-		if(this.state.trainer == 'null' || typeof this.state.trainer == undefined){
+		if(this.state.client == 'null' || this.state.client == null || this.state.gym == 'null'){
 			return <Expo.AppLoading />
 		}else{
 			return(
 				<View style={styles.modal}>
 					<View style={styles.nameContainer}>
-	              		<Text style={styles.trainerName}>{this.state.trainer.name}</Text>
+	              		<Text style={styles.trainerName}>{this.state.client.name}</Text>
 	            	</View>
 					<View style={styles.formContainer}>
-			            <Text style={styles.bookDetails}>{this.props.gym.name}</Text>
+			            <Text style={styles.bookDetails}>{this.state.gym.name}</Text>
 			            <View style={styles.inputRow}>
 			            <Text style ={styles.bookFormLabel}>Session Time</Text>
 			            <View style={styles.datePickerHolder}>
@@ -182,7 +187,7 @@ export class BookModal extends Component {
 			                <Picker.Item label='120' value='120' />
 			              </Picker>
 			            </View>
-			            <TouchableOpacity style={styles.bookButton} onPressIn={() => this.bookTrainer()}>
+			            <TouchableOpacity style={styles.bookButton} onPressIn={() => this.bookClient()}>
 			            	<Text 
 			                  style={styles.buttonText}
 			                  >

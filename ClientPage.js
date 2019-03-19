@@ -5,6 +5,7 @@ import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import Modal from 'react-native-modal';
 import { Actions } from 'react-native-router-flux';
+import {BookModalTrainer} from './BookModalTrainer';
 
 export class ClientPage extends Component {
 
@@ -24,6 +25,8 @@ export class ClientPage extends Component {
 		this.denyRequest=this.denyRequest.bind(this);
 		this.acceptRequest=this.acceptRequest.bind(this);
 		this.renderClients=this.renderClients.bind(this);
+		this.hidebookModal=this.hidebookModal.bind(this);
+		this.bookSession=this.bookSession.bind(this);
 	}
 
 	async componentDidMount() {
@@ -175,6 +178,10 @@ export class ClientPage extends Component {
 	    }.bind(this));
 	}
 
+	hidebookModal(){
+		this.setState({bookModal: false});
+	}
+
 	renderRequests(){
 		var result = this.state.incomingRequests.map(function(request){
 			return(
@@ -197,16 +204,15 @@ export class ClientPage extends Component {
 			return;
 		}
 		var result = this.state.user.clients.map(function(trainer){
-			console.log(trainer);
 			return(
 				<View key={trainer.trainee} style={styles.traineeRow}>
 					<Text>{trainer.traineeName}</Text>
-					<TouchableOpacity style={styles.requestButton} onPress={() => this.bookSession(trainer.trainee)}> 
+					<TouchableOpacity style={styles.requestButton} onPress={() => this.bookSession(trainer.trainee, this.state.user.gym)}> 
 						<Text><FontAwesome>{Icons.calendar}</FontAwesome> Book Session</Text>
 					</TouchableOpacity>
 				</View>
 			);
-		});
+		}.bind(this));
 		return result;
 	}
 
@@ -243,6 +249,12 @@ export class ClientPage extends Component {
 		return result;
 	}
 
+	bookSession(client, trainerGym){
+		console.log(client);
+		console.log(trainerGym);
+		this.setState({bookingClient: client, selectedGym: trainerGym, bookModal: true});
+	}
+
 	goToMap(){
 		Actions.map();
 	}
@@ -266,6 +278,11 @@ export class ClientPage extends Component {
 						<Text style={{textAlign: 'center', fontSize: 25, margin: 10}}>Your Clients</Text>
 						{this.renderClients()}
 					</View>
+					<Modal 
+						isVisible={this.state.bookModal}
+          				onBackdropPress={this.hidebookModal}>
+            				<BookModalTrainer client={this.state.bookingClient} gym={this.state.selectedGym} hide={this.hidebookModal} confirm={() => Alert.alert('Session Booked!')}/>
+          			</Modal>
 				</View>	
 			);
 		}

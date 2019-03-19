@@ -167,11 +167,12 @@ export class HistoryPage extends Component {
 				</View>
 				<Modal isVisible={this.state.reportModal}
         			onBackdropPress={this.hideReportModal}>
-        			<View style={styles.reportModal}>
+        			<KeyboardAvoidingView behavior="padding" style={styles.reportModal}>
         				<Text style={styles.titleText}>Report Session</Text>
         				<TextInput 
 						placeholder="What was the problem?"
 						style={styles.input}
+						returnKeyType="done"
 						multiline={true}
 						placeholderTextColor='#08d9d6'
 						onChangeText = {(report) => this.setState({report})}
@@ -179,7 +180,7 @@ export class HistoryPage extends Component {
         				<TouchableOpacity style={styles.submitButton} onPress={() => this.reportSession(this.state.reportSession)}>
 		            		<Text style={styles.buttonText}>Report Session</Text>
 		            	</TouchableOpacity>
-        			</View>
+        			</KeyboardAvoidingView>
         		</Modal>
 			</View>	
 		);

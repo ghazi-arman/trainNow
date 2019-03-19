@@ -184,8 +184,9 @@ export class SessionModal extends Component {
 	            location: session.location,
 	            rate: session.rate,
 	            gym: session.gym,
+	            sentBy: session.sentBy,
 	            traineeStripe: session.traineeStripe,
-	            trainerStripe: this.state.user.stripeId,
+	            trainerStripe: session.trainerStripe,
 	            traineeLoc: null,
 	            trainerLoc: null,
 	            trainerReady: false,
@@ -288,8 +289,7 @@ export class SessionModal extends Component {
   		var pendingList = this.state.pendingSessions.map(function(session){
 
 	    	var displayDate = this.dateToString(session.start);
-	        if(session.trainee == userKey){
-
+	        if((session.trainee == userKey && session.sentBy == 'trainee') || (session.trainer == userKey && session.sentBy == 'trainer')){
 	          var button = (
 	            <TouchableOpacity style={styles.denyContainer} onPressIn={() => this.cancelSession(session)}>
 	              <Text 
@@ -298,10 +298,12 @@ export class SessionModal extends Component {
 	              Cancel Session
 	              </Text>
 	            </TouchableOpacity>);
-	          var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.trainerName}</Text></View>);
-	        
+	          if(session.trainee == userKey){
+	          	var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.trainerName}</Text></View>);
+	          }else{
+	          	var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.traineeName}</Text></View>);
+	          }
 	        }else{
-
 	          var button = (
 	            <TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.acceptSession(session)}>
 	              <Text 
@@ -315,10 +317,14 @@ export class SessionModal extends Component {
 	              <Text 
 	                style={styles.buttonText}
 	              >
-	              Cancel Session
+	              Deny Session
 	              </Text>
 	            </TouchableOpacity>);
-	            var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.traineeName}</Text></View>);
+	          	if(session.trainee == userKey){
+	            	var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.trainerName}</Text></View>);
+	          	}else{
+	            	var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.traineeName}</Text></View>);
+	            }
 	        }
 	        return(
 	        <View style={{flexDirection: 'column', justifyContent: 'flex-start'}} key={session.key}>

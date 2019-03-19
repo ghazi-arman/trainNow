@@ -145,21 +145,38 @@ export class Map extends Component {
     var acceptRef = firebase.database().ref('trainSessions');
     var acceptSession = pendingSession = null;
     
-    //Only need to send trainers a notification for pending Sessions
+    //Trainer check
     pendingRef.orderByChild('trainer').equalTo(userKey).on('value', function(snapshot) {
       snapshot.forEach(function(child){
         var pendingSession = child.val();
-        if(pendingSession.read == false){
+        if(pendingSession.read == false && pendingSession.sentBy == 'trainee'){
             this.setState({unRead: true});
         }
       }.bind(this));
     }.bind(this));
 
-    //Only need to send trainees a notification for accepted Sessions
+    pendingRef.orderByChild('trainee').equalTo(userKey).on('value', function(snapshot) {
+      snapshot.forEach(function(child){
+        var pendingSession = child.val();
+        if(pendingSession.read == false && pendingSession.sentBy == 'trainer'){
+            this.setState({unRead: true});
+        }
+      }.bind(this));
+    }.bind(this));
+
     acceptRef.orderByChild('trainee').equalTo(userKey).on('value', function(snapshot) {
       snapshot.forEach(function(child){
         var acceptSession = child.val();
-        if(acceptSession.read == false){
+        if(acceptSession.read == false && acceptSession.sentBy == 'trainee'){
+            this.setState({unRead: true});
+        }
+      }.bind(this));
+    }.bind(this));
+
+    acceptRef.orderByChild('trainer').equalTo(userKey).on('value', function(snapshot) {
+      snapshot.forEach(function(child){
+        var acceptSession = child.val();
+        if(acceptSession.read == false && acceptSession.sentBy == 'trainer'){
             this.setState({unRead: true});
         }
       }.bind(this));

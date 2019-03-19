@@ -18,6 +18,7 @@ export class SessionPage extends Component {
 		};
 		this.endSession=this.endSession.bind(this);
 		this.startSession=this.startSession.bind(this);
+		this.goToMap=this.goToMap.bind(this);
 	}
 
 	// load font after render the page
@@ -178,6 +179,10 @@ export class SessionPage extends Component {
 	    return displayDate;
 	}
 
+	goToMap(){
+		Actions.reset('map');
+	}
+
 	render() {
 		if(this.state.session == 'null' || typeof this.state.session.location === 'undefined' || typeof this.state.userRegion === 'undefined' || this.state.mapRegion == 'null'){
 			return <Expo.AppLoading />
@@ -279,8 +284,11 @@ export class SessionPage extends Component {
 			}
 		}
 		return (
-			<KeyboardAvoidingView behavior="padding" style = {styles.container}>	
+			<View style={styles.container}>
 				<View style={styles.formContainer}>
+				<Text style={styles.backButton} onPress={this.goToMap}>
+          			<FontAwesome>{Icons.arrowLeft}</FontAwesome>
+        		</Text>
 					<View style={styles.infoContainer}>
 						<Text style={styles.header}>Your Session</Text>
 						{description}
@@ -295,7 +303,7 @@ export class SessionPage extends Component {
             			{ownEnd}
             		</View>
 				</View>
-			</KeyboardAvoidingView>	
+			</View>	
 		);
 	}
 }
@@ -360,5 +368,13 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		color: '#FAFAFA',
 		fontWeight: '700'
+	},
+	  	backButton: {
+		position: 'absolute',
+		top: 45,
+		left: 20,
+		fontSize: 35, 
+		color: '#08d9d6', 
+		lineHeight: 20
 	}
 });
