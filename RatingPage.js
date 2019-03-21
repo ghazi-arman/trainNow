@@ -185,10 +185,18 @@ export class RatingPage extends Component {
 		if(this.state.session == 'null'){
 			return <Expo.AppLoading />
 		}else{
+			var user = firebase.auth().currentUser;
 			var displayDate = this.dateToString(this.state.session.end);
 			var duration = new Date(this.state.session.end) - new Date(this.state.session.start);
 			var minutes = Math.floor((duration/1000)/60);
 			var rate = (parseInt(minutes) * (parseInt(this.state.session.rate) / 60)).toFixed(2);
+			var payout = (parseFloat(rate) - (parseFloat(rate) * .2)).toFixed(2);
+
+			if(this.state.session.trainer == user.uid){
+				var cost = <Text style={styles.bookDetails}>Total Earned: ${payout}</Text>
+			}else{
+				var cost = <Text style={styles.bookDetails}>Total Cost: ${rate}</Text>;
+			}
 		}
 		var stars = this.renderStars(this.state.rating);
 		return (
@@ -198,7 +206,7 @@ export class RatingPage extends Component {
 						<Text style={styles.header}>Rate Session!</Text>
 						<Text style={styles.bookDetails}>Ended: {displayDate} </Text>
 						<Text style={styles.bookDetails}>Total Time: {minutes} min</Text>
-						<Text style={styles.bookDetails}>Total Cost: ${rate}</Text>
+						{cost}
 						<View style={styles.starContainer}>
 							{stars}
 						</View>

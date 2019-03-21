@@ -50,6 +50,7 @@ export class LoginForm extends Component {
 		}
 
 		// Check email and password here
+		firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 		firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password).then(function() {
 			Actions.reset('map');
 		}.bind(this)).catch(function(error) {

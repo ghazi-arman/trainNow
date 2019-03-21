@@ -126,7 +126,7 @@ export class BookModalTrainer extends Component {
 		      '',
 		     	[
 	        	{text: 'No'},
-	        	{text: 'Yes', onPress: () => {
+	        	{text: 'Yes', onPress: async () => {
 	         	pendingRef.push({
 		          	trainee: this.props.client,
 		          	traineeName: this.state.client.name,
@@ -140,8 +140,24 @@ export class BookModalTrainer extends Component {
 		          	read: false,
 		          	traineeStripe: this.state.client.stripeId,
 		          	trainerStripe: this.state.user.stripeId,
+		          	traineePhone: this.state.client.phone,
+		          	trainerPhone: this.state.user.phone,
 		          	sentBy: 'trainer'
 	         	});
+	         	try {
+		    	  var message = this.state.user.name + " has requested a session at " + this.dateToString(this.state.bookDate) + " for " + this.state.bookDuration + " mins.";
+			      const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/twilio/sendMessage/', {
+			        method: 'POST',
+			        body: JSON.stringify({
+			          phone: this.state.client.phone,
+			          message: message
+			        }),
+			      });
+			      const data = await res.json();
+			      data.body = JSON.parse(data.body);
+			    } catch(error){
+			      console.log(error);
+			    }
 	         	this.props.hide();
 	         	setTimeout(this.props.confirm, 1000);
 	        }},

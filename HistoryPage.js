@@ -121,10 +121,14 @@ export class HistoryPage extends Component {
 	       	var day = (new Date(session.start).getMonth() + 1) + " / " + new Date(session.start).getDate();
 			var minutes = Math.floor(((new Date(session.end) - new Date(session.start))/1000)/60);
 			var rate = (parseInt(minutes) * (parseInt(session.rate) / 60)).toFixed(2);
+			var payout = (parseFloat(rate) - (parseFloat(rate) * .2)).toFixed(2);
+
 			if(session.trainee == user){
+				var rateView = (<View style={styles.sessionRow}><Text style={styles.smallText}>${rate}</Text></View>);
 				var client = (<Text style={styles.titleText}>Trained by {session.trainerName}</Text>);
 				var stars = this.renderStars(session.traineeRating);
 			}else{
+				var rateView = (<View style={styles.sessionRow}><Text style={styles.smallText}>${payout}</Text></View>);
 				var client = (<Text style={styles.titleText}>You trained {session.traineeName}</Text>);
 				var stars = this.renderStars(session.trainerRating);
 			}
@@ -133,7 +137,7 @@ export class HistoryPage extends Component {
 		            <View style={styles.sessionRow}>{client}</View>
 		            <View style={styles.sessionRow}><Text style={styles.icon}>{stars}</Text></View>
 		            <View style={styles.sessionRow}><Text style={styles.smallText}>{session.gym}</Text></View>
-		            <View style={styles.sessionRow}><Text style={styles.smallText}>${rate}</Text></View>
+		            {rateView}
 		            <View style={styles.sessionRow}><Text style={styles.icon}>{day}</Text></View>
 		            <View style={styles.sessionRow}>
 		            	<View style={styles.halfRow}><Text style={styles.timeText}>Start: {startDate}</Text></View>

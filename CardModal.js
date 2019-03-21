@@ -48,7 +48,7 @@ export class CardModal extends Component {
 	    var card = await stripe.createToken(information);
 		if(this.state.user.stripeId === undefined){
 			try {
-		      const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/stripe/createCustomer/', {
+		      const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/createCustomer/', {
 		        method: 'POST',
 		        body: JSON.stringify({
 		          token: card,
@@ -71,7 +71,7 @@ export class CardModal extends Component {
 		}else{
 			if(this.state.user.trainer){
 				try {
-					const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/stripe/addTrainerCard/', {
+					const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/addTrainerCard/', {
 						method: 'POST',
 						body: JSON.stringify({
 							token: card,
@@ -87,7 +87,7 @@ export class CardModal extends Component {
 				}
 			}else{
 				try {
-					const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/stripe/addCard/', {
+					const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/addCard/', {
 						method: 'POST',
 						body: JSON.stringify({
 							token: card,

@@ -143,14 +143,14 @@ export class Map extends Component {
   checkRead(userKey){
     var pendingRef = firebase.database().ref('pendingSessions');
     var acceptRef = firebase.database().ref('trainSessions');
-    var acceptSession = pendingSession = null;
-    
+
     //Trainer check
     pendingRef.orderByChild('trainer').equalTo(userKey).on('value', function(snapshot) {
       snapshot.forEach(function(child){
         var pendingSession = child.val();
         if(pendingSession.read == false && pendingSession.sentBy == 'trainee'){
             this.setState({unRead: true});
+            return;
         }
       }.bind(this));
     }.bind(this));
@@ -160,6 +160,7 @@ export class Map extends Component {
         var pendingSession = child.val();
         if(pendingSession.read == false && pendingSession.sentBy == 'trainer'){
             this.setState({unRead: true});
+            return;
         }
       }.bind(this));
     }.bind(this));
@@ -169,6 +170,7 @@ export class Map extends Component {
         var acceptSession = child.val();
         if(acceptSession.read == false && acceptSession.sentBy == 'trainee'){
             this.setState({unRead: true});
+            return;
         }
       }.bind(this));
     }.bind(this));
@@ -178,6 +180,7 @@ export class Map extends Component {
         var acceptSession = child.val();
         if(acceptSession.read == false && acceptSession.sentBy == 'trainer'){
             this.setState({unRead: true});
+            return;
         }
       }.bind(this));
     }.bind(this));
@@ -263,6 +266,7 @@ export class Map extends Component {
         'You have a new Session!',
         '',
         [
+            {text: 'Close'},
             {text: 'View', onPress: () => Actions.modal()}
       ]);
       this.state.modalPresent = true;

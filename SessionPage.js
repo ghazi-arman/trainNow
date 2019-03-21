@@ -70,7 +70,7 @@ export class SessionPage extends Component {
 
   	async charge(traineeStripe, trainerStripe, amount, cut){
 		try{
-			const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/stripe/charge/', {
+			const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/charge/', {
 				method: 'POST',
 				body: JSON.stringify({
 				    charge: {
@@ -96,7 +96,7 @@ export class SessionPage extends Component {
 		var duration = new Date() - new Date(this.state.session.start);
 		var minutes = Math.floor((duration/1000)/60);
 		var rate = ((parseInt(minutes) * (parseInt(this.state.session.rate) / 60)) * 100).toFixed(0);
-		var payout = (parseInt(rate) - (parseInt(rate) * .2)).toFixed(0);
+		var payout = (parseInt(rate) - (parseInt(rate) * .17)).toFixed(0);
 		console.log(rate);
 		console.log(payout);
 

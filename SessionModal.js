@@ -101,7 +101,7 @@ export class SessionModal extends Component {
 	    var user = firebase.auth().currentUser;
 	    if(this.state.pendingSessions.length > 0){
 	    	this.state.pendingSessions.map(function(session){
-      	  		if(user.uid == session.trainer){
+      	  		if((user.uid == session.trainer && session.sentBy == 'trainee') || (user.uid == session.trainee && session.sentBy == 'trainer')){
          			firebase.database().ref('/pendingSessions/'+ session.key).update({
             			read: true
           			});
@@ -110,7 +110,7 @@ export class SessionModal extends Component {
 	    }
 	   	if(this.state.acceptSessions.length > 0){
 	    	this.state.acceptSessions.map(function(session){
-	      		if(user.uid == session.trainee){
+	      		if((user.uid == session.trainer && session.sentBy == 'trainer') || (user.uid == session.trainee && session.sentBy == 'trainee')){
 	        		firebase.database().ref('/trainSessions/'+ session.key).update({
 	        	  		read: true
 	        		});
@@ -173,7 +173,7 @@ export class SessionModal extends Component {
 	      '',
 	      [
 	        {text: 'No'},
-	        {text: 'Yes', onPress: () => {
+	        {text: 'Yes', onPress: async () => {
 	          sessionRef.child(session.key).set({
 	            trainee: session.trainee,
 	            trainer: session.trainer,
@@ -187,6 +187,8 @@ export class SessionModal extends Component {
 	            sentBy: session.sentBy,
 	            traineeStripe: session.traineeStripe,
 	            trainerStripe: session.trainerStripe,
+	            traineePhone: session.traineePhone,
+	            trainerPhone: session.trainerPhone,
 	            traineeLoc: null,
 	            trainerLoc: null,
 	            trainerReady: false,
@@ -202,6 +204,27 @@ export class SessionModal extends Component {
 	          pendingRef.child(session.key).remove();
 	          pendingSessions.splice(pendingSessions.indexOf(session), 1);
 	          acceptSessions.push(session);
+	          try {
+				  if(session.sentBy == 'trainer'){
+				  	var toPhone = session.trainerPhone;
+				  	var message = session.traineeName + " has accepted your session at " + this.dateToString(session.start) + " for " + session.duration + " mins";
+				  }else{
+				  	var toPhone = session.traineePhone;
+				  	var message = session.trainerName + " has accepted your session at " + this.dateToString(session.start) + " for " + session.duration + " mins";
+				  }
+			      const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/twilio/sendMessage/', {
+			        method: 'POST',
+			        body: JSON.stringify({
+			          phone: toPhone,
+			          message: message
+			        }),
+			      });
+			      const data = await res.json();
+			      data.body = JSON.parse(data.body);
+			      console.log(data.body);
+			    } catch(error){
+			      console.log(error);
+			    }
 	          this.setState({pendingSessions: pendingSessions, acceptSessions: acceptSessions});
 	        }
 	      }]);
@@ -216,9 +239,30 @@ export class SessionModal extends Component {
 	      '',
 	      [
 	        {text: 'No'},
-	        {text: 'Yes', onPress: () => {
+	        {text: 'Yes', onPress: async () => {
 	        	pendingRef.child(session.key).remove();
 	          	pendingSessions.splice(pendingSessions.indexOf(session), 1);
+	          	try {
+				  if(session.sentBy == 'trainee'){
+				  	var toPhone = session.trainerPhone;
+				  	var message = session.traineeName + " has cancelled the requested session at " + this.dateToString(session.start) + " for " + session.duration + " mins";
+				  }else{
+				  	var toPhone = session.traineePhone;
+				  	var message = session.trainerName + " has cancelled the requested session at " + this.dateToString(session.start) + " for " + session.duration + " mins";
+				  }
+			      const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/twilio/sendMessage/', {
+			        method: 'POST',
+			        body: JSON.stringify({
+			          phone: toPhone,
+			          message: message
+			        }),
+			      });
+			      const data = await res.json();
+			      data.body = JSON.parse(data.body);
+			      console.log(data.body);
+			    } catch(error){
+			      console.log(error);
+			    }
 	          	this.setState({pendingSessions: pendingSessions});
 	        }
 	      }]);
@@ -230,6 +274,7 @@ export class SessionModal extends Component {
 			Alert.alert("You cannot cancel a session after it has started!");
 			return;
 		}
+		var user = firebase.auth().currentUser;
 	    var sessionRef = firebase.database().ref('trainSessions');
 	    var cancelRef = firebase.database().ref('cancelSessions');
 	    var acceptSessions = this.state.acceptSessions;
@@ -238,10 +283,31 @@ export class SessionModal extends Component {
 	      '',
 	      [
 	        {text: 'No'},
-	        {text: 'Yes', onPress: () => {
+	        {text: 'Yes', onPress: async () => {
 	        	cancelRef.push(session);
 	          	sessionRef.child(session.key).remove();
 	          	acceptSessions.splice(acceptSessions.indexOf(session), 1);
+	          	try {
+				  if(user.uid == session.trainer){
+				  	var toPhone = session.traineePhone;
+				  	var message = session.trainerName + " has cancelled your session at " + this.dateToString(session.start) + " for " + session.duration + " mins";
+				  }else{
+				  	var toPhone = session.trainerPhone;
+				  	var message = session.traineeName + " has cancelled your session at " + this.dateToString(session.start) + " for " + session.duration + " mins";
+				  }
+			      const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/twilio/sendMessage/', {
+			        method: 'POST',
+			        body: JSON.stringify({
+			          phone: toPhone,
+			          message: message
+			        }),
+			      });
+			      const data = await res.json();
+			      data.body = JSON.parse(data.body);
+			      console.log(data.body);
+			    } catch(error){
+			      console.log(error);
+			    }
 	          	this.setState({acceptSessions: acceptSessions});
 	        }
 	      }]);

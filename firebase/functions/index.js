@@ -7,6 +7,7 @@ const app = express();
 
 // TODO: Remember to set token using >> firebase functions:config:set stripe.token="SECRET_STRIPE_TOKEN_HERE"
 const stripe = require('stripe')(functions.config().stripe.token);
+const twilio = require('twilio')(functions.config().twilio.id, functions.config().twilio.auth);
 
 function charge(req, res) {
     const body = JSON.parse(req.body);
@@ -68,24 +69,47 @@ function createTrainer(req, res) {
     const body = JSON.parse(req.body);
     const email = body.email;
     const id = body.id;
+    const lastName = body.lastName;
+    const firstName = body.firstName;
+    const token = body.token;
+    const day = body.day;
+    const month = body.month;
+    const year = body.year;
 
-    //Create connected account
-    stripe.accounts.create({
+    //Create token and charge
+    stripe.accounts.create({ 
         type: 'custom',
         country: 'US',
         email: email,
-        description: id,
+        requested_capabilities: ['card_payments'],
+        business_type: 'individual',
+        business_profile: {
+            product_description: 'Personal Trainer who sells his services to clients.',
+            mcc: 7298
+        },
+        individual: {
+            first_name: firstName,
+            last_name: lastName,
+            id_number: token,
+            dob: {
+                day: day,
+                month: month,
+                year: year
+            }
+        },
+        tos_acceptance: {
+            date: new Date(),
+            ip: req.ip,
+        }
     }).then(trainer => {
         send(res, 200, {
             message: 'Success',
-            trainer: trainer,
+            trainer: trainer
         });
         return;
     }).catch(err => {
         console.log(err);
-        send(res, 500, {
-            error: err.message
-        });
+        send(res, 500, { error: err.message });
     });
 }
 
@@ -224,27 +248,6 @@ function getBalance(req, res) {
     });
 }
 
-// function transferBalance(req, res) {
-//     const body = JSON.parse(req.body);
-//     const stripeid = body.id;
-//     const balance = parseInt(body.balance);
-//     stripe.payouts.create({
-//         amount: balance,
-//         currency: 'usd',
-//     }, {stripe_account: stripeid}).then(transfer => {
-//         send(res, 200, {
-//             message: 'Success',
-//             transfer: transfer
-//         });
-//         return;
-//     }).catch(err => {
-//         console.log(err);
-//         send(res, 500, {
-//             error: err.message
-//         });
-//     });
-// }
-
 function setDefault(req, res) {
     const body = JSON.parse(req.body);
     const stripeId =  body.id;
@@ -265,19 +268,24 @@ function setDefault(req, res) {
     });
 }
 
-function getLink(req, res) {
+function sendMessage(req, res) {
     const body = JSON.parse(req.body);
-    const id = body.id;
-    stripe.accounts.createLoginLink(id).then(link => {
+    const toPhone = "+1" + body.phone;
+    const message = body.message;
+    twilio.messages.create({
+        to: toPhone,
+        from: '+18582408311',
+        body: message
+    }).then(message => {
         send(res, 200, {
             message: 'Success',
-            link: link
+            result: result
         });
-        return;
+        return
     }).catch(err => {
         console.log(err);
         send(res, 500, {
-            error: err.message
+            error: err.mesage
         });
     });
 }
@@ -291,7 +299,7 @@ function send(res, code, body) {
 }
 
 app.use(cors);
-app.post('/charge', (req, res) => {
+app.post('/stripe/charge', (req, res) => {
     // Catch any unexpected errors to prevent crashing
     try {
         charge(req, res);
@@ -303,7 +311,7 @@ app.post('/charge', (req, res) => {
     }
 });
 
-app.post('/createCustomer', (req, res) => {
+app.post('/stripe/createCustomer', (req, res) => {
     // Catch any unexpected errors to prevent crashing
     try {
         createCustomer(req, res);
@@ -315,7 +323,7 @@ app.post('/createCustomer', (req, res) => {
     }
 });
 
-app.post('/setDefault', (req, res) => {
+app.post('/stripe/setDefault', (req, res) => {
     //Catch any unexpected errors to prevent crashing
     try {
         setDefault(req, res);
@@ -327,7 +335,7 @@ app.post('/setDefault', (req, res) => {
     }
 })
 
-app.post('/addCard', (req, res) => {
+app.post('/stripe/addCard', (req, res) => {
     //Catch any unexpected errors to prevent crashing
     try {
         addCard(req, res);
@@ -339,7 +347,7 @@ app.post('/addCard', (req, res) => {
     }
 });
 
-app.post('/addTrainerCard', (req, res) => {
+app.post('/stripe/addTrainerCard', (req, res) => {
     //Catch any unexpected errors to prevent crashing
     try {
         addTrainerCard(req, res);
@@ -351,7 +359,7 @@ app.post('/addTrainerCard', (req, res) => {
     }
 });
 
-app.post('/deleteCard', (req, res) => {
+app.post('/stripe/deleteCard', (req, res) => {
     //Catch any unexpected errors to prevent crashing
     try {
         deleteCard(req, res);
@@ -363,7 +371,7 @@ app.post('/deleteCard', (req, res) => {
     }
 });
 
-app.post('/deleteTrainerCard', (req, res) => {
+app.post('/stripe/deleteTrainerCard', (req, res) => {
     //Catch any unexpected errors to prevent crashing
     try {
         deleteTrainerCard(req, res);
@@ -375,7 +383,7 @@ app.post('/deleteTrainerCard', (req, res) => {
     }
 });
 
-app.post('/listCards', (req, res) => {
+app.post('/stripe/listCards', (req, res) => {
     //Catch any unexpected errors to prevent crashing
     try {
         listCards(req, res);
@@ -387,7 +395,7 @@ app.post('/listCards', (req, res) => {
     }   
 });
 
-app.post('/listTrainerCards', (req, res) => {
+app.post('/stripe/listTrainerCards', (req, res) => {
     //Catch any unexpected errors to prevent crashing
     try {
         listTrainerCards(req, res);
@@ -399,7 +407,7 @@ app.post('/listTrainerCards', (req, res) => {
     }   
 });
 
-app.post('/createTrainer', (req, res) => {
+app.post('/stripe/createTrainer', (req, res) => {
     //Catch any unexpected errors to prevent crashing
     try {
         createTrainer(req, res);
@@ -411,7 +419,7 @@ app.post('/createTrainer', (req, res) => {
     }   
 });
 
-app.post('/getBalance', (req, res) => {
+app.post('/stripe/getBalance', (req, res) => {
     //Catch any unexpected errors to prevent crashing
     try {
         getBalance(req, res);
@@ -421,18 +429,18 @@ app.post('/getBalance', (req, res) => {
             error: JSON.stringify(e)
         });
     }   
-});
+}); 
 
-app.post('/getLink', (req, res) => {
+app.post('/twilio/sendMessage', (req, res) => {
     //Catch any unexpected errors to prevent crashing
     try {
-        getLink(req, res);
+        sendMessage(req, res);
     } catch(e) {
         console.log(e);
         send(res, 500, {
             error: JSON.stringify(e)
         });
-    }   
+    }  
 });
 
-exports.stripe = functions.https.onRequest(app);
+exports.fb = functions.https.onRequest(app);

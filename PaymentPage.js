@@ -83,7 +83,7 @@ export class PaymentPage extends Component {
 			return [];
 		}
 		try {
-	      	const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/stripe/listCards/', {
+	      	const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/listCards/', {
 		        method: 'POST',
 		        body: JSON.stringify({
 		          id: stripeId,
@@ -105,7 +105,7 @@ export class PaymentPage extends Component {
 			return [];
 		}
 		try {
-	      	const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/stripe/listTrainerCards/', {
+	      	const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/listTrainerCards/', {
 		        method: 'POST',
 		        body: JSON.stringify({
 		          id: stripeId,
@@ -131,7 +131,7 @@ export class PaymentPage extends Component {
 	        {text: 'No'},
 	        {text: 'Yes', onPress: async () => {
 				try {
-				    const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/stripe/deleteCard/', {
+				    const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/deleteCard/', {
 				        method: 'POST',
 				        body: JSON.stringify({
 				          stripeId: stripeId,
@@ -162,7 +162,7 @@ export class PaymentPage extends Component {
 	        {text: 'No'},
 	        {text: 'Yes', onPress: async () => {
 				try {
-				    const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/stripe/deleteTrainerCard/', {
+				    const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/deleteTrainerCard/', {
 				        method: 'POST',
 				        body: JSON.stringify({
 				          stripeId: stripeId,
@@ -181,32 +181,10 @@ export class PaymentPage extends Component {
 		]);
 	}
 
-	async createStripeTrainer(){
-		try {
-			var user = firebase.auth().currentUser;
-			const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/stripe/createTrainer/', {
-				method: 'POST',
-				body: JSON.stringify({
-					email: this.state.user.email,
-					id: user.uid,
-				}),
-			});
-			const data = await res.json();
-		    data.body = JSON.parse(data.body);
-		    var userRef = firebase.database().ref('users');
-		    userRef.child(user.uid).update({
-		        stripeId: data.body.trainer.id
-		    });
-		    console.log(data.body);
-		}catch(error) {
-			console.log(error);
-		}
-	}
-
 	async getBalance(stripeId){
 		try {
 			var user = firebase.auth().currentUser;
-			const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/stripe/getBalance/', {
+			const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/getBalance/', {
 				method: 'POST',
 				body: JSON.stringify({
 					id: stripeId,
@@ -231,7 +209,7 @@ export class PaymentPage extends Component {
 	        {text: 'Yes', onPress: async () => {
 				try {
 					var user = firebase.auth().currentUser;
-					const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/stripe/setDefault/', {
+					const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/setDefault/', {
 						method: 'POST',
 						body: JSON.stringify({
 							id: stripeId,
@@ -301,9 +279,7 @@ export class PaymentPage extends Component {
 			var balanceDiv;
 			var stripeButton;
 			var payoutText;
-			if(this.state.user.stripeId === undefined && this.state.user.trainer){
-				this.createStripeTrainer();
-			}else if(this.state.user.trainer){
+			if(this.state.user.trainer){
 				var balanceFormatted = (parseInt(this.state.balance) / 100).toFixed(2);
 				balanceDiv = (<Text style={styles.buttonText}>${balanceFormatted}</Text>);
 				payoutText = (<Text style={{fontSize: 20, textAlign: 'center', color: 'white', marginTop: 10}}>Funds will be transfered daily</Text>);

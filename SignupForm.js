@@ -4,6 +4,7 @@ import { Actions } from 'react-native-router-flux';
 import { ImagePicker, Font, Permissions } from 'expo';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
+var stripe = require('stripe-client')('pk_test_6sgeMvomvrZFucRqYhi6TSbO');
 
 export class SignupForm extends Component {
 	
@@ -22,6 +23,7 @@ export class SignupForm extends Component {
 			rate:'',
 			bio:'',
 			cert:'',
+			ssn:'',
 			image: 'null',
 			gyms: [],
 		}; 
@@ -86,10 +88,15 @@ export class SignupForm extends Component {
 		  return snapshot.downloadURL;
 	}
 
-	onSignUpPress() {
+	async onSignUpPress() {
 		// client side authentication
 		var name = this.state.name;
+		var nameSplit = name.split(" ");
+		var firstName = nameSplit[0];
+		var lastName = nameSplit[1];
+
 		var email = this.state.email;
+		var phone = this.state.phone;
 		var pw = this.state.password;
 		var cpw = this.state.confirmPass;
 		var gym = this.state.gym;
@@ -98,12 +105,27 @@ export class SignupForm extends Component {
 		var bio = this.state.bio;
 		var trainer = this.state.trainer;
 		var uri = this.state.image;
+		var ssn = {
+			pii: {
+				personal_id_number: this.state.ssn
+			}
+		}
+		if(trainer){
+			var date = this.state.birthDay;
+			var dateSplit = date.split("/");
+			var pii = await stripe.createToken(ssn);
+			var token = pii.id;
+			var month = dateSplit[0];
+			var day = dateSplit[1];
+			var year = dateSplit[2];
+		}
 
 		firebase.auth().createUserWithEmailAndPassword(this.state.email, pw)
-			.then(function(firebaseUser) {
+			.then(async function(firebaseUser) {
 				
 				var userRef = firebase.database().ref('users');
 				if(trainer){
+
 					var gymRef = firebase.database().ref('/gyms/' + gym + '/trainers/');
 					gymRef.child(firebaseUser.uid).set({
 						active: false,
@@ -111,7 +133,7 @@ export class SignupForm extends Component {
 						cert: cert,
 						name: name,
 						rate: rate,
-						rating: 0,
+						rating: 0
 					});
 					userRef.child(firebaseUser.uid).set({
 						trainer: true,
@@ -120,14 +142,40 @@ export class SignupForm extends Component {
 			      		cert: cert,
 			      		rate: rate,
 			      		bio: bio,
+			      		phone: phone,
 			      		active: false,
 			      		rating: 0,
 			      		sessions: 0,
 			    	});
+			    	try {
+						const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/createTrainer/', {
+							method: 'POST',
+							body: JSON.stringify({
+								email: email,
+								id: firebaseUser.uid,
+								firstName: firstName,
+								lastName: lastName,	
+								token: token,
+								day: day,
+								month: month,
+								year: year
+							}),
+						});
+						const data = await res.json();
+					    data.body = JSON.parse(data.body);
+					    console.log(data.body);
+					    var userRef = firebase.database().ref('users');
+					    userRef.child(firebaseUser.uid).update({
+					        stripeId: data.body.trainer.id
+					    });
+					}catch(error) {
+						console.log(error);
+					}
 				}else{
 					userRef.child(firebaseUser.uid).set({
 			      		trainer: false,
 			      		name: name,
+			      		phone: phone,
 			      		rating: 0,
 			      		sessions: 0
 			    	});
@@ -176,6 +224,9 @@ export class SignupForm extends Component {
 			if(this.state.password != this.state.confirmPass){
 				Alert.alert("Passwords must match!");
 				return;
+			}
+			if(this.state.phone.length < 10){
+				Alert.alert("Please enter a valid phone number");
 			}
 
 			var emailExists;
@@ -260,7 +311,7 @@ export class SignupForm extends Component {
 						<FontAwesome>{Icons.user}</FontAwesome>
 					</Text>
 					<TextInput
-						placeholder="Full Name"
+						placeholder="Full Legal Name (First and Last Only)"
 						style={styles.input}
 						placeholderTextColor='#08d9d6'
 						onChangeText={(name) => this.setState({name})}
@@ -301,13 +352,26 @@ export class SignupForm extends Component {
 					</Text>
 					<TextInput
 						placeholder="Confirm Password"
-						returnKeyType="done"
 						secureTextEntry
 						style={styles.input}
 						placeholderTextColor='#08d9d6'
 						underlineColorAndroid='transparent'
 						onChangeText={(confirmPass) => this.setState({confirmPass})}
 						value={this.state.confirmPass} />
+				</View>
+				<View style={styles.inputRow}>
+					<Text style={styles.icon}>
+						<FontAwesome>{Icons.phone}</FontAwesome>
+					</Text>
+					<TextInput
+						placeholder="Phone Number"
+						returnKeyType="done"
+						keyboardType="number-pad"
+						style={styles.input}
+						placeholderTextColor='#08d9d6'
+						underlineColorAndroid='transparent'
+						onChangeText={(phone) => this.setState({phone})}
+						value={this.state.phone} />
 				</View>
 				<View style={styles.inputRow}>
 					<Text style = {styles.hints}>Are you signing up as a trainer? </Text>
@@ -373,7 +437,7 @@ export class SignupForm extends Component {
 					</Text>
 					<TextInput
 						placeholder="Certifications"
-						returnKeyType="done"
+						returnKeyType="next"
 						style={styles.input}
 						placeholderTextColor='#08d9d6'
 						underlineColorAndroid='transparent'
@@ -381,6 +445,33 @@ export class SignupForm extends Component {
 						value={this.state.cert}
 						spellCheck={true} 
 						maxLength={150}/>
+				</View>
+				<View style={styles.inputRow}>
+					<Text style={styles.icon}>
+						<FontAwesome>{Icons.user}</FontAwesome>
+					</Text>
+					<TextInput
+						placeholder="SSN (For Stripe Account)"
+						returnKeyType="done"
+						style={styles.input}
+						placeholderTextColor='#08d9d6'
+						underlineColorAndroid='transparent'
+						onChangeText={(ssn) => this.setState({ssn})}
+						value={this.state.ssn}
+						keyboardType="number-pad"/>
+				</View>
+				<View style={styles.inputRow}>
+					<Text style={styles.icon}>
+						<FontAwesome>{Icons.user}</FontAwesome>
+					</Text>
+					<TextInput
+						placeholder="Birth Date (mm/dd/yyyy)"
+						returnKeyType="done"
+						style={styles.input}
+						placeholderTextColor='#08d9d6'
+						underlineColorAndroid='transparent'
+						onChangeText={(birthDay) => this.setState({birthDay})}
+						value={this.state.birthDay}/>
 				</View>
 			</View>
 			);
