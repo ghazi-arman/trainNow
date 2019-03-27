@@ -6,6 +6,7 @@ import FontAwesome, { Icons } from 'react-native-fontawesome';
 import Modal from 'react-native-modal';
 import { Actions } from 'react-native-router-flux';
 import {CardModal} from './CardModal';
+import COLORS from './Colors';
 
 export class PaymentPage extends Component {
 
@@ -259,7 +260,7 @@ export class PaymentPage extends Component {
 
 	renderCards(){
 		if(this.state.cards === undefined || this.state.cards.length == 0){
-			return (<Text>No Cards Added</Text>);
+			return (<Text style={{marginTop: 10, fontSize: 20, color: COLORS.PRIMARY}}>No Cards Added</Text>);
 		}
 		var index = 0;
 		var result = this.state.cards.map(function(currCard){
@@ -268,7 +269,7 @@ export class PaymentPage extends Component {
 			if(this.state.user.trainer){
 				deleteButton = (
 					<TouchableOpacity style={styles.deleteButton} onPress={() => this.deleteTrainerCard(this.state.user.stripeId, currCard.id, index)}>
-	    				<Text style={{fontSize: 15}}><FontAwesome>{Icons.remove}</FontAwesome></Text>
+	    				<Text style={{fontSize: 15, color: COLORS.WHITE}}><FontAwesome>{Icons.remove}</FontAwesome></Text>
 	    			</TouchableOpacity>
 				);
 			}else{
@@ -277,7 +278,7 @@ export class PaymentPage extends Component {
 				}else{
 					defaultButton = (
 						<TouchableOpacity style={styles.defaultButton} onPress={() => this.setDefaultCard(this.state.user.stripeId, currCard.id)}>
-	    					<Text style={{fontSize: 15}}><FontAwesome>{Icons.check}</FontAwesome></Text>
+	    					<Text style={{fontSize: 15, color: COLORS.WHITE}}><FontAwesome>{Icons.check}</FontAwesome></Text>
 	    				</TouchableOpacity>
 					);
 				}
@@ -311,14 +312,14 @@ export class PaymentPage extends Component {
 			if(this.state.user.trainer){
 				var balanceFormatted = (parseInt(this.state.balance) / 100).toFixed(2);
 				balanceDiv = (<Text style={styles.buttonText}>${balanceFormatted}</Text>);
-				payoutText = (<Text style={{fontSize: 20, textAlign: 'center', color: 'white', marginTop: 10}}>Funds will be transfered daily</Text>);
+				payoutText = (<Text style={{fontSize: 20, textAlign: 'center', color: COLORS.PRIMARY, marginTop: 10}}>Funds will be transfered daily</Text>);
 			}
 			return (
 				<KeyboardAvoidingView behavior="padding" style = {styles.container}>
 					<Text style={styles.backButton} onPress={this.goToMap}>
 	              		<FontAwesome>{Icons.arrowLeft}</FontAwesome>
 	            	</Text>
-					<Text style={styles.title}>Payment Settings</Text>
+					<Text style={styles.title}>Payments</Text>
 					{balanceDiv}
 					<View style={styles.cardHolder}>
 						{this.renderCards()}
@@ -341,14 +342,15 @@ export class PaymentPage extends Component {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: '#252a34',
+		backgroundColor: COLORS.WHITE,
 		flexDirection: 'column',
 		justifyContent: 'flex-start',
 		alignItems: 'center'
 	},
 	cardHolder: {
 		flex: 0.4,
-		backgroundColor: '#fafafa',
+		marginTop: 20,
+		backgroundColor: '#f6f5f5',
 		width: '90%',
 		borderRadius: 10,
 		flexDirection: 'column',
@@ -363,10 +365,9 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	title: {
-		marginTop: 80,
-		paddingVertical: 5,
+		marginTop: 45,
     	fontSize: 34,
-    	color: '#08d9d6',
+    	color: COLORS.PRIMARY,
     	fontWeight: '700',
   	},
 	form: {
@@ -379,15 +380,15 @@ const styles = StyleSheet.create({
 		top: 45,
 		left: 20,
 		fontSize: 35, 
-		color: '#08d9d6', 
+		color: COLORS.SECONDARY, 
 	},
 	buttonText: {
 		fontSize: 30,
-		color: '#fafafa',
+		color: '#f6f5f5',
 		textAlign: 'center'
 	},
 	button: {
-		backgroundColor: '#08d9d6',
+		backgroundColor: COLORS.SECONDARY,
 		flexDirection: 'column',
 		justifyContent: 'center',
 		width: '50%',
@@ -399,10 +400,10 @@ const styles = StyleSheet.create({
 	},
 	greenIcon: {
 		fontSize: 20,
-		color: 'green'
+		color: COLORS.GREEN
 	},
 	deleteButton: {
-		backgroundColor: 'red',
+		backgroundColor: COLORS.RED,
 		flexDirection: 'column',
 		justifyContent: 'center',
 		alignItems: 'center',
@@ -410,7 +411,7 @@ const styles = StyleSheet.create({
 		height: 30
 	},
 	defaultButton: {
-		backgroundColor: 'green',
+		backgroundColor: COLORS.GREEN,
 		flexDirection: 'column',
 		justifyContent: 'center',
 		alignItems: 'center',

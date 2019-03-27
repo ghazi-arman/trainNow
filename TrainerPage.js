@@ -5,7 +5,8 @@ import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import Modal from 'react-native-modal';
 import { Actions } from 'react-native-router-flux';
-import {BookModalRegular} from './BookModalRegular'
+import {BookModalRegular} from './BookModalRegular';
+import COLORS from './Colors';
 
 export class TrainerPage extends Component {
 
@@ -267,7 +268,7 @@ export class TrainerPage extends Component {
 				var navBar = (
 					<View style={styles.navigationBar}>
 						<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({currentTab: 'requests'})}>
-							<Text style={styles.navText}>Trainer Requests</Text>
+							<Text style={styles.activeText}>Trainer Requests</Text>
 						</TouchableOpacity>
 						<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'recent'})}>
 							<Text style={styles.navText}>Recent Trainers</Text>
@@ -289,7 +290,7 @@ export class TrainerPage extends Component {
 							<Text style={styles.navText}>Trainer Requests</Text>
 						</TouchableOpacity>
 						<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({currentTab: 'recent'})}>
-							<Text style={styles.navText}>Recent Trainers</Text>
+							<Text style={styles.activeText}>Recent Trainers</Text>
 						</TouchableOpacity>
 						<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'trainers'})}>
 							<Text style={styles.navText}>Your Trainers</Text>
@@ -311,7 +312,7 @@ export class TrainerPage extends Component {
 							<Text style={styles.navText}>Recent Trainers</Text>
 						</TouchableOpacity>
 						<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({currentTab: 'trainers'})}>
-							<Text style={styles.navText}>Your Trainers</Text>
+							<Text style={styles.activeText}>Your Trainers</Text>
 						</TouchableOpacity>
 					</View>
 				);
@@ -326,6 +327,7 @@ export class TrainerPage extends Component {
 					<Text style={styles.backButton} onPress={this.goToMap}>
 	              		<FontAwesome>{Icons.arrowLeft}</FontAwesome>
 	            	</Text>
+	            	<Text style={styles.title}>Trainers</Text>
 					{navBar}
 					{content}
 					<Modal 
@@ -342,34 +344,45 @@ export class TrainerPage extends Component {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: '#252a34',
+		backgroundColor: COLORS.WHITE,
 		flexDirection: 'column',
 		justifyContent: 'flex-start',
 		alignItems: 'center'
 	},
+	title: {
+		marginTop: 45,
+    	fontSize: 34,
+    	color: COLORS.PRIMARY,
+    	fontWeight: '700',
+  	},
   	navigationBar: {
 		width: '100%',
 		height: 100,
 		flexDirection: 'row',
 		justifyContent: 'flex-start',
 		alignItems: 'center',
-		marginTop: 80,
+		marginTop: 5,
 	},
 	activeTab: {
 		width: '33%',
-		backgroundColor: '#08d9d6',
+		backgroundColor: COLORS.PRIMARY,
 		borderWidth: 1,
-		borderColor: '#fafafa'
+		borderColor: COLORS.SECONDARY
 	},
 	inactiveTab: {
 		width: '33%',
-		backgroundColor: '#252a34',
+		backgroundColor: COLORS.WHITE,
 		borderWidth: 1, 
-		borderColor: '#fafafa'
+		borderColor: COLORS.SECONDARY
 	},
 	navText: {
 		fontSize: 25,
-		color: '#FAFAFA',
+		color: COLORS.PRIMARY,
+		textAlign: 'center'
+	},
+	activeText: {
+		fontSize: 25,
+		color: COLORS.WHITE,
 		textAlign: 'center'
 	},
   	traineeRow: {
@@ -384,15 +397,15 @@ const styles = StyleSheet.create({
 		top: 45,
 		left: 20,
 		fontSize: 35, 
-		color: '#08d9d6', 
+		color: COLORS.SECONDARY, 
 	},
 	buttonText: {
 		fontSize: 30,
-		color: '#fafafa',
+		color: COLORS.WHITE,
 		textAlign: 'center'
 	},
 	requestButton: {
-		backgroundColor: '#08d9d6',
+		backgroundColor: COLORS.SECONDARY,
 		flexDirection: 'column',
 		justifyContent: 'center',
 		alignItems: 'center',
@@ -400,7 +413,7 @@ const styles = StyleSheet.create({
 		height: 40,
 	},
 	denyButton: {
-		backgroundColor: 'red',
+		backgroundColor: COLORS.RED,
 		flexDirection: 'column',
 		justifyContent: 'center',
 		alignItems: 'center',

@@ -6,6 +6,7 @@ import FontAwesome, { Icons } from 'react-native-fontawesome';
 import Modal from 'react-native-modal';
 import { Actions } from 'react-native-router-flux';
 import {BookModalTrainer} from './BookModalTrainer';
+import COLORS from './Colors';
 
 export class ClientPage extends Component {
 
@@ -269,7 +270,7 @@ export class ClientPage extends Component {
 				var navBar = (
 					<View style={styles.navigationBar}>
 						<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({currentTab: 'requests'})}>
-							<Text style={styles.navText}>Client Requests</Text>
+							<Text style={styles.activeText}>Client Requests</Text>
 						</TouchableOpacity>
 						<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'recent'})}>
 							<Text style={styles.navText}>Recent Trainees</Text>
@@ -291,7 +292,7 @@ export class ClientPage extends Component {
 							<Text style={styles.navText}>Client Requests</Text>
 						</TouchableOpacity>
 						<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({currentTab: 'recent'})}>
-							<Text style={styles.navText}>Recent Trainees</Text>
+							<Text style={styles.activeText}>Recent Trainees</Text>
 						</TouchableOpacity>
 						<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'clients'})}>
 							<Text style={styles.navText}>Your Clients</Text>
@@ -313,7 +314,7 @@ export class ClientPage extends Component {
 							<Text style={styles.navText}>Recent Trainees</Text>
 						</TouchableOpacity>
 						<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({currentTab: 'clients'})}>
-							<Text style={styles.navText}>Your Clients</Text>
+							<Text style={styles.activeText}>Your Clients</Text>
 						</TouchableOpacity>
 					</View>
 				);
@@ -328,6 +329,7 @@ export class ClientPage extends Component {
 					<Text style={styles.backButton} onPress={this.goToMap}>
 	              		<FontAwesome>{Icons.arrowLeft}</FontAwesome>
 	            	</Text>
+	            	<Text style={styles.title}>Trainers</Text>
 					{navBar}
 					{content}
 					<Modal 
@@ -344,34 +346,45 @@ export class ClientPage extends Component {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: '#252a34',
+		backgroundColor: COLORS.WHITE,
 		flexDirection: 'column',
 		justifyContent: 'flex-start',
 		alignItems: 'center'
 	},
+	title: {
+		marginTop: 45,
+    	fontSize: 34,
+    	color: COLORS.PRIMARY,
+    	fontWeight: '700',
+  	},
   	navigationBar: {
 		width: '100%',
 		height: 100,
 		flexDirection: 'row',
 		justifyContent: 'flex-start',
 		alignItems: 'center',
-		marginTop: 80,
+		marginTop: 5,
 	},
 	activeTab: {
 		width: '33%',
-		backgroundColor: '#08d9d6',
+		backgroundColor: COLORS.PRIMARY,
 		borderWidth: 1,
-		borderColor: '#fafafa'
+		borderColor: COLORS.SECONDARY
 	},
 	inactiveTab: {
 		width: '33%',
-		backgroundColor: '#252a34',
+		backgroundColor: COLORS.WHITE,
 		borderWidth: 1, 
-		borderColor: '#fafafa'
+		borderColor: COLORS.SECONDARY
 	},
 	navText: {
 		fontSize: 25,
-		color: '#FAFAFA',
+		color: COLORS.PRIMARY,
+		textAlign: 'center'
+	},
+	activeText: {
+		fontSize: 25,
+		color: COLORS.WHITE,
 		textAlign: 'center'
 	},
   	traineeRow: {
@@ -386,15 +399,15 @@ const styles = StyleSheet.create({
 		top: 45,
 		left: 20,
 		fontSize: 35, 
-		color: '#08d9d6', 
+		color: COLORS.SECONDARY, 
 	},
 	buttonText: {
 		fontSize: 30,
-		color: '#fafafa',
+		color: COLORS.WHITE,
 		textAlign: 'center'
 	},
 	requestButton: {
-		backgroundColor: '#08d9d6',
+		backgroundColor: COLORS.SECONDARY,
 		flexDirection: 'column',
 		justifyContent: 'center',
 		alignItems: 'center',
@@ -402,7 +415,7 @@ const styles = StyleSheet.create({
 		height: 40,
 	},
 	denyButton: {
-		backgroundColor: 'red',
+		backgroundColor: COLORS.RED,
 		flexDirection: 'column',
 		justifyContent: 'center',
 		alignItems: 'center',
