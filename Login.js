@@ -3,6 +3,8 @@ import { Platform, StyleSheet, Text, View, Image, KeyboardAvoidingView, Touchabl
 import { LoginForm } from './LoginForm'
 import { Actions } from 'react-native-router-flux';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
+import COLORS from './Colors';
+const logo=require('./images/logo.png');
 
 export class Login extends Component {
 
@@ -18,7 +20,7 @@ export class Login extends Component {
 		return (
 			<View style = {styles.container}>
 				<View style = {styles.logoContainer}>
-					<Text style={styles.header}>Train</Text><Text style={styles.header2}>Now</Text>
+					<Image style={styles.logo} source={logo} />
 				</View>
 				<KeyboardAvoidingView behavior='padding' style={styles.formContainer}>
 					<LoginForm />
@@ -46,24 +48,18 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		alignItems: 'center',
 		justifyContent: 'space-around',
-		backgroundColor: '#E0E0E0'
+		backgroundColor: COLORS.WHITE,
+	},
+	logo: {
+		flex: 1,
+		resizeMode: 'contain'
 	},
 	formContainer: {
-		height: '35%',
+		height: '30%',
 		width: '80%',
 		flexDirection: 'column',
 		alignItems: 'center',
 		justifyContent: 'center'
-	},
-	header: {
-		color: '#0097A7',
-		fontSize: 50,
-		fontWeight: '600'
-	},
-	header2: {
-		color: '#E91E63',
-		fontSize: 50,
-		fontWeight: '600'
 	},
 	textContain: {
 		height: 30
@@ -72,17 +68,17 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		justifyContent: 'center',
 		alignItems: 'center',
-		height: '20%',
+		height: '25%',
 		width: '80%'
 	},
 	linkContainer: {
 		flexDirection: 'column',
 		alignItems: 'center',
-		justifyContent: 'center',
+		justifyContent: 'flex-start',
 		height: "20%",
 	},
 	linkText: {
-		color: '#E91E63',
+		color: COLORS.PRIMARY,
 		fontSize: 16,
 		fontWeight: '500',
 	}

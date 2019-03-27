@@ -91,12 +91,16 @@ export class PaymentPage extends Component {
 		    });
 		    const data = await res.json();
 		    data.body = JSON.parse(data.body);
-		    if(data.body.cards === undefined){
-		    	return [];
+		    if(data.body.message == "Success"){
+		    	if(data.body.cards === undefined){
+		    		return [];
+		    	}
+		    	return data.body.cards.data;
+		    }else{
+		    	Alert.alert('There was an error. Please try again');
 		    }
-		    return data.body.cards.data;
 		}catch(error){
-			console.log(error);
+			Alert.alert('There was an error. Please try again');
 		}
 	}
 
@@ -113,13 +117,16 @@ export class PaymentPage extends Component {
 		    });
 		    const data = await res.json();
 		    data.body = JSON.parse(data.body);
-		    console.log(data.body);
-		    if(data.body.cards === undefined){
-		    	return [];
+		    if(data.body.message == "Success"){
+		    	if(data.body.cards === undefined){
+		    		return [];
+		    	}
+		    	return data.body.cards.data;
+		    }else{
+		    	Alert.alert('There was an error. Please try again');
 		    }
-		    return data.body.cards.data;
 		}catch(error){
-			console.log(error);
+			Alert.alert('There was an error. Please try again');
 		}
 	}
 
@@ -140,11 +147,21 @@ export class PaymentPage extends Component {
 				    });
 				    const data = await res.json();
 				    data.body = JSON.parse(data.body);
-				    console.log(data.body);
-				    var cards = await this.loadCards(stripeId);
-				    this.setState({cards: cards});
+				    if(data.body.message == "Success"){
+					    var cards = await this.loadCards(stripeId);
+					    if(cards.length == 0){
+					    	console.log('true');
+						    var usersRef = await firebase.database().ref('users');
+						    usersRef.child(firebase.auth().currentUser.uid).update({
+						    	cardAdded: false
+						    });
+						}
+					    this.setState({cards: cards});
+					}else{
+						Alert.alert('There was an error. Please try again.');
+					}
 				}catch(error){
-					console.log(error);
+					Alert.alert('There was an error. Please try again');
 				}
 			}}
 		]);
@@ -171,11 +188,14 @@ export class PaymentPage extends Component {
 				    });
 				    const data = await res.json();
 				    data.body = JSON.parse(data.body);
-				    console.log(data.body);
-				    var cards = await this.loadTrainerCards(stripeId);
-				    this.setState({cards: cards});
+				    if(data.body.message == "Success"){
+				    	var cards = await this.loadTrainerCards(stripeId);
+				    	this.setState({cards: cards});
+				    }else{
+				    	Alert.alert('There was an error. Please try again.');
+				    }
 				}catch(error){
-					console.log(error);
+					Alert.alert('There was an error. Please try again.');
 				}
 			}}
 		]);
@@ -192,11 +212,16 @@ export class PaymentPage extends Component {
 			});
 			const data = await res.json();
 		    data.body = JSON.parse(data.body);
-		    console.log(data.body);
-		    var result = data.body.balance.available[0].amount + data.body.balance.pending[0].amount;
-		    return result;
+		    if(data.body.message = "Success"){
+		    	var result = data.body.balance.available[0].amount + data.body.balance.pending[0].amount;
+		    	return result;
+		    }else{
+		    	Alert.alert('There was an error. Please try again.');
+		    	return 0;
+		    }
 		}catch(error) {
-			console.log(error);
+			Alert.alert('Could not connect to stripe. Try again later.');
+			return 0;
 		}
 	}
 
@@ -218,10 +243,14 @@ export class PaymentPage extends Component {
 					});
 					const data = await res.json();
 				    data.body = JSON.parse(data.body);
-				    console.log(data.body);
-				    var cards = await this.loadCards(stripeId);
-				    this.setState({cards: cards});
+				    if(data.body.message == "Success"){
+				    	var cards = await this.loadCards(stripeId);
+				    	this.setState({cards: cards});
+				    }else{
+				    	Alert.alert('There was an error. Please try again.');
+				    }
 				}catch(error) {
+					Alert.alert('There was an error. Please try again.');
 					console.log(error);
 				}
 			}}

@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import { Platform, StyleSheet, Text, View, Button, Alert, TouchableOpacity } from 'react-native';
+import { Image, Platform, StyleSheet, Text, View, Button, Alert, TouchableOpacity } from 'react-native';
 import { Permissions, Location, AppLoading, MapView } from 'expo';
 import firebase from 'firebase';
 import Modal from 'react-native-modal';
@@ -9,6 +9,9 @@ import Drawer from 'react-native-drawer';
 import { SideMenu } from './SideMenu';
 import { GymModal } from './GymModal';
 import { BookModal } from './BookModal';
+const markerImg = require('./images/marker.png');
+import COLORS from './Colors';
+
 console.ignoredYellowBox = ['Setting a timer'];
 
 export class Map extends Component {
@@ -288,7 +291,7 @@ export class Map extends Component {
         open={this.state.menuOpen}
         content={<SideMenu />}
         type="overlay"
-        openDrawerOffset={0.15}
+        openDrawerOffset={0.3}
         tapToClose={true}
         onClose={() => this.setState({menuOpen: false})}>
         <View style={styles.container}>
@@ -303,8 +306,8 @@ export class Map extends Component {
               this.setState({ regionSet: true });
             }}
           >
-            <Text style={styles.buttonText} onPress={this.toggleMenu}>
-              <FontAwesome>{Icons.gear}</FontAwesome>
+            <Text style={styles.menuIcon} onPress={this.toggleMenu}>
+              <FontAwesome>{Icons.bars}</FontAwesome>
             </Text>
             {this.state.gyms.map(marker => (
                 <MapView.Marker
@@ -313,7 +316,10 @@ export class Map extends Component {
                   coordinate={marker.location}
                   onPress={() => {
                    this.showModal('gym', marker);
-                  }} />
+                  }}
+                >
+                  <Image source={markerImg} style={{width: 50, height: 50}} />
+                </MapView.Marker>
             ))}
           </MapView>
 
@@ -350,20 +356,20 @@ const styles = StyleSheet.create({
   alertBox: {
     height: 80,
     width: '100%',
-    backgroundColor: '#252a34',
+    backgroundColor: COLORS.PRIMARY,
     flexDirection: 'row',
     justifyContent: 'center',
     paddingTop: 40
   },
   alertText: {
     fontSize: 20,
-    color: '#08d9d6',
+    color: COLORS.WHITE,
     fontWeight: '600',
   },
-  buttonText: {
+  menuIcon: {
     marginTop: 45,
     marginLeft: 20,
-    fontSize: 35, 
-    color: '#08d9d6', 
+    fontSize: 50, 
+    color: COLORS.PRIMARY, 
   }
 });

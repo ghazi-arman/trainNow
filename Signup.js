@@ -3,6 +3,8 @@ import { Platform, StyleSheet, Text, View, Image, KeyboardAvoidingView, Touchabl
 import { SignupForm } from './SignupForm';
 import { Actions } from 'react-native-router-flux';
 import {AppLoading, Font} from 'expo';
+const logo=require('./images/logo.png');
+import COLORS from './Colors';
 
 export class Signup extends Component {
 	goback() {
@@ -12,7 +14,7 @@ export class Signup extends Component {
 		return (
 			<View style={styles.container} behavior='padding'>
 				<View style = {styles.logoContainer}>
-					<Text style={styles.header}>Train</Text><Text style={styles.header2}>Now</Text>
+					<Image style={styles.logo} source={logo} />
 				</View>
 				<KeyboardAvoidingView style={styles.formContainer} behavior='padding'>
 					<SignupForm />
@@ -35,7 +37,11 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		justifyContent: 'space-around',
 		alignItems: 'center',
-		backgroundColor: '#252a34'
+		backgroundColor: COLORS.WHITE
+	},
+	logo: {
+		flex: 1,
+		resizeMode: 'contain'
 	},
 	formContainer: {
 		height: '70%',
@@ -43,16 +49,6 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		alignItems: 'center',
 		justifyContent: 'center'
-	},
-	header: {
-		color: '#08d9d6',
-		fontSize: 50,
-		fontWeight: '600'
-	},
-	header2: {
-		color: '#ff2e63',
-		fontSize: 50,
-		fontWeight: '600'
 	},
 	logoContainer: {
 		flexDirection: 'row',
@@ -72,7 +68,7 @@ const styles = StyleSheet.create({
 		height: '15%',
 	},
 	linkText: {
-		color: '#08d9d6',
+		color: COLORS.PRIMARY,
 		fontSize: 16,
 		fontWeight: '500',
 	}

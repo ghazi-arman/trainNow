@@ -71,8 +71,13 @@ export class BookModal extends Component {
 	    var trainRef = firebase.database().ref('trainSessions');
 	    var price = (parseInt(this.state.trainer.rate) * (parseInt(this.state.bookDuration) / 60)).toFixed(2);
 
-	    if(this.state.user.stripeId === undefined){
+	    if(!this.state.user.cardAdded){
 	    	Alert.alert('You must have a card on file to book a session.');
+	    	return;
+	    }
+
+	    if(!this.state.trainer.cardAdded){
+	    	Alert.alert('This trainer has not added a payment method yet.');
 	    	return;
 	    }
 

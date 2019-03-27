@@ -6,6 +6,7 @@ import FontAwesome, { Icons } from 'react-native-fontawesome';
 import Modal from 'react-native-modal';
 import {AccountForm} from './AccountForm';
 import { Actions } from 'react-native-router-flux';
+import COLORS from './Colors';
 
 export class HistoryPage extends Component {
 
@@ -107,7 +108,7 @@ export class HistoryPage extends Component {
   			reportedBy: reporter,
   			reason: reason,
   		});
-  		Alert.alert('Session Reported!');
+  		setTimeout(() => Alert.alert('Session Reported!'), 1000);
   	}
 
 	renderSessions(){
@@ -138,7 +139,7 @@ export class HistoryPage extends Component {
 		            <View style={styles.sessionRow}><Text style={styles.icon}>{stars}</Text></View>
 		            <View style={styles.sessionRow}><Text style={styles.smallText}>{session.gym}</Text></View>
 		            {rateView}
-		            <View style={styles.sessionRow}><Text style={styles.icon}>{day}</Text></View>
+		            <View style={styles.sessionRow}><Text style={styles.smallText}>{day}</Text></View>
 		            <View style={styles.sessionRow}>
 		            	<View style={styles.halfRow}><Text style={styles.timeText}>Start: {startDate}</Text></View>
 		            	<View style={styles.halfRow}><Text style={styles.timeText}>End: {endDate}</Text></View>
@@ -178,7 +179,7 @@ export class HistoryPage extends Component {
 						style={styles.input}
 						returnKeyType="done"
 						multiline={true}
-						placeholderTextColor='#08d9d6'
+						placeholderTextColor={COLORS.PRIMARY}
 						onChangeText = {(report) => this.setState({report})}
 						value={this.state.report} />
         				<TouchableOpacity style={styles.submitButton} onPress={() => this.reportSession(this.state.reportSession)}>
@@ -195,7 +196,7 @@ export class HistoryPage extends Component {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: '#252a34',
+		backgroundColor: COLORS.WHITE,
 		flexDirection: 'column',
 		justifyContent: 'flex-start',
 		alignItems: 'center'	
@@ -205,7 +206,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		justifyContent: 'space-around',
 		alignItems: 'center',
-		backgroundColor: '#252a34',
+		backgroundColor: COLORS.WHITE,
 		borderRadius: 10,
 	},
 	historyContainer: {
@@ -218,11 +219,11 @@ const styles = StyleSheet.create({
 	},
 	sessionContainer: {
   		width: '90%',
+  		backgroundColor: '#f6f5f5',
   		flexDirection: 'column',
   		justifyContent: 'flex-start',
   		alignItems: 'center',
-  		borderWidth: 1,
-	   	borderColor: '#ff2e63',
+	   	borderRadius: 5,
 	   	marginTop: 20
   	},
   	sessionRow: {
@@ -235,44 +236,43 @@ const styles = StyleSheet.create({
   		justifyContent: 'center'
   	},
   	header: {
-  		marginTop: 80,
-  		paddingVertical: 5,
+  		marginTop: 45,
   		fontSize: 30,
   		fontWeight: '700',
-  		color: '#08d9d6',
+  		color: COLORS.PRIMARY,
   	},
   	titleText: {
     	fontSize: 20,
     	fontWeight: '600',
-    	color: '#08d9d6'
+    	color: COLORS.PRIMARY
   	},
   	smallText: {
   		fontSize: 15,
   		fontWeight: '400',
-  		color: '#ff2e63'
+  		color: COLORS.PRIMARY
   	},
   	timeText: {
   		fontSize: 12,
   		fontWeight: '400',
-  		color: '#08d9d6'
+  		color: COLORS.PRIMARY
   	},
   	icon: {
-  		color: '#08d9d6',
+  		color: COLORS.SECONDARY,
 		fontSize: 15,
   	},
   	buttonText: {
 		fontSize: 15,
 		textAlign: 'center',
-		color: '#FAFAFA',
+		color: '#f6f5f5',
 		fontWeight: '500'
 	},
 	buttonContainer: {
-		backgroundColor: '#ff2e63',
+		backgroundColor: COLORS.SECONDARY,
 		padding: 5,
 		margin: 5
 	},
 	submitButton: {
-		backgroundColor: '#ff2e63',
+		backgroundColor: COLORS.SECONDARY,
 		paddingVertical: 10,
 		margin: 5,
 		width: '80%'
@@ -282,15 +282,15 @@ const styles = StyleSheet.create({
 		width: '80%',
 		backgroundColor: 'transparent',
 		borderWidth: 1,
-		borderColor: '#ff2e63',
+		borderColor: COLORS.PRIMARY,
 		width: '80%',
-		color: '#08d9d6',
+		color: COLORS.PRIMARY,
 	},
 	backButton: {
 		position: 'absolute',
 		top: 45,
 		left: 20,
 		fontSize: 35, 
-		color: '#08d9d6', 
+		color: COLORS.SECONDARY, 
 	}
 });

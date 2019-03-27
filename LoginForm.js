@@ -4,6 +4,7 @@ import {AppLoading, Font} from 'expo';
 import { Actions } from 'react-native-router-flux';
 import * as firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
+import COLORS from './Colors';
 
 export class LoginForm extends Component {
 
@@ -84,9 +85,8 @@ export class LoginForm extends Component {
 						autoCapitalize="none"
 						autoCorrect={false}
 						style={styles.input}
-						selectionColor='#FFF'
-						placeholderTextColor='#0097A7'
 						underlineColorAndroid='transparent'
+						placeholderTextColor={COLORS.PRIMARY}
 						onChangeText={(email) => this.setState({email})}
 						value={this.state.email} />
 				</View>
@@ -100,9 +100,8 @@ export class LoginForm extends Component {
 						returnKeyType="go"
 						secureTextEntry
 						style={styles.input}
-						selectionColor='#FFF'
-						placeholderTextColor='#0097A7'
 						underlineColorAndroid='transparent'
+						placeholderTextColor={COLORS.PRIMARY}
 						onChangeText={(password) => this.setState({password})}
 						value={this.state.password}
 						ref={(input) => this.passwordInput = input}/>
@@ -130,23 +129,23 @@ const styles = StyleSheet.create({
 		borderWidth: 0,
 		backgroundColor: 'transparent',
 		borderBottomWidth: 1,
-		borderColor: '#0097A7',
+		borderColor: COLORS.PRIMARY,
 		width: '90%',
-		color: '#0097A7'
+		color: COLORS.PRIMARY
 	},
 	buttonContainer: {
-		backgroundColor: '#0097A7',
+		backgroundColor: COLORS.SECONDARY,
 		paddingVertical: 15,
 		marginTop: 20
 	},
 	buttonText: {
 		fontSize: 20,
 		textAlign: 'center',
-		color: '#FAFAFA',
+		color: COLORS.WHITE,
 		fontWeight: '700'
 	},
 	icon: {
-		color: '#0097A7',
+		color: COLORS.PRIMARY,
 		fontSize: 30,
 		marginRight: 10,
 		marginTop: 13

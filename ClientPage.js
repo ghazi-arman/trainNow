@@ -15,7 +15,8 @@ export class ClientPage extends Component {
 			user: 'null',
 			trainees: 'null',
 			requests: 'null',
-			incomingRequests: 'null'
+			incomingRequests: 'null',
+			currentTab: 'recent',
 		}
 		this.loadRecent=this.loadRecent.bind(this);
 		this.renderRecent=this.renderRecent.bind(this);
@@ -264,20 +265,71 @@ export class ClientPage extends Component {
 		if(this.state.user == 'null' || this.state.trainees == 'null' || this.state.requests == 'null' || this.state.incomingRequests == 'null'){
 			return <Expo.AppLoading />
 		}else{
+			if(this.state.currentTab == 'requests'){
+				var navBar = (
+					<View style={styles.navigationBar}>
+						<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({currentTab: 'requests'})}>
+							<Text style={styles.navText}>Client Requests</Text>
+						</TouchableOpacity>
+						<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'recent'})}>
+							<Text style={styles.navText}>Recent Trainees</Text>
+						</TouchableOpacity>
+						<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'clients'})}>
+							<Text style={styles.navText}>Your Clients</Text>
+						</TouchableOpacity>
+					</View>
+				);
+				var content = (
+					<ScrollView showsVerticalScrollIndicator={false}>
+	            		{this.renderRequests()}
+	            	</ScrollView>
+				);
+			}else if(this.state.currentTab == 'recent'){
+				var navBar = (
+					<View style={styles.navigationBar}>
+						<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'requests'})}>
+							<Text style={styles.navText}>Client Requests</Text>
+						</TouchableOpacity>
+						<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({currentTab: 'recent'})}>
+							<Text style={styles.navText}>Recent Trainees</Text>
+						</TouchableOpacity>
+						<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'clients'})}>
+							<Text style={styles.navText}>Your Clients</Text>
+						</TouchableOpacity>
+					</View>
+				);
+				var content = (
+					<ScrollView showsVerticalScrollIndicator={false}>
+	            		{this.renderRecent()}
+	            	</ScrollView>
+				);
+			}else{
+				var navBar = (
+					<View style={styles.navigationBar}>
+						<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'requests'})}>
+							<Text style={styles.navText}>Client Requests</Text>
+						</TouchableOpacity>
+						<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'recent'})}>
+							<Text style={styles.navText}>Recent Trainees</Text>
+						</TouchableOpacity>
+						<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({currentTab: 'clients'})}>
+							<Text style={styles.navText}>Your Clients</Text>
+						</TouchableOpacity>
+					</View>
+				);
+				var content = (
+					<ScrollView showsVerticalScrollIndicator={false}>
+	            		{this.renderClients()}
+	            	</ScrollView>
+				);
+			}
 			return (
 				<View style = {styles.container}>
 					<Text style={styles.backButton} onPress={this.goToMap}>
 	              		<FontAwesome>{Icons.arrowLeft}</FontAwesome>
 	            	</Text>
-					<Text style={styles.title}>Client Page</Text>
-					<View style={styles.clientHolder}>
-						<Text style={{textAlign: 'center', fontSize: 25, margin: 10}}>Client Requests</Text>
-						{this.renderRequests()}
-						<Text style={{textAlign: 'center', fontSize: 25, margin: 10}}>Recent Clients</Text>
-						{this.renderRecent()}
-						<Text style={{textAlign: 'center', fontSize: 25, margin: 10}}>Your Clients</Text>
-						{this.renderClients()}
-					</View>
+					{navBar}
+					{content}
 					<Modal 
 						isVisible={this.state.bookModal}
           				onBackdropPress={this.hidebookModal}>
@@ -297,22 +349,31 @@ const styles = StyleSheet.create({
 		justifyContent: 'flex-start',
 		alignItems: 'center'
 	},
-	clientHolder: {
-		flex: 0.4,
-		backgroundColor: '#fafafa',
-		width: '90%',
-		borderRadius: 10,
-		flexDirection: 'column',
+  	navigationBar: {
+		width: '100%',
+		height: 100,
+		flexDirection: 'row',
 		justifyContent: 'flex-start',
-		alignItems: 'center'
-	},
-	title: {
+		alignItems: 'center',
 		marginTop: 80,
-		paddingVertical: 5,
-    	fontSize: 34,
-    	color: '#08d9d6',
-    	fontWeight: '700',
-  	},
+	},
+	activeTab: {
+		width: '33%',
+		backgroundColor: '#08d9d6',
+		borderWidth: 1,
+		borderColor: '#fafafa'
+	},
+	inactiveTab: {
+		width: '33%',
+		backgroundColor: '#252a34',
+		borderWidth: 1, 
+		borderColor: '#fafafa'
+	},
+	navText: {
+		fontSize: 25,
+		color: '#FAFAFA',
+		textAlign: 'center'
+	},
   	traineeRow: {
   		flexDirection: 'row',
   		justifyContent: 'space-around',

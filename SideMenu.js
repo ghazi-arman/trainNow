@@ -1,9 +1,11 @@
 import React, { Component } from 'react';
-import { Platform, StyleSheet, Text, View, TouchableOpacity, Alert} from 'react-native';
+import { Platform, StyleSheet, Text, View, TouchableOpacity, Alert, Image} from 'react-native';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { Font, AppLoading } from 'expo';
 import firebase from 'firebase';
 import { Actions } from 'react-native-router-flux';
+const profileImage = require('./images/profile.png');
+import COLORS from './Colors';
 
 export class SideMenu extends Component {
 	
@@ -12,7 +14,9 @@ export class SideMenu extends Component {
     this.state = {
       name:'',
       rating:'',
-      trainerState: 'null'
+      trainerState: 'null',
+      image: 'null',
+      active: ''
     }
 	}
 
@@ -24,14 +28,24 @@ export class SideMenu extends Component {
     //pull user from database and check if trainer
     let usersRef = firebase.database().ref('users');
     var user = firebase.auth().currentUser;
+    firebase.storage().ref().child(user.uid).getDownloadURL().then(function(url){
+      this.setState({image: url});
+    }.bind(this), function(error){
+      console.log(error);
+    });
     if(user){
       usersRef.orderByKey().equalTo(user.uid).once("child_added", function(snapshot) {
         var currentUser = snapshot.val();
         var trainerState = currentUser.trainer;
+        var active;
+        if(trainerState){
+          active = currentUser.active;
+        }
         this.setState({ 
           trainerState: trainerState,
           name: currentUser.name,
           rating: currentUser.rating,
+          active: active
         });
     }.bind(this));
     }
@@ -60,58 +74,73 @@ export class SideMenu extends Component {
       return <Expo.AppLoading />
     }else{
       var clientLink;
+      var active;
       if(this.state.trainerState){
         clientLink = (
           <TouchableOpacity onPress={() => Actions.clients()}>
-            <Text style={styles.menuLink}>
-                <FontAwesome>{Icons.users}</FontAwesome> Clients
+            <Text style={styles.icon}>
+                <FontAwesome>{Icons.users}</FontAwesome> <Text style={styles.menuLink}> Clients</Text>
             </Text>
           </TouchableOpacity>
         );
+        if(this.state.active){
+          active = (<Text style={{fontSize: 20, color: COLORS.WHITE}}>Active</Text>);
+        }else{
+          active = (<Text style={{fontSize: 20, color: COLORS.RED}}>Away</Text>)
+        }
       }else{
         clientLink = (
           <TouchableOpacity onPress={() => Actions.trainers()}>
-            <Text style={styles.menuLink}>
-                <FontAwesome>{Icons.users}</FontAwesome> Trainers
+            <Text style={styles.icon}>
+                <FontAwesome>{Icons.users}</FontAwesome> <Text style={styles.menuLink}> Trainers</Text>
             </Text>
           </TouchableOpacity>
         );
       }
+      if(this.state.image != 'null' || this.state.image != null){
+        var imageHolder = (<View style={styles.imageContainer}><Image style={styles.image} source={{ uri: this.state.image }} /></View>);
+      }else{
+        var imageHolder = (<View style={styles.imageContainer}><Image style={styles.image} source={{ uri: profileImage }} /></View>);
+      }
     	return(
     		<View style={styles.container}>
           <View style={styles.nameContainer}>
-            <Text style={{fontSize: 30, color: '#FAFAFA'}}>{this.state.name}</Text>
-            <Text style={{fontSize: 20, color: '#FAFAFA'}}>Rating: {this.state.rating}</Text>
+            {imageHolder}
+            <View style={styles.infoContainer}>
+              <Text style={{fontSize: 25, color: COLORS.WHITE}}>{this.state.name}</Text>
+              <Text style={{fontSize: 20, color: COLORS.WHITE}}>Rating: {this.state.rating}</Text>
+              {active}
+            </View>
           </View>
           <TouchableOpacity onPress={() => Actions.map()}>
-            <Text style={styles.menuLink}>
-                <FontAwesome>{Icons.compass}</FontAwesome> Map
+            <Text style={styles.icon}>
+                <FontAwesome>{Icons.compass}</FontAwesome> <Text style={styles.menuLink}> Map</Text>
             </Text>
           </TouchableOpacity>
           <TouchableOpacity>
-            <Text style={styles.menuLink} onPress={() => Actions.account()}>
-                <FontAwesome>{Icons.user}</FontAwesome> Settings
+            <Text style={styles.icon} onPress={() => Actions.account()}>
+                <FontAwesome>{Icons.gear}</FontAwesome> <Text style={styles.menuLink}> Settings</Text>
             </Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => Actions.modal()}>
-            <Text style={styles.menuLink}>
-                <FontAwesome>{Icons.calendar}</FontAwesome> Calendar
+            <Text style={styles.icon}>
+                <FontAwesome>{Icons.calendar}</FontAwesome> <Text style={styles.menuLink}> Calendar</Text>
             </Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => Actions.history()}>
-            <Text style={styles.menuLink}>
-                <FontAwesome>{Icons.list}</FontAwesome> History
+            <Text style={styles.icon}>
+                <FontAwesome>{Icons.list}</FontAwesome> <Text style={styles.menuLink}> History</Text>
             </Text>
           </TouchableOpacity>
           {clientLink}
           <TouchableOpacity onPress={() => Actions.payment()}>
-            <Text style={styles.menuLink}>
-              <FontAwesome>{Icons.creditCard}</FontAwesome> Payments
+            <Text style={styles.icon}>
+              <FontAwesome>{Icons.creditCard}</FontAwesome> <Text style={styles.menuLink}> Payments</Text>
             </Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={this.logout}>
-            <Text style={styles.menuLink}>
-              <FontAwesome>{Icons.powerOff}</FontAwesome> Sign Out
+            <Text style={styles.icon}>
+              <FontAwesome>{Icons.powerOff}</FontAwesome> <Text style={styles.menuLink}> Sign Out</Text>
             </Text>
           </TouchableOpacity>
         </View>
@@ -126,21 +155,43 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
-    paddingTop: 40,
-    paddingLeft: 10,
-    backgroundColor: '#252a34'
+    backgroundColor: COLORS.WHITE
 	},
   nameContainer: {
-    height: 100,
+    height: 140,
     width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    backgroundColor: COLORS.SECONDARY,
+    padding: 15,
+    paddingTop: 40
+  },
+  infoContainer: {
+    height: 100,
     flexDirection: 'column',
     justifyContent: 'space-around',
-    backgroundColor: '#08d9d6',
-    padding: 15
+    alignItems: 'center',
+    padding: 15,
+  },
+  icon:{
+    fontSize: 30,
+    color: COLORS.PRIMARY,
+    marginLeft: 10,
+    padding: 10
   },
   menuLink:{
     fontSize: 30,
-    color: '#08d9d6',
-    padding: 10
+    color: COLORS.PRIMARY
+  },
+  imageContainer: {
+    height: 80,
+    width: 80,
+    borderRadius: 50
+  },
+  image: {
+    height: 80,
+    width: 80,
+    borderRadius: 50
   }
 });

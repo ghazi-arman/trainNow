@@ -4,6 +4,8 @@ import firebase from 'firebase';
 import { MapView, AppLoading} from 'expo';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 console.ignoredYellowBox = ['Setting a timer'];
+const markerImg = require('./images/marker.png');
+import COLORS from './Colors';
 
 export class GymModal extends Component {
 	
@@ -42,7 +44,7 @@ export class GymModal extends Component {
   	}
 
   	//Deselects or selects trainer based on trainer clicked
-  	extendTrainer(trainer){
+  	setTrainer(trainer){
     	if(this.state.trainer == trainer){
       		return null;
     	}else{
@@ -95,7 +97,7 @@ export class GymModal extends Component {
 	        //Get active status of trainer
 	        var activeField;
 	        if(trainer.active == true){
-	          activeField = <Text style={[styles.rate, styles.active]}>Active</Text>;
+	          activeField = <Text style={[styles.rate, styles.active]}>Active - ${trainer.rate}/hr</Text>;
 	        }else{
 	          activeField = <Text style={[styles.rate, styles.away]}>Away</Text>;
 	        }
@@ -108,33 +110,36 @@ export class GymModal extends Component {
 
 	        }
 
+	        var infoArea;
+	        if(this.state.trainer == trainer.key){
+	        	infoArea = (
+	        		<View style={styles.infoArea}>
+		        		<Text style={styles.info}>{trainer.bio}</Text>
+		        		<Text style={styles.info}>Certs: {trainer.cert}</Text>
+		        		<TouchableOpacity style={styles.buttonContainer} onPress={() => {this.props.setTrainer(trainer)}}>
+		        			<Text style={styles.buttonText}>Book Now!</Text>
+		        		</TouchableOpacity>
+		        	</View>
+	        	);
+	        }else{
+	        	infoArea = null;
+	        }
+
 	        //DOM Element for a trainer in gym modal
 	        return(
-	        <View style={styles.trainerContainer} key={trainer.key}>
-	          	<View style={styles.trainerRow} key={trainer.key}>
-	          		{imageHolder}
-	            	<View style={styles.trainerInfoContainer}>
-	              		<Text style={styles.trainerName}>{trainer.name}</Text>
-	              		<Text style={styles.rate}>${trainer.rate}</Text>
-	              		{activeField}
-	            	</View>
-	          	</View>
-	          	<View style={styles.ratingRow}>
-	          		<Text style={styles.icon}>{this.renderStars(trainer.rating)}</Text>
-	          	</View>
-	          	<View style={styles.trainerRow}>
-	          		<Text style={styles.rate}>{trainer.bio}</Text>
-	          	</View> 
-	          	<View style={styles.trainerRow}>
-	          		<Text style={styles.rate}>{trainer.cert}</Text>
-	          	</View>
-	          	<View style={styles.buttonRow}>
-	          		<TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.props.setTrainer(trainer)}>
-		                <Text style={styles.buttonText}>Book Now!</Text>
-              		</TouchableOpacity>
-              	</View>
-	        </View>
-
+	        <TouchableWithoutFeedback key={trainer.key} onPress={() => {this.setState({trainer: this.setTrainer(trainer.key)})}}>
+		        <View style={styles.trainerContainer}>
+		          	<View style={styles.trainerRow}>
+		          		{imageHolder}
+		            	<View style={styles.trainerInfoContainer}>
+		              		<Text style={styles.trainerName}>{trainer.name}</Text>
+		              		<Text style={styles.icon}>{this.renderStars(trainer.rating)}</Text>
+		              		{activeField}
+		            	</View>
+		          	</View>
+		          	{infoArea}
+		        </View>
+		    </TouchableWithoutFeedback>
 	        );
     	}.bind(this));
 		return trainersList;
@@ -154,7 +159,9 @@ export class GymModal extends Component {
 	        pitchEnabled = {false} rotateEnabled = {false} scrollEnabled = {false} zoomEnabled = {false}>
             <MapView.Marker
                 key={this.state.gym.key}
-                coordinate={this.state.gym.location} />
+                coordinate={this.state.gym.location}>
+                <Image source={markerImg} style={{width: 50, height: 50}} />
+            </MapView.Marker>
 		</MapView>);
 	}
 
@@ -167,12 +174,11 @@ export class GymModal extends Component {
 				<View style={styles.modal}>
 		            <View style={styles.nameContainer}>
 		            	<Text style={styles.gymName}>{this.state.gym.name}</Text>
+		            	<Text style={styles.hourDetails}>{this.state.gym.hours}</Text>
 		            </View>
 		            <View style={styles.mapContainer}>
 		            	{map}
 		            </View>
-	            	<Text style={styles.hourDetails}>Hours: {this.state.gym.hours}</Text>
-	            	<Text style={styles.trainerTitle}>Trainers</Text>
 	            	<View style={styles.trainersContainer}>
 		            	<ScrollView showsVerticalScrollIndicator={false}>
 		             		{this.getTrainers()}
@@ -190,12 +196,12 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		justifyContent: 'flex-start',
 		alignItems: 'center',
-		backgroundColor: '#252a34',
+		backgroundColor: COLORS.WHITE,
 		borderRadius: 10,
 	},
 	gymName: {
     	fontSize: 30,
-    	color: '#08d9d6',
+    	color: COLORS.WHITE,
     	fontWeight: '500'
   	},
 	nameContainer: {
@@ -203,7 +209,7 @@ const styles = StyleSheet.create({
 	    width: '100%',
 	    borderTopLeftRadius: 10,
 	    borderTopRightRadius: 10,
-	    backgroundColor: '#252a34',
+	    backgroundColor: COLORS.PRIMARY,
 	    flexDirection: 'column',
 	    justifyContent: 'center',
 	    alignItems: 'center'
@@ -217,19 +223,19 @@ const styles = StyleSheet.create({
   		width: '100%'
   	},
   	trainersContainer: {
-  		height: '50%',
+  		height: '65%',
   		width: '95%',
   		flexDirection: 'row',
   		justifyContent: 'center',
   		paddingLeft: 27
   	},
   	trainerContainer: {
-  		width: '90%',
+  		backgroundColor: '#f6f5f5',
+  		width: '95%',
   		flexDirection: 'column',
   		justifyContent: 'center',
   		alignItems: 'center',
-  		borderWidth: 1,
-	   	borderColor: '#08d9d6',
+  		borderRadius: 5,
 	   	marginTop: 10
   	},
   	trainerRow: {
@@ -245,6 +251,15 @@ const styles = StyleSheet.create({
   		justifyContent: 'center',
   		alignItems: 'center',
   		marginTop: 10
+  	},
+  	infoArea: {
+  		width: '95%',
+  	},
+  	info: {
+  		fontSize: 16,
+    	fontWeight: '500',
+    	color: 'black',
+    	margin: 10
   	},
   	buttonRow: {
   		width: '100%',
@@ -262,7 +277,7 @@ const styles = StyleSheet.create({
 		width: 70,
 		height: 70,
 		borderWidth: 1,
-		borderColor: '#ff2e63',
+		borderColor: COLORS.PRIMARY,
 	},
   	trainerInfoContainer:{
     	width: '60%',
@@ -272,47 +287,41 @@ const styles = StyleSheet.create({
     	height: 80
   	},
   	trainerName: {
-    	fontSize: 25,
-    	fontWeight: '700',
-    	color: '#FAFAFA'
+    	fontSize: 22,
+    	fontWeight: '600',
+    	color: COLORS.PRIMARY
   	},
   	rate: {
-    	fontSize: 20,
-    	fontWeight: '600',
-    	color: '#FAFAFA'
+    	fontSize: 16,
+    	fontWeight: '500',
+    	color: COLORS.WHITE
   	},
   	hourDetails: {
-	    fontSize: 16,
-	    color: '#ff2e63',
-	    fontWeight: '400',
-	    marginTop: 10,
-  	},
-  	trainerTitle: {
-	    fontSize: 24,
-	    color: '#ff2e63',
+	    fontSize: 20,
+	    color: COLORS.WHITE,
 	    fontWeight: '400',
 	    marginTop: 5,
   	},
   	buttonContainer: {
     	height: 48,
-    	backgroundColor: '#ff2e63',
+    	backgroundColor: COLORS.SECONDARY,
     	flexDirection: 'column',
     	justifyContent: 'center',
-    	marginBottom: 10
+    	margin: 10
   	},
   	buttonText: {
     	textAlign: 'center',
-    	color: '#FAFAFA',
+    	color: COLORS.WHITE,
     	fontWeight: '700'
   	},
   	active:{
-    	color: '#08d9d6'
+    	color: COLORS.SECONDARY
   	},
   	away:{
-    	color: '#ff2e63'
+    	color: COLORS.RED
   	},
   	icon: {
-  		color: '#08d9d6',
+  		color: COLORS.SECONDARY,
 		fontSize: 15,
   	}
 });

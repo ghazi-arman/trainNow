@@ -1,16 +1,9 @@
 import React, { Component } from 'react';
-import {
-  Platform,
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  KeyboardAvoidingView,
-  TouchableOpacity,
-} from 'react-native';
+import { Platform, StyleSheet, Text, View, Image, KeyboardAvoidingView, TouchableOpacity } from 'react-native';
 import { ForgotForm } from './ForgotForm'
 import { Actions } from 'react-native-router-flux';
-
+import COLORS from './Colors';
+const logo=require('./images/logo.png');
 
 export class Forgot extends Component {
 	
@@ -20,12 +13,9 @@ export class Forgot extends Component {
 
 	render() {
 		return (
-			<KeyboardAvoidingView 
-				behavior="padding"
-				style = {styles.container}
-				>
+			<KeyboardAvoidingView behavior="padding" style = {styles.container}>
 				<View style = {styles.logoContainer}>
-					<Text style={styles.header}>Train</Text><Text style={styles.header2}>Now</Text>
+					<Image style={styles.logo} source={logo} />
 				</View>
 				<View style={styles.formContainer}>
 					<ForgotForm />
@@ -48,24 +38,19 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		alignItems: 'center',
 		justifyContent: 'space-around',
-		backgroundColor: '#252a34'
-	},
-	header: {
-		color: '#08d9d6',
-		fontSize: 50,
-		fontWeight: '600'
-	},
-	header2: {
-		color: '#ff2e63',
-		fontSize: 50,
-		fontWeight: '600'
+		backgroundColor: COLORS.WHITE
 	},
 	logoContainer: {
 		flexDirection: 'row',
 		justifyContent: 'center',
 		alignItems: 'center',
 		height: '20%',
-		width: '80%'
+		width: '80%',
+		marginTop: 25
+	},
+	logo: {
+		flex: 1,
+		resizeMode: 'contain'
 	},
 	textContain:{
 		height: 30
@@ -84,7 +69,7 @@ const styles = StyleSheet.create({
 		height: "20%",
 	},
 	linkText: {
-		color: '#08d9d6',
+		color: COLORS.PRIMARY,
 		fontSize: 16,
 		fontWeight: '500',
 	}

@@ -4,6 +4,7 @@ import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
 import { ImagePicker, Font, Permissions} from 'expo';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
+import COLORS from './Colors';
 
 export class AccountForm extends Component {
 	
@@ -165,8 +166,7 @@ export class AccountForm extends Component {
 				placeholder="Name"
 				returnKeyType="done"
 				style={styles.input}
-				selectionColor="#FFF"
-				placeholderTextColor='#08d9d6'
+				placeholderTextColor={COLORS.PRIMARY}
 				onChangeText={(name) => this.setState({name, change: true})}
 				value={this.state.name}
 				autoCorrect={false}
@@ -182,9 +182,9 @@ export class AccountForm extends Component {
 				<View style={styles.switchRow}>
 					<Text style={styles.hints}>Active? </Text>			
 					<Switch
-						onTintColor="#ff2e63"
-						tintColor="#ff2e63"
-						thumbTintColor="#08d9d6"
+						onTintColor={COLORS.PRIMARY}
+						tintColor={COLORS.PRIMARY}
+						thumbTintColor={COLORS.SECONDARY}
 						style={{marginLeft: 10}}
 						value={this.state.active}
 						onValueChange={(active) => this.setState({active, change: true})}
@@ -198,8 +198,7 @@ export class AccountForm extends Component {
 					<TextInput
 						placeholder="Rate"
 						style={styles.input}
-						selectionColor="#FFF"
-						placeholderTeaxtColor='#08d9d6'
+						placeholderTextColor={COLORS.PRIMARY}
 						onChangeText={(rate) => this.setState({rate, change: true})}
 						value={this.state.rate.toString()}
 						keyboardType="number-pad"
@@ -215,8 +214,7 @@ export class AccountForm extends Component {
 						placeholder="Certifications"
 						returnKeyType="done"
 						style={styles.input}
-						selectionColor="#FFF"
-						placeholderTextColor='#08d9d6'
+						placeholderTextColor={COLORS.PRIMARY}
 						onChangeText={(cert) => this.setState({cert, change: true})}
 						value={this.state.cert}
 						autoCorrect={false}
@@ -234,8 +232,7 @@ export class AccountForm extends Component {
 						returnKeyType="done"
 						multiline={true}
 						style={styles.input}
-						selectionColor="#FFF"
-						placeholderTextColor='#08d9d6'
+						placeholderTextColor={COLORS.PRIMARY}
 						onChangeText = {(bio) => this.setState({bio, change: true})}
 						value={this.state.bio}
 						/>
@@ -258,16 +255,12 @@ export class AccountForm extends Component {
 				{bioField}
 				{certField}
 				<TouchableOpacity style={styles.buttonContainer} onPressIn={this._pickImage}>
-					<Text 
-						style={styles.buttonText}
-						>
+					<Text style={styles.buttonText}>
 						Update Image
 					</Text>
 				</TouchableOpacity>	
 				<TouchableOpacity style={styles.buttonContainer} onPressIn={this.onUpdatePress}>
-					<Text 
-						style={styles.buttonText}
-						>
+					<Text style={styles.buttonText}>
 						Save Changes
 					</Text>
 				</TouchableOpacity>
@@ -285,9 +278,9 @@ const styles = StyleSheet.create({
 		borderWidth: 0,
 		backgroundColor: 'transparent',
 		borderBottomWidth: 1,
-		borderColor: '#ff2e63',
+		borderColor: COLORS.PRIMARY,
 		width: '90%',
-		color: '#08d9d6'
+		color: COLORS.PRIMARY
 	},
 	inputRow: {
 		width: '100%',
@@ -304,23 +297,23 @@ const styles = StyleSheet.create({
 		marginBottom: 5
 	},
 	icon: {
-		color: '#ff2e63',
+		color: COLORS.PRIMARY,
 		fontSize: 30,
 		marginRight: 10,
 		marginTop: 13
 	},
 	buttonContainer: {
-		backgroundColor: '#ff2e63',
+		backgroundColor: COLORS.SECONDARY,
 		paddingVertical: 15,
 		marginTop: 10
 	},
 	buttonText: {
 		textAlign: 'center',
-		color: '#FAFAFA',
+		color: COLORS.WHITE,
 		fontWeight: '700'
 	},
 	hints:{
-		color: "#08d9d6",
+		color: COLORS.PRIMARY,
 		fontSize: 25,		
 		fontWeight: "500"
 	},
@@ -333,6 +326,6 @@ const styles = StyleSheet.create({
 		width: 220,
 		height: 220,
 		borderWidth: 1,
-		borderColor: '#ff2e63',
+		borderColor: COLORS.PRIMARY,
 	},
 });

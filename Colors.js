@@ -1,0 +1,7 @@
+export default {
+	WHITE: '#E2E2E2',
+	PRIMARY: '#521262',
+	SECONDARY: '#1BD6A7',
+	GREEN: '#1B5E20',
+	RED: '#B71C1C'
+}

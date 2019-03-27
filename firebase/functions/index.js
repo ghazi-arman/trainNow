@@ -68,6 +68,7 @@ function createCustomer(req, res) {
 function createTrainer(req, res) {
     const body = JSON.parse(req.body);
     const email = body.email;
+    const phone = body.phone;
     const id = body.id;
     const lastName = body.lastName;
     const firstName = body.firstName;
@@ -75,6 +76,11 @@ function createTrainer(req, res) {
     const day = body.day;
     const month = body.month;
     const year = body.year;
+    const line1 = body.line1;
+    const city = body.city;
+    const zip = body.zip;
+    const state = body.state;
+    const country = body.country;
 
     //Create token and charge
     stripe.accounts.create({ 
@@ -91,10 +97,19 @@ function createTrainer(req, res) {
             first_name: firstName,
             last_name: lastName,
             id_number: token,
+            email: email,
+            phone: phone,
             dob: {
                 day: day,
                 month: month,
                 year: year
+            },
+            address: {
+                line1: line1,
+                city: city,
+                postal_code: zip,
+                state: state,
+                country: country,
             }
         },
         tos_acceptance: {

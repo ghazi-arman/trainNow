@@ -1,21 +1,10 @@
 import React, { Component } from 'react';
-import {
-  Platform,
-  StyleSheet,
-  Text,
-  View,
-  TextInput,
-  TouchableOpacity,
-  StatusBar,
-  Alert
-} from 'react-native';
-
+import { Platform, StyleSheet, Text, View, TextInput, TouchableOpacity, StatusBar, Alert } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
 import {AppLoading, Font} from 'expo';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
-
-
+import COLORS from './Colors';
 
 export class ForgotForm extends Component {
 	
@@ -55,20 +44,17 @@ export class ForgotForm extends Component {
 			}.bind(this));
 	}
 
-
 	render() {
 		return (
 			<View style = {styles.container}>
-			<StatusBar 
-				barStyle="dark-content"
-				/>
+			<StatusBar barStyle="dark-content" />
 				<View style={styles.inputRow}>
 					<Text style={styles.icon}>
 							<FontAwesome>{Icons.user}</FontAwesome>
 						</Text>
 					<TextInput 
 						placeholder="Email"
-						placeholderTextColor='#08d9d6'
+						placeholderTextColor={COLORS.PRIMARY}
 						returnKeyType="next"
 						keyboardType="email-address"
 						autoCapitalize="none"
@@ -104,22 +90,22 @@ const styles = StyleSheet.create({
 		borderWidth: 0,
 		backgroundColor: 'transparent',
 		borderBottomWidth: 1,
-		borderColor: '#ff2e63',
+		borderColor: COLORS.PRIMARY,
 		width: '90%',
-		color: '#08d9d6'
+		color: COLORS.PRIMARY
 	},
 	buttonContainer: {
-		backgroundColor: '#ff2e63',
+		backgroundColor: COLORS.SECONDARY,
 		paddingVertical: 15,
 		marginTop: 20
 	},
 	buttonText: {
 		textAlign: 'center',
-		color: '#FFFFFF',
+		color: COLORS.WHITE,
 		fontWeight: '700'
 	},
 	icon: {
-		color: '#ff2e63',
+		color: COLORS.PRIMARY,
 		fontSize: 30,
 		marginRight: 10,
 		marginTop: 13

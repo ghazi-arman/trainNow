@@ -48,25 +48,28 @@ export class CardModal extends Component {
 	    var card = await stripe.createToken(information);
 		if(this.state.user.stripeId === undefined){
 			try {
-		      const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/createCustomer/', {
-		        method: 'POST',
-		        body: JSON.stringify({
-		          token: card,
-		          id: user.uid,
-		          email: user.email
-		        }),
-		      });
-		      const data = await res.json();
-		      data.body = JSON.parse(data.body);
-
-		      console.log(data.body);
-		      var userRef = firebase.database().ref('users');
-		      userRef.child(user.uid).update({
-		        stripeId: data.body.customer.id
-		      });
-		      this.props.hide();
+		      	const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/createCustomer/', {
+		        	method: 'POST',
+		        	body: JSON.stringify({
+		          	token: card,
+		          	id: user.uid,
+		          	email: user.email
+		        	}),
+		      	});
+		      	const data = await res.json();
+		      	data.body = JSON.parse(data.body);
+		      	if(data.body.message == 'Success'){
+					var userRef = firebase.database().ref('users');
+				    userRef.child(user.uid).update({
+				    	stripeId: data.body.customer.id,
+				    	cardAdded: true
+				    });
+				}else{
+					Alert.alert('There was an error adding the card. Please check the info and try again.');
+				}
+		      	this.props.hide();
 		    } catch(error){
-		      console.log(error);
+		    	Alert.alert('There was an error adding the card. Please try again.');
 		    }
 		}else{
 			if(this.state.user.trainer){
@@ -80,10 +83,18 @@ export class CardModal extends Component {
 					})
 					const data = await res.json();
 					data.body = JSON.parse(data.body);
-					console.log(data.body);
+					if(data.body.message == 'Success'){
+						var userRef = firebase.database().ref('users');
+					    userRef.child(user.uid).update({
+					    	cardAdded: true
+					    });
+					}else{
+						Alert.alert('There was an error adding the card. Please check the info and try again.');
+
+					}
 					this.props.hide();
 				} catch(error){
-					console.log(error);
+					Alert.alert('There was an error adding the card. Please try again.');
 				}
 			}else{
 				try {
@@ -96,10 +107,17 @@ export class CardModal extends Component {
 					});
 					const data = await res.json();
 					data.body = JSON.parse(data.body);
-					console.log(data.body);
+					if(data.body.message == 'Success'){
+						var userRef = firebase.database().ref('users');
+					    userRef.child(user.uid).update({
+					    	cardAdded: true
+					    });
+					}else{
+						Alert.alert('There was an error adding the card. Please check the info and try again.');
+					}
 					this.props.hide();
 				} catch(error){
-					console.log(error);
+					Alert.alert('There was an error adding the card. Please try again.');
 				}
 			}
 			

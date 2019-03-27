@@ -4,6 +4,7 @@ import { Actions } from 'react-native-router-flux';
 import { ImagePicker, Font, Permissions } from 'expo';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
+import COLORS from './Colors';
 var stripe = require('stripe-client')('pk_test_6sgeMvomvrZFucRqYhi6TSbO');
 
 export class SignupForm extends Component {
@@ -151,7 +152,13 @@ export class SignupForm extends Component {
 						const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/createTrainer/', {
 							method: 'POST',
 							body: JSON.stringify({
+								line1: '1234 Test Ln',
+								city: 'San Diego',
+								state: 'CA',
+								zip: '92131',
+								country: 'US',
 								email: email,
+								phone: phone,
 								id: firebaseUser.uid,
 								firstName: firstName,
 								lastName: lastName,	
@@ -166,7 +173,8 @@ export class SignupForm extends Component {
 					    console.log(data.body);
 					    var userRef = firebase.database().ref('users');
 					    userRef.child(firebaseUser.uid).update({
-					        stripeId: data.body.trainer.id
+					        stripeId: data.body.trainer.id,
+					        cardAdded: false
 					    });
 					}catch(error) {
 						console.log(error);
@@ -177,7 +185,8 @@ export class SignupForm extends Component {
 			      		name: name,
 			      		phone: phone,
 			      		rating: 0,
-			      		sessions: 0
+			      		sessions: 0,
+			      		cardAdded: false
 			    	});
 				}
 				
@@ -187,6 +196,7 @@ export class SignupForm extends Component {
 
 				firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password).then(function() {
 					Actions.reset('map');
+					Alert.alert('You must enter a debit card for payouts before trainees can book a session with you!');
 				});
 			}.bind(this))
 			.catch(function(error) {
@@ -313,7 +323,7 @@ export class SignupForm extends Component {
 					<TextInput
 						placeholder="Full Legal Name (First and Last Only)"
 						style={styles.input}
-						placeholderTextColor='#08d9d6'
+						placeholderTextColor={COLORS.PRIMARY}
 						onChangeText={(name) => this.setState({name})}
 						value={this.state.name}
 						underlineColorAndroid='transparent'
@@ -328,7 +338,7 @@ export class SignupForm extends Component {
 						keyboardType="email-address"
 						autoCapitalize="none"
 						style={styles.input}
-						placeholderTextColor='#08d9d6'
+						placeholderTextColor={COLORS.PRIMARY}
 						underlineColorAndroid='transparent'
 						onChangeText={(email) => this.setState({email})}
 						value={this.state.email} />
@@ -341,7 +351,7 @@ export class SignupForm extends Component {
 						placeholder="Password"
 						secureTextEntry
 						style={styles.input}
-						placeholderTextColor='#08d9d6'
+						placeholderTextColor={COLORS.PRIMARY}
 						underlineColorAndroid='transparent'
 						onChangeText={(password) => this.setState({password})}
 						value={this.state.password} />
@@ -354,7 +364,7 @@ export class SignupForm extends Component {
 						placeholder="Confirm Password"
 						secureTextEntry
 						style={styles.input}
-						placeholderTextColor='#08d9d6'
+						placeholderTextColor={COLORS.PRIMARY}
 						underlineColorAndroid='transparent'
 						onChangeText={(confirmPass) => this.setState({confirmPass})}
 						value={this.state.confirmPass} />
@@ -368,7 +378,7 @@ export class SignupForm extends Component {
 						returnKeyType="done"
 						keyboardType="number-pad"
 						style={styles.input}
-						placeholderTextColor='#08d9d6'
+						placeholderTextColor={COLORS.PRIMARY}
 						underlineColorAndroid='transparent'
 						onChangeText={(phone) => this.setState({phone})}
 						value={this.state.phone} />
@@ -376,9 +386,9 @@ export class SignupForm extends Component {
 				<View style={styles.inputRow}>
 					<Text style = {styles.hints}>Are you signing up as a trainer? </Text>
 					<Switch
-						onTintColor="#ff2e63"
-						tintColor="#ff2e63"
-						thumbTintColor="#08d9d6"
+						onTintColor={COLORS.PRIMARY}
+						tintColor={COLORS.PRIMARY}
+						thumbTintColor={COLORS.SECONDARY}
 						value={this.state.trainer}
 						onValueChange={(trainer) => this.setState({trainer})}
 						/>
@@ -394,7 +404,7 @@ export class SignupForm extends Component {
 					</Text>
 					<Picker
 						style={styles.picker}
-						itemStyle={{height: 45, color: '#08d9d6'}}
+						itemStyle={{height: 45, color: COLORS.PRIMARY}}
 					  	selectedValue={this.state.gym}
 					  	onValueChange={(itemValue, itemIndex) => this.setState({gym: itemValue})}>
 					  	<Picker.Item label="Pick a Gym (Scroll)" value= '' key='0'/>
@@ -410,7 +420,7 @@ export class SignupForm extends Component {
 					<TextInput
 						placeholder="Rate ($ hourly)"
 						style={styles.input}
-						placeholderTextColor='#08d9d6'
+						placeholderTextColor={COLORS.PRIMARY}
 						underlineColorAndroid='transparent'
 						onChangeText={(rate) => this.setState({rate})}
 						value={this.state.rate}
@@ -425,7 +435,7 @@ export class SignupForm extends Component {
 						placeholder="Enter your bio here (specialities, schedule, experience, etc.)"
 						multiline={true}
 						style={styles.input}
-						placeholderTextColor='#08d9d6'
+						placeholderTextColor={COLORS.PRIMARY}
 						underlineColorAndroid='transparent'
 						onChangeText = {(bio) => this.setState({bio})}
 						maxLength={200}
@@ -439,7 +449,7 @@ export class SignupForm extends Component {
 						placeholder="Certifications"
 						returnKeyType="next"
 						style={styles.input}
-						placeholderTextColor='#08d9d6'
+						placeholderTextColor={COLORS.PRIMARY}
 						underlineColorAndroid='transparent'
 						onChangeText={(cert) => this.setState({cert})}
 						value={this.state.cert}
@@ -454,7 +464,7 @@ export class SignupForm extends Component {
 						placeholder="SSN (For Stripe Account)"
 						returnKeyType="done"
 						style={styles.input}
-						placeholderTextColor='#08d9d6'
+						placeholderTextColor={COLORS.PRIMARY}
 						underlineColorAndroid='transparent'
 						onChangeText={(ssn) => this.setState({ssn})}
 						value={this.state.ssn}
@@ -468,7 +478,7 @@ export class SignupForm extends Component {
 						placeholder="Birth Date (mm/dd/yyyy)"
 						returnKeyType="done"
 						style={styles.input}
-						placeholderTextColor='#08d9d6'
+						placeholderTextColor={COLORS.PRIMARY}
 						underlineColorAndroid='transparent'
 						onChangeText={(birthDay) => this.setState({birthDay})}
 						value={this.state.birthDay}/>
@@ -532,23 +542,23 @@ const styles = StyleSheet.create({
 		borderWidth: 0,
 		backgroundColor: 'transparent',
 		borderBottomWidth: 1,
-		borderColor: '#ff2e63',
+		borderColor: COLORS.PRIMARY,
 		width: '90%',
-		color: '#08d9d6'
+		color: COLORS.PRIMARY
 	},
 	picker: {
 		height: 45,
 		borderWidth: 1,
-		borderColor: '#ff2e63',
+		borderColor: COLORS.PRIMARY,
 		width: '90%',
 	},
 	buttonContainer: {
-		backgroundColor: '#ff2e63',
+		backgroundColor: COLORS.SECONDARY,
 		paddingVertical: 15,
 		marginTop: 5,
 	},
 	pictureButton: {
-		backgroundColor: '#ff2e63',
+		backgroundColor: COLORS.SECONDARY,
 		width: 40,
 		height: 40,
 		flexDirection: 'column',
@@ -556,14 +566,14 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	pictureIcon: {
-		color: '#FAFAFA',
+		color: '#f6f5f5',
 		fontSize: 30,
 		textAlign: 'center'
 	},
 	buttonText: {
 		fontSize: 20,
 		textAlign: 'center',
-		color: '#FAFAFA',
+		color: COLORS.WHITE,
 		fontWeight: '700'
 	},
 	imageContainer: {
@@ -578,16 +588,16 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		justifyContent: 'center',
 		alignItems: 'center',
-		borderColor: '#ff2e63',
+		borderColor: COLORS.SECONDARY,
 	},
 	icon: {
-		color: '#ff2e63',
+		color: COLORS.PRIMARY,
 		fontSize: 30,
 		marginRight: 10,
 		marginTop: 13
 	},
 	hints:{
-		color: '#08d9d6',		
+		color: COLORS.PRIMARY,		
 		marginBottom: 10,
 		marginRight: 10
 	}

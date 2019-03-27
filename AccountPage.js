@@ -6,6 +6,7 @@ import FontAwesome, { Icons } from 'react-native-fontawesome';
 import Modal from 'react-native-modal';
 import {AccountForm} from './AccountForm';
 import { Actions } from 'react-native-router-flux';
+import COLORS from './Colors';
 
 export class AccountPage extends Component {
 
@@ -41,10 +42,7 @@ export class AccountPage extends Component {
 
 	render() {
 		return (
-			<KeyboardAvoidingView 
-				behavior="padding"
-				style = {styles.container}
-				>
+			<KeyboardAvoidingView behavior="padding" style = {styles.container}>
 				<Text style={styles.backButton} onPress={this.goToMap}>
               		<FontAwesome>{Icons.arrowLeft}</FontAwesome>
             	</Text>
@@ -62,16 +60,15 @@ export class AccountPage extends Component {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: '#252a34',
+		backgroundColor: COLORS.WHITE,
 		flexDirection: 'column',
 		justifyContent: 'flex-start',
 		alignItems: 'center'
 	},
 	title: {
-		marginTop: 80,
-		paddingVertical: 5,
+		marginTop: 45,
     	fontSize: 34,
-    	color: '#08d9d6',
+    	color: COLORS.PRIMARY,
     	fontWeight: '700',
   	},
 	form: {
@@ -84,6 +81,6 @@ const styles = StyleSheet.create({
 		top: 45,
 		left: 20,
 		fontSize: 35, 
-		color: '#08d9d6', 
+		color: COLORS.SECONDARY, 
 	}
 });

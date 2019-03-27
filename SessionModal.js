@@ -4,6 +4,7 @@ import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { MapView, AppLoading} from 'expo';
+import COLORS from './Colors';
 
 export class SessionModal extends Component {
 	
@@ -316,7 +317,7 @@ export class SessionModal extends Component {
   	renderAccept(){
 		var userKey = firebase.auth().currentUser.uid;	
 		if(this.state.acceptSessions.length == 0){
-			return (<Text style={styles.navText} >No Upcoming Sessions</Text>);
+			return (<Text style={styles.navText} >None</Text>);
 		} 	
 	    var acceptList = this.state.acceptSessions.map(function(session){
 
@@ -350,7 +351,7 @@ export class SessionModal extends Component {
   	renderPending(){
 		var userKey = firebase.auth().currentUser.uid;
 		if(this.state.pendingSessions.length == 0){
-			return (<Text style={styles.navText}>No Pending Sessions</Text>);
+			return (<Text style={styles.navText}>None</Text>);
 		} 
   		var pendingList = this.state.pendingSessions.map(function(session){
 
@@ -443,10 +444,10 @@ export class SessionModal extends Component {
 				var navBar = (
 					<View style={styles.navigationBar}>
 						<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({currentTab: 'pending'})}>
-							<Text style={styles.navText}>Awaiting Response</Text>
+							<Text style={styles.activeText}>Awaiting Responses</Text>
 						</TouchableOpacity>
 						<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'accepted'})}>
-							<Text style={styles.navText}>Upcoming Schedule</Text>
+							<Text style={styles.navText}>Upcoming Sessions</Text>
 						</TouchableOpacity>
 					</View>
 				);
@@ -462,7 +463,7 @@ export class SessionModal extends Component {
 							<Text style={styles.navText}>Awaiting Response</Text>
 						</TouchableOpacity>
 						<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({currentTab: 'accepted'})}>
-							<Text style={styles.navText}>Upcoming Schedule</Text>
+							<Text style={styles.activeText}>Upcoming Sessions</Text>
 						</TouchableOpacity>
 					</View>
 				);
@@ -477,6 +478,7 @@ export class SessionModal extends Component {
 					<Text style={styles.backButton} onPress={this.goToMap}>
               			<FontAwesome>{Icons.arrowLeft}</FontAwesome>
             		</Text>
+            		<Text style={styles.title}>Calendar</Text>
             		{navBar}
 					{content}
         		</View>
@@ -488,34 +490,45 @@ export class SessionModal extends Component {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: '#252a34',
+		backgroundColor: COLORS.WHITE,
 		flexDirection: 'column',
 		justifyContent: 'flex-start',
 		alignItems: 'center'	
 	},
+	title: {
+		marginTop: 45,
+    	fontSize: 34,
+    	color: COLORS.PRIMARY,
+    	fontWeight: '700',
+  	},
 	navigationBar: {
 		width: '100%',
 		height: 100,
 		flexDirection: 'row',
 		justifyContent: 'flex-start',
 		alignItems: 'center',
-		marginTop: 80,
+		marginTop: 5,
 	},
 	activeTab: {
 		width: '50%',
-		backgroundColor: '#08d9d6',
+		backgroundColor: COLORS.PRIMARY,
 		borderWidth: 1,
-		borderColor: '#fafafa'
+		borderColor: COLORS.SECONDARY
 	},
 	inactiveTab: {
 		width: '50%',
-		backgroundColor: '#252a34',
+		backgroundColor: COLORS.WHITE,
 		borderWidth: 1, 
-		borderColor: '#fafafa'
+		borderColor: COLORS.SECONDARY
 	},
 	navText: {
 		fontSize: 25,
-		color: '#FAFAFA',
+		color: COLORS.PRIMARY,
+		textAlign: 'center'
+	},
+	activeText: {
+		fontSize: 25,
+		color: COLORS.WHITE,
 		textAlign: 'center'
 	},
 	trainerView: {
@@ -526,29 +539,12 @@ const styles = StyleSheet.create({
   		width: '30%',
   		height: 50
   	},
-	upcomingName: {
-    	fontFamily: 'latoBold',
-    	fontSize: 34,
-    	color: '#ff2e63',
-    	fontWeight: '500',
-    	paddingVertical: 5,
-    	textAlign: 'center'
-  	},
-  	pendingName: {
-  		marginTop: 10,
-    	fontFamily: 'latoBold',
-    	fontSize: 34,
-    	color: '#08d9d6',
-    	fontWeight: '500',
-    	paddingVertical: 5,
-    	textAlign: 'center'
-  	},
   	trainerInfo: {
     	paddingVertical: 15,
     	textAlign: 'center', 
     	fontSize: 15,
     	fontWeight: '700',
-    	color: '#FAFAFA',
+    	color: COLORS.PRIMARY,
   	},
   	rateView: {
     	width: '18%',
@@ -557,20 +553,20 @@ const styles = StyleSheet.create({
   	buttonContainer: {
   		padding: 10,
     	height: 48,
-    	backgroundColor: '#08d9d6',
+    	backgroundColor: COLORS.SECONDARY,
     	flexDirection: 'column',
     	justifyContent: 'center'
   	},
   	denyContainer: {
   		padding: 10,
     	height: 48,
-    	backgroundColor: '#ff2e63',
+    	backgroundColor: COLORS.RED,
     	flexDirection: 'column',
     	justifyContent: 'center'
   	},
   	buttonText: {
     	textAlign: 'center',
-    	color: '#FAFAFA',
+    	color: COLORS.WHITE,
     	fontWeight: '700'
   	},
   	backButton: {
@@ -578,7 +574,7 @@ const styles = StyleSheet.create({
 		top: 45,
 		left: 20,
 		fontSize: 35, 
-		color: '#08d9d6', 
+		color: COLORS.SECONDARY, 
 		lineHeight: 20
 	}
 })
