@@ -28,11 +28,6 @@ export class SideMenu extends Component {
     //pull user from database and check if trainer
     let usersRef = firebase.database().ref('users');
     var user = firebase.auth().currentUser;
-    firebase.storage().ref().child(user.uid).getDownloadURL().then(function(url){
-      this.setState({image: url});
-    }.bind(this), function(error){
-      console.log(error);
-    });
     if(user){
       usersRef.orderByKey().equalTo(user.uid).once("child_added", function(snapshot) {
         var currentUser = snapshot.val();
@@ -41,13 +36,23 @@ export class SideMenu extends Component {
         if(trainerState){
           active = currentUser.active;
         }
-        this.setState({ 
-          trainerState: trainerState,
-          name: currentUser.name,
-          rating: currentUser.rating,
-          active: active
-        });
-    }.bind(this));
+        firebase.storage().ref().child(user.uid).getDownloadURL().then(function(url){
+          this.setState({
+            image: url,
+            trainerState: trainerState,
+            name: currentUser.name,
+            rating: currentUser.rating,
+            active: active,
+          });
+        }.bind(this), function(error){
+          this.setState({
+            trainerState: trainerState,
+            name: currentUser.name,
+            rating: currentUser.rating,
+            active: active
+          });
+        }.bind(this));
+      }.bind(this));
     }
 	}
 
@@ -97,10 +102,10 @@ export class SideMenu extends Component {
           </TouchableOpacity>
         );
       }
-      if(this.state.image != 'null' || this.state.image != null){
+      if(this.state.image != 'null'){
         var imageHolder = (<View style={styles.imageContainer}><Image style={styles.image} source={{ uri: this.state.image }} /></View>);
       }else{
-        var imageHolder = (<View style={styles.imageContainer}><Image style={styles.image} source={{ uri: profileImage }} /></View>);
+        var imageHolder = (<View style={styles.imageContainer}><Image style={styles.image} source={profileImage} /></View>);
       }
     	return(
     		<View style={styles.container}>
@@ -187,11 +192,11 @@ const styles = StyleSheet.create({
   imageContainer: {
     height: 80,
     width: 80,
-    borderRadius: 50
+    borderRadius: 40
   },
   image: {
     height: 80,
     width: 80,
-    borderRadius: 50
+    borderRadius: 40
   }
 });

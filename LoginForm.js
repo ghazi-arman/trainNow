@@ -38,6 +38,12 @@ export class LoginForm extends Component {
 		var uname = this.state.email;
 		var pw = this.state.password;
 
+		//Gym Owner Sign up Link
+		if(uname.toLowerCase() == 'owner signup'){
+			Actions.reset('ownersignup');
+			return;
+		}
+
 		// email check
 		if(!uname.length) {
 			Alert.alert("Please enter email!");		
@@ -52,16 +58,27 @@ export class LoginForm extends Component {
 
 		// Check email and password here
 		firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-		firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password).then(function() {
-			Actions.reset('map');
+		firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password).then(function(snapshot) {
+			var usersRef = firebase.database().ref('users');
+			usersRef.orderByKey().equalTo(snapshot.uid).once("child_added", function(data) {
+	   			var currentUser = data.val();
+				if(currentUser.owner && !currentUser.pending){
+					Actions.owner({gym: currentUser.gym});
+				}else if(currentUser.owner && currentUser.pending){
+					Alert.alert('Your account is pending');
+				}else if(currentUser.trainer){
+					Actions.reset('modal');
+				}else{
+					Actions.reset('map');
+				}
+			});
 		}.bind(this)).catch(function(error) {
-
 			//Authentication Error check
 			var errorCode = error.code;
 			var errorMessage = error.message;
-			if (errorCode === 'auth/wrong-password') {
+			if(errorCode === 'auth/wrong-password') {
 				Alert.alert('Wrong password.');
-			} 
+			}
 		}.bind(this));
 
 	}

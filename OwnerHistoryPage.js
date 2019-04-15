@@ -8,7 +8,7 @@ import {AccountForm} from './AccountForm';
 import { Actions } from 'react-native-router-flux';
 import COLORS from './Colors';
 
-export class HistoryPage extends Component {
+export class OwnerHistoryPage extends Component {
 
 	constructor(props) {
 		super(props);
@@ -27,8 +27,7 @@ export class HistoryPage extends Component {
 		Expo.Font.loadAsync({
 		  fontAwesome: require('./fonts/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf'),
 		});
-		var user = firebase.auth().currentUser;
-		this.loadSessions(user.uid);
+		this.loadSessions(this.props.userKey);
 	}
 
 	loadSessions(userKey){
@@ -46,7 +45,7 @@ export class HistoryPage extends Component {
 
     //go to map
     goToMap(){
-    	Actions.map();
+    	Actions.pop();
     }
 
     //Convert Date to readable format
@@ -96,7 +95,7 @@ export class HistoryPage extends Component {
   		var reportRef = firebase.database().ref('reportSessions');
     	var user = firebase.auth().currentUser;
     	var reason = this.state.report;
-    	if(user.uid  == session.trainee){
+    	if(this.props.userKey  == session.trainee){
     		var reporter = session.trainee;
     	}else{
     		var reporter = session.trainer;
@@ -114,7 +113,6 @@ export class HistoryPage extends Component {
 	renderSessions(){
 		var sessions = this.state.sessions;
 		sessions.sort(function(a, b){ return (new Date(b.start) - new Date(a.start))});
-		var user = firebase.auth().currentUser.uid;
 		var sessionsList = sessions.map(function(session){
 
 	       	var startDate = this.dateToString(session.start);
@@ -124,7 +122,7 @@ export class HistoryPage extends Component {
 			var rate = (parseInt(minutes) * (parseInt(session.rate) / 60)).toFixed(2);
 			var payout = (parseFloat(rate) - (parseFloat(rate) * .2)).toFixed(2);
 
-			if(session.trainee == user){
+			if(session.trainee == this.props.userKey){
 				var rateView = (<View style={styles.sessionRow}><Text style={styles.smallText}>${rate}</Text></View>);
 				var client = (<Text style={styles.titleText}>Trained by {session.trainerName}</Text>);
 				var stars = this.renderStars(session.traineeRating);

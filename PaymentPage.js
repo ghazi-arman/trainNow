@@ -118,17 +118,13 @@ export class PaymentPage extends Component {
 		    });
 		    const data = await res.json();
 		    data.body = JSON.parse(data.body);
-		    if(data.body.message == "Success"){
-		    	if(data.body.cards === undefined){
-		    		return [];
-		    	}
+		    if(data.body.message == "Success" && data.body.cards !== undefined){
 		    	return data.body.cards.data;
-		    }else{
-		    	Alert.alert('There was an error. Please try again');
 		    }
 		}catch(error){
-			Alert.alert('There was an error. Please try again');
+			console.log(error);
 		}
+		return [];
 	}
 
 	async deleteCard(stripeId, cardId, index){
@@ -214,14 +210,14 @@ export class PaymentPage extends Component {
 			const data = await res.json();
 		    data.body = JSON.parse(data.body);
 		    if(data.body.message = "Success"){
-		    	var result = data.body.balance.available[0].amount + data.body.balance.pending[0].amount;
-		    	return result;
-		    }else{
-		    	Alert.alert('There was an error. Please try again.');
-		    	return 0;
+		    	var result = 0;
+		    	if(data.body.balance !== undefined){
+		    		return data.body.balance.available[0].amount + data.body.balance.pending[0].amount;;
+		    	}
 		    }
+		    return 0;
 		}catch(error) {
-			Alert.alert('Could not connect to stripe. Try again later.');
+			console.log(error);
 			return 0;
 		}
 	}
@@ -310,8 +306,13 @@ export class PaymentPage extends Component {
 			var stripeButton;
 			var payoutText;
 			if(this.state.user.trainer){
-				var balanceFormatted = (parseInt(this.state.balance) / 100).toFixed(2);
-				balanceDiv = (<Text style={styles.buttonText}>${balanceFormatted}</Text>);
+				console.log(this.state.balance);
+				if(this.state.balance == 0){
+					var balanceFormatted = "0.00"
+				}else{
+					var balanceFormatted = (parseInt(this.state.balance) / 100).toFixed(2);
+				}
+				balanceDiv = (<Text style={styles.balanceText}>${balanceFormatted}</Text>);
 				payoutText = (<Text style={{fontSize: 20, textAlign: 'center', color: COLORS.PRIMARY, marginTop: 10}}>Funds will be transfered daily</Text>);
 			}
 			return (
@@ -385,6 +386,11 @@ const styles = StyleSheet.create({
 	buttonText: {
 		fontSize: 30,
 		color: '#f6f5f5',
+		textAlign: 'center'
+	},
+	balanceText: {
+		fontSize: 30,
+		color: COLORS.SECONDARY,
 		textAlign: 'center'
 	},
 	button: {

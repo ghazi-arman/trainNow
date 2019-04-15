@@ -3,6 +3,7 @@ import { Platform, StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, D
 import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
 import { AppLoading} from 'expo';
+import COLORS from './Colors';
 
 export class BookModal extends Component {
 	
@@ -177,14 +178,13 @@ export class BookModal extends Component {
 	              		<Text style={styles.trainerName}>{this.state.trainer.name}</Text>
 	            	</View>
 					<View style={styles.formContainer}>
-			            <Text style={styles.bookDetails}>{this.props.gym.name}</Text>
 			            <View style={styles.inputRow}>
 			            <Text style ={styles.bookFormLabel}>Session Time</Text>
 			            <View style={styles.datePickerHolder}>
 				            <DatePickerIOS
 				                mode='time'
-				                itemStyle={{color: '#08d9d6'}}
-				                textColor='#08d9d6'
+				                itemStyle={{color: COLORS.PRIMARY}}
+				                textColor={COLORS.PRIMARY}
 				                style={styles.datepicker}
 				                minuteInterval={5}
 				                minimumDate={new Date(new Date().getTime())}
@@ -197,7 +197,7 @@ export class BookModal extends Component {
 			              <Text style ={styles.bookFormLabel}>Session Duration</Text>
 			              <Picker
 			                style={styles.picker}
-			                itemStyle={{height: 70, color: '#08d9d6'}}
+			                itemStyle={{height: 70, color: COLORS.PRIMARY}}
 			                selectedValue={this.state.bookDuration}
 			                onValueChange={(itemValue, itemIndex) => this.setState({bookDuration: itemValue})}>
 			                <Picker.Item label='60' value='60' />
@@ -220,16 +220,16 @@ export class BookModal extends Component {
 
 const styles = StyleSheet.create({
 	modal: {
-		flex: .9,
+		flex: .8,
 		flexDirection: 'column',
 		justifyContent: 'flex-start',
 		alignItems: 'center',
-		backgroundColor: '#252a34',
+		backgroundColor: COLORS.WHITE,
 		borderRadius: 10,
 	},
 	trainerName: {
     	fontSize: 30,
-    	color: '#FAFAFA',
+    	color: COLORS.WHITE,
     	fontWeight: '500'
   	},
 	nameContainer: {
@@ -237,22 +237,17 @@ const styles = StyleSheet.create({
 	    width: '100%',
 	    borderTopLeftRadius: 10,
 	    borderTopRightRadius: 10,
-	    backgroundColor: '#08d9d6',
+	    backgroundColor: COLORS.PRIMARY,
 	    flexDirection: 'column',
 	    justifyContent: 'center',
 	    alignItems: 'center'
-  	},
-	bookDetails:{
-    	fontSize: 20,
-    	fontWeight: '500',
-    	color: '#ff2e63'
   	},
   	bookFormLabel: {
     	fontSize: 20,
     	fontWeight: '500',
     	width: '33%',
     	textAlign: 'center',
-    	color: '#08d9d6'
+    	color: COLORS.PRIMARY
   	},
   	formContainer: {
 		flexDirection: 'column',
@@ -268,17 +263,17 @@ const styles = StyleSheet.create({
 	datepicker: {
 		height: 200,
 		borderWidth: 1,
-		borderColor: '#ff2e63',
+		borderColor: COLORS.PRIMARY,
 	},
 	picker: {
 		height: 70,
 		borderWidth: 1,
-		borderColor: '#ff2e63',
+		borderColor: COLORS.PRIMARY,
 		width: '65%',
 	},
 	bookButton: {
     	paddingVertical: 15,
-    	backgroundColor: '#ff2e63',
+    	backgroundColor: COLORS.SECONDARY,
     	width: '70%',
     	marginTop: 10
   	},
@@ -291,7 +286,7 @@ const styles = StyleSheet.create({
 	},
   	buttonText: {
     	textAlign: 'center',
-    	color: '#FAFAFA',
+    	color: COLORS.WHITE,
     	fontWeight: '700'
   	}
 })

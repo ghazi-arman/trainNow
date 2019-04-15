@@ -66,6 +66,7 @@ export class CardModal extends Component {
 				    });
 				}else{
 					Alert.alert('There was an error adding the card. Please check the info and try again.');
+					return;
 				}
 		      	this.props.hide();
 		    } catch(error){
@@ -83,18 +84,19 @@ export class CardModal extends Component {
 					})
 					const data = await res.json();
 					data.body = JSON.parse(data.body);
+					console.log(data.body);
 					if(data.body.message == 'Success'){
 						var userRef = firebase.database().ref('users');
 					    userRef.child(user.uid).update({
 					    	cardAdded: true
 					    });
 					}else{
-						Alert.alert('There was an error adding the card. Please check the info and try again.');
-
+						Alert.alert('There was an error. Please check the info and make sure it is a debit card before trying again.');
+						return;
 					}
 					this.props.hide();
 				} catch(error){
-					Alert.alert('There was an error adding the card. Please try again.');
+					Alert.alert('There was an error adding the card. Please check the info and make sure it is a debit card before trying again.');
 				}
 			}else{
 				try {
@@ -114,6 +116,7 @@ export class CardModal extends Component {
 					    });
 					}else{
 						Alert.alert('There was an error adding the card. Please check the info and try again.');
+						return;
 					}
 					this.props.hide();
 				} catch(error){

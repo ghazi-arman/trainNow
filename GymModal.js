@@ -5,6 +5,8 @@ import { MapView, AppLoading} from 'expo';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 console.ignoredYellowBox = ['Setting a timer'];
 const markerImg = require('./images/marker.png');
+const loadingGif = require('./images/loading.gif');
+const profileImg = require('./images/profile.png');
 import COLORS from './Colors';
 
 export class GymModal extends Component {
@@ -37,6 +39,9 @@ export class GymModal extends Component {
   		Object.keys(gym.trainers).map(function(key, index){
 	    	firebase.storage().ref().child(key).getDownloadURL().then(function(url) { 
 	   			gym.trainers[key].uri = url;
+	   			this.setState({gym: gym});
+	   		}.bind(this), function(error) {
+	   			gym.trainers[key].uri = 'null';
 	   			this.setState({gym: gym});
 	   		}.bind(this));
 	    }.bind(this));
@@ -103,11 +108,11 @@ export class GymModal extends Component {
 	        }
 
 	        if(trainer.uri === undefined){
-	        	var imageHolder = (<View style={styles.imageContainer}><Image source={require('./loading.gif')} style={styles.imageHolder} /></View>);
-
+	        	var imageHolder = (<View style={styles.imageContainer}><Image source={loadingGif} style={styles.imageHolder} /></View>);
+	        }else if(trainer.uri == 'null'){
+	        	var imageHolder = (<View style={styles.imageContainer}><Image source={profileImg} style={styles.imageHolder} /></View>);
 	        }else{
 	        	var imageHolder = (<View style={styles.imageContainer}><Image source={{ uri: trainer.uri }} style={styles.imageHolder} /></View>);
-
 	        }
 
 	        var infoArea;
@@ -133,8 +138,10 @@ export class GymModal extends Component {
 		          		{imageHolder}
 		            	<View style={styles.trainerInfoContainer}>
 		              		<Text style={styles.trainerName}>{trainer.name}</Text>
-		              		<Text style={styles.icon}>{this.renderStars(trainer.rating)}</Text>
-		              		{activeField}
+		              		<View style={styles.ratingContainer}>
+			              		<Text style={styles.icon}>{this.renderStars(trainer.rating)}</Text>
+			              		{activeField}
+			              	</View>
 		            	</View>
 		          	</View>
 		          	{infoArea}
@@ -223,25 +230,28 @@ const styles = StyleSheet.create({
   		width: '100%'
   	},
   	trainersContainer: {
-  		height: '65%',
+  		height: '60%',
   		width: '95%',
   		flexDirection: 'row',
   		justifyContent: 'center',
-  		paddingLeft: 27
+  		paddingLeft: 22
   	},
   	trainerContainer: {
-  		backgroundColor: '#f6f5f5',
+  		backgroundColor: COLORS.WHITE,
   		width: '95%',
+  		minHeight: 100,
   		flexDirection: 'column',
   		justifyContent: 'center',
   		alignItems: 'center',
   		borderRadius: 5,
+  		borderWidth: 1,
+  		borderColor: COLORS.PRIMARY,
 	   	marginTop: 10
   	},
   	trainerRow: {
   		width: '90%',
 	    flexDirection: 'row',
-	    justifyContent: 'flex-start',
+	    justifyContent: 'center',
 	    alignItems: 'center',
 	    marginTop: 10,
   	},
@@ -258,8 +268,8 @@ const styles = StyleSheet.create({
   	info: {
   		fontSize: 16,
     	fontWeight: '500',
-    	color: 'black',
-    	margin: 10
+    	color: COLORS.PRIMARY,
+    	margin: 5
   	},
   	buttonRow: {
   		width: '100%',
@@ -268,23 +278,29 @@ const styles = StyleSheet.create({
   		marginTop: 10
   	},
   	imageContainer: {
-		width: "40%",
+		width: 90,
+		height:90,
+		borderRadius: 45,
 		flexDirection: 'row',
 		justifyContent: 'center',
 		alignItems: 'center',
 	},
 	imageHolder: {
-		width: 70,
-		height: 70,
-		borderWidth: 1,
-		borderColor: COLORS.PRIMARY,
+		width: 90,
+		height: 90,
+		borderRadius: 45
 	},
   	trainerInfoContainer:{
     	width: '60%',
     	flexDirection: 'column',
     	justifyContent: 'space-around',
     	alignItems: 'center',
-    	height: 80
+    	minHeight: 100,
+  	},
+  	ratingContainer: {
+  		flexDirection: 'column',
+  		justifyContent: 'flex-start',
+  		alignItems: 'center'
   	},
   	trainerName: {
     	fontSize: 22,

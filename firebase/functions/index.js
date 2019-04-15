@@ -69,7 +69,6 @@ function createTrainer(req, res) {
     const body = JSON.parse(req.body);
     const email = body.email;
     const phone = body.phone;
-    const id = body.id;
     const lastName = body.lastName;
     const firstName = body.firstName;
     const token = body.token;
@@ -120,6 +119,89 @@ function createTrainer(req, res) {
         send(res, 200, {
             message: 'Success',
             trainer: trainer
+        });
+        return;
+    }).catch(err => {
+        console.log(err);
+        send(res, 500, { error: err.message });
+    });
+}
+
+function createOwner(req, res) {
+    const body = JSON.parse(req.body);
+    const email = body.email;
+    const phone = body.phone;
+    const lastName = body.lastName;
+    const firstName = body.firstName;
+    const company = body.company;
+    const ssnToken = body.ssnToken;
+    const taxToken = body.taxToken;
+    const day = body.day;
+    const month = body.month;
+    const year = body.year;
+    const line1 = body.line1;
+    const city = body.city;
+    const zip = body.zip;
+    const state = body.state;
+    const country = body.country;
+
+    //Create token and charge
+    stripe.accounts.create({ 
+        type: 'custom',
+        country: 'US',
+        email: email,
+        requested_capabilities: ['card_payments'],
+        business_type: 'company',
+        business_profile: {
+            product_description: 'Gym',
+            mcc: 7298
+        },
+        company: {
+            name: company,
+            tax_id: taxToken,
+            phone: phone,
+            address: {
+                line1: line1,
+                city: city,
+                postal_code: zip,
+                state: state,
+                country: country,
+            }
+        },
+        tos_acceptance: {
+            date: new Date(),
+            ip: req.ip,
+        }
+    }).then(trainer => {
+        return Promise.all([trainer.id,
+            stripe.accounts.createPerson(trainer.id, 
+            {
+                first_name: firstName,
+                last_name: lastName,
+                email: email,
+                phone: phone,
+                relationship: {
+                    owner: true,
+                    account_opener: true
+                },
+                id_number: ssnToken,
+                dob: {
+                    day: day,
+                    month: month,
+                    year: year
+                },
+                address: {
+                    line1: line1,
+                    city: city,
+                    postal_code: zip,
+                    state: state,
+                },
+            })
+        ]);
+    }).then(results => {
+        send(res, 200, {
+            message: 'Success',
+            trainer: results[1]
         });
         return;
     }).catch(err => {
@@ -426,6 +508,18 @@ app.post('/stripe/createTrainer', (req, res) => {
     //Catch any unexpected errors to prevent crashing
     try {
         createTrainer(req, res);
+    } catch(e) {
+        console.log(e);
+        send(res, 500, {
+            error: JSON.stringify(e)
+        });
+    }   
+});
+
+app.post('/stripe/createOwner', (req, res) => {
+    //Catch any unexpected errors to prevent crashing
+    try {
+        createOwner(req, res);
     } catch(e) {
         console.log(e);
         send(res, 500, {

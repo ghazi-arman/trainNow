@@ -13,6 +13,9 @@ import {SessionModal} from './SessionModal';
 import {PaymentPage} from './PaymentPage';
 import {ClientPage} from './ClientPage';
 import {TrainerPage} from './TrainerPage';
+import {OwnerPage} from './OwnerPage';
+import {OwnerSignup} from './OwnerSignup';
+import {OwnerHistoryPage} from './OwnerHistoryPage';
 
 export class Routes extends Component {
 	render() {
@@ -31,6 +34,9 @@ export class Routes extends Component {
 			    	<Scene key="payment" component={PaymentPage} title="PaymentPage" />
 			    	<Scene key="clients" component={ClientPage} title="ClientPage" />
 			    	<Scene key="trainers" component={TrainerPage} title="TrainerPage" />
+			    	<Scene key="owner" component={OwnerPage} title="OwnerPage" />
+			    	<Scene key="ownersignup" component={OwnerSignup} title="OwnerSignup" />
+			    	<Scene key="ownerhistory" component={OwnerHistoryPage} title="OwnerHistoryPage" />
  			    </Stack>
 			</Router>
 		);
