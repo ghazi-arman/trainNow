@@ -132,11 +132,6 @@ export class ManagedSideMenu extends Component {
                 <FontAwesome>{Icons.calendar}</FontAwesome> <Text style={styles.menuLink}> Calendar</Text>
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => Actions.history()}>
-            <Text style={styles.icon}>
-                <FontAwesome>{Icons.list}</FontAwesome> <Text style={styles.menuLink}> History</Text>
-            </Text>
-          </TouchableOpacity>
           {clientLink}
           <TouchableOpacity onPress={this.logout}>
             <Text style={styles.icon}>

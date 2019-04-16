@@ -4,6 +4,7 @@ import {Permissions, Location, Font, AppLoading, MapView} from 'expo';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { Actions } from 'react-native-router-flux';
+import COLORS from './Colors';
 
 
 export class RatingPage extends Component {
@@ -227,16 +228,16 @@ const styles = StyleSheet.create({
 	bookDetails:{
     	fontSize: 25,
     	fontWeight: '500',
-    	color: '#FAFAFA'
+    	color: COLORS.PRIMARY
   	},
   	header: {
   		fontSize: 35,
   		fontWeight: '700',
-  		color: '#08d9d6'
+  		color: COLORS.PRIMARY
   	},
 	container: {
 		flex: 1,
-		backgroundColor: '#252a34',
+		backgroundColor: COLORS.WHITE,
 		flexDirection: 'column',
 		justifyContent: 'space-around',
 		alignItems: 'center'
@@ -264,17 +265,17 @@ const styles = StyleSheet.create({
   		alignItems: 'center',
   	},	
 	buttonContainer: {
-		backgroundColor: '#ff2e63',
+		backgroundColor: COLORS.SECONDARY,
 		paddingVertical: 15,
 		width: '100%'
 	},
 	buttonText: {
 		textAlign: 'center',
-		color: '#FAFAFA',
+		color: COLORS.WHITE,
 		fontWeight: '700'
 	},
 	icon: {
-  		color: '#08d9d6',
+  		color: COLORS.SECONDARY,
 		fontSize: 35,
   	}
 });

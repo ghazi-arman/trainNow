@@ -45,7 +45,8 @@ export class OwnerPage extends Component {
 			var gym = snapshot.val();
 			console.log(gym.stripeId);
 			var cards = await this.loadTrainerCards(gym.stripeId);
-	   		this.setState({gym: gym, pendingTrainers: gym.pendingtrainers, trainers: gym.trainers, cards: cards});
+			var balance = await this.getBalance(gym.stripeId);
+	   		this.setState({gym: gym, pendingTrainers: gym.pendingtrainers, trainers: gym.trainers, cards: cards, balance: balance});
       	}.bind(this));
   	}
 
@@ -69,6 +70,30 @@ export class OwnerPage extends Component {
 			console.log(error);
 		}
 		return [];
+	}
+
+	async getBalance(stripeId){
+		try {
+			var user = firebase.auth().currentUser;
+			const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/getBalance/', {
+				method: 'POST',
+				body: JSON.stringify({
+					id: stripeId,
+				}),
+			});
+			const data = await res.json();
+		    data.body = JSON.parse(data.body);
+		    if(data.body.message = "Success"){
+		    	var result = 0;
+		    	if(data.body.balance !== undefined){
+		    		return data.body.balance.available[0].amount + data.body.balance.pending[0].amount;;
+		    	}
+		    }
+		    return 0;
+		}catch(error) {
+			console.log(error);
+			return 0;
+		}
 	}
 
 	async deleteTrainerCard(stripeId, cardId, index){
@@ -138,13 +163,13 @@ export class OwnerPage extends Component {
   	}
 
   	async acceptTrainer(trainerKey) {
-  		await firebase.database().ref('users').child(trainerKey).update({pending: false});
+  		await firebase.database().ref('users').child(trainerKey).update({pending: false, stripeId: this.state.gym.stripeId});
   		await firebase.database().ref('/gyms/' + this.props.gym + '/pendingtrainers/').child(trainerKey).once("value", function(snapshot){
   			firebase.database().ref('/gyms/' + this.props.gym + '/trainers/').child(trainerKey).set(snapshot.val());
   		}.bind(this));
   		await firebase.database().ref('/gyms/' + this.props.gym + '/pendingtrainers/').child(trainerKey).remove();
   		delete this.state.pendingTrainers[trainerKey];
-  		this.forceUpdate();
+  		this.loadGym(this.props.gym);
   	}
 
 	renderPending(){
@@ -157,10 +182,10 @@ export class OwnerPage extends Component {
 				<View key={trainer.name} style={styles.traineeRow}>
 					<Text style={{width: 120}}>{trainer.name}</Text>
 					<TouchableOpacity style={styles.denyButton} onPress={() => this.denyTrainer(key)}> 
-						<Text><FontAwesome>{Icons.close}</FontAwesome> Deny</Text>
+						<Text style={styles.buttonText}><FontAwesome>{Icons.close}</FontAwesome> Deny</Text>
 					</TouchableOpacity>
 					<TouchableOpacity style={styles.requestButton} onPress={() => this.acceptTrainer(key)}> 
-						<Text><FontAwesome>{Icons.check}</FontAwesome> Accept</Text>
+						<Text style={styles.buttonText}><FontAwesome>{Icons.check}</FontAwesome> Accept</Text>
 					</TouchableOpacity>
 				</View>
 			);
@@ -178,10 +203,10 @@ export class OwnerPage extends Component {
 				<View key={trainer.name} style={styles.traineeRow}>
 					<Text style={{width: 120}}>{trainer.name}</Text>
 					<TouchableOpacity style={styles.denyButton} onPress={() => this.deleteTrainer(key)}> 
-						<Text><FontAwesome>{Icons.close}</FontAwesome> Remove</Text>
+						<Text style={styles.buttonText}><FontAwesome>{Icons.close}</FontAwesome> Remove</Text>
 					</TouchableOpacity>
 					<TouchableOpacity style={styles.requestButton} onPress={() => Actions.ownerhistory({userKey: key})}> 
-						<Text><FontAwesome>{Icons.calendar}</FontAwesome> History</Text>
+						<Text style={styles.buttonText}><FontAwesome>{Icons.calendar}</FontAwesome> History</Text>
 					</TouchableOpacity>
 				</View>
 			);
@@ -277,6 +302,11 @@ export class OwnerPage extends Component {
 	            	</View>
 				);
 			}
+			if(this.state.balance == 0){
+				var balanceFormatted = "0.00"
+			}else{
+				var balanceFormatted = (parseInt(this.state.balance) / 100).toFixed(2);
+			}
 			return (
 				<View style = {styles.container}>
 					<Text style={styles.backButton} onPress={this.logout}>
@@ -285,12 +315,14 @@ export class OwnerPage extends Component {
 	            	<Text style={styles.title}>Trainers</Text>
 					{navBar}
 					{content}
+					<Text style={styles.balanceText}>${balanceFormatted}</Text>
 					<View style={styles.cardHolder}>
 						{this.renderCards()}
 					</View>
 					<TouchableOpacity style={styles.button} onPress={() => this.setState({cardModal: true})}>
-						<Text style={styles.buttonText}><FontAwesome>{Icons.creditCard}</FontAwesome> Add Card </Text>
+						<Text style={styles.largeText}><FontAwesome>{Icons.creditCard}</FontAwesome> Add Card </Text>
 					</TouchableOpacity>
+					<Text style={{fontSize: 20, textAlign: 'center', color: COLORS.PRIMARY, marginTop: 10}}>Funds will be transfered daily</Text>
 					<Modal
 						isVisible={this.state.cardModal}
 						onBackdropPress={this.hideCardModal}>
@@ -312,7 +344,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	trainerContainer: {
-		flex: 0.4,
+		flex: 0.5,
 		width: '90%',
 		flexDirection: 'column',
 		alignItems: 'center',
@@ -325,8 +357,8 @@ const styles = StyleSheet.create({
     	fontWeight: '700',
   	},
   	cardHolder: {
-		flex: 0.3,
-		marginTop: 20,
+		flex: 0.2,
+		marginTop: 10,
 		backgroundColor: '#f6f5f5',
 		width: '90%',
 		borderRadius: 10,
@@ -374,6 +406,12 @@ const styles = StyleSheet.create({
 		color: COLORS.PRIMARY,
 		textAlign: 'center'
 	},
+	balanceText: {
+		fontSize: 30,
+		marginTop: 15,
+		color: COLORS.PRIMARY,
+		textAlign: 'center'
+	},
 	activeText: {
 		fontSize: 25,
 		color: COLORS.WHITE,
@@ -410,6 +448,11 @@ const styles = StyleSheet.create({
 		height: 30
 	},
 	buttonText: {
+		fontSize: 15,
+		color: COLORS.WHITE,
+		textAlign: 'center'
+	},
+	largeText: {
 		fontSize: 30,
 		color: COLORS.WHITE,
 		textAlign: 'center'

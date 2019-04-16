@@ -77,13 +77,13 @@ export class BookModal extends Component {
 	    	return;
 	    }
 
-	    if(!this.state.trainer.cardAdded){
+	    if(!this.state.trainer.cardAdded && !this.state.trainer.type == 'managed'){
 	    	Alert.alert('This trainer has not added a payment method yet.');
 	    	return;
 	    }
 
-	    if(user.uid == this.state.trainer.key){
-	      Alert.alert('You cannot book yourself as a Trainer!');
+	    if(this.state.user.trainer){
+	      Alert.alert('Sign into a non-trainer account to book sessions.');
 	      return;
 
 	    }else if(this.state.trainer.active == false){

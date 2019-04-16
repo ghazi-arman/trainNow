@@ -79,6 +79,7 @@ export class LoginForm extends Component {
 			if(errorCode === 'auth/wrong-password') {
 				Alert.alert('Wrong password.');
 			}
+			Alert.alert('There was a problem logging in. Check your connection and try again.')
 		}.bind(this));
 
 	}

@@ -6,6 +6,7 @@ import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { Actions } from 'react-native-router-flux';
 import geolib from 'geolib';
 console.ignoredYellowBox = ['Setting a timer'];
+import COLORS from './Colors';
 
 export class SessionPage extends Component {
 
@@ -103,16 +104,29 @@ export class SessionPage extends Component {
 		if(this.state.session.trainer == user.uid){
 			if(this.state.session.traineeEnd){
 				sessionRef.update({trainerEnd: true, end: new Date()});
+				sessionRef.once('value', function(snapshot){
+					var session = snapshot.val();
+					if(!session.paid){
+						this.charge(this.state.session.traineeStripe, this.state.session.trainerStripe, rate, rate - payout);
+						sessionRef.update({paid: true});
+					}
+				}.bind(this));
 				Actions.rating({session: this.state.session.key});
-				this.charge(this.state.session.traineeStripe, this.state.session.trainerStripe, rate, rate - payout);
+
 			}else{
 				sessionRef.update({trainerEnd: true});
 			}
 		}else{
 			if(this.state.session.trainerEnd){
 				sessionRef.update({traineeEnd: true, end: new Date()});
+				sessionRef.once('value', function(snapshot){
+					var session = snapshot.val();
+					if(!session.paid){
+						this.charge(this.state.session.traineeStripe, this.state.session.trainerStripe, rate, rate - payout);
+						sessionRef.update({paid: true});
+					}
+				}.bind(this));
 				Actions.rating({session: this.state.session.key});
-				this.charge(this.state.session.traineeStripe, this.state.session.trainerStripe, rate, rate - payout);
 			}else{
 				sessionRef.update({traineeEnd: true});
 			}
@@ -313,23 +327,23 @@ const styles = StyleSheet.create({
 	bookDetails:{
     	fontSize: 18,
     	fontWeight: '500',
-    	color: '#FAFAFA'
+    	color: ''
   	},
   	smallText:{
   		marginTop: 5,
   		fontSize: 15,
   		fontWeight: '300',
-  		color: '#08d9d6',
+  		color: COLORS.SECONDARY,
   		textAlign: 'center'
   	},
   	header: {
   		fontSize: 30,
   		fontWeight: '700',
-  		color: '#08d9d6'
+  		color: COLORS.PRIMARY
   	},
 	container: {
 		flex: 1,
-		backgroundColor: '#252a34',
+		backgroundColor: COLORS.WHITE,
 		flexDirection: 'column',
 		justifyContent: 'space-between',
 		alignItems: 'center'
@@ -357,7 +371,7 @@ const styles = StyleSheet.create({
   		alignItems: 'center',
   	},	
 	buttonContainer: {
-		backgroundColor: '#ff2e63',
+		backgroundColor: COLORS.SECONDARY,
 		paddingVertical: 15,
 		width: '100%',
 		paddingTop: 15,
@@ -366,7 +380,7 @@ const styles = StyleSheet.create({
 	},
 	buttonText: {
 		textAlign: 'center',
-		color: '#FAFAFA',
+		color: COLORS.WHITE,
 		fontWeight: '700'
 	},
 	  	backButton: {
@@ -374,7 +388,7 @@ const styles = StyleSheet.create({
 		top: 45,
 		left: 20,
 		fontSize: 35, 
-		color: '#08d9d6', 
+		color: COLORS.SECONDARY, 
 		lineHeight: 20
 	}
 });

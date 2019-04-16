@@ -3,6 +3,7 @@ import { Platform, StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, D
 import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
 import { AppLoading} from 'expo';
+import COLORS from './Colors';
 
 export class BookModalTrainer extends Component {
 	
@@ -79,90 +80,85 @@ export class BookModalTrainer extends Component {
 	    var trainRef = firebase.database().ref('trainSessions');
 	    var price = (parseInt(this.state.user.rate) * (parseInt(this.state.bookDuration) / 60)).toFixed(2);
 
-	    if(!this.state.user.cardAdded){
+	    if(!this.state.user.cardAdded && !this.state.user.type == 'managed'){
 	    	Alert.alert('This trainer no longer has a card on file.');
 	    	return;
 	    }
 
-	    if(user.uid == this.state.user.key){
-	      Alert.alert('You cannot book yourself as a Trainer!');
-	      return;
-	    }else{
-	    	//Pull session for trainer to be booked and trainee to check for time conflicts
-	    	var user = firebase.auth().currentUser;
-	    	var sessions = [];
-	    	const trainerSessions = await trainRef.orderByChild('trainer').equalTo(user.uid).once('value', function(snapshot){
-	    		snapshot.forEach(function(child){
-	    			sessions.push(child.val());
-	    		});
-	    	}.bind(this));
+    	//Pull session for trainer to be booked and trainee to check for time conflicts
+    	var user = firebase.auth().currentUser;
+    	var sessions = [];
+    	const trainerSessions = await trainRef.orderByChild('trainer').equalTo(user.uid).once('value', function(snapshot){
+    		snapshot.forEach(function(child){
+    			sessions.push(child.val());
+    		});
+    	}.bind(this));
 
-	    	const userSessions = await trainRef.orderByChild('trainee').equalTo(this.props.client).once('value', function(snapshot){
-	    		snapshot.forEach(function(child){
-	    			sessions.push(child.val());
-	    		});
-	    	});
+    	const userSessions = await trainRef.orderByChild('trainee').equalTo(this.props.client).once('value', function(snapshot){
+    		snapshot.forEach(function(child){
+    			sessions.push(child.val());
+    		});
+    	});
 
-    		for(i = 0; i < sessions.length; i++){
-	    		var session = sessions[i];
-	    		var start2 = new Date(session.start).getTime();
-	    		var end2 = new Date(new Date(session.start).getTime() + (60000 * session.duration)).getTime();
-	    		var start1 = new Date(this.state.bookDate).getTime();
-	    		var end1 = new Date(new Date(this.state.bookDate).getTime() + (60000 * this.state.bookDuration)).getTime();
+		for(i = 0; i < sessions.length; i++){
+    		var session = sessions[i];
+    		var start2 = new Date(session.start).getTime();
+    		var end2 = new Date(new Date(session.start).getTime() + (60000 * session.duration)).getTime();
+    		var start1 = new Date(this.state.bookDate).getTime();
+    		var end1 = new Date(new Date(this.state.bookDate).getTime() + (60000 * this.state.bookDuration)).getTime();
 
-	    		if(start1 > start2 && start1 < end2 || start2 > start1 && start2 < end1){
-	    			if(session.trainee == user.uid){
-	    				Alert.alert(this.state.client.name + 'has a session at ' + this.dateToString(session.start) + ' for ' + session.duration + ' mins.');
-	    				return;
-	    			}else{
-	    				Alert.alert('You has a session at ' + this.dateToString(session.start) + ' for ' + session.duration + ' mins.');
-	    				return;
-	    			}
-	    		}
-	    	}
+    		if(start1 > start2 && start1 < end2 || start2 > start1 && start2 < end1){
+    			if(session.trainee == user.uid){
+    				Alert.alert(this.state.client.name + 'has a session at ' + this.dateToString(session.start) + ' for ' + session.duration + ' mins.');
+    				return;
+    			}else{
+    				Alert.alert('You has a session at ' + this.dateToString(session.start) + ' for ' + session.duration + ' mins.');
+    				return;
+    			}
+    		}
+    	}
 
-			Alert.alert(
-		      'Request session with ' + this.state.client.name + ' for $' + price + ' at ' + this.dateToString(this.state.bookDate),
-		      '',
-		     	[
-	        	{text: 'No'},
-	        	{text: 'Yes', onPress: async () => {
-	         	pendingRef.push({
-		          	trainee: this.props.client,
-		          	traineeName: this.state.client.name,
-		          	trainer: user.uid,
-		          	trainerName: this.state.user.name,
-		          	start: this.state.bookDate.toString(),
-		          	duration: this.state.bookDuration,
-		          	location: this.state.gym.location,
-		          	gym: this.state.gym.name,
-		          	rate: this.state.user.rate,
-		          	read: false,
-		          	traineeStripe: this.state.client.stripeId,
-		          	trainerStripe: this.state.user.stripeId,
-		          	traineePhone: this.state.client.phone,
-		          	trainerPhone: this.state.user.phone,
-		          	sentBy: 'trainer'
-	         	});
-	         	try {
-		    	  var message = this.state.user.name + " has requested a session at " + this.dateToString(this.state.bookDate) + " for " + this.state.bookDuration + " mins.";
-			      const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/twilio/sendMessage/', {
-			        method: 'POST',
-			        body: JSON.stringify({
-			          phone: this.state.client.phone,
-			          message: message
-			        }),
-			      });
-			      const data = await res.json();
-			      data.body = JSON.parse(data.body);
-			    } catch(error){
-			      console.log(error);
-			    }
-	         	this.props.hide();
-	         	setTimeout(this.props.confirm, 1000);
-	        }},
-	      	]);
-	   	}
+		Alert.alert(
+	      'Request session with ' + this.state.client.name + ' for $' + price + ' at ' + this.dateToString(this.state.bookDate),
+	      '',
+	     	[
+        	{text: 'No'},
+        	{text: 'Yes', onPress: async () => {
+         	pendingRef.push({
+	          	trainee: this.props.client,
+	          	traineeName: this.state.client.name,
+	          	trainer: user.uid,
+	          	trainerName: this.state.user.name,
+	          	start: this.state.bookDate.toString(),
+	          	duration: this.state.bookDuration,
+	          	location: this.state.gym.location,
+	          	gym: this.state.gym.name,
+	          	rate: this.state.user.rate,
+	          	read: false,
+	          	traineeStripe: this.state.client.stripeId,
+	          	trainerStripe: this.state.user.stripeId,
+	          	traineePhone: this.state.client.phone,
+	          	trainerPhone: this.state.user.phone,
+	          	sentBy: 'trainer'
+         	});
+         	try {
+	    	  var message = this.state.user.name + " has requested a session at " + this.dateToString(this.state.bookDate) + " for " + this.state.bookDuration + " mins.";
+		      const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/twilio/sendMessage/', {
+		        method: 'POST',
+		        body: JSON.stringify({
+		          phone: this.state.client.phone,
+		          message: message
+		        }),
+		      });
+		      const data = await res.json();
+		      data.body = JSON.parse(data.body);
+		    } catch(error){
+		      console.log(error);
+		    }
+         	this.props.hide();
+         	setTimeout(this.props.confirm, 1000);
+        }},
+      	]);
   	}
 
 	render(){
@@ -181,8 +177,8 @@ export class BookModalTrainer extends Component {
 			            <View style={styles.datePickerHolder}>
 				            <DatePickerIOS
 				                mode='time'
-				                itemStyle={{color: '#08d9d6'}}
-				                textColor='#08d9d6'
+				                itemStyle={{color: COLORS.PRIMARY}}
+				                textColor={COLORS.PRIMARY}
 				                style={styles.datepicker}
 				                minuteInterval={5}
 				                minimumDate={new Date(new Date().getTime())}
@@ -195,7 +191,7 @@ export class BookModalTrainer extends Component {
 			              <Text style ={styles.bookFormLabel}>Session Duration</Text>
 			              <Picker
 			                style={styles.picker}
-			                itemStyle={{height: 70, color: '#08d9d6'}}
+			                itemStyle={{height: 70, color: COLORS.PRIMARY}}
 			                selectedValue={this.state.bookDuration}
 			                onValueChange={(itemValue, itemIndex) => this.setState({bookDuration: itemValue})}>
 			                <Picker.Item label='60' value='60' />
@@ -222,12 +218,12 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		justifyContent: 'flex-start',
 		alignItems: 'center',
-		backgroundColor: '#252a34',
+		backgroundColor: COLORS.WHITE,
 		borderRadius: 10,
 	},
 	trainerName: {
     	fontSize: 30,
-    	color: '#FAFAFA',
+    	color: COLORS.WHITE,
     	fontWeight: '500'
   	},
 	nameContainer: {
@@ -235,7 +231,7 @@ const styles = StyleSheet.create({
 	    width: '100%',
 	    borderTopLeftRadius: 10,
 	    borderTopRightRadius: 10,
-	    backgroundColor: '#08d9d6',
+	    backgroundColor: COLORS.PRIMARY,
 	    flexDirection: 'column',
 	    justifyContent: 'center',
 	    alignItems: 'center'
@@ -243,14 +239,14 @@ const styles = StyleSheet.create({
 	bookDetails:{
     	fontSize: 20,
     	fontWeight: '500',
-    	color: '#ff2e63'
+    	color: COLORS.PRIMARY
   	},
   	bookFormLabel: {
     	fontSize: 20,
     	fontWeight: '500',
     	width: '33%',
     	textAlign: 'center',
-    	color: '#08d9d6'
+    	color: COLORS.PRIMARY
   	},
   	formContainer: {
 		flexDirection: 'column',
@@ -266,17 +262,17 @@ const styles = StyleSheet.create({
 	datepicker: {
 		height: 200,
 		borderWidth: 1,
-		borderColor: '#ff2e63',
+		borderColor: COLORS.PRIMARY,
 	},
 	picker: {
 		height: 70,
 		borderWidth: 1,
-		borderColor: '#ff2e63',
+		borderColor: COLORS.PRIMARY,
 		width: '65%',
 	},
 	bookButton: {
     	paddingVertical: 15,
-    	backgroundColor: '#ff2e63',
+    	backgroundColor: COLORS.SECONDARY,
     	width: '70%',
     	marginTop: 10
   	},
@@ -289,7 +285,7 @@ const styles = StyleSheet.create({
 	},
   	buttonText: {
     	textAlign: 'center',
-    	color: '#FAFAFA',
+    	color: COLORS.WHITE,
     	fontWeight: '700'
   	}
 })
