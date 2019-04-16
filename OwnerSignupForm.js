@@ -161,12 +161,12 @@ export class OwnerSignupForm extends Component {
 				}.bind(this));
 			}else{
 				this.state.pressed = false;
-				Alert.alert('There wan an error creating your stripe Account. Please review your email, address, birthday, and ssn and try again!');
+				Alert.alert('There was an error creating your stripe Account. Please review your email, address, birthday, and ssn and try again!');
 				return;
 			}
 		}catch(error) {
 			this.state.pressed = false;
-			Alert.alert('There wan an error creating your stripe Account. Please review your email, address, birthday, and ssn and try again!');
+			Alert.alert('There was an error creating your stripe Account. Please review your email, address, birthday, and ssn and try again!');
 			return;
 		}
 	}

@@ -19,7 +19,6 @@ export class PaymentPage extends Component {
 			balance: 'null',
 		}
 		this.renderCards=this.renderCards.bind(this);
-		this.getCardIcon=this.getCardIcon.bind(this);
 		this.deleteCard=this.deleteCard.bind(this);
 		this.hideCardModal=this.hideCardModal.bind(this);
 		this.hideCardModalOnAdd=this.hideCardModalOnAdd.bind(this);
@@ -34,6 +33,11 @@ export class PaymentPage extends Component {
 	    var usersRef = await firebase.database().ref('users');
 	    usersRef.orderByKey().equalTo(user.uid).on('child_added', async function(snapshot) {
 	    	var user = snapshot.val();
+	    	if(user.type == 'managed'){
+	    		Alert.alert('You do not have access to this page with a managed gym account');
+	    		Actions.reset('map');
+	    		return;
+	    	}
 	    	if(user.trainer){
 	    		var balance = await this.getBalance(user.stripeId);
 	    		var cards = await this.loadTrainerCards(user.stripeId);

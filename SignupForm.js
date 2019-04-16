@@ -25,6 +25,7 @@ export class SignupForm extends Component {
 			bio:'',
 			cert:'',
 			ssn:'',
+			birthDay:'',
 			image: 'null',
 			gyms: [],
 		}; 
@@ -39,8 +40,10 @@ export class SignupForm extends Component {
 		if(!this.state.fontLoaded){
 			this.loadFont();
 		}
-		var gyms = this.loadGyms();
-		this.setState({gyms: gyms});
+		if(!this.state.gymLoaded){
+			var gyms = this.loadGyms();
+			this.setState({gyms: gyms, gymLoaded: true});
+		}
 	}
 
 	loadFont = async () => {
@@ -104,6 +107,7 @@ export class SignupForm extends Component {
 		var pw = this.state.password;
 		var cpw = this.state.confirmPass;
 		var gym = this.state.gym;
+		var gymKey = this.state.gyms[this.state.gym].key;
 		var rate = this.state.rate;
 		var cert = this.state.cert;
 		var bio = this.state.bio;
@@ -115,93 +119,133 @@ export class SignupForm extends Component {
 			}
 		}
 		if(trainer){
-			var date = this.state.birthDay;
-			var dateSplit = date.split("/");
-			try {
-				var pii = await stripe.createToken(ssn);
-				console.log(pii);
-			}catch(error){
-				this.state.pressed = false;
-				Alert.alert('Invalid SSN entered. Please check your info and try again!');
-				return;
-			}
-			var token = pii.id;
-			var month = dateSplit[0];
-			var day = dateSplit[1];
-			var year = dateSplit[2];
-			var address = this.state.address;
-			var city = this.state.city;
-			var state = this.state.state;
-			var zip = this.state.zip;
-	    	try {
-				const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/createTrainer/', {
-					method: 'POST',
-					body: JSON.stringify({
-						line1: address,
-						city: city,
-						state: state,
-						zip: zip,
-						email: email,
-						phone: phone,
-						firstName: firstName,
-						lastName: lastName,	
-						token: token,
-						day: day,
-						month: month,
-						year: year
-					}),
-				});
-				const data = await res.json();
-			    data.body = JSON.parse(data.body);
-			    if(data.body.message == 'Success'){
-				    firebase.auth().createUserWithEmailAndPassword(this.state.email, pw)
-					.then(async function(firebaseUser) {
-						var userRef = firebase.database().ref('users');
-						var gymRef = firebase.database().ref('/gyms/' + gym + '/trainers/');
-						gymRef.child(firebaseUser.uid).set({
-							active: false,
-							bio: bio,
-							cert: cert,
-							name: name,
-							rate: rate,
-							rating: 0
-						});
-						userRef.child(firebaseUser.uid).set({
-							trainer: true,
-							name: name,
-					    	gym: gym,
-				      		cert: cert,
-				      		rate: rate,
-				      		bio: bio,
-				      		phone: phone,
-				      		active: false,
-				      		rating: 0,
-				      		sessions: 0,
-				      		stripeId: data.body.trainer.id,
-				      		cardAdded: false
-				    	});
-				    	if(uri != 'null'){
-							this.uploadImageAsync(uri, firebaseUser.uid);
-						}
-						firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password).then(function() {
-							Actions.reset('modal');
-							Alert.alert('You must enter a debit card for payouts before trainees can book a session with you!');
-						});
-					}.bind(this)).catch(function(error) {
-						var errorMessage = error.message;
+			if(this.state.gyms[gym].type == 'independent'){
+				var date = this.state.birthDay;
+				var dateSplit = date.split("/");
+				try {
+					var pii = await stripe.createToken(ssn);
+				}catch(error){
+					this.state.pressed = false;
+					Alert.alert('Invalid SSN entered. Please check your info and try again!');
+					return;
+				}
+				var token = pii.id;
+				var month = dateSplit[0];
+				var day = dateSplit[1];
+				var year = dateSplit[2];
+				var address = this.state.address;
+				var city = this.state.city;
+				var state = this.state.state;
+				var zip = this.state.zip;
+		    	try {
+					const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/createTrainer/', {
+						method: 'POST',
+						body: JSON.stringify({
+							line1: address,
+							city: city,
+							state: state,
+							zip: zip,
+							email: email,
+							phone: phone,
+							firstName: firstName,
+							lastName: lastName,	
+							token: token,
+							day: day,
+							month: month,
+							year: year
+						}),
+					});
+					const data = await res.json();
+				    data.body = JSON.parse(data.body);
+				    if(data.body.message == 'Success'){
+					    firebase.auth().createUserWithEmailAndPassword(this.state.email, pw)
+						.then(async function(firebaseUser) {
+							var userRef = firebase.database().ref('users');
+							var gymRef = firebase.database().ref('/gyms/' + gymKey + '/trainers/');
+							gymRef.child(firebaseUser.uid).set({
+								active: false,
+								bio: bio,
+								cert: cert,
+								name: name,
+								rate: rate,
+								rating: 0
+							});
+							userRef.child(firebaseUser.uid).set({
+								trainer: true,
+								type: 'independent',
+								name: name,
+						    	gym: gymKey,
+					      		cert: cert,
+					      		rate: rate,
+					      		bio: bio,
+					      		phone: phone,
+					      		active: false,
+					      		rating: 0,
+					      		sessions: 0,
+					      		stripeId: data.body.trainer.id,
+					      		cardAdded: false
+					    	});
+					    	if(uri != 'null'){
+								this.uploadImageAsync(uri, firebaseUser.uid);
+							}
+							firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password).then(function() {
+								Actions.reset('modal');
+								Alert.alert('You must enter a debit card for payouts before trainees can book a session with you!');
+							});
+						}.bind(this)).catch(function(error) {
+							var errorMessage = error.message;
+							this.state.pressed = false;
+							Alert.alert(errorMessage);
+							return;
+						}.bind(this));
+					}else{
 						this.state.pressed = false;
-						Alert.alert(errorMessage);
+						Alert.alert('There wan an error creating your stripe Account. Please review your email, address, birthday, and ssn and try again!');
 						return;
-					}.bind(this));
-				}else{
+					}
+				}catch(error) {
 					this.state.pressed = false;
 					Alert.alert('There wan an error creating your stripe Account. Please review your email, address, birthday, and ssn and try again!');
 					return;
 				}
-			}catch(error) {
-				this.state.pressed = false;
-				Alert.alert('There wan an error creating your stripe Account. Please review your email, address, birthday, and ssn and try again!');
-				return;
+			}else{
+				firebase.auth().createUserWithEmailAndPassword(this.state.email, pw)
+				.then(async function(firebaseUser) {
+					var userRef = firebase.database().ref('users');
+					var gymRef = firebase.database().ref('/gyms/' + gymKey + '/pendingtrainers/');
+					gymRef.child(firebaseUser.uid).set({
+						active: false,
+						bio: bio,
+						cert: cert,
+						name: name,
+						rate: rate,
+						rating: 0
+					});
+					userRef.child(firebaseUser.uid).set({
+						pending: true,
+						trainer: true,
+						type: 'managed',
+						name: name,
+				    	gym: gymKey,
+			      		cert: cert,
+			      		rate: rate,
+			      		bio: bio,
+			      		phone: phone,
+			      		active: false,
+			      		rating: 0,
+			      		sessions: 0,
+			    	});
+			    	if(uri != 'null'){
+						this.uploadImageAsync(uri, firebaseUser.uid);
+					}
+					Alert.alert('Your account is now pending approval. Sign in once your gym manager approves your account.');
+					Actions.reset('login');
+				}.bind(this)).catch(function(error) {
+					var errorMessage = error.message;
+					this.state.pressed = false;
+					Alert.alert(errorMessage);
+					return;
+				}.bind(this));
 			}
 		}else{
 			firebase.auth().createUserWithEmailAndPassword(this.state.email, pw)
@@ -236,10 +280,16 @@ export class SignupForm extends Component {
 			this.setState({page: 1});
 		}else if(this.state.page == 3){
 			this.setState({page: 2});
-		}else if(this.state.page == 4 && !this.state.trainer){
-			this.setState({page: 1});
 		}else{
-			this.setState({page: 3});
+			if(this.state.trainer){
+				if(this.state.gyms[this.state.gym].type == 'owner'){
+					this.setState({page: 2})
+				}else{
+					this.setState({page: 3});
+				}
+			}else{
+				this.setState({page: 1});
+			}
 		}
 	}
 
@@ -264,6 +314,7 @@ export class SignupForm extends Component {
 			}
 			if(this.state.phone.trim().length < 10){
 				Alert.alert("Please enter a valid phone number");
+				return;
 			}
 
 			var emailExists;
@@ -284,13 +335,8 @@ export class SignupForm extends Component {
 			}
 
 		}else if(this.state.page == 2){
-			
-			if(!this.state.gym.length){
+			if(this.state.gym == ''){
 				Alert.alert("Please select a gym!");
-				return;
-			}
-			if(!this.state.rate.trim().length){
-				Alert.alert("Please enter your rate!");
 				return;
 			}
 			if(!this.state.cert.length){
@@ -301,8 +347,23 @@ export class SignupForm extends Component {
 				Alert.alert("Please fill out your bio!");
 				return;
 			}
-
-			this.setState({page: 3});
+			if(this.state.gyms[this.state.gym].type == 'owner'){
+				this.setState({page: 4});
+			}else{
+				if(this.state.rate == "" || this.state.rate < 25){
+					Alert.alert("Please enter your rate (has to be $25+)!");
+					return;
+				}
+				if(!this.state.ssn.length){
+					Alert.alert("Please enter your SSN!");
+					return;
+				}
+				if(this.state.birthDay == ""){
+					Alert.alert("Please enter your birthday!");
+					return;
+				}
+				this.setState({page: 3});
+			}
 		}else{
 			if(!this.state.address){
 				Alert.alert("Please enter an address!");
@@ -441,10 +502,10 @@ export class SignupForm extends Component {
 						style={styles.picker}
 						itemStyle={{height: 45, color: COLORS.PRIMARY}}
 					  	selectedValue={this.state.gym}
-					  	onValueChange={(itemValue, itemIndex) => this.setState({gym: itemValue})}>
+					  	onValueChange={(itemValue) => this.setState({gym: itemValue})}>
 					  	<Picker.Item label="Pick a Gym (Scroll)" value= '' key='0'/>
-					  	{gyms.map(function(gym){
-					  		return (<Picker.Item label={gym.name} value={gym.key} key={gym.key}/>);
+					  	{gyms.map(function(gym, index){
+					  		return (<Picker.Item label={gym.name} value={index} key={gym.key}/>);
 					  	})}
 					</Picker>
 				</View>

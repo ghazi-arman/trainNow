@@ -2,9 +2,11 @@ import React, { Component } from 'react';
 import {Platform, StyleSheet, Text, View, Button, Image, KeyboardAvoidingView, ScrollView, TouchableOpacity, Alert} from 'react-native';
 import {Permissions, Location, ImagePicker, Font} from 'expo';
 import firebase from 'firebase';
+import Modal from 'react-native-modal';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { Actions } from 'react-native-router-flux';
 import COLORS from './Colors';
+import {OwnerCardModal} from './OwnerCardModal';
 
 export class OwnerPage extends Component {
 
@@ -13,7 +15,9 @@ export class OwnerPage extends Component {
 		this.state = {
 			gym: 'null',
 			pendingTrainers: null,
-			trainers: null
+			trainers: null,
+			cardModal: false,
+			cards: []
 		}
 		this.loadGym=this.loadGym.bind(this);
 		this.renderPending=this.renderPending.bind(this);
@@ -21,6 +25,9 @@ export class OwnerPage extends Component {
 		this.denyTrainer=this.denyTrainer.bind(this);
 		this.acceptTrainer=this.acceptTrainer.bind(this);
 		this.deleteTrainer=this.deleteTrainer.bind(this);
+		this.hideCardModal=this.hideCardModal.bind(this);
+		this.hideCardModalOnAdd=this.hideCardModalOnAdd.bind(this);
+		this.loadTrainerCards=this.loadTrainerCards.bind(this);
 	}
 
 	async componentDidMount() {
@@ -29,24 +36,95 @@ export class OwnerPage extends Component {
 		});
 		//Get user info for state
 		var user = firebase.auth().currentUser;
-	    var usersRef = await firebase.database().ref('users');
-	    usersRef.orderByKey().equalTo(user.uid).on('child_added', async function(snapshot) {
-	    	var user = snapshot.val();
-	    	this.loadGym(this.props.gym);
-	    }.bind(this));
+	    await this.loadGym(this.props.gym);
 	}
 
 	//Loads selected gyms Info from db
 	async loadGym(gymKey){
-		await firebase.database().ref('/gyms/' + gymKey).once('value', function(snapshot){
+		await firebase.database().ref('/gyms/' + gymKey).once('value', async function(snapshot){
 			var gym = snapshot.val();
-	   		this.setState({gym: gym, pendingTrainers: gym.pendingTrainers, trainers: gym.trainers});
+			console.log(gym.stripeId);
+			var cards = await this.loadTrainerCards(gym.stripeId);
+	   		this.setState({gym: gym, pendingTrainers: gym.pendingtrainers, trainers: gym.trainers, cards: cards});
       	}.bind(this));
-      	this.loadImages();
   	}
 
+  	async loadTrainerCards(stripeId){
+		if(stripeId === undefined){
+			return [];
+		}
+		try {
+	      	const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/listTrainerCards/', {
+		        method: 'POST',
+		        body: JSON.stringify({
+		          id: stripeId,
+		        }),
+		    });
+		    const data = await res.json();
+		    data.body = JSON.parse(data.body);
+		    if(data.body.message == "Success" && data.body.cards !== undefined){
+		    	return data.body.cards.data;
+		    }
+		}catch(error){
+			console.log(error);
+		}
+		return [];
+	}
+
+	async deleteTrainerCard(stripeId, cardId, index){
+		if(this.state.cards.length == 1){
+			Alert.alert("You must have at least one card on file. Add another one before deleting this card.");
+			return;
+		}
+		Alert.alert(
+	      'Are you sure you want to delete this card?', 
+	      '',
+	      [
+	        {text: 'No'},
+	        {text: 'Yes', onPress: async () => {
+				try {
+				    const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/deleteTrainerCard/', {
+				        method: 'POST',
+				        body: JSON.stringify({
+				          stripeId: stripeId,
+				          cardId: cardId
+				        }),
+				    });
+				    const data = await res.json();
+				    data.body = JSON.parse(data.body);
+				    if(data.body.message == "Success"){
+				    	var cards = await this.loadTrainerCards(stripeId);
+				    	this.setState({cards: cards});
+				    }else{
+				    	Alert.alert('There was an error. Please try again.');
+				    }
+				}catch(error){
+					Alert.alert('There was an error. Please try again.');
+				}
+			}}
+		]);
+	}
+
+	getCardIcon(brand){
+		if(brand == 'Visa'){
+			return (<FontAwesome>{Icons.ccVisa}</FontAwesome>);
+		}else if(brand == 'American Express'){
+			return (<FontAwesome>{Icons.ccAmex}</FontAwesome>);
+		}else if(brand == 'MasterCard'){
+			return (<FontAwesome>{Icons.ccMastercard}</FontAwesome>);
+		}else if(brand == 'Discover'){
+			return (<FontAwesome>{Icons.ccDiscover}</FontAwesome>);
+		}else if(brand == 'JCB'){
+			return (<FontAwesome>{Icons.ccJcb}</FontAwesome>);
+		}else if(brand == 'Diners Club'){
+			return (<FontAwesome>{Icons.ccDinersClub}</FontAwesome>);
+		}else{
+			return (<FontAwesome>{Icons.creditCard}</FontAwesome>);
+		}
+	}
+
   	async denyTrainer(trainerKey) {
-  		await firebase.database().ref('/gyms/' + this.props.gym).child('pendingTrainers').child(trainerKey).remove();
+  		await firebase.database().ref('/gyms/' + this.props.gym + '/pendingtrainers/').child(trainerKey).remove();
   		delete this.state.pendingTrainers[trainerKey];
   		this.forceUpdate();
   		Alert.alert('Trainer denied');
@@ -60,22 +138,29 @@ export class OwnerPage extends Component {
   	}
 
   	async acceptTrainer(trainerKey) {
-  		console.log(trainerKey);
+  		await firebase.database().ref('users').child(trainerKey).update({pending: false});
+  		await firebase.database().ref('/gyms/' + this.props.gym + '/pendingtrainers/').child(trainerKey).once("value", function(snapshot){
+  			firebase.database().ref('/gyms/' + this.props.gym + '/trainers/').child(trainerKey).set(snapshot.val());
+  		}.bind(this));
+  		await firebase.database().ref('/gyms/' + this.props.gym + '/pendingtrainers/').child(trainerKey).remove();
+  		delete this.state.pendingTrainers[trainerKey];
+  		this.forceUpdate();
   	}
 
 	renderPending(){
 		if(this.state.pendingTrainers == null || this.state.pendingTrainers === undefined){
 			return (<Text style={styles.navText}>None</Text>);
 		}
-		var result = Object.keys(this.state.pendingTrainers).map(function(key, trainer){
+		var result = Object.keys(this.state.pendingTrainers).map(function(key){
+			var trainer = this.state.pendingTrainers[key];
 			return(
 				<View key={trainer.name} style={styles.traineeRow}>
 					<Text style={{width: 120}}>{trainer.name}</Text>
 					<TouchableOpacity style={styles.denyButton} onPress={() => this.denyTrainer(key)}> 
-						<Text><FontAwesome>{Icons.close}</FontAwesome> Deny Trainer</Text>
+						<Text><FontAwesome>{Icons.close}</FontAwesome> Deny</Text>
 					</TouchableOpacity>
 					<TouchableOpacity style={styles.requestButton} onPress={() => this.acceptTrainer(key)}> 
-						<Text><FontAwesome>{Icons.check}</FontAwesome> Accept Trainer</Text>
+						<Text><FontAwesome>{Icons.check}</FontAwesome> Accept</Text>
 					</TouchableOpacity>
 				</View>
 			);
@@ -93,7 +178,7 @@ export class OwnerPage extends Component {
 				<View key={trainer.name} style={styles.traineeRow}>
 					<Text style={{width: 120}}>{trainer.name}</Text>
 					<TouchableOpacity style={styles.denyButton} onPress={() => this.deleteTrainer(key)}> 
-						<Text><FontAwesome>{Icons.close}</FontAwesome> Delete Trainer</Text>
+						<Text><FontAwesome>{Icons.close}</FontAwesome> Remove</Text>
 					</TouchableOpacity>
 					<TouchableOpacity style={styles.requestButton} onPress={() => Actions.ownerhistory({userKey: key})}> 
 						<Text><FontAwesome>{Icons.calendar}</FontAwesome> History</Text>
@@ -120,6 +205,36 @@ export class OwnerPage extends Component {
 	      ],
 	    );
     }
+
+    hideCardModal(){
+		this.setState({cardModal: false});
+	}
+
+	async hideCardModalOnAdd(){
+		var cards = await this.loadTrainerCards(this.state.gym.stripeId);
+		this.setState({cardModal: false, cards: cards});
+	}
+
+	renderCards(){
+		if(this.state.cards === undefined || this.state.cards.length == 0){
+			return (<Text style={{marginTop: 10, fontSize: 20, color: COLORS.PRIMARY}}>No Cards Added</Text>);
+		}
+		var index = 0;
+		var result = this.state.cards.map(function(currCard){
+		index++;
+		return(
+			<View style={styles.cardRow} key={currCard.id}>
+    			<Text style={styles.icon}>{this.getCardIcon(currCard.brand)}</Text>
+    			<Text>•••••• {currCard.last4}</Text>
+    			<Text>{currCard.exp_month.toString()} / {currCard.exp_year.toString().substring(2,4)}</Text>
+    			<TouchableOpacity style={styles.deleteButton} onPress={() => this.deleteTrainerCard(this.state.gym.stripeId, currCard.id, index)}>
+    				<Text style={{fontSize: 15, color: COLORS.WHITE}}><FontAwesome>{Icons.remove}</FontAwesome></Text>
+    			</TouchableOpacity>
+    		</View>
+    	);
+	    }.bind(this));
+	    return result;
+	}
 
 	render() {
 		if(this.state.gym == 'null'){
@@ -170,6 +285,17 @@ export class OwnerPage extends Component {
 	            	<Text style={styles.title}>Trainers</Text>
 					{navBar}
 					{content}
+					<View style={styles.cardHolder}>
+						{this.renderCards()}
+					</View>
+					<TouchableOpacity style={styles.button} onPress={() => this.setState({cardModal: true})}>
+						<Text style={styles.buttonText}><FontAwesome>{Icons.creditCard}</FontAwesome> Add Card </Text>
+					</TouchableOpacity>
+					<Modal
+						isVisible={this.state.cardModal}
+						onBackdropPress={this.hideCardModal}>
+						<OwnerCardModal hide={this.hideCardModalOnAdd} gym={this.props.gym} />
+					</Modal>
 				</View>	
 			);
 		}
@@ -186,6 +312,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	trainerContainer: {
+		flex: 0.4,
 		width: '90%',
 		flexDirection: 'column',
 		alignItems: 'center',
@@ -197,6 +324,23 @@ const styles = StyleSheet.create({
     	color: COLORS.PRIMARY,
     	fontWeight: '700',
   	},
+  	cardHolder: {
+		flex: 0.3,
+		marginTop: 20,
+		backgroundColor: '#f6f5f5',
+		width: '90%',
+		borderRadius: 10,
+		flexDirection: 'column',
+		justifyContent: 'flex-start',
+		alignItems: 'center'
+	},
+	cardRow: {
+		width: '95%',
+		marginTop: 10,
+		flexDirection: 'row',
+		justifyContent: 'space-around',
+		alignItems: 'center'
+	},
   	navigationBar: {
 		width: '100%',
 		height: 100,
@@ -248,6 +392,22 @@ const styles = StyleSheet.create({
 		left: 20,
 		fontSize: 35, 
 		color: COLORS.SECONDARY, 
+	},
+	button: {
+		backgroundColor: COLORS.SECONDARY,
+		flexDirection: 'column',
+		justifyContent: 'center',
+		width: '50%',
+		height: 50,
+		marginTop: 10
+	},
+	deleteButton: {
+		backgroundColor: COLORS.RED,
+		flexDirection: 'column',
+		justifyContent: 'center',
+		alignItems: 'center',
+		width: 30,
+		height: 30
 	},
 	buttonText: {
 		fontSize: 30,

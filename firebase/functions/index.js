@@ -182,7 +182,8 @@ function createOwner(req, res) {
                 phone: phone,
                 relationship: {
                     owner: true,
-                    account_opener: true
+                    account_opener: true,
+                    titile: 'Owner'
                 },
                 id_number: ssnToken,
                 dob: {

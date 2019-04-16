@@ -7,6 +7,7 @@ import { Actions } from 'react-native-router-flux';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import Drawer from 'react-native-drawer';
 import { SideMenu } from './SideMenu';
+import { ManagedSideMenu } from './ManagedSideMenu';
 import { GymModal } from './GymModal';
 import { BookModal } from './BookModal';
 const markerImg = require('./images/marker.png');
@@ -23,6 +24,7 @@ export class Map extends Component {
       userRegion: {},
       mapRegion: {},
       gyms: [],
+      user: 'null',
       gymLoaded: false,
       selectedGym: 'null',
       bookingTrainer: 'null',
@@ -49,7 +51,7 @@ export class Map extends Component {
     firebase.database().ref('gyms').off()
   }
 
-  componentDidMount() {
+  async componentDidMount() {
 
     if(!this.state.locationLoaded){
       this.getLocationAsync();
@@ -64,6 +66,10 @@ export class Map extends Component {
     this.checkSessions(user.uid);
     this.goToRating(user.uid);
     this.checkRead(user.uid);
+    await firebase.database().ref('users').orderByKey().equalTo(user.uid).on('child_added', async function(snapshot) {
+      var user = snapshot.val();
+      this.setState({user: user});
+    }.bind(this));
   }
 
   //Gets user location and updates mapRegion in state
@@ -260,7 +266,7 @@ export class Map extends Component {
   hidebookModal = () => this.setState({ bookModal: false, bookingTrainer: 'null', modalPresent: false });
 
   render() {
-    if(this.state.mapRegion === null || this.state.gymLoaded == false || this.state.mapRegion.latitude == undefined){
+    if(this.state.mapRegion === null || this.state.gymLoaded == false || this.state.mapRegion.latitude == undefined || this.state.user == 'null'){
       return <Expo.AppLoading />;
     }
 
@@ -285,11 +291,16 @@ export class Map extends Component {
         </View>
       );
     }
+    if(this.state.user.type != 'managed'){
+      var menu = <SideMenu />;
+    }else{
+      var menu = <ManagedSideMenu />;
+    }
 
     return (
       <Drawer
         open={this.state.menuOpen}
-        content={<SideMenu />}
+        content={menu}
         type="overlay"
         openDrawerOffset={0.3}
         tapToClose={true}

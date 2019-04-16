@@ -96,7 +96,7 @@ export class LoginForm extends Component {
 					</Text>
 					<TextInput 
 						placeholder="Email"
-						returnKeyType="next"
+						returnKeyType="done"
 						onSubmitEditing={() => this.passwordInput.focus()}
 						keyboardType="email-address"
 						autoCapitalize="none"

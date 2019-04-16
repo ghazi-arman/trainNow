@@ -7,12 +7,12 @@ import FontAwesome, { Icons } from 'react-native-fontawesome';
 var stripe = require('stripe-client')('pk_test_6sgeMvomvrZFucRqYhi6TSbO');
 console.ignoredYellowBox = ['Setting a timer'];
 
-export class CardModal extends Component {
+export class OwnerCardModal extends Component {
 	
 	constructor(props) {
 		super(props);
 		this.state = {
-			user: 'null',
+			gym: 'null',
 			name: '',
 			number: '',
 			expiration: '',
@@ -24,9 +24,9 @@ export class CardModal extends Component {
 	componentDidMount(){
 		//Get user info for state
 	    var user = firebase.auth().currentUser;
-	    var usersRef = firebase.database().ref('users');
-	    usersRef.orderByKey().equalTo(user.uid).on('child_added', function(snapshot) {
-	    	this.setState({user: snapshot.val()});
+	    var gymRef = firebase.database().ref('gyms');
+	    gymRef.orderByKey().equalTo(this.props.gym).on('child_added', function(snapshot) {
+	    	this.setState({gym: snapshot.val()});
 	    }.bind(this));
 	}
 
@@ -42,97 +42,40 @@ export class CardModal extends Component {
 				exp_year: this.state.expYear,
 				cvc: this.state.cvc,
 				name: this.state.name,
+				currency: 'usd'
 			}
 
 		}
-		if(this.state.user.trainer){
-			information.card.currency = 'usd';
-		}
 		var user = firebase.auth().currentUser;
 	    var card = await stripe.createToken(information);
-		if(this.state.user.stripeId === undefined){
-			try {
-		      	const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/createCustomer/', {
-		        	method: 'POST',
-		        	body: JSON.stringify({
-		          	token: card,
-		          	id: user.uid,
-		          	email: user.email
-		        	}),
-		      	});
-		      	const data = await res.json();
-		      	data.body = JSON.parse(data.body);
-		      	if(data.body.message == 'Success'){
-					var userRef = firebase.database().ref('users');
-				    userRef.child(user.uid).update({
-				    	stripeId: data.body.customer.id,
-				    	cardAdded: true
-				    });
-				}else{
-					Alert.alert('There was an error adding the card. Please check the info and try again.');
-					return;
-				}
-		      	this.props.hide();
-		    } catch(error){
-		    	Alert.alert('There was an error adding the card. Please try again.');
-		    }
-		}else{
-			if(this.state.user.trainer){
-				try {
-					const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/addTrainerCard/', {
-						method: 'POST',
-						body: JSON.stringify({
-							token: card,
-							id: this.state.user.stripeId
-						})
-					})
-					const data = await res.json();
-					data.body = JSON.parse(data.body);
-					console.log(data.body);
-					if(data.body.message == 'Success'){
-						var userRef = firebase.database().ref('users');
-					    userRef.child(user.uid).update({
-					    	cardAdded: true
-					    });
-					}else{
-						Alert.alert('There was an error. Please check the info and make sure it is a debit card before trying again.');
-						return;
-					}
-					this.props.hide();
-				} catch(error){
-					Alert.alert('There was an error adding the card. Please check the info and make sure it is a debit card before trying again.');
-				}
+		try {
+			const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/addTrainerCard/', {
+				method: 'POST',
+				body: JSON.stringify({
+					token: card,
+					id: this.state.gym.stripeId
+				})
+			})
+			const data = await res.json();
+			data.body = JSON.parse(data.body);
+			console.log(data.body);
+			if(data.body.message == 'Success'){
+				var userRef = firebase.database().ref('users');
+			    userRef.child(user.uid).update({
+			    	cardAdded: true
+			    });
 			}else{
-				try {
-					const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/addCard/', {
-						method: 'POST',
-						body: JSON.stringify({
-							token: card,
-							id: this.state.user.stripeId,
-						}),
-					});
-					const data = await res.json();
-					data.body = JSON.parse(data.body);
-					if(data.body.message == 'Success'){
-						var userRef = firebase.database().ref('users');
-					    userRef.child(user.uid).update({
-					    	cardAdded: true
-					    });
-					}else{
-						Alert.alert('There was an error adding the card. Please check the info and try again.');
-						return;
-					}
-					this.props.hide();
-				} catch(error){
-					Alert.alert('There was an error adding the card. Please try again.');
-				}
+				Alert.alert('There was an error. Please check the info and make sure it is a debit card before trying again.');
+				return;
 			}
-			
+			this.props.hide();
+		} catch(error){
+			Alert.alert('There was an error adding the card. Please check the info and make sure it is a debit card before trying again.');
 		}
 	}
 
 	render(){
-		if(this.state.user == 'null' || typeof this.state.user == undefined){
+		if(this.state.gym == 'null' || typeof this.state.gym == undefined){
 			return <Expo.AppLoading />
 		}else{
 			return(
