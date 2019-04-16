@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Platform, StyleSheet, Text, View, TextInput, TouchableOpacity, StatusBar, Alert, Switch, Image, Picker } from 'react-native';
+import { Platform, StyleSheet, Text, View, TextInput, TouchableOpacity, StatusBar, Alert, Switch, Image, Picker, Linking } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import { ImagePicker, Font, Permissions } from 'expo';
 import firebase from 'firebase';
@@ -247,7 +247,7 @@ export class OwnerSignupForm extends Component {
 		var image = this.state.image;
 		var gyms = this.state.gyms;
 		var page1 = page2 = page3 = page4 = null;
-		var submitButton = null;
+		var submitButton = agreement = null;
 
 		prevButton = (
 			<TouchableOpacity style={styles.buttonContainer} onPressIn={this.goBack}>
@@ -474,6 +474,19 @@ export class OwnerSignupForm extends Component {
 				<Text style={styles.buttonText}> Signup </Text>
 			</TouchableOpacity>
 			);
+
+			agreement = (
+				<View style={{marginTop: 15}}>
+					<Text style={styles.agreement}>
+					By registering for an account you agree to the </Text>
+					<TouchableOpacity onPress={() => Linking.openURL('https://stripe.com/en-US/legal')}>
+						<Text style={styles.link}> Stripe Services Agreement</Text>
+					</TouchableOpacity>
+					<TouchableOpacity onPress={() => Linking.openURL('https://stripe.com/en-US/connect-account/legal')}>
+						<Text style={styles.link}> Stripe Connected Account Agreement.</Text>
+					</TouchableOpacity>
+				</View>
+			);
 		}
 
 		return (
@@ -486,6 +499,7 @@ export class OwnerSignupForm extends Component {
 				{prevButton}
 				{nextButton}
 				{submitButton}
+				{agreement}
 			</View>
 		);
 	}
@@ -568,5 +582,14 @@ const styles = StyleSheet.create({
 		color: COLORS.PRIMARY,		
 		marginBottom: 10,
 		marginRight: 10
+	},
+	agreement:{
+		color: COLORS.PRIMARY,		
+		textAlign: 'center'
+	},
+	link:{
+		color: COLORS.PRIMARY,		
+		textAlign: 'center',
+		textDecorationLine: 'underline'
 	}
 });

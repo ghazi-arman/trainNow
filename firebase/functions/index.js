@@ -183,7 +183,7 @@ function createOwner(req, res) {
                 relationship: {
                     owner: true,
                     account_opener: true,
-                    titile: 'Owner'
+                    title: 'Owner'
                 },
                 id_number: ssnToken,
                 dob: {

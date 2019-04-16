@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Platform, StyleSheet, Text, View, TextInput, TouchableOpacity, StatusBar, Alert, Switch, Image, Picker } from 'react-native';
+import { Platform, StyleSheet, Text, View, TextInput, TouchableOpacity, StatusBar, Alert, Switch, Image, Picker, Linking } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import { ImagePicker, Font, Permissions } from 'expo';
 import firebase from 'firebase';
@@ -20,7 +20,7 @@ export class SignupForm extends Component {
 			email: '',
 			password: '',
 			confirmPass: '',
-			gym:'',
+			gym:'none',
 			rate:'',
 			bio:'',
 			cert:'',
@@ -28,6 +28,7 @@ export class SignupForm extends Component {
 			birthDay:'',
 			image: 'null',
 			gyms: [],
+			pressed: false
 		}; 
 
 		this.onSignUpPress=this.onSignUpPress.bind(this);
@@ -105,20 +106,19 @@ export class SignupForm extends Component {
 		var email = this.state.email;
 		var phone = this.state.phone;
 		var pw = this.state.password;
-		var cpw = this.state.confirmPass;
-		var gym = this.state.gym;
-		var gymKey = this.state.gyms[this.state.gym].key;
-		var rate = this.state.rate;
-		var cert = this.state.cert;
-		var bio = this.state.bio;
 		var trainer = this.state.trainer;
 		var uri = this.state.image;
-		var ssn = {
-			pii: {
-				personal_id_number: this.state.ssn
+
+		if(this.state.trainer){
+			var rate = this.state.rate;
+			var cert = this.state.cert;
+			var bio = this.state.bio;
+			var gymKey = this.state.gyms[this.state.gym].key;
+			var ssn = {
+				pii: {
+					personal_id_number: this.state.ssn
+				}
 			}
-		}
-		if(trainer){
 			if(this.state.gyms[gym].type == 'independent'){
 				var date = this.state.birthDay;
 				var dateSplit = date.split("/");
@@ -335,7 +335,7 @@ export class SignupForm extends Component {
 			}
 
 		}else if(this.state.page == 2){
-			if(this.state.gym == ''){
+			if(this.state.gym == 'none'){
 				Alert.alert("Please select a gym!");
 				return;
 			}
@@ -390,7 +390,7 @@ export class SignupForm extends Component {
 		var image = this.state.image;
 		var gyms = this.state.gyms;
 		var page1 = page2 = page3 = page4 = null;
-		var submitButton = null;
+		var submitButton = agreement = null;
 
 		prevButton = (
 			<TouchableOpacity style={styles.buttonContainer} onPressIn={this.goBack}>
@@ -503,7 +503,7 @@ export class SignupForm extends Component {
 						itemStyle={{height: 45, color: COLORS.PRIMARY}}
 					  	selectedValue={this.state.gym}
 					  	onValueChange={(itemValue) => this.setState({gym: itemValue})}>
-					  	<Picker.Item label="Pick a Gym (Scroll)" value= '' key='0'/>
+					  	<Picker.Item label="Pick a Gym (Scroll)" value='none' key='0'/>
 					  	{gyms.map(function(gym, index){
 					  		return (<Picker.Item label={gym.name} value={index} key={gym.key}/>);
 					  	})}
@@ -666,6 +666,18 @@ export class SignupForm extends Component {
 				<Text style={styles.buttonText}> Signup </Text>
 			</TouchableOpacity>
 			);
+			agreement = (
+				<View style={{marginTop: 15}}>
+					<Text style={styles.agreement}>
+					By registering for an account you agree to the </Text>
+					<TouchableOpacity onPress={() => Linking.openURL('https://stripe.com/en-US/legal')}>
+						<Text style={styles.link}> Stripe Services Agreement</Text>
+					</TouchableOpacity>
+					<TouchableOpacity onPress={() => Linking.openURL('https://stripe.com/en-US/connect-account/legal')}>
+						<Text style={styles.link}> Stripe Connected Account Agreement.</Text>
+					</TouchableOpacity>
+				</View>
+			);
 		}
 
 		return (
@@ -678,6 +690,7 @@ export class SignupForm extends Component {
 				{prevButton}
 				{nextButton}
 				{submitButton}
+				{agreement}
 			</View>
 		);
 	}
@@ -760,5 +773,14 @@ const styles = StyleSheet.create({
 		color: COLORS.PRIMARY,		
 		marginBottom: 10,
 		marginRight: 10
+	},
+	agreement:{
+		color: COLORS.PRIMARY,		
+		textAlign: 'center'
+	},
+	link:{
+		color: COLORS.PRIMARY,		
+		textAlign: 'center',
+		textDecorationLine: 'underline'
 	}
 });
