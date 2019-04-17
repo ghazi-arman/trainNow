@@ -119,7 +119,7 @@ export class SignupForm extends Component {
 					personal_id_number: this.state.ssn
 				}
 			}
-			if(this.state.gyms[gym].type == 'independent'){
+			if(this.state.gyms[this.state.gym].type == 'independent'){
 				var date = this.state.birthDay;
 				var dateSplit = date.split("/");
 				try {
