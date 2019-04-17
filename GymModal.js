@@ -89,7 +89,7 @@ export class GymModal extends Component {
 
 		trainersArr.sort(function(a,b) {
 			if(a.active && b.active){
-				return parseDouble(a.rating) - parseDouble(b.rating);
+				return parseFloat(b.rating) - parseFloat(a.rating);
 			}else if(b.active){
 				return 1;
 			}else{
