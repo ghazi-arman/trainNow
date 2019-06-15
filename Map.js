@@ -10,6 +10,7 @@ import { SideMenu } from './SideMenu';
 import { ManagedSideMenu } from './ManagedSideMenu';
 import { GymModal } from './GymModal';
 import { BookModal } from './BookModal';
+import { ScheduleModal } from './ScheduleModal';
 const markerImg = require('./images/marker.png');
 import COLORS from './Colors';
 
@@ -32,17 +33,20 @@ export class Map extends Component {
       locationLoaded: false,
       gymModal: false,
       bookModal: false,
+      scheduleModal: false,
       unRead: false,
       modalPresent: false,
       menuOpen: false
     }
 
     this.setTrainer=this.setTrainer.bind(this);
+    this.viewSchedule=this.viewSchedule.bind(this);
     this.setLocation=this.setLocation.bind(this);
     this.checkSessions=this.checkSessions.bind(this);
     this.checkRead=this.checkRead.bind(this);
     this.loadGyms=this.loadGyms.bind(this);
     this.toggleMenu=this.toggleMenu.bind(this);
+    this.hideandOpen=this.hideandOpen.bind(this);
   }
 
   componentWillUnmount(){
@@ -221,6 +225,7 @@ export class Map extends Component {
     if(type == 'gym'){
       this.setState({
         bookModal: false,
+        scheduleModal: false,
         gymModal: true,
         modalPresent: true,
         selectedGym: option
@@ -231,10 +236,21 @@ export class Map extends Component {
     if(type == 'book'){
       this.setState({
         gymModal: false,
+        scheduleModal: false,
         bookingTrainer: option,
         modalPresent: true
       });
       setTimeout(() => this.setState({bookModal: true}), 800);
+    }
+
+    if(type == 'schedule'){
+      this.setState({
+        gymModal: false,
+        bookModal: false,
+        scheduleTrainer: option,
+        modalPresent: true,
+      });
+      setTimeout(() => this.setState({scheduleModal: true}), 800);
     }
 
   }
@@ -245,6 +261,10 @@ export class Map extends Component {
     }else{
       this.showModal('book', trainer);
     }
+  }
+
+  viewSchedule(trainer){
+    this.showModal('schedule', trainer);
   }
 
   setLocation(){
@@ -264,6 +284,12 @@ export class Map extends Component {
   //Hide Modal Functions
   hidegymModal = () => this.setState({ gymModal: false, modalPresent: false });
   hidebookModal = () => this.setState({ bookModal: false, bookingTrainer: 'null', modalPresent: false });
+  hidescheduleModal = () => this.setState({ scheduleModal: false, modalPresent: false});
+
+  hideandOpen(){
+    this.setState({scheduleModal: false, bookModal: false})
+    setTimeout(() => this.setState({gymModal: true}), 500);
+  }
 
   render() {
     if(this.state.mapRegion === null || this.state.gymLoaded == false || this.state.mapRegion.latitude == undefined || this.state.user == 'null'){
@@ -337,13 +363,19 @@ export class Map extends Component {
           {/*Gym Modal Info*/}
           <Modal isVisible={this.state.gymModal}
           onBackdropPress={this.hidegymModal}>
-            <GymModal gymKey={this.state.selectedGym.key} setTrainer={this.setTrainer} />
+            <GymModal gymKey={this.state.selectedGym.key} setTrainer={this.setTrainer} viewSchedule={this.viewSchedule} />
           </Modal>
 
           {/* Booking Modal */}
           <Modal isVisible={this.state.bookModal}
           onBackdropPress={this.hidebookModal}>
-            <BookModal trainer={this.state.bookingTrainer} gym={this.state.selectedGym} hide={this.hidebookModal} confirm={() => Alert.alert('Session Booked!')}/>
+            <BookModal trainer={this.state.bookingTrainer} gym={this.state.selectedGym} hide={this.hidebookModal} confirm={() => Alert.alert('Session Booked!')} hideandOpen={this.hideandOpen} />
+          </Modal>
+
+          {/* Schedule Modal */}
+          <Modal isVisible={this.state.scheduleModal}
+          onBackdropPress={this.hidescheduleModal}>
+            <ScheduleModal trainer={this.state.scheduleTrainer} hide={this.hidescheduleModal} hideandOpen={this.hideandOpen}/>
           </Modal>
 
         </View>

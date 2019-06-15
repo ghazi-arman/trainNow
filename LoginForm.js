@@ -62,7 +62,9 @@ export class LoginForm extends Component {
 			var usersRef = firebase.database().ref('users');
 			usersRef.orderByKey().equalTo(snapshot.uid).once("child_added", function(data) {
 	   			var currentUser = data.val();
-				if(currentUser.owner && !currentUser.pending){
+	   			if(currentUser.deleted){
+	   				Alert.alert('Your account has been deleted. Please contact your gym manager.');
+	   			}else if(currentUser.owner && !currentUser.pending){
 					Actions.owner({gym: currentUser.gym});
 				}else if(currentUser.owner && currentUser.pending){
 					Alert.alert('Your account is pending');

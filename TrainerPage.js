@@ -192,7 +192,7 @@ export class TrainerPage extends Component {
 		var result = this.state.incomingRequests.map(function(request){
 			return(
 				<View key={request.trainer} style={styles.traineeRow}>
-					<Text>{request.trainerName}</Text>
+					<Text style={{width: 120}}>{request.trainerName}</Text>
 					<TouchableOpacity style={styles.denyButton} onPress={() => this.denyRequest(request.key, request.trainer)}> 
 						<Text><FontAwesome>{Icons.close}</FontAwesome> Deny</Text>
 					</TouchableOpacity>
@@ -212,7 +212,7 @@ export class TrainerPage extends Component {
 		var result = this.state.user.trainers.map(function(trainer){
 			return(
 				<View key={trainer.trainer} style={styles.traineeRow}>
-					<Text>{trainer.trainerName}</Text>
+					<Text style={{width: 120}}>{trainer.trainerName}</Text>
 					<TouchableOpacity style={styles.requestButton} onPress={() => this.bookSession(trainer.trainer, trainer.gym)}> 
 						<Text><FontAwesome>{Icons.calendar}</FontAwesome> Book Session</Text>
 					</TouchableOpacity>
@@ -246,8 +246,8 @@ export class TrainerPage extends Component {
 			}
 			return(
 				<View key={trainer.key} style={styles.traineeRow}>
-					<Text>{trainer.name}</Text>
-					<Text>{this.getDate(trainer.date)}</Text>
+					<Text style={{width: 120}}>{trainer.name}</Text>
+					<Text style={{width:50}}>{this.getDate(trainer.date)}</Text>
 					{button}
 				</View>
 			);

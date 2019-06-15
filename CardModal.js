@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Platform, StyleSheet, Text, View, KeyboardAvoidingView, TextInput, TouchableOpacity, Alert, DatePickerIOS, Picker} from 'react-native';
+import { Platform, StyleSheet, Text, View, KeyboardAvoidingView, TextInput, TouchableOpacity, Alert} from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
 import { AppLoading} from 'expo';

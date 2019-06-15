@@ -151,14 +151,13 @@ export class OwnerPage extends Component {
   	async denyTrainer(trainerKey) {
   		await firebase.database().ref('/gyms/' + this.props.gym + '/pendingtrainers/').child(trainerKey).remove();
   		delete this.state.pendingTrainers[trainerKey];
-  		this.forceUpdate();
   		Alert.alert('Trainer denied');
   	}
 
   	async deleteTrainer(trainerKey) {
+  		await firebase.database().ref('users').child(trainerKey).update({deleted: true});
   		await firebase.database().ref('/gyms/' + this.props.gym + '/trainers/').child(trainerKey).remove();
   		delete this.state.trainers[trainerKey];
-  		this.forceUpdate();
   		Alert.alert('Trainer removed from gym.');
   	}
 

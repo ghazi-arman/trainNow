@@ -123,9 +123,14 @@ export class GymModal extends Component {
 	        		<View style={styles.infoArea}>
 		        		<Text style={styles.info}>{trainer.bio}</Text>
 		        		<Text style={styles.info}>Certs: {trainer.cert}</Text>
-		        		<TouchableOpacity style={styles.buttonContainer} onPress={() => {this.props.setTrainer(trainer)}}>
-		        			<Text style={styles.buttonText}>Book Now!</Text>
-		        		</TouchableOpacity>
+		        		<View style={styles.buttonRow}>
+			        		<TouchableOpacity style={styles.buttonContainer} onPress={() => {this.props.setTrainer(trainer)}}>
+			        			<Text style={styles.buttonText}>Book Now!</Text>
+			        		</TouchableOpacity>
+			        		<TouchableOpacity style={styles.buttonContainer} onPress={() => {this.props.viewSchedule(trainer)}}>
+			        			<Text style={styles.buttonText}>Schedule</Text>
+			        		</TouchableOpacity>
+			        	</View>
 		        	</View>
 	        	);
 	        }else{
@@ -276,7 +281,7 @@ const styles = StyleSheet.create({
   	buttonRow: {
   		width: '100%',
   		flexDirection: 'row', 
-  		justifyContent: 'center',
+  		justifyContent: 'space-between',
   		marginTop: 10
   	},
   	imageContainer: {
@@ -321,6 +326,7 @@ const styles = StyleSheet.create({
 	    marginTop: 5,
   	},
   	buttonContainer: {
+  		width: '40%',
     	height: 48,
     	backgroundColor: COLORS.SECONDARY,
     	flexDirection: 'column',

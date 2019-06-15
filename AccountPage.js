@@ -1,9 +1,7 @@
 import React, { Component } from 'react';
-import {Platform, StyleSheet, Text, View, Button, Image, KeyboardAvoidingView, ScrollView, TouchableOpacity, Alert} from 'react-native';
-import {Permissions, Location, ImagePicker, Font} from 'expo';
-import firebase from 'firebase';
+import {Platform, StyleSheet, Text, View, Image, KeyboardAvoidingView, ScrollView, Alert} from 'react-native';
+import {Font} from 'expo';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
-import Modal from 'react-native-modal';
 import {AccountForm} from './AccountForm';
 import { Actions } from 'react-native-router-flux';
 import COLORS from './Colors';

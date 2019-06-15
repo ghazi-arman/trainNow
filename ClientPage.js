@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {Platform, StyleSheet, Text, View, Button, Image, KeyboardAvoidingView, ScrollView, TouchableOpacity, Alert} from 'react-native';
-import {Permissions, Location, ImagePicker, Font} from 'expo';
+import {Permissions, Font} from 'expo';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import Modal from 'react-native-modal';
@@ -188,7 +188,7 @@ export class ClientPage extends Component {
 		var result = this.state.incomingRequests.map(function(request){
 			return(
 				<View key={request.trainee} style={styles.traineeRow}>
-					<Text>{request.traineeName}</Text>
+					<Text style={{width:120}}>{request.traineeName}</Text>
 					<TouchableOpacity style={styles.denyButton} onPress={() => this.denyRequest(request.key, request.trainee)}> 
 						<Text><FontAwesome>{Icons.close}</FontAwesome> Deny</Text>
 					</TouchableOpacity>
@@ -208,7 +208,7 @@ export class ClientPage extends Component {
 		var result = this.state.user.clients.map(function(trainer){
 			return(
 				<View key={trainer.trainee} style={styles.traineeRow}>
-					<Text>{trainer.traineeName}</Text>
+					<Text style={{width:120}}>{trainer.traineeName}</Text>
 					<TouchableOpacity style={styles.requestButton} onPress={() => this.bookSession(trainer.trainee, this.state.user.gym)}> 
 						<Text><FontAwesome>{Icons.calendar}</FontAwesome> Book Session</Text>
 					</TouchableOpacity>
@@ -242,8 +242,8 @@ export class ClientPage extends Component {
 			}
 			return(
 				<View key={trainee.key} style={styles.traineeRow}>
-					<Text>{trainee.name}</Text>
-					<Text>{this.getDate(trainee.date)}</Text>
+					<Text style={{width:120}}>{trainee.name}</Text>
+					<Text style={{width:50}}>{this.getDate(trainee.date)}</Text>
 					{button}
 				</View>
 			);

@@ -15,10 +15,12 @@ export class SessionModal extends Component {
 			acceptSessions: [],
 			pendingLoaded: false,
 			acceptLoaded: false,
-			currentTab: 'pending'
+			currentTab: 'pending',
+			user: 'null'
 		}
 		this.acceptSession=this.acceptSession.bind(this);
 		this.loadSessions=this.loadSessions.bind(this);
+		this.goActive=this.goActive.bind(this);
 	}
 
 	async componentDidMount(){
@@ -436,10 +438,35 @@ export class SessionModal extends Component {
 	    return displayDate;
   	}
 
+  	goActive(){
+  		firebase.database().ref('users').child(firebase.auth().currentUser.uid).update({active: true});
+  		Alert.alert('You are active now');
+  		var user = this.state.user;
+  		user.active = true;
+  		this.setState({user: user});
+  	}
+
 	render(){
-		if(this.state.pendingLoaded == false && this.state.acceptLoaded == false){
+		if(this.state.pendingLoaded == false && this.state.acceptLoaded == false || this.state.user == 'null'){
 			return <Expo.AppLoading />;
 		}else{
+			var active = schedule = null;
+			if(this.state.user.trainer){
+				if(this.state.user.active){
+					active = (<Text style={styles.statusText}>Active</Text>);
+				}else{
+					active = (
+						<TouchableOpacity style={styles.activeButton} onPress={() => this.goActive()}>
+							<Text style={styles.buttonText}>Go Active</Text>
+						</TouchableOpacity>
+					);
+				}
+				schedule = (
+						<TouchableOpacity style={styles.scheduleButton} onPress={() => this.openScheduler()}>
+							<Text style={styles.buttonText}>Set Schedule</Text>
+						</TouchableOpacity>
+				);
+			}
 			if(this.state.currentTab == 'pending'){
 				var navBar = (
 					<View style={styles.navigationBar}>
@@ -452,8 +479,10 @@ export class SessionModal extends Component {
 					</View>
 				);
 				var content = (
-					<ScrollView showsVerticalScrollIndicator={false}>
+					<ScrollView contentContainerStyle={styles.sessionContainer} showsVerticalScrollIndicator={false}>
 	            		{this.renderPending()}
+	            		{active}
+	            		{schedule}
 	            	</ScrollView>
 				);
 			}else{
@@ -468,8 +497,10 @@ export class SessionModal extends Component {
 					</View>
 				);
 				var content = (
-					<ScrollView showsVerticalScrollIndicator={false}>
+					<ScrollView contentContainerStyle={styles.sessionContainer} showsVerticalScrollIndicator={false}>
 	            		{this.renderAccept()}
+	            		{active}
+	            		{schedule}
 	            	</ScrollView>
 				);
 			}
@@ -494,6 +525,10 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		justifyContent: 'flex-start',
 		alignItems: 'center'	
+	},
+	sessionContainer: {
+		flex: .4,
+		width: '100%',
 	},
 	title: {
 		marginTop: 45,
@@ -557,6 +592,22 @@ const styles = StyleSheet.create({
     	flexDirection: 'column',
     	justifyContent: 'center'
   	},
+  	activeButton: {
+  		padding: 10,
+    	height: 48,
+    	backgroundColor: COLORS.SECONDARY,
+    	flexDirection: 'column',
+    	justifyContent: 'center',
+    	marginTop: 20
+  	},
+  	scheduleButton: {
+  		padding: 10,
+    	height: 48,
+    	backgroundColor: COLORS.SECONDARY,
+    	flexDirection: 'column',
+    	justifyContent: 'center',
+    	marginTop: 15
+  	},
   	denyContainer: {
   		padding: 10,
     	height: 48,
@@ -568,6 +619,13 @@ const styles = StyleSheet.create({
     	textAlign: 'center',
     	color: COLORS.WHITE,
     	fontWeight: '700'
+  	},
+  	statusText: {
+  		textAlign: 'center',
+  		color: COLORS.SECONDARY,
+  		fontWeight: '700',
+  		fontSize: 25,
+  		marginTop: 20
   	},
   	backButton: {
 		position: 'absolute',

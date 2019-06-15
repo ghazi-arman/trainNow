@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Platform, StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, DatePickerIOS, Picker} from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
+import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { AppLoading} from 'expo';
 import COLORS from './Colors';
 
@@ -177,6 +178,9 @@ export class BookModal extends Component {
 					<View style={styles.nameContainer}>
 	              		<Text style={styles.trainerName}>{this.state.trainer.name}</Text>
 	            	</View>
+	            	<Text style={styles.backButton} onPress={this.props.hideandOpen}>
+              			<FontAwesome>{Icons.arrowLeft}</FontAwesome>
+            		</Text>
 					<View style={styles.formContainer}>
 			            <View style={styles.inputRow}>
 			            <Text style ={styles.bookFormLabel}>Session Time</Text>
@@ -288,5 +292,12 @@ const styles = StyleSheet.create({
     	textAlign: 'center',
     	color: COLORS.WHITE,
     	fontWeight: '700'
-  	}
+  	},
+  	backButton: {
+		position: 'absolute',
+		top: 25,
+		left: 20,
+		fontSize: 35, 
+		color: COLORS.SECONDARY, 
+	}
 })

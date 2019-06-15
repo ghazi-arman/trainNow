@@ -2,7 +2,11 @@
   "expo": {
     "name": "TrainNow",
     "icon": "./logo.png",
-    "version": "1.0.5",
+    "splash": {
+      "image": "./images/splash.png",
+      "resizeMode": "cover"
+    },
+    "version": "1.0.6",
     "slug": "trainNow",
     "sdkVersion": "30.0.0",
     "packagerOpts": {
