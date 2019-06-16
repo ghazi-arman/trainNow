@@ -4,7 +4,6 @@ import {Permissions, Location, Font, ImagePicker, AppLoading} from 'expo';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import Modal from 'react-native-modal';
-import {AccountForm} from './AccountForm';
 import { Actions } from 'react-native-router-flux';
 import COLORS from './Colors';
 

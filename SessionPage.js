@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
 	bookDetails:{
     	fontSize: 18,
     	fontWeight: '500',
-    	color: ''
+    	color: COLORS.PRIMARY
   	},
   	smallText:{
   		marginTop: 5,

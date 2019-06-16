@@ -77,7 +77,18 @@ export class TrainerAccountForm extends Component {
 
   async uploadImage(uri, uid) {
     const response = await fetch(uri);
-    const blob = await response.blob();
+    const blob = await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.onload = function() {
+        resolve(xhr.response);
+      };
+      xhr.onerror = function() {
+        reject(new TypeError('Network request failed'));
+      };
+      xhr.responseType = 'blob';
+      xhr.open('GET', uri, true);
+      xhr.send(null);
+    });
     const ref = firebase.storage().ref().child(uid);
 
     const snapshot = await ref.put(blob);
@@ -106,14 +117,14 @@ export class TrainerAccountForm extends Component {
     var user = firebase.auth().currentUser;
 
     // gym table updated
-    const trainerRef = firebase.database().ref('/gyms/' + gym + '/trainers/' + user.uid);
+    const trainerRef = firebase.database().ref('/gyms/' + this.state.gym + '/trainers/' + user.uid);
     trainerRef.update({
       name: this.state.name,
       cert: this.state.cert,
       rate: this.state.rate,
       bio: this.state.bio,
       active: this.state.active
-    }.bind(this));
+    });
 
     // user table updated
     const userRef = firebase.database().ref('users');
@@ -128,7 +139,7 @@ export class TrainerAccountForm extends Component {
 
     // image upload
     if (this.state.imageToUpload != null) {
-      this.uploadImage(uri, user.uid);
+      this.uploadImage(this.state.imageToUpload, user.uid);
     }
 
     this.setState({ change: false })
@@ -148,9 +159,8 @@ export class TrainerAccountForm extends Component {
         <View style={styles.switchRow}>
           <Text style={styles.hints}>Active? </Text>
           <Switch
-            onTintColor={COLORS.PRIMARY}
-            tintColor={COLORS.PRIMARY}
-            thumbTintColor={COLORS.SECONDARY}
+            trackColor={COLORS.PRIMARY}
+            _thumbColor={COLORS.SECONDARY}
             style={{ marginLeft: 10 }}
             value={this.state.active}
             onValueChange={(active) => this.setState({ active, change: true })}
@@ -159,43 +169,31 @@ export class TrainerAccountForm extends Component {
         {imageHolder}
         <TextField
           rowStyle={styles.inputRow}
-          iconStyle={styles.icon}
           icon={Icons.user}
-          style={styles.input}
           placeholder="Name"
-          color={COLORS.PRIMARY}
-          onChange={this.handleName}
+          onChange={(name) => this.setState({ name, change: true })}
           value={this.state.name}
         />
         <TextField
           rowStyle={styles.inputRow}
-          iconStyle={styles.icon}
           icon={Icons.dollar}
-          style={styles.input}
           placeholder="Rate"
-          color={COLORS.PRIMARY}
-          onChange={this.handleRate}
+          onChange={(rate) => this.setState({ rate, change: true })}
           value={this.state.rate}
           keyboard="number-pad"
         />
         <TextField
           rowStyle={styles.inputRow}
-          iconStyle={styles.icon}
           icon={Icons.vcard}
-          style={styles.input}
           placeholder="Certifications"
-          color={COLORS.PRIMARY}
-          onChange={this.handleCerts}
+          onChange={(cert) => this.setState({ cert, change: true })}
           value={this.state.cert}
         />
         <TextField
           rowStyle={styles.inputRow}
-          iconStyle={styles.icon}
           icon={Icons.info}
-          style={styles.input}
           placeholder="Bio"
-          color={COLORS.PRIMARY}
-          onChange={this.handleBio}
+          onChange={(bio) => this.setState({ bio, change: true })}
           value={this.state.bio}
         />
         <TouchableOpacity style={styles.buttonContainer} onPressIn={this.pickImage}>
@@ -217,15 +215,6 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
   },
-  input: {
-    height: 40,
-    borderWidth: 0,
-    backgroundColor: 'transparent',
-    borderBottomWidth: 1,
-    borderColor: COLORS.PRIMARY,
-    width: '90%',
-    color: COLORS.PRIMARY
-  },
   inputRow: {
     width: '100%',
     flexDirection: 'row',
@@ -239,12 +228,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 5
-  },
-  icon: {
-    color: COLORS.PRIMARY,
-    fontSize: 30,
-    marginRight: 10,
-    marginTop: 13
   },
   buttonContainer: {
     backgroundColor: COLORS.SECONDARY,

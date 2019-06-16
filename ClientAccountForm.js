@@ -71,7 +71,18 @@ export class ClientAccountForm extends Component {
 
   async uploadImage(uri, uid) {
     const response = await fetch(uri);
-    const blob = await response.blob();
+    const blob = await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.onload = function() {
+        resolve(xhr.response);
+      };
+      xhr.onerror = function() {
+        reject(new TypeError('Network request failed'));
+      };
+      xhr.responseType = 'blob';
+      xhr.open('GET', uri, true);
+      xhr.send(null);
+    });
     const ref = firebase.storage().ref().child(uid);
 
     const snapshot = await ref.put(blob);
@@ -89,12 +100,12 @@ export class ClientAccountForm extends Component {
     var userRef = firebase.database().ref('users');
     var user = firebase.auth().currentUser;
     userRef.child(user.uid).update({
-      name: name,
+      name: this.state.name,
     });
 
     // image upload
-    if (uri != null) {
-      this.uploadImage(uri, user.uid);
+    if (this.state.imageToUpload != null) {
+      this.uploadImage(this.state.imageToUpload, user.uid);
     }
 
     this.setState({ change: false })
@@ -110,14 +121,13 @@ export class ClientAccountForm extends Component {
     return (
       <View style={styles.container}>
         <StatusBar barStyle="light-content" />
+        {imageHolder}
         <TextField
           rowStyle={styles.inputRow}
-          iconStyle={styles.icon}
           icon={Icons.user}
-          style={styles.input}
           placeholder="Name"
           color={COLORS.PRIMARY}
-          onChange={this.handleName}
+          onChange={(name) => this.setState({name, change:true})}
           value={this.state.name}
         />
         <TouchableOpacity style={styles.buttonContainer} onPressIn={this.pickImage}>
@@ -139,27 +149,12 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
   },
-  input: {
-    height: 40,
-    borderWidth: 0,
-    backgroundColor: 'transparent',
-    borderBottomWidth: 1,
-    borderColor: COLORS.PRIMARY,
-    width: '90%',
-    color: COLORS.PRIMARY
-  },
   inputRow: {
     width: '100%',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'flex-end',
     marginBottom: 20
-  },
-  icon: {
-    color: COLORS.PRIMARY,
-    fontSize: 30,
-    marginRight: 10,
-    marginTop: 13
   },
   buttonContainer: {
     backgroundColor: COLORS.SECONDARY,
