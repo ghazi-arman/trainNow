@@ -16,8 +16,10 @@ const TextField = (props) => {
         placeholderTextColor={props.color}
         onChangeText={props.onChange}
         value={props.value}
+        multiline={props.multiline}
         secureTextEntry={props.secure}
         autoCorrect={props.autoCorrect}
+        autoCapitalize={props.autoCapitalize}
         keyboardType={props.keyboard}
       />
     </View>
@@ -50,5 +52,7 @@ TextField.defaultProps = {
   color: COLORS.PRIMARY,
   autoCorrect: false,
   keyboard: "default",
-  returnKeyType: "done"
+  returnKeyType: "done",
+  multiline: false,
+  autoCapitalize: "none"
 }

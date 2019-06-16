@@ -1,5 +1,5 @@
 {
-  "name": "trainNow",
+  "name": "trainnow",
   "version": "0.1.0",
   "private": true,
   "devDependencies": {
@@ -11,7 +11,8 @@
     "start": "expo start",
     "eject": "expo eject",
     "android": "expo start --android",
-    "ios": "expo start --ios"
+    "ios": "expo start --ios",
+    "optimize": "expo optimize"
   },
   "jest": {
     "preset": "jest-expo"

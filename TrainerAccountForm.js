@@ -76,14 +76,13 @@ export class TrainerAccountForm extends Component {
   }
 
   async uploadImage(uri, uid) {
-    const response = await fetch(uri);
     const blob = await new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.onload = function() {
         resolve(xhr.response);
       };
       xhr.onerror = function() {
-        reject(new TypeError('Network request failed'));
+        reject(new Error('Network request failed'));
       };
       xhr.responseType = 'blob';
       xhr.open('GET', uri, true);
@@ -114,7 +113,7 @@ export class TrainerAccountForm extends Component {
       return;
     }
 
-    var user = firebase.auth().currentUser;
+    let user = firebase.auth().currentUser;
 
     // gym table updated
     const trainerRef = firebase.database().ref('/gyms/' + this.state.gym + '/trainers/' + user.uid);

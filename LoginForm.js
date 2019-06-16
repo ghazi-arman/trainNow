@@ -52,9 +52,9 @@ export class LoginForm extends Component {
     // Check email and password here
     firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
     firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password).then(function (snapshot) {
-      var usersRef = firebase.database().ref('users');
+      let usersRef = firebase.database().ref('users');
       usersRef.orderByKey().equalTo(snapshot.uid).once("child_added", function (data) {
-        var currentUser = data.val();
+        let currentUser = data.val();
 
         // Verification for trainers under gym owners
         if (currentUser.deleted) {
@@ -72,8 +72,8 @@ export class LoginForm extends Component {
     }.bind(this)).catch(function (error) {
       
       // Authentication Error check
-      var errorCode = error.code;
-      var errorMessage = error.message;
+      let errorCode = error.code;
+      let errorMessage = error.message;
       if (errorCode === 'auth/wrong-password') {
         Alert.alert('Wrong password.');
       }

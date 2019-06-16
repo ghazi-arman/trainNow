@@ -25,7 +25,7 @@ export class ClientAccountForm extends Component {
       this.loadFont();
     }
 
-    var user = firebase.auth().currentUser;
+    let user = firebase.auth().currentUser;
 
     // pull image from firebase
     firebase.storage().ref().child(user.uid).getDownloadURL().then(function (url) {
@@ -37,7 +37,7 @@ export class ClientAccountForm extends Component {
     // pull account info from users table
     const usersRef = firebase.database().ref('users');
     usersRef.orderByKey().equalTo(user.uid).once("child_added", function (snapshot) {
-      var currentUser = snapshot.val();
+      let currentUser = snapshot.val();
       this.setState({
         name: currentUser.name,
       });
@@ -97,8 +97,8 @@ export class ClientAccountForm extends Component {
     }
 
     // update info in users table
-    var userRef = firebase.database().ref('users');
-    var user = firebase.auth().currentUser;
+    let userRef = firebase.database().ref('users');
+    let user = firebase.auth().currentUser;
     userRef.child(user.uid).update({
       name: this.state.name,
     });
