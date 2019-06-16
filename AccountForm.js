@@ -5,6 +5,7 @@ import firebase from 'firebase';
 import { ImagePicker, Font, Permissions} from 'expo';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import COLORS from './Colors';
+import TextField from './components/TextField';
 
 export class AccountForm extends Component {
 	
@@ -12,19 +13,11 @@ export class AccountForm extends Component {
 		super(props);
 		this.state = {
 			fontLoaded: false,
-			trainer: false,
-			active: false,
-			name:'',
-			rate:'',
-			bio:'',
-			cert:'',
-			gym: '',
-			user: {},
 			image: null,
-			imageUpload: null,
+			imageToUpload: null,
 			change: false
 		};
-		this.onUpdatePress=this.onUpdatePress.bind(this);
+		this.updateAccount=this.updateAccount.bind(this);
 	}
 
 	componentDidMount() {
@@ -64,16 +57,17 @@ export class AccountForm extends Component {
 	    this.setState({fontLoaded: true});
 	}
 
-  	_pickImage = async () => {
+  	pickImage = async () => {
     	const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
-	    if (status === 'granted') {
+		
+		if (status === 'granted') {
 	      	let result = await ImagePicker.launchImageLibraryAsync({
 	        	allowsEditing: true,
 	    	    aspect: [4, 3],
 		      });
 
 	    	if (!result.cancelled) {
-	        	this.setState({ imageUpload: result.uri, image: result.uri, change: true});
+	        	this.setState({ imageToUpload: result.uri, image: result.uri, change: true});
 	      	}
 	    } else {
 	      throw new Error('Camera roll permission not granted');
@@ -85,181 +79,58 @@ export class AccountForm extends Component {
 	  	const blob = await response.blob();
 	  	const ref = firebase.storage().ref().child(uid);
 
-		  const snapshot = await ref.put(blob);
-		  return snapshot.downloadURL;
+		const snapshot = await ref.put(blob);
+		return snapshot.downloadURL;
 	}
 
-	onUpdatePress() {
-		// client side authentication
-		var gym = this.state.gym;
-		var name = this.state.name;
-		var rate = this.state.rate;
-		var cert = this.state.cert;
-		var bio = this.state.bio;
-		var trainer = this.state.trainer;
-		var active = this.state.active;
-		var uri = this.state.imageUpload;
-
-		//name missing
-		if(!name.length) {
+	updateAccount() {
+		// input validation
+		if(!this.state.name.length) {
 			Alert.alert("Please enter a name!");	
 			return;			
 		}		
-
-		if(trainer){
-			if(!rate.length){
-				Alert.alert("Please enter a rate!");
-				return;
-			}
-			if(!cert.length){
-				Alert.alert("Please enter your certifications!");
-				return;
-			}
-			if(!bio.length){
-				Alert.alert("Please enter your bio!");
-				return;
-			}
-		}
-				
+		
+		// update info in users table
 		var userRef = firebase.database().ref('users');
 		var user = firebase.auth().currentUser;
+		userRef.child(user.uid).update({
+			name: name,
+		});
 
-		if(trainer){
-		    var trainerRef = firebase.database().ref('/gyms/' + gym + '/trainers/' + user.uid);
-		    trainerRef.update({
-		    	name: name,
-		    	cert: cert,
-		    	rate: rate,
-		    	bio: bio,
-		    	active: active
-		    })
-
-			userRef.child(user.uid).update({
-				name: name,
-				cert: cert,
-				rate: rate,
-				bio: bio,
-				gym: gym,
-				active: active
-			});
-
-		}else{
-			userRef.child(user.uid).update({
-				name: name,
-			});
-		}
+		// image upload
 		if(uri != null){
 			this.uploadImageAsync(uri, user.uid);
 		}
+
 		this.setState({change: false})
 		Alert.alert("Updated");
 	}
 
 	render() {
-		let isTrainer = this.state.trainer;
-		nameField =(
-			<View style={styles.inputRow}>
-				<Text style={styles.icon}>
-					<FontAwesome>{Icons.user}</FontAwesome>
-				</Text>
-				<TextInput
-				placeholder="Name"
-				returnKeyType="done"
-				style={styles.input}
-				placeholderTextColor={COLORS.PRIMARY}
-				onChangeText={(name) => this.setState({name, change: true})}
-				value={this.state.name}
-				autoCorrect={false}
-				/>
-			</View>);
 		if(this.state.image != null){
 			imageHolder = (<View style={styles.imageContainer}><Image source={{ uri: this.state.image }} style={styles.imageHolder} /></View>);
 		}else{
 			imageHolder = (<View style={styles.imageContainer}><View style={styles.imageHolder}></View></View>);
 		}
-		if(isTrainer){
-			activeField = (
-				<View style={styles.switchRow}>
-					<Text style={styles.hints}>Active? </Text>			
-					<Switch
-						onTintColor={COLORS.PRIMARY}
-						tintColor={COLORS.PRIMARY}
-						thumbTintColor={COLORS.SECONDARY}
-						style={{marginLeft: 10}}
-						value={this.state.active}
-						onValueChange={(active) => this.setState({active, change: true})}
-						/>
-				</View>);
-			rateField = (
-				<View style={styles.inputRow}>
-					<Text style={styles.icon}>
-						<FontAwesome>{Icons.dollar}</FontAwesome>
-					</Text>
-					<TextInput
-						placeholder="Rate"
-						style={styles.input}
-						placeholderTextColor={COLORS.PRIMARY}
-						onChangeText={(rate) => this.setState({rate, change: true})}
-						value={this.state.rate.toString()}
-						keyboardType="number-pad"
-						returnKeyType="done"
-					/>
-				</View>);
-			certField = (
-				<View style={styles.inputRow}>
-					<Text style={styles.icon}>
-						<FontAwesome>{Icons.vcard}</FontAwesome>
-					</Text>
-					<TextInput
-						placeholder="Certifications"
-						returnKeyType="done"
-						style={styles.input}
-						placeholderTextColor={COLORS.PRIMARY}
-						onChangeText={(cert) => this.setState({cert, change: true})}
-						value={this.state.cert}
-						autoCorrect={false}
-						/>
-				</View>);
-			bioField = (
-				<View style={styles.inputRow}>
-					<Text style={styles.icon}>
-						<FontAwesome>{Icons.info}</FontAwesome>
-					</Text>
-					<TextInput
-						autoCorrect={false}
-						blurOnSumbit={true}
-						placeholder="Bio"
-						returnKeyType="done"
-						multiline={true}
-						style={styles.input}
-						placeholderTextColor={COLORS.PRIMARY}
-						onChangeText = {(bio) => this.setState({bio, change: true})}
-						value={this.state.bio}
-						/>
-				</View>);
-		}else{
-			rateField = null;
-			bioField = null;
-			certField = null;
-			activeField = null;
-		}
 		return (
 			<View style = {styles.container}>
-			<StatusBar 
-				barStyle="light-content"
+				<StatusBar barStyle="light-content" />
+				<TextField
+					rowStyle={styles.inputRow}
+					iconStyle={styles.icon}
+					icon={Icons.user}
+					style={styles.input}
+					placeholder="Name"
+					color={COLORS.PRIMARY}
+					onChange={this.handleName}
+					value={this.state.name} 
 				/>
-				{activeField}
-				{imageHolder}
-				{nameField}
-				{rateField} 
-				{bioField}
-				{certField}
-				<TouchableOpacity style={styles.buttonContainer} onPressIn={this._pickImage}>
+				<TouchableOpacity style={styles.buttonContainer} onPressIn={this.pickImage}>
 					<Text style={styles.buttonText}>
 						Update Image
 					</Text>
 				</TouchableOpacity>	
-				<TouchableOpacity style={styles.buttonContainer} onPressIn={this.onUpdatePress}>
+				<TouchableOpacity style={styles.buttonContainer} onPressIn={this.updateAccount}>
 					<Text style={styles.buttonText}>
 						Save Changes
 					</Text>
@@ -289,13 +160,6 @@ const styles = StyleSheet.create({
 		alignItems: 'flex-end',
 		marginBottom: 20
 	},
-	switchRow: {
-		width: '100%',
-		flexDirection: 'row',
-		justifyContent: 'center',
-		alignItems: 'center',
-		marginBottom: 5
-	},
 	icon: {
 		color: COLORS.PRIMARY,
 		fontSize: 30,
@@ -311,11 +175,6 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		color: COLORS.WHITE,
 		fontWeight: '700'
-	},
-	hints:{
-		color: COLORS.PRIMARY,
-		fontSize: 25,		
-		fontWeight: "500"
 	},
 	imageContainer: {
 		flexDirection: 'column',

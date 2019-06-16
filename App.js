@@ -37,7 +37,7 @@ export default class App extends Component<{}> {
   }
 
   componentDidMount(){
-    Expo.ScreenOrientation.allow(Expo.ScreenOrientation.Orientation.PORTRAIT_UP);
+    Expo.ScreenOrientation.allowAsync(Expo.ScreenOrientation.Orientation.PORTRAIT_UP);
   }
   
   render() {

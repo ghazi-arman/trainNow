@@ -69,8 +69,8 @@ export class BookModal extends Component {
   	//book a session with a trainer
   	async bookTrainer(){
 	    var user = firebase.auth().currentUser;
-	    var pendingRef = firebase.database().ref('pendingSessions');
-	    var trainRef = firebase.database().ref('trainSessions');
+		var pendingRef = firebase.database().ref('pendingSessions');
+		var trainRef = firebase.database().ref('trainSessions');
 	    var price = (parseInt(this.state.trainer.rate) * (parseInt(this.state.bookDuration) / 60)).toFixed(2);
 
 	    if(!this.state.user.cardAdded){
@@ -147,7 +147,8 @@ export class BookModal extends Component {
 		          	traineePhone: this.state.user.phone,
 		          	trainerPhone: this.state.trainer.phone,
 		          	sentBy: 'trainee'
-	         	});
+				 });
+				 var scheduleKey = firebase.database().ref('users/' + user.uid + '/pendingschedule/' + this.props.trainerKey).push().key;
 	         	try {
 		    	  var message = this.state.user.name + " has requested a session at " + this.dateToString(this.state.bookDate) + " for " + this.state.bookDuration + " mins.";
 			      const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/twilio/sendMessage/', {
@@ -160,7 +161,8 @@ export class BookModal extends Component {
 			      const data = await res.json();
 			      data.body = JSON.parse(data.body);
 			    } catch(error){
-			      console.log(error);
+				  console.log(error);
+			      Alert.alert('There was an error sending a notification text to the trainer.');
 			    }
 	         	this.props.hide();
 	         	setTimeout(this.props.confirm, 1000);
