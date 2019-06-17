@@ -59,6 +59,7 @@ export class RatingPage extends Component {
 		var currSessionRef = firebase.database().ref('/trainSessions/' + this.state.session.key);
 		var sessionRef = firebase.database().ref('trainSessions');
 		var userRef = firebase.database().ref('users');
+		firebase.database().ref('/users/' + user.uid + '/schedule/').child(this.state.session.key).remove();
 
 		const sessionLoad = await sessionRef.orderByKey().equalTo(this.state.session.key).on('value', function(snapshot){
 			snapshot.forEach(function(child){

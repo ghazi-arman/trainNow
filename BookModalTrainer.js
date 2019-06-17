@@ -53,47 +53,55 @@ export class BookModalTrainer extends Component {
 	async bookClient() {
 		var user = firebase.auth().currentUser;
 		var pendingRef = firebase.database().ref('pendingSessions');
-		var trainRef = firebase.database().ref('trainSessions');
-		var price = (parseInt(this.state.user.rate) * (parseInt(this.state.bookDuration) / 60)).toFixed(2);
 
 		if (!this.state.user.cardAdded && !this.state.user.type == 'managed') {
 			Alert.alert('This trainer no longer has a card on file.');
 			return;
 		}
+		
+		// Pulls schedules for trainers and conflicts to check for overlaps
+    var timeConflict = false;
+    var startTime = this.state.bookDate;
+    var endTime = new Date(new Date(this.state.bookDate).getTime() + (60000 * this.state.bookDuration));
 
-		// Pull session for trainer to be booked and trainee to check for time conflicts
-		// TODO: Change logic to use schedule objects in users table instead
-		var user = firebase.auth().currentUser;
-		var sessions = [];
-		const trainerSessions = await trainRef.orderByChild('trainer').equalTo(user.uid).once('value', function (snapshot) {
-			snapshot.forEach(function (child) {
-				sessions.push(child.val());
-			});
-		}.bind(this));
+    firebase.database().ref('/users/' + user.uid +'/pendingschedule/').once('value', function (snapshot) {
+      snapshot.forEach(function (session){
+        let currSession = session.val();
+        if(timeOverlapCheck(currSession.start, currSession.end, startTime, endTime)){
+          timeConflict = true;
+          Alert.alert('You have a pending session during this sessions time. Either wait for a response or cancel your request.');
+          return;
+        }
+      });
+    });
 
-		const userSessions = await trainRef.orderByChild('trainee').equalTo(this.props.client).once('value', function (snapshot) {
-			snapshot.forEach(function (child) {
-				sessions.push(child.val());
-			});
+    firebase.database().ref('/users/' + user.uid +'/schedule/').once('value', function (snapshot) {
+      snapshot.forEach(function (session){
+        let currSession = session.val();
+        if(timeOverlapCheck(currSession.start, currSession.end, startTime, endTime)){
+          timeConflict = true;
+          Alert.alert('You have a session during this time. Either cancel your session or book a different time.');
+          return;
+        }
+      });
+    });
+
+    firebase.database().ref('/users/' + this.props.client +'/schedule/').once('value', function (snapshot) {
+      snapshot.forEach(function (session){
+        let currSession = session.val();
+        if(timeOverlapCheck(currSession.start, currSession.end, startTime, endTime)){
+          timeConflict = true;
+          Alert.alert('The trainer is already booked from' + dateToString(currSession.start) + ' to ' + dateToString(currSession.end));
+          return;
+        }
+      });
 		});
-
-		for (i = 0; i < sessions.length; i++) {
-			var session = sessions[i];
-			var start2 = new Date(session.start).getTime();
-			var end2 = new Date(new Date(session.start).getTime() + (60000 * session.duration)).getTime();
-			var start1 = new Date(this.state.bookDate).getTime();
-			var end1 = new Date(new Date(this.state.bookDate).getTime() + (60000 * this.state.bookDuration)).getTime();
-
-			if (start1 > start2 && start1 < end2 || start2 > start1 && start2 < end1) {
-				if (session.trainee == user.uid) {
-					Alert.alert(this.state.client.name + 'has a session at ' + dateToString(session.start) + ' for ' + session.duration + ' mins.');
-					return;
-				} else {
-					Alert.alert('You has a session at ' + dateToString(session.start) + ' for ' + session.duration + ' mins.');
-					return;
-				}
-			}
+		
+		if(timeConflict){
+			return;
 		}
+
+		var price = (parseInt(this.state.user.rate) * (parseInt(this.state.bookDuration) / 60)).toFixed(2);
 
 		Alert.alert(
 			'Request session with ' + this.state.client.name + ' for $' + price + ' at ' + dateToString(this.state.bookDate),
@@ -119,6 +127,14 @@ export class BookModalTrainer extends Component {
 							trainerPhone: this.state.user.phone,
 							sentBy: 'trainer'
 						});
+						firebase.database().ref('users/' + user.uid + '/pendingschedule/').child(sessionKey).set({
+              start: this.state.bookDate.toString(),
+              end: end.toString()
+            });
+            firebase.database().ref('users/' + this.props.client + '/pendingschedule/').child(sessionKey).set({
+              start: this.state.bookDate.toString(),
+              end: end.toString()
+            });
 						try {
 							var message = this.state.user.name + " has requested a session at " + dateToString(this.state.bookDate) + " for " + this.state.bookDuration + " mins.";
 							const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/twilio/sendMessage/', {
@@ -151,11 +167,11 @@ export class BookModalTrainer extends Component {
 					</View>
 					<View style={styles.formContainer}>
 						<Text style={styles.bookDetails}>{this.state.gym.name}</Text>
+						<Text style={{fontSize:20, color: COLORS.PRIMARY, fontWeight: '500'}}>Session Time</Text>
 						<View style={styles.inputRow}>
-							<Text style={styles.bookFormLabel}>Session Time</Text>
 							<View style={styles.datePickerHolder}>
 								<DatePickerIOS
-									mode='time'
+									mode='datetime'
 									itemStyle={{ color: COLORS.PRIMARY }}
 									textColor={COLORS.PRIMARY}
 									style={styles.datepicker}
@@ -235,7 +251,7 @@ const styles = StyleSheet.create({
 	},
 	datePickerHolder: {
 		height: 200,
-		width: '65%',
+		width: '100%',
 	},
 	datepicker: {
 		height: 200,

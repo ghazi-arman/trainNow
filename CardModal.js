@@ -1,37 +1,33 @@
 import React, { Component } from 'react';
-import { Platform, StyleSheet, Text, View, KeyboardAvoidingView, TextInput, TouchableOpacity, Alert} from 'react-native';
-import { Actions } from 'react-native-router-flux';
+import { StyleSheet, Text, KeyboardAvoidingView, TouchableOpacity, Alert } from 'react-native';
 import firebase from 'firebase';
-import { AppLoading} from 'expo';
-import FontAwesome, { Icons } from 'react-native-fontawesome';
+import { AppLoading } from 'expo';
+import { Icons } from 'react-native-fontawesome';
+import { TextField } from './components/TextField';
+import COLORS from './Colors';
 var stripe = require('stripe-client')('pk_test_6sgeMvomvrZFucRqYhi6TSbO');
-console.ignoredYellowBox = ['Setting a timer'];
 
 export class CardModal extends Component {
-	
 	constructor(props) {
 		super(props);
 		this.state = {
 			user: 'null',
-			name: '',
-			number: '',
-			expiration: '',
-			cvc: '',
 		};
+
 		this.addCard = this.addCard.bind(this);
 	}
 
-	componentDidMount(){
+	componentDidMount() {
 		//Get user info for state
-	    var user = firebase.auth().currentUser;
-	    var usersRef = firebase.database().ref('users');
-	    usersRef.orderByKey().equalTo(user.uid).on('child_added', function(snapshot) {
-	    	this.setState({user: snapshot.val()});
-	    }.bind(this));
+		var user = firebase.auth().currentUser;
+		var usersRef = firebase.database().ref('users');
+		usersRef.orderByKey().equalTo(user.uid).on('child_added', function (snapshot) {
+			this.setState({ user: snapshot.val() });
+		}.bind(this));
 	}
 
-	addCard = async() => {
-		if(this.state.pressed){
+	addCard = async () => {
+		if (this.state.pressed) {
 			return;
 		}
 		this.state.pressed = true;
@@ -45,39 +41,39 @@ export class CardModal extends Component {
 			}
 
 		}
-		if(this.state.user.trainer){
+		if (this.state.user.trainer) {
 			information.card.currency = 'usd';
 		}
 		var user = firebase.auth().currentUser;
-	    var card = await stripe.createToken(information);
-		if(this.state.user.stripeId === undefined){
+		var card = await stripe.createToken(information);
+		if (this.state.user.stripeId === undefined) {
 			try {
-		      	const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/createCustomer/', {
-		        	method: 'POST',
-		        	body: JSON.stringify({
-		          	token: card,
-		          	id: user.uid,
-		          	email: user.email
-		        	}),
-		      	});
-		      	const data = await res.json();
-		      	data.body = JSON.parse(data.body);
-		      	if(data.body.message == 'Success'){
+				const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/createCustomer/', {
+					method: 'POST',
+					body: JSON.stringify({
+						token: card,
+						id: user.uid,
+						email: user.email
+					}),
+				});
+				const data = await res.json();
+				data.body = JSON.parse(data.body);
+				if (data.body.message == 'Success') {
 					var userRef = firebase.database().ref('users');
-				    userRef.child(user.uid).update({
-				    	stripeId: data.body.customer.id,
-				    	cardAdded: true
-				    });
-				}else{
+					userRef.child(user.uid).update({
+						stripeId: data.body.customer.id,
+						cardAdded: true
+					});
+				} else {
 					Alert.alert('There was an error adding the card. Please check the info and try again.');
 					return;
 				}
-		      	this.props.hide();
-		    } catch(error){
-		    	Alert.alert('There was an error adding the card. Please try again.');
-		    }
-		}else{
-			if(this.state.user.trainer){
+				this.props.hide();
+			} catch (error) {
+				Alert.alert('There was an error adding the card. Please try again.');
+			}
+		} else {
+			if (this.state.user.trainer) {
 				try {
 					const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/addTrainerCard/', {
 						method: 'POST',
@@ -89,20 +85,20 @@ export class CardModal extends Component {
 					const data = await res.json();
 					data.body = JSON.parse(data.body);
 					console.log(data.body);
-					if(data.body.message == 'Success'){
+					if (data.body.message == 'Success') {
 						var userRef = firebase.database().ref('users');
-					    userRef.child(user.uid).update({
-					    	cardAdded: true
-					    });
-					}else{
+						userRef.child(user.uid).update({
+							cardAdded: true
+						});
+					} else {
 						Alert.alert('There was an error. Please check the info and make sure it is a debit card before trying again.');
 						return;
 					}
 					this.props.hide();
-				} catch(error){
+				} catch (error) {
 					Alert.alert('There was an error adding the card. Please check the info and make sure it is a debit card before trying again.');
 				}
-			}else{
+			} else {
 				try {
 					const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/addCard/', {
 						method: 'POST',
@@ -113,106 +109,82 @@ export class CardModal extends Component {
 					});
 					const data = await res.json();
 					data.body = JSON.parse(data.body);
-					if(data.body.message == 'Success'){
+					if (data.body.message == 'Success') {
 						var userRef = firebase.database().ref('users');
-					    userRef.child(user.uid).update({
-					    	cardAdded: true
-					    });
-					}else{
+						userRef.child(user.uid).update({
+							cardAdded: true
+						});
+					} else {
 						Alert.alert('There was an error adding the card. Please check the info and try again.');
 						return;
 					}
 					this.props.hide();
-				} catch(error){
+				} catch (error) {
 					Alert.alert('There was an error adding the card. Please try again.');
 				}
 			}
-			
+
 		}
 	}
 
-	render(){
-		if(this.state.user == 'null' || typeof this.state.user == undefined){
+	render() {
+		if (this.state.user == 'null' || typeof this.state.user == undefined) {
 			return <Expo.AppLoading />
-		}else{
-			return(
+		} else {
+			return (
 				<KeyboardAvoidingView behavior="padding" style={styles.formContainer}>
 					<Text style={styles.title}>Add Card</Text>
-					<View style={styles.inputRow}>
-						<Text style={styles.icon}>
-							<FontAwesome>{Icons.user}</FontAwesome>
+					<TextField
+						rowStyle={styles.inputRow}
+						icon={Icons.user}
+						placeholder="Name"
+						color={COLORS.PRIMARY}
+						onChange={(name) => this.setState({ name })}
+						value={this.state.name}
+					/>
+					<TextField
+						rowStyle={styles.inputRow}
+						icon={Icons.creditCard}
+						placeholder="Card Number"
+						keyboardType="number-pad"
+						color={COLORS.PRIMARY}
+						onChange={(number) => this.setState({ number })}
+						value={this.state.number}
+					/>
+					<TextField
+						rowStyle={styles.inputRow}
+						icon={Icons.calendar}
+						placeholder="Expiration Month (mm)"
+						keyboardType="number-pad"
+						color={COLORS.PRIMARY}
+						onChange={(expMonth) => this.setState({ expMonth })}
+						value={this.state.expMonth}
+					/>
+					<TextField
+						rowStyle={styles.inputRow}
+						icon={Icons.calendar}
+						placeholder="Expiration Year (yy)"
+						keyboardType="number-pad"
+						color={COLORS.PRIMARY}
+						onChange={(expYear) => this.setState({ expYear })}
+						value={this.state.expYear}
+					/>
+					<TextField
+						rowStyle={styles.inputRow}
+						icon={Icons.calendar}
+						placeholder="CVC Code"
+						keyboardType="number-pad"
+						color={COLORS.PRIMARY}
+						onChange={(cvc) => this.setState({ cvc })}
+						value={this.state.cvc}
+					/>
+					<TouchableOpacity style={styles.submitButton} onPressIn={() => this.addCard()}>
+						<Text style={styles.buttonText}>
+							Add Card
 						</Text>
-						<TextInput 
-							placeholder="Name"
-							style={styles.input}
-							returnKeyType="next"
-							placeholderTextColor='#0097A7'
-							underlineColorAndroid='transparent'
-							onChangeText={(name) => this.setState({name})}
-							value={this.state.name} />
-					</View>
-		            <View style={styles.inputRow}>
-						<Text style={styles.icon}>
-							<FontAwesome>{Icons.creditCard}</FontAwesome>
-						</Text>
-						<TextInput 
-							placeholder="Card Number"
-							keyboardType="number-pad"
-							returnKeyType="done"
-							style={styles.input}
-							placeholderTextColor='#0097A7'
-							underlineColorAndroid='transparent'
-							onChangeText={(number) => this.setState({number})}
-							value={this.state.number} />
-					</View>
-					<View style={styles.inputRow}>
-						<Text style={styles.icon}>
-							<FontAwesome>{Icons.calendar}</FontAwesome>
-						</Text>
-						<TextInput 
-							placeholder="Expiration Month (mm)"
-							returnKeyType="done"
-							keyboardType="number-pad"
-							style={styles.input}
-							placeholderTextColor='#0097A7'
-							underlineColorAndroid='transparent'
-							onChangeText={(expMonth) => this.setState({expMonth})}
-							value={this.state.expiration} />
-					</View>
-					<View style={styles.inputRow}>
-						<Text style={styles.icon}>
-							<FontAwesome>{Icons.calendar}</FontAwesome>
-						</Text>
-						<TextInput 
-							placeholder="Expiration Year (yy)"
-							returnKeyType="done"
-							keyboardType="number-pad"
-							style={styles.input}
-							placeholderTextColor='#0097A7'
-							underlineColorAndroid='transparent'
-							onChangeText={(expYear) => this.setState({expYear})}
-							value={this.state.expiration} />
-					</View>
-					<View style={styles.inputRow}>
-						<Text style={styles.icon}>
-							<FontAwesome>{Icons.lock}</FontAwesome>
-						</Text>
-						<TextInput 
-							placeholder="CVC Code"
-							keyboardType="number-pad"
-							returnKeyType="done"
-							style={styles.input}
-							placeholderTextColor='#0097A7'
-							underlineColorAndroid='transparent'
-							onChangeText={(cvc) => this.setState({cvc})}
-							value={this.state.cvc} />
-					</View>
-		            <TouchableOpacity style={styles.submitButton} onPressIn={() => this.addCard()}>
-		            	<Text style={styles.buttonText}>
-		                  Add Card
-		                </Text>
-		            </TouchableOpacity>
-	            </KeyboardAvoidingView>)
+					</TouchableOpacity>
+				</KeyboardAvoidingView>
+			)
 		}
 	}
 }

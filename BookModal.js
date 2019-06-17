@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, TouchableOpacity, Alert, DatePickerIOS, Picker 
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { AppLoading } from 'expo';
-import { dateToString } from './Functions';
+import { dateToString, timeOverlapCheck } from './Functions';
 import COLORS from './Colors';
 
 export class BookModal extends Component {
@@ -20,26 +20,23 @@ export class BookModal extends Component {
     this.loadTrainer = this.loadTrainer.bind(this);
   }
 
-  componentDidMount() {
-    this.loadTrainer(this.props.trainer.key);
+  async componentDidMount() {
+    var trainer = await this.loadTrainer(this.props.trainer.key);
 
     // Gets user info for state
     let user = firebase.auth().currentUser;
-    let usersRef = firebase.database().ref('users');
-    usersRef.orderByKey().equalTo(user.uid).on('child_added', function (snapshot) {
-      this.setState({ user: snapshot.val() });
+    firebase.database().ref('users').child(user.uid).on('value', function (snapshot) {
+      this.setState({ user: snapshot.val(), trainer: trainer});
     }.bind(this));
   }
 
   // Loads selected trainer Info from db to state
-  loadTrainer(trainerKey) {
-    firebase.database().ref('/users/' + trainerKey).once('value', function (snapshot) {
-      let trainer = snapshot.val();
-      trainer.key = snapshot.key;
-      this.setState({
-        trainer: trainer
-      });
-    }.bind(this));
+  async loadTrainer(trainerKey) {
+    var trainer;
+    await firebase.database().ref('users').child(trainerKey).once('value', function (snapshot) {
+      trainer = snapshot.val();
+    });
+    return trainer;
   }
 
   // Books session with trainer
@@ -69,39 +66,46 @@ export class BookModal extends Component {
     var pendingRef = firebase.database().ref('pendingSessions');
     var trainRef = firebase.database().ref('trainSessions');
     
-    // Pulls sessions for trainer to be booked and trainee to check for time conflicts
-    // TODO: Change this logic to check for conflicts using traienr's / client's schedule objects in users table
-    var sessions = [];
-    const trainerSessions = await trainRef.orderByChild('trainer').equalTo(this.props.trainer.key).once('value', function (snapshot) {
-      snapshot.forEach(function (child) {
-        sessions.push(child.val());
-      });
-    }.bind(this));
+    // Pulls schedules for trainers and conflicts to check for overlaps
+    var timeConflict = false;
+    var startTime = this.state.bookDate;
+    var endTime = new Date(new Date(this.state.bookDate).getTime() + (60000 * this.state.bookDuration));
 
-    const userSessions = await trainRef.orderByChild('trainee').equalTo(user.uid).once('value', function (snapshot) {
-      snapshot.forEach(function (child) {
-        sessions.push(child.val());
+    firebase.database().ref('/users/' + user.uid +'/pendingschedule/').once('value', function (snapshot) {
+      snapshot.forEach(function (session){
+        let currSession = session.val();
+        if(!timeConflict && timeOverlapCheck(currSession.start, currSession.end, startTime, endTime)){
+          timeConflict = true;
+          Alert.alert('You have a pending session during this sessions time. Either wait for a response or cancel your request.');
+          return;
+        }
       });
     });
 
-    // Checks for time conflicts comparing all potential sessions to session to be booked time block
-    // TODO: Change this to match above TODO's logic
-    for (i = 0; i < sessions.length; i++) {
-      let session = sessions[i];
-      let start2 = new Date(session.start).getTime();
-      let end2 = new Date(new Date(session.start).getTime() + (60000 * session.duration)).getTime();
-      let start1 = new Date(this.state.bookDate).getTime();
-      let end1 = new Date(new Date(this.state.bookDate).getTime() + (60000 * this.state.bookDuration)).getTime();
-
-      if (start1 > start2 && start1 < end2 || start2 > start1 && start2 < end1) {
-        if (session.trainee == user.uid) {
-          Alert.alert('You have a session at ' + dateToString(session.start) + ' for ' + session.duration + ' mins.');
-          return;
-        } else {
-          Alert.alert(this.state.trainer.name + ' has a session at ' + dateToString(session.start) + ' for ' + session.duration + ' mins.');
+    firebase.database().ref('/users/' + user.uid +'/schedule/').once('value', function (snapshot) {
+      snapshot.forEach(function (session){
+        let currSession = session.val();
+        if(!timeConflict && timeOverlapCheck(currSession.start, currSession.end, startTime, endTime)){
+          timeConflict = true;
+          Alert.alert('You have a session during this time. Either cancel your session or book a different time.');
           return;
         }
-      }
+      });
+    });
+
+    firebase.database().ref('/users/' + this.props.trainer.key +'/schedule/').once('value', function (snapshot) {
+      snapshot.forEach(function (session){
+        let currSession = session.val();
+        if(!timeConflict && timeOverlapCheck(currSession.start, currSession.end, startTime, endTime)){
+          timeConflict = true;
+          Alert.alert('The trainer is already booked from' + dateToString(currSession.start) + ' to ' + dateToString(currSession.end));
+          return;
+        }
+      });
+    });
+
+    if(timeConflict){
+      return;
     }
 
     let price = (parseInt(this.state.trainer.rate) * (parseInt(this.state.bookDuration) / 60)).toFixed(2);
@@ -113,7 +117,7 @@ export class BookModal extends Component {
         { text: 'No' },
         {
           text: 'Yes', onPress: async () => {
-            pendingRef.push({
+            var sessionKey = pendingRef.push({
               trainee: user.uid,
               traineeName: this.state.user.name,
               trainer: this.props.trainer.key,
@@ -129,8 +133,16 @@ export class BookModal extends Component {
               traineePhone: this.state.user.phone,
               trainerPhone: this.state.trainer.phone,
               sentBy: 'trainee'
+            }).key;
+            var end = new Date(new Date(this.state.bookDate).getTime() + (60000 * this.state.bookDuration))
+            firebase.database().ref('users/' + user.uid + '/pendingschedule/').child(sessionKey).set({
+              start: this.state.bookDate.toString(),
+              end: end.toString()
             });
-            var scheduleKey = firebase.database().ref('users/' + user.uid + '/pendingschedule/' + this.props.trainerKey).push().key;
+            firebase.database().ref('users/' + this.props.trainer.key + '/pendingschedule/').child(sessionKey).set({
+              start: this.state.bookDate.toString(),
+              end: end.toString()
+            });
             try {
               let message = this.state.user.name + " has requested a session at " + dateToString(this.state.bookDate) + " for " + this.state.bookDuration + " mins.";
               const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/twilio/sendMessage/', {
@@ -167,11 +179,11 @@ export class BookModal extends Component {
             <FontAwesome>{Icons.arrowLeft}</FontAwesome>
           </Text>
           <View style={styles.formContainer}>
+            <Text style={{fontSize:20, color: COLORS.PRIMARY, fontWeight: '500'}}>Session Time</Text>
             <View style={styles.inputRow}>
-              <Text style={styles.bookFormLabel}>Session Time</Text>
               <View style={styles.datePickerHolder}>
                 <DatePickerIOS
-                  mode='time'
+                  mode='datetime'
                   itemStyle={{ color: COLORS.PRIMARY }}
                   textColor={COLORS.PRIMARY}
                   style={styles.datepicker}
@@ -245,7 +257,7 @@ const styles = StyleSheet.create({
   },
   datePickerHolder: {
     height: 200,
-    width: '65%',
+    width: '100%',
   },
   datepicker: {
     height: 200,

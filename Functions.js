@@ -21,3 +21,15 @@
     var displayDate = month + '-' + day + ' ' + hour + ':' + minute + abbr;
     return displayDate;
   }
+
+  export function timeOverlapCheck(sessionOneStart, sessionOneEnd, sessionTwoStart, sessionTwoEnd){
+    let startOne = new Date(sessionOneStart).getTime();
+    let startTwo = new Date(sessionTwoStart).getTime();
+    let endOne = new Date(sessionOneEnd).getTime();
+    let endTwo = new Date(sessionTwoEnd).getTime();
+
+    if (startOne > startTwo && startOne < endTwo || startTwo > startOne && startTwo < endOne) {
+      return true;
+    }
+    return false;
+  }
