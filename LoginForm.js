@@ -12,7 +12,8 @@ export class LoginForm extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      fontLoaded: false
+      fontLoaded: false,
+      submitted: false,
     };
 
     this.login = this.login.bind(this);
@@ -33,6 +34,12 @@ export class LoginForm extends Component {
   }
 
   login() {
+    if(this.state.submitted){
+      return;
+    }else{
+      this.state.submitted = true;
+    }
+
     //Gym Owner Sign up Link
     if (this.state.email.toLowerCase() == 'owner signup') {
       Actions.reset('ownersignup');
@@ -42,10 +49,12 @@ export class LoginForm extends Component {
     // input validation
     if (!this.state.email.length) {
       Alert.alert("Please enter email!");
+      this.state.submitted = false;
       return;
     }
     if (this.state.password.length < 6) {
       Alert.alert("Password must be more than six characters!");
+      this.state.submitted = false;
       return;
     }
 
@@ -58,10 +67,12 @@ export class LoginForm extends Component {
 
         // Verification for trainers under gym owners
         if (currentUser.deleted) {
+          this.state.submitted = false;
           Alert.alert('Your account has been deleted. Please contact your gym manager.');
         } else if (currentUser.owner && !currentUser.pending) {
           Actions.owner({ gym: currentUser.gym });
         } else if (currentUser.owner && currentUser.pending) {
+          this.state.submitted = false;
           Alert.alert('Your account is pending');
         } else if (currentUser.trainer) {
           Actions.reset('modal');
@@ -72,10 +83,12 @@ export class LoginForm extends Component {
     }.bind(this)).catch(function (error) {
       
       // Authentication Error check
+      this.state.submitted = false;
       let errorCode = error.code;
       let errorMessage = error.message;
       if (errorCode === 'auth/wrong-password') {
         Alert.alert('Wrong password.');
+        return;
       }
       Alert.alert('There was a problem logging in. Check your connection and try again.')
     }.bind(this));
@@ -103,6 +116,8 @@ export class LoginForm extends Component {
           placeholder="Password"
           secure={true}
           onChange={(password) => this.setState({password})}
+          returnKeyType="go"
+          onSubmitEditing={() => this.login()}
           value={this.state.password}
         />
         <TouchableOpacity style={styles.buttonContainer} onPressIn={this.login}>

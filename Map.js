@@ -11,10 +11,8 @@ import { ManagedSideMenu } from './ManagedSideMenu';
 import { GymModal } from './GymModal';
 import { BookModal } from './BookModal';
 import { ScheduleModal } from './ScheduleModal';
-const markerImg = require('./images/marker.png');
 import COLORS from './Colors';
-
-console.ignoredYellowBox = ['Setting a timer'];
+const markerImg = require('./images/marker.png');
 
 export class Map extends Component {
   // Initialize Firebase
@@ -82,19 +80,15 @@ export class Map extends Component {
     //grab user location and store it
     let { status } = await Permissions.askAsync(Permissions.LOCATION);
     let location = await Location.getCurrentPositionAsync({});
+    let locationObject = {
+      latitude:  Number(JSON.stringify(location.coords.latitude)),
+      longitude: Number(JSON.stringify(location.coords.longitude)),
+      latitudeDelta: 0.0422,
+      longitudeDelta: 0.0221
+    };
     this.setState({
-      userRegion: {
-        latitude:  Number(JSON.stringify(location.coords.latitude)),
-        longitude: Number(JSON.stringify(location.coords.longitude)),
-        latitudeDelta: 0.0422,
-        longitudeDelta: 0.0221
-      },
-      mapRegion: {
-        latitude:  Number(JSON.stringify(location.coords.latitude)),
-        longitude: Number(JSON.stringify(location.coords.longitude)),
-        latitudeDelta: 0.0422,
-        longitudeDelta: 0.0221
-      },
+      userRegion: locationObject,
+      mapRegion: locationObject,
       locationLoaded: true,
     });
   };

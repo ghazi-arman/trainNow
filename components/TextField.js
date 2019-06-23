@@ -21,6 +21,7 @@ const TextField = (props) => {
         autoCorrect={props.autoCorrect}
         autoCapitalize={props.autoCapitalize}
         keyboardType={props.keyboard}
+        onSubmitEditing={props.onSubmitEditing}
       />
     </View>
   );

@@ -1,49 +1,46 @@
 {
-  "name": "trainnow",
-  "version": "0.1.0",
-  "private": true,
-  "devDependencies": {
-    "jest-expo": "^32.0.0",
-    "react-test-renderer": "16.0.0-beta.5"
-  },
-  "main": "./node_modules/expo/AppEntry.js",
-  "scripts": {
-    "start": "expo start",
-    "eject": "expo eject",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "optimize": "expo optimize"
-  },
-  "jest": {
-    "preset": "jest-expo"
-  },
-  "dependencies": {
-    "@expo/vector-icons": "^6.3.1",
-    "expo": "^32.0.0",
-    "expo-cli": "^2.20.0",
-    "firebase": "^4.6.2",
-    "geolib": "^2.0.24",
-    "jsinspect": "^0.12.7",
-    "mobx": "^3.*",
-    "mobx-react": "^4.*",
-    "prop-types": "^15.7.2",
-    "react": "16.5.0",
-    "react-dom": "^16.8.6",
-    "react-modal": "^3.8.1",
-    "react-native": "https://github.com/expo/react-native/archive/sdk-32.0.0.tar.gz",
-    "react-native-action-button": "^2.8.5",
-    "react-native-checkbox": "^2.0.0",
-    "react-native-drawer": "^2.5.1",
-    "react-native-elements": "^0.19.1",
-    "react-native-fontawesome": "^5.7.0",
-    "react-native-modal": "^4.1.1",
-    "react-native-modal-datetime-picker": "^4.13.0",
-    "react-native-popup-dialog": "^0.9.39",
-    "react-native-router-flux": "^4.0.6",
-    "react-native-web": "^0.1.13",
-    "react-stripe-elements": "^2.0.3",
-    "stripe-client": "^1.1.5",
-    "tipsi-stripe": "^7.5.0",
-    "watchman": "^0.1.8"
-  }
+    "name": "trainnow",
+    "version": "0.1.0",
+    "private": true,
+    "devDependencies": {
+        "jest-expo": "^32.0.0",
+        "react-test-renderer": "16.0.0-beta.5"
+    },
+    "main": "./node_modules/expo/AppEntry.js",
+    "scripts": {
+        "start": "expo start",
+        "eject": "expo eject",
+        "android": "expo start --android",
+        "ios": "expo start --ios",
+        "optimize": "expo optimize"
+    },
+    "jest": {
+        "preset": "jest-expo"
+    },
+    "dependencies": {
+        "@expo/vector-icons": "^6.3.1",
+        "expo": "^32.0.0",
+        "firebase": "^4.6.2",
+        "geolib": "^2.0.24",
+        "mobx": "^3.*",
+        "mobx-react": "^4.*",
+        "prop-types": "^15.7.2",
+        "react": "16.5.0",
+        "react-dom": "^16.8.6",
+        "react-modal": "^3.8.1",
+        "react-native": "https://github.com/expo/react-native/archive/sdk-32.0.0.tar.gz",
+        "react-native-calendars": "^1.188.0",
+        "react-native-checkbox": "^2.0.0",
+        "react-native-drawer": "^2.5.1",
+        "react-native-elements": "^0.19.1",
+        "react-native-fontawesome": "^5.7.0",
+        "react-native-modal": "^4.1.1",
+        "react-native-modal-datetime-picker": "^4.13.0",
+        "react-native-popup-dialog": "^0.9.39",
+        "react-native-router-flux": "^4.0.6",
+        "react-native-web": "^0.1.13",
+        "react-stripe-elements": "^2.0.3",
+        "stripe-client": "^1.1.5",
+        "watchman": "^0.1.8"
+    }
 }
