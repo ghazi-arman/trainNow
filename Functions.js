@@ -1,3 +1,5 @@
+import firebase from 'firebase';
+
 // Convert date to readable format
 export function dateToString(start) {
   var pendingDate = new Date(start);
@@ -22,6 +24,7 @@ export function dateToString(start) {
   return displayDate;
 }
 
+// Checks if two date/time ranges overlap
 export function timeOverlapCheck(sessionOneStart, sessionOneEnd, sessionTwoStart, sessionTwoEnd){
   let startOne = new Date(sessionOneStart).getTime();
   let startTwo = new Date(sessionTwoStart).getTime();
@@ -32,4 +35,142 @@ export function timeOverlapCheck(sessionOneStart, sessionOneEnd, sessionTwoStart
     return true;
   }
   return false;
+}
+
+// Loads user from user table in firebase
+export async function loadUser(userKey){
+  let returnValue;
+  await firebase.database().ref('/users/' + userKey).once('value', function(snapshot) {
+    let user = snapshot.val();
+    user.key = snapshot.key;
+    returnValue = user;
+  });
+  return returnValue;
+}
+
+// Loads accepted schedule from users table
+export async function loadAcceptedSchedule(userKey){
+  let sessions = [];
+  await firebase.database().ref('/users/' + userKey + '/schedule/').once('value', function (snapshot) {
+    snapshot.forEach(function (snapshot){
+      let session = snapshot.val();
+      session.text = 'Training Session'
+      sessions.push(session);
+    });
+  });
+  return sessions;
+}
+
+// Loads pending schedule from users table
+export async function loadPendingSchedule(userKey){
+  let sessions = [];
+  await firebase.database().ref('/users/' + userKey + '/pendingschedule/').once('value', function (snapshot) {
+    snapshot.forEach(function (snapshot){
+      let session = snapshot.val();
+      session.text = 'Training Session'
+      sessions.push(session);
+    });
+  });
+  return sessions
+}
+
+// Loads complete session object of all pending sessions
+export async function loadPendingSessions(userKey, userType){
+  let sessions = [];
+  let pendingRef = firebase.database().ref('pendingSessions');
+  await pendingRef.orderByChild(userType).equalTo(userKey).once('value', function (data) {
+    data.forEach(function (snapshot) {
+      pendingSession = snapshot.val();
+      pendingSession.key = snapshot.key;
+      sessions.push(pendingSession);
+    });
+  }.bind(this));
+  return sessions;
+}
+
+// Loads complete session object of all accepted sessions
+export async function loadAcceptedSessions(userKey, userType){
+  let sessions = [];
+  let acceptedRef = firebase.database().ref('trainSessions');
+  await acceptedRef.orderByChild(userType).equalTo(userKey).once('value', function (data) {
+    data.forEach(function (snapshot) {
+      acceptSession = snapshot.val();
+      if (!acceptSession.end) {
+        acceptSession.key = snapshot.key;
+        sessions.push(acceptSession);
+      }
+    });
+  }.bind(this));
+  return sessions;
+}
+
+// Creates session in accepted sessions table in database and removes pending sessions
+export async function createSession(session, sessionKey, startTime, endTime){
+  // create session object in accepted sessions table
+  firebase.database().ref('trainSessions').child(sessionKey).set({
+    trainee: session.trainee,
+    trainer: session.trainer,
+    traineeName: session.traineeName,
+    trainerName: session.trainerName,
+    start: session.start,
+    duration: session.duration,
+    location: session.location,
+    rate: session.rate,
+    gym: session.gym,
+    sentBy: session.sentBy,
+    traineeStripe: session.traineeStripe,
+    trainerStripe: session.trainerStripe,
+    traineePhone: session.traineePhone,
+    trainerPhone: session.trainerPhone,
+    trainerReady: false,
+    traineeReady: false,
+    met: false,
+    read: false,
+    traineeEnd: false,
+    trainerEnd: false,
+  });
+
+  // remove session from pending sessions table and from pending schedule of trainer and trainee
+  firebase.database().ref('pendingSessions').child(sessionKey).remove();
+	firebase.database().ref('/users/' + session.trainee + '/pendingschedule/').child(sessionKey).remove();
+  firebase.database().ref('/users/' + session.trainer + '/pendingschedule/').child(sessionKey).remove();
+
+  // add session to trainer's and trainee's schedule
+  firebase.database().ref('users/' + session.trainee + '/schedule/').child(sessionKey).set({
+    start: startTime.toString(),
+    end: endTime.toString()
+  });
+  firebase.database().ref('users/' + session.trainer + '/schedule/').child(sessionKey).set({
+    start: startTime.toString(),
+    end: endTime.toString()
+  });
+}
+
+// Removes pending session from sessions table and schedules
+export async function cancelPendingSession(session, sessionKey){
+  firebase.database().ref('pendingSessions').child(sessionKey).remove();
+  firebase.database().ref('/users/' + session.trainee + '/pendingschedule/').child(sessionKey).remove();
+  firebase.database().ref('/users/' + session.trainer + '/pendingschedule/').child(sessionKey).remove();
+}
+
+// Removes accepted session from sessions table and schedules and stores it in canceled sessions table
+export async function cancelAcceptedSession(session, sessionKey){
+  firebase.database().ref('cancelSessions').push(session);
+  firebase.database().ref('trainSessions').child(sessionKey).remove();
+  firebase.database().ref('/users/' + session.trainee + '/schedule/').child(sessionKey).remove();
+  firebase.database().ref('/users/' + session.trainer + '/schedule/').child(sessionKey).remove();
+}
+
+// Sends text message using twilio
+export async function sendMessage(number, message){
+  const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/twilio/sendMessage/', {
+    method: 'POST',
+    body: JSON.stringify({
+      phone: number,
+      message: message
+    }),
+  });
+  const data = await res.json();
+  data.body = JSON.parse(data.body);
+  return data;
 }

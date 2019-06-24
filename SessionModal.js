@@ -3,174 +3,75 @@ import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert } from 'rea
 import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
-import { MapView, AppLoading } from 'expo';
+import { AppLoading } from 'expo';
 import COLORS from './Colors';
-import { dateToString, timeOverlapCheck } from './Functions';
+import { dateToString, timeOverlapCheck, loadUser, loadAcceptedSessions, loadPendingSessions, loadAcceptedSchedule, createSession, sendMessage, cancelPendingSession, cancelAcceptedSession } from './Functions';
 
 export class SessionModal extends Component {
 
 	constructor(props) {
 		super(props);
 		this.state = {
-			pendingSessions: [],
-			acceptSessions: [],
-			pendingLoaded: false,
-			acceptLoaded: false,
+			sessionsLoaded: false,
 			currentTab: 'pending',
-			user: 'null'
 		}
-		this.acceptSession = this.acceptSession.bind(this);
-		this.loadSessions = this.loadSessions.bind(this);
-		this.goActive = this.goActive.bind(this);
 	}
 
 	async componentDidMount() {
-		var user = firebase.auth().currentUser;
-		if (this.state.pendingLoaded == false && this.state.acceptLoaded == false) {
-			const loading = await this.loadSessions(user.uid);
-			this.markRead();
-		}
-		var usersRef = firebase.database().ref('users');
-		usersRef.orderByKey().equalTo(user.uid).once('child_added', function (snapshot) {
-			this.setState({ user: snapshot.val() });
-		}.bind(this));
-	}
+		let uid = firebase.auth().currentUser.uid;
+		if (!this.state.user || !this.state.sessionsLoaded) {
+			let user = await loadUser(uid);
 
-	//Load Pending sessions still awaiting accept by trainer
-	async loadSessions(userKey) {
-		var pendingRef = firebase.database().ref('pendingSessions');
-		var acceptRef = firebase.database().ref('trainSessions');
-		var usersRef = firebase.database().ref('users');
-		var pendingSessions = [];
-		var acceptSessions = [];
-		var acceptSession = null;
-		var pendingSession = null;
-
-		const loading = await usersRef.orderByKey().equalTo(userKey).once('child_added', function (snapshot) {
-			var currentUser = snapshot.val();
-
-			if (currentUser.trainer) {
-
-				pendingRef.orderByChild('trainer').equalTo(userKey).once('value', function (data) {
-					data.forEach(function (snapshot) {
-						pendingSession = snapshot.val();
-						if (pendingSession != null && pendingSession.end == null) {
-							pendingSession.key = snapshot.key;
-							pendingSessions.push(pendingSession);
-						}
-					});
-					this.setState({ pendingSessions: pendingSessions, pendingLoaded: true });
-				}.bind(this));
-
-				acceptRef.orderByChild('trainer').equalTo(userKey).once('value', function (data) {
-					data.forEach(function (snapshot) {
-						acceptSession = snapshot.val();
-						if (acceptSession != null && acceptSession.end == null) {
-							acceptSession.key = snapshot.key;
-							acceptSessions.push(acceptSession);
-						}
-					});
-					this.setState({ acceptSessions: acceptSessions, acceptLoaded: true });
-				}.bind(this));
-
-			} else {
-
-				pendingRef.orderByChild('trainee').equalTo(userKey).once('value', function (data) {
-					data.forEach(function (snapshot) {
-						pendingSession = snapshot.val();
-						if (pendingSession != null && pendingSession.end == null) {
-							pendingSession.key = snapshot.key;
-							pendingSessions.push(pendingSession);
-						}
-					});
-					this.setState({ pendingSessions: pendingSessions, pendingLoaded: true });
-				}.bind(this));
-
-				acceptRef.orderByChild('trainee').equalTo(userKey).once('value', function (data) {
-					data.forEach(function (snapshot) {
-						acceptSession = snapshot.val();
-						if (acceptSession != null && acceptSession.end == null) {
-							acceptSession.key = snapshot.key;
-							acceptSessions.push(acceptSession);
-						}
-					});
-					this.setState({ acceptSessions: acceptSessions, acceptLoaded: true });
-				}.bind(this));
+			let pendingSessions, acceptSessions;
+			if(user.trainer){
+				pendingSessions = await loadPendingSessions(uid, 'trainer');
+				acceptSessions = await loadAcceptedSessions(uid, 'trainer');
+			}else{
+				pendingSessions = await loadPendingSessions(uid, 'trainee');
+				acceptSessions = await loadAcceptedSessions(uid, 'trainee')
 			}
-		}.bind(this));
-	}
-
-	//mark all sessions shown to user as read in db
-	markRead() {
-		var user = firebase.auth().currentUser;
-		if (this.state.pendingSessions.length > 0) {
-			this.state.pendingSessions.map(function (session) {
-				if ((user.uid == session.trainer && session.sentBy == 'trainee') || (user.uid == session.trainee && session.sentBy == 'trainer')) {
-					firebase.database().ref('/pendingSessions/' + session.key).update({
-						read: true
-					});
-				}
-			});
-		}
-		if (this.state.acceptSessions.length > 0) {
-			this.state.acceptSessions.map(function (session) {
-				if ((user.uid == session.trainer && session.sentBy == 'trainer') || (user.uid == session.trainee && session.sentBy == 'trainee')) {
-					firebase.database().ref('/trainSessions/' + session.key).update({
-						read: true
-					});
-				}
-			});
+			this.setState({user, pendingSessions, acceptSessions, sessionsLoaded: true});
+			this.markRead(pendingSessions, acceptSessions, user);
 		}
 	}
 
-	//Enter session
-	enterSession(session) {
-		Actions.session({ session: session });
-	}
-	//Go to map
-	goToMap() {
-		Actions.reset('map');
+	markRead(pendingSessions, acceptSessions, user) {
+		// marks sessions as read in database to prevent new session alert message from appearing twice
+		pendingSessions.map(function (session) {
+			if ((user.trainer && session.sentBy == 'trainee') || (!user.trainer && session.sentBy == 'trainer')) {
+					firebase.database().ref('/pendingSessions/' + session.key).update({ read: true });
+			}
+		});
+		acceptSessions.map(function (session) {
+			if ((user.trainer && session.sentBy == 'trainer') || (!user.trainer && session.sentBy == 'trainee')) {
+					firebase.database().ref('/trainSessions/' + session.key).update({ read: true });
+			}
+		});
 	}
 
-	//Accept pending Session as trainer
 	async acceptSession(session) {
-		var user = firebase.auth().currentUser;
-		var sessionRef = firebase.database().ref('trainSessions');
-		var pendingRef = firebase.database().ref('pendingSessions');
-		var pendingSessions = this.state.pendingSessions;
-		var acceptSessions = this.state.acceptSessions;
-
 		// Pulls schedules for trainers and conflicts to check for overlaps
-		var timeConflict = false;
-		var startTime = session.start;
-		var endTime = new Date(new Date(session.start).getTime() + (60000 * session.duration));
+		let trainerSchedule = await loadAcceptedSchedule(session.trainer);
+		let traineeSchedule = await loadAcceptedSchedule(session.trainee);
+		let endTime = new Date(new Date(session.start).getTime() + (60000 * session.duration));
 
-		firebase.database().ref('/users/' + user.uid +'/schedule/').once('value', function (snapshot) {
-			snapshot.forEach(function (session){
-				let currSession = session.val();
-				if(timeOverlapCheck(currSession.start, currSession.end, startTime, endTime)){
-					timeConflict = true;
-					Alert.alert('You have a session during this time. Either cancel your session or book a different time.');
-					return;
-				}
-			});
+		trainerSchedule.forEach(function(currSession){
+			if(timeOverlapCheck(currSession.start, currSession.end, session.start, endTime)){
+				Alert.alert('The Trainer has a session during this time.');
+				return;
+			}
 		});
 
-		firebase.database().ref('/users/' + session.trainee +'/schedule/').once('value', function (snapshot) {
-			snapshot.forEach(function (session){
-				let currSession = session.val();
-				if(timeOverlapCheck(currSession.start, currSession.end, startTime, endTime)){
-					timeConflict = true;
-					Alert.alert('The client is already booked from' + dateToString(currSession.start) + ' to ' + dateToString(currSession.end));
-					return;
-				}
-			});
+		traineeSchedule.forEach(function(currSession){
+			if(timeOverlapCheck(currSession.start, currSession.end, session.start, endTime)){
+				Alert.alert('The client is already booked during this time.');
+				return;
+			}
 		});
 
-		if(timeConflict){
-			return;
-		}
-
+		// Creates session if user accepts
+		let pendingSessions = this.state.pendingSessions;
+		let acceptSessions = this.state.acceptSessions;
 		Alert.alert(
 			'Are you sure you want to accept this session?',
 			'',
@@ -178,77 +79,34 @@ export class SessionModal extends Component {
 				{ text: 'No' },
 				{
 					text: 'Yes', onPress: async () => {
-						sessionRef.child(session.key).set({
-							trainee: session.trainee,
-							trainer: session.trainer,
-							traineeName: session.traineeName,
-							trainerName: session.trainerName,
-							start: session.start,
-							duration: session.duration,
-							location: session.location,
-							rate: session.rate,
-							gym: session.gym,
-							sentBy: session.sentBy,
-							traineeStripe: session.traineeStripe,
-							trainerStripe: session.trainerStripe,
-							traineePhone: session.traineePhone,
-							trainerPhone: session.trainerPhone,
-							traineeLoc: null,
-							trainerLoc: null,
-							trainerReady: false,
-							traineeReady: false,
-							met: false,
-							read: false,
-							end: null,
-							traineeRating: null,
-							trainerRating: null,
-							traineeEnd: false,
-							trainerEnd: false,
-						});
-						pendingRef.child(session.key).remove();
+						// creates session in database and moves session object to accepted sessions array for state
+						createSession(session, session.key, session.start, endTime);
 						pendingSessions.splice(pendingSessions.indexOf(session), 1);
-						firebase.database().ref('/users/' + session.trainee + '/pendingschedule/').child(session.key).remove();
-						firebase.database().ref('/users/' + session.trainer + '/pendingschedule/').child(session.key).remove();
 						acceptSessions.push(session);
-						firebase.database().ref('users/' + session.trainee + '/schedule/').child(session.key).set({
-              start: startTime.toString(),
-              end: endTime.toString()
-            });
-            firebase.database().ref('users/' + session.trainer + '/schedule/').child(session.key).set({
-              start: startTime.toString(),
-              end: endTime.toString()
-            });
+
+						// sends appropriate text message to trainer or trainee who requested session
+						let phoneNumber, message;
+						if (session.sentBy == 'trainer') {
+							phoneNumber = session.trainerPhone;
+							message = session.traineeName + " has accepted your session at " + dateToString(session.start) + " for " + session.duration + " mins";
+						} else {
+							phoneNumber = session.traineePhone;
+							message = session.trainerName + " has accepted your session at " + dateToString(session.start) + " for " + session.duration + " mins";
+						}
 						try {
-							if (session.sentBy == 'trainer') {
-								var toPhone = session.trainerPhone;
-								var message = session.traineeName + " has accepted your session at " + dateToString(session.start) + " for " + session.duration + " mins";
-							} else {
-								var toPhone = session.traineePhone;
-								var message = session.trainerName + " has accepted your session at " + dateToString(session.start) + " for " + session.duration + " mins";
-							}
-							const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/twilio/sendMessage/', {
-								method: 'POST',
-								body: JSON.stringify({
-									phone: toPhone,
-									message: message
-								}),
-							});
-							const data = await res.json();
-							data.body = JSON.parse(data.body);
-							console.log(data.body);
+							sendMessage(phoneNumber, message);
 						} catch (error) {
 							console.log(error);
 						}
-						this.setState({ pendingSessions: pendingSessions, acceptSessions: acceptSessions });
+
+						// updates state with new session arrays
+						this.setState({ pendingSessions, acceptSessions });
 					}
 				}]);
 	}
 
-	// Cancel pending session as trainee
 	cancelSession(session) {
-		var user = firebase.auth().currentUser;
-		var pendingSessions = this.state.pendingSessions;
-		var pendingRef = firebase.database().ref('pendingSessions');
+		let pendingSessions = this.state.pendingSessions;
 		Alert.alert(
 			'Are you sure you want to cancel this session?',
 			'',
@@ -256,28 +114,21 @@ export class SessionModal extends Component {
 				{ text: 'No' },
 				{
 					text: 'Yes', onPress: async () => {
-						pendingRef.child(session.key).remove();
+						// cancels pending session and updates array for state
+						cancelPendingSession(session, session.key);
 						pendingSessions.splice(pendingSessions.indexOf(session), 1);
-						firebase.database().ref('/users/' + session.trainee + '/pendingschedule/').child(session.key).remove();
-						firebase.database().ref('/users/' + session.trainer + '/pendingschedule/').child(session.key).remove();
+
+						// send appropriate text message to requested user
+						let phoneNumber, message;
+						if (session.sentBy == 'trainee') {
+							phoneNumber = session.trainerPhone;
+							message = session.traineeName + " has cancelled the requested session at " + dateToString(session.start) + " for " + session.duration + " mins";
+						} else {
+							phoneNumber = session.traineePhone;
+							message = session.trainerName + " has cancelled the requested session at " + dateToString(session.start) + " for " + session.duration + " mins";
+						}
 						try {
-							if (session.sentBy == 'trainee') {
-								var toPhone = session.trainerPhone;
-								var message = session.traineeName + " has cancelled the requested session at " + dateToString(session.start) + " for " + session.duration + " mins";
-							} else {
-								var toPhone = session.traineePhone;
-								var message = session.trainerName + " has cancelled the requested session at " + dateToString(session.start) + " for " + session.duration + " mins";
-							}
-							const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/twilio/sendMessage/', {
-								method: 'POST',
-								body: JSON.stringify({
-									phone: toPhone,
-									message: message
-								}),
-							});
-							const data = await res.json();
-							data.body = JSON.parse(data.body);
-							console.log(data.body);
+							sendMessage(phoneNumber, message);
 						} catch (error) {
 							console.log(error);
 						}
@@ -289,14 +140,11 @@ export class SessionModal extends Component {
 	}
 
 	//Cancel accept session as trainee
-	cancelAccept(session) {
+	cancelAccepted(session) {
 		if (new Date(session.start) <= new Date()) {
 			Alert.alert("You cannot cancel a session after it has started!");
 			return;
 		}
-		var user = firebase.auth().currentUser;
-		var sessionRef = firebase.database().ref('trainSessions');
-		var cancelRef = firebase.database().ref('cancelSessions');
 		var acceptSessions = this.state.acceptSessions;
 		Alert.alert(
 			'Are you sure you want to cancel this session?',
@@ -305,29 +153,21 @@ export class SessionModal extends Component {
 				{ text: 'No' },
 				{
 					text: 'Yes', onPress: async () => {
-						cancelRef.push(session);
-						sessionRef.child(session.key).remove();
+						// cancels accepted session
+						cancelAcceptedSession(session, session.key);
 						acceptSessions.splice(acceptSessions.indexOf(session), 1);
-						firebase.database().ref('/users/' + session.trainee + '/schedule/').child(session.key).remove();
-						firebase.database().ref('/users/' + session.trainer + '/schedule/').child(session.key).remove();
+						
+						// send appropriate text message
+						let phoneNumber, message;
+						if (this.state.user.trainer) {
+							phoneNumber = session.traineePhone;
+							message = session.trainerName + " has cancelled your session at " + dateToString(session.start) + " for " + session.duration + " mins";
+						} else {
+							phoneNumber = session.trainerPhone;
+							message = session.traineeName + " has cancelled your session at " + dateToString(session.start) + " for " + session.duration + " mins";
+						}
 						try {
-							if (user.uid == session.trainer) {
-								var toPhone = session.traineePhone;
-								var message = session.trainerName + " has cancelled your session at " + dateToString(session.start) + " for " + session.duration + " mins";
-							} else {
-								var toPhone = session.trainerPhone;
-								var message = session.traineeName + " has cancelled your session at " + dateToString(session.start) + " for " + session.duration + " mins";
-							}
-							const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/twilio/sendMessage/', {
-								method: 'POST',
-								body: JSON.stringify({
-									phone: toPhone,
-									message: message
-								}),
-							});
-							const data = await res.json();
-							data.body = JSON.parse(data.body);
-							console.log(data.body);
+							sendMessage(phoneNumber, message);
 						} catch (error) {
 							console.log(error);
 						}
@@ -357,10 +197,10 @@ export class SessionModal extends Component {
 						<View style={styles.timeView}><Text style={styles.trainerInfo}>{displayDate}</Text></View>
 					</View>
 					<View style={{ flexDirection: 'row', justifyContent: 'space-around', height: 50 }}>
-						<TouchableOpacity style={styles.denyContainer} onPressIn={() => this.cancelAccept(session)}>
+						<TouchableOpacity style={styles.denyContainer} onPressIn={() => this.cancelAccepted(session)}>
 							<Text style={styles.buttonText}> Cancel Session </Text>
 						</TouchableOpacity>
-						<TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.enterSession(session.key)}>
+						<TouchableOpacity style={styles.buttonContainer} onPressIn={() => Actions.session({ session: session.key })}>
 							<Text style={styles.buttonText}> Enter Session </Text>
 						</TouchableOpacity>
 					</View>
@@ -441,8 +281,8 @@ export class SessionModal extends Component {
 	}
 
 	render() {
-		if (this.state.pendingLoaded == false && this.state.acceptLoaded == false || this.state.user == 'null') {
-			return <Expo.AppLoading />;
+		if (!this.state.sessionsLoaded || !this.state.user) {
+			return <AppLoading />;
 		} else {
 			var active = schedule = null;
 			if (this.state.user.trainer) {
@@ -500,7 +340,7 @@ export class SessionModal extends Component {
 			}
 			return (
 				<View style={styles.container}>
-					<Text style={styles.backButton} onPress={this.goToMap}>
+					<Text style={styles.backButton} onPress={() => Actions.reset('map')}>
 						<FontAwesome>{Icons.arrowLeft}</FontAwesome>
 					</Text>
 					<Text style={styles.title}>Calendar</Text>
