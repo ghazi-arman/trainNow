@@ -47,24 +47,17 @@ export class Map extends Component {
     this.hideandOpen=this.hideandOpen.bind(this);
   }
 
-  componentWillUnmount(){
-    firebase.database().ref('trainSessions').off();
-    firebase.database().ref('pendingSessions').off();
-    firebase.database().ref('gyms').off()
-  }
-
   async componentDidMount() {
-
     if(!this.state.locationLoaded){
       this.getLocationAsync();
     }
 
-    //get gyms from db
+    // get gyms from db
     this.loadGyms();
 
     var user = firebase.auth().currentUser;
 
-    //Checks for sessions in progress and unread messages/sessions
+    // Checks for sessions in progress and unread messages/sessions
     this.checkSessions(user.uid);
     this.goToRating(user.uid);
     this.checkRead(user.uid);
