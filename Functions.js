@@ -1,5 +1,17 @@
 import firebase from 'firebase';
 
+// Convert date to yyyy-mm-dd format for Agenda events
+export function dateforAgenda(date){
+  let month = '' + (date.getMonth() + 1);
+  let day = '' + date.getDate();
+  let year = date.getFullYear();
+
+  if (month.length < 2) month = '0' + month;
+  if (day.length < 2) day = '0' + day;
+
+  return [year, month, day].join('-');
+}
+
 // Convert date to readable format
 export function dateToString(start) {
   var pendingDate = new Date(start);
@@ -61,13 +73,26 @@ export async function loadAcceptedSchedule(userKey){
   return sessions;
 }
 
+// Loads availability schedule from users table
+export async function loadAvailableSchedule(userKey){
+  let sessions = [];
+  await firebase.database().ref('/users/' + userKey + '/availableschedule/').once('value', function (snapshot) {
+    snapshot.forEach(function (snapshot){
+      let session = snapshot.val();
+      session.text = 'Open Availability'
+      sessions.push(session);
+    });
+  });
+  return sessions;
+}
+
 // Loads pending schedule from users table
 export async function loadPendingSchedule(userKey){
   let sessions = [];
   await firebase.database().ref('/users/' + userKey + '/pendingschedule/').once('value', function (snapshot) {
     snapshot.forEach(function (snapshot){
       let session = snapshot.val();
-      session.text = 'Training Session'
+      session.text = 'Pending Session'
       sessions.push(session);
     });
   });

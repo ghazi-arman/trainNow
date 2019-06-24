@@ -1,44 +1,34 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, Alert} from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import firebase from 'firebase';
-import { AppLoading} from 'expo';
+import { AppLoading } from 'expo';
 import COLORS from './Colors';
-import { dateToString } from './Functions';
-import {Calendar, CalendarList, Agenda} from 'react-native-calendars';
+import { dateToString, loadUser, loadAcceptedSchedule, dateforAgenda, loadAvailableSchedule } from './Functions';
+import { Agenda } from 'react-native-calendars';
 
 export class ScheduleModal extends Component {
 	
 	constructor(props) {
 		super(props);
 		this.state = {
-			trainer: 'null',
-			user: 'null',
 			date: new Date()
 		};
-		this.loadTrainer=this.loadTrainer.bind(this);
-		this.renderAgendaItem=this.renderAgendaItem.bind(this);
 	}
 
-	componentDidMount(){
-		this.loadTrainer(this.props.trainer.key);
+	async componentDidMount(){
+		// load trainer and user info and trainer sessions
+		if(!this.state.trainer || !this.state.sessions || !this.state.user){
+			var user = await loadUser(firebase.auth().currentUser.uid)
+			var trainer = await loadUser(this.props.trainer.key);
+			var sessions = await loadAcceptedSchedule(this.props.trainer.key);
+			var availability = await loadAvailableSchedule(this.props.trainer.key);
+			sessions = sessions.concat(availability);
+		}
 
-		//Get user info for state
-		var user = firebase.auth().currentUser;
-		firebase.database().ref('/users/' + user.uid).once('value', function(snapshot) {
-			this.setState({user: snapshot.val()});
-		}.bind(this));
-	}
-
-	//Loads selected trainer Info from db
-	loadTrainer(trainerKey){
-		firebase.database().ref('/users/' + trainerKey).once('value', function(snapshot){
-		var trainer = snapshot.val();
-		trainer.key = snapshot.key;
-			this.setState({
-				trainer: trainer
-			});
-		}.bind(this));
+		// set previously retrieved values in state
+		this.setState({user, trainer, sessions});
+		//console.log(sessions);
 	}
 
 	renderAgendaItem(item, firstItemInDay){
@@ -52,40 +42,41 @@ export class ScheduleModal extends Component {
 		)
 	}
 
+	renderAgendaEvents(){
+		let startDate = this.state.date.getTime();
+		let endDate = new Date(this.state.date.getTime() + 86400000 * 14).getTime();
+		let events = {};
+		for(let currDate = startDate; currDate <= endDate; currDate += 86400000){
+			let currentDay = new Date(currDate);
+			events[dateforAgenda(currentDay)] = this.state.sessions.filter(function(session){
+				return dateforAgenda(currentDay) == dateforAgenda(new Date(session.start))
+			})
+		}
+		return events;
+	}
+
 	render(){
-		if(this.state.trainer == 'null' || typeof this.state.trainer == undefined){
-			return <Expo.AppLoading />
+		if(!this.state.trainer || !this.state.user || !this.state.sessions){
+			return <AppLoading />
 		}else{
+			let events = this.renderAgendaEvents();
 			return(
 				<View style={styles.modal}>
 					<View style={styles.nameContainer}>
 						<Text style={styles.trainerName}>{this.state.trainer.name}</Text>
 					</View>
-						<Text style={styles.backButton} onPress={this.props.hideandOpen}>
-								<FontAwesome>{Icons.arrowLeft}</FontAwesome>
-						</Text>
-						<Agenda 
-							style={styles.calendar}
-							minDate={this.state.date}
-							maxDate={new Date().setDate(this.state.date.getDate() + 14)}
-							items={{
-								'2019-06-23': [
-									{
-										text: 'Training Session',
-										start: this.state.date,
-										end: new Date(this.state.date.getTime() + 3600000)
-									},
-									{
-										text: 'Open Availability',
-										start: this.state.date,
-										end: new Date(this.state.date.getTime() + 4 * 3600000)
-									}
-								],
-							}}
-							renderItem={this.renderAgendaItem}
-							renderEmptyDate={() => {return (<View />);}}
-							rowHasChanged={(r1, r2) => {return r1.text !== r2.text}}
-						/>
+					<Text style={styles.backButton} onPress={this.props.hideandOpen}>
+							<FontAwesome>{Icons.arrowLeft}</FontAwesome>
+					</Text>
+					<Agenda 
+						style={styles.calendar}
+						minDate={this.state.date}
+						maxDate={new Date(this.state.date.getTime() + 86400000 * 14)}
+						items={events}
+						renderItem={this.renderAgendaItem}
+						renderEmptyDate={() => {return (<View />);}}
+						rowHasChanged={(r1, r2) => {return r1.text !== r2.text}}
+					/>
 				</View>
 	    )
 		}
