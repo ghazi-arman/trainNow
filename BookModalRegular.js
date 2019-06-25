@@ -3,58 +3,28 @@ import { StyleSheet, Text, View, TouchableOpacity, Alert, DatePickerIOS, Picker 
 import firebase from 'firebase';
 import { AppLoading } from 'expo';
 import COLORS from './Colors';
-import { dateToString } from './Functions';
+import { dateToString, timeOverlapCheck, loadUser, loadGym, loadAcceptedSchedule, loadPendingSchedule, createPendingSession, sendMessage } from './Functions';
 
 export class BookModalRegular extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			trainer: 'null',
 			bookDate: new Date(),
 			bookDuration: '60',
-			user: 'null',
-			gym: 'null'
 		};
-
-		this.bookTrainer = this.bookTrainer.bind(this);
-		this.loadTrainer = this.loadTrainer.bind(this);
-		this.loadGym = this.loadGym.bind(this);
 	}
 
 	async componentDidMount() {
-		var trainer = await this.loadTrainer(this.props.trainer);
-		var gym = await this.loadGym(this.props.gym);
-
-		// Get user info for state
-		var user = firebase.auth().currentUser;
-		var usersRef = firebase.database().ref('users');
-		usersRef.orderByKey().equalTo(user.uid).on('child_added', function (snapshot) {
-			this.setState({ user: snapshot.val(), gym: gym, trainer: trainer });
-		}.bind(this));
+		if(!this.state.trainer || !this.state.user || !this.state.gym){
+			let trainer = await loadUser(this.props.trainer);
+			let user = await loadUser(firebase.auth().currentUser.uid);
+			let gym = await loadGym(this.props.gym);
+			this.setState({user, trainer, gym});
+		}
 	}
 
-	// Loads selected trainer Info from db
-	async loadTrainer(trainerKey) {
-		var trainer;
-		await firebase.database().ref('users').child(trainerKey).once('value', function (snapshot) {
-			trainer = snapshot.val();
-		}.bind(this));
-		return trainer;
-	}
-
-	async loadGym(gymKey) {
-		var gym;
-		await firebase.database().ref('gyms').child(gymKey).once('value', function (snapshot) {
-			gym = snapshot.val()
-		}.bind(this));
-		return gym;
-	}
-
-	// book a session with a trainer
 	async bookTrainer() {
-		var user = firebase.auth().currentUser;
-		var pendingRef = firebase.database().ref('pendingSessions');
-
+		let user = firebase.auth().currentUser;
 		if (!this.state.user.cardAdded) {
 			Alert.alert('You must have a card on file to book a session.');
 			return;
@@ -69,106 +39,63 @@ export class BookModalRegular extends Component {
 		}
 
 		// Pulls schedules for trainers and conflicts to check for overlaps
-    var timeConflict = false;
-    var startTime = this.state.bookDate;
-    var endTime = new Date(new Date(this.state.bookDate).getTime() + (60000 * this.state.bookDuration));
+    let trainerSchedule = await loadAcceptedSchedule(this.props.trainer);
+    let pendingSchedule = await loadPendingSchedule(user.uid);
+    let traineeSchedule = await loadAcceptedSchedule(user.uid);
+    traineeSchedule = traineeSchedule.concat(pendingSchedule);
+		let endTime = new Date(new Date(this.state.bookDate).getTime() + (60000 * this.state.bookDuration));
+		let timeConflict = false;
 
-    firebase.database().ref('/users/' + user.uid +'/pendingschedule/').once('value', function (snapshot) {
-      snapshot.forEach(function (session){
-        let currSession = session.val();
-        if(timeOverlapCheck(currSession.start, currSession.end, startTime, endTime)){
-          timeConflict = true;
-          Alert.alert('You have a pending session during this sessions time. Either wait for a response or cancel your request.');
-          return;
+		trainerSchedule.forEach(function(currSession){
+			if(timeOverlapCheck(currSession.start, currSession.end, this.state.bookDate, endTime)){
+				Alert.alert('The Trainer has a session during this time.');
+				timeConflict = true;
+				return;
+			}
+		}.bind(this));
+
+		traineeSchedule.forEach(function(currSession){
+			if(timeOverlapCheck(currSession.start, currSession.end, this.state.bookDate, endTime)){
+				Alert.alert('You already have a pending session or session during this time.');
+				timeConflict = true;
+				return;
+			}
+		}.bind(this));
+
+		if(timeConflict) return;
+		
+		// create session in pending table
+    let price = (parseInt(this.state.trainer.rate) * (parseInt(this.state.bookDuration) / 60)).toFixed(2);
+    let trainer = this.state.trainer;
+    let trainee = this.state.user;
+    trainee.uid = firebase.auth().currentUser.uid;
+    trainer.key = this.props.trainer;
+    Alert.alert(
+      'Request session with ' + this.state.trainer.name + ' for $' + price + ' at ' + dateToString(this.state.bookDate),
+      '',
+      [
+        { text: 'No' },
+        {
+          text: 'Yes', onPress: async () => {
+            createPendingSession(trainee, trainer, this.state.gym, this.state.bookDate, this.state.bookDuration, 'trainee');
+            try {
+              let message = this.state.user.name + " has requested a session at " + dateToString(this.state.bookDate) + " for " + this.state.bookDuration + " mins.";
+              sendMessage(this.state.trainer.phone, message);
+            } catch (error) {
+              console.log(error);
+              Alert.alert('There was an error sending a notification text to the trainer.');
+            }
+            this.props.hide();
+            setTimeout(this.props.confirm, 1000);
+          }
         }
-      });
-    });
-
-    firebase.database().ref('/users/' + user.uid +'/schedule/').once('value', function (snapshot) {
-      snapshot.forEach(function (session){
-        let currSession = session.val();
-        if(timeOverlapCheck(currSession.start, currSession.end, startTime, endTime)){
-          timeConflict = true;
-          Alert.alert('You have a session during this time. Either cancel your session or book a different time.');
-          return;
-        }
-      });
-    });
-
-    firebase.database().ref('/users/' + this.props.trainer +'/schedule/').once('value', function (snapshot) {
-      snapshot.forEach(function (session){
-        let currSession = session.val();
-        if(timeOverlapCheck(currSession.start, currSession.end, startTime, endTime)){
-          timeConflict = true;
-          Alert.alert('The trainer is already booked from' + dateToString(currSession.start) + ' to ' + dateToString(currSession.end));
-          return;
-        }
-      });
-    });
-
-    if(timeConflict){
-      return;
-    }
-
-		var price = (parseInt(this.state.trainer.rate) * (parseInt(this.state.bookDuration) / 60)).toFixed(2);
-
-		Alert.alert(
-			'Request session with ' + this.state.trainer.name + ' for $' + price + ' at ' + dateToString(this.state.bookDate),
-			'',
-			[
-				{ text: 'No' },
-				{
-					text: 'Yes', onPress: async () => {
-						var sessionKey = pendingRef.push({
-							trainee: user.uid,
-							traineeName: this.state.user.name,
-							trainer: this.props.trainer,
-							trainerName: this.state.trainer.name,
-							start: this.state.bookDate.toString(),
-							duration: this.state.bookDuration,
-							location: this.state.gym.location,
-							gym: this.state.gym.name,
-							rate: this.state.trainer.rate,
-							read: false,
-							traineeStripe: this.state.user.stripeId,
-							trainerStripe: this.state.trainer.stripeId,
-							traineePhone: this.state.user.phone,
-							trainerPhone: this.state.trainer.phone,
-							sentBy: 'trainee'
-						}).key;
-						firebase.database().ref('users/' + user.uid + '/pendingschedule/').child(sessionKey).set({
-              start: this.state.bookDate.toString(),
-              end: end.toString()
-            });
-            firebase.database().ref('users/' + this.props.trainer + '/pendingschedule/').child(sessionKey).set({
-              start: this.state.bookDate.toString(),
-              end: end.toString()
-            });
-						try {
-							var message = this.state.user.name + " has requested a session at " + dateToString(this.state.bookDate) + " for " + this.state.bookDuration + " mins.";
-							const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/twilio/sendMessage/', {
-								method: 'POST',
-								body: JSON.stringify({
-									phone: this.state.trainer.phone,
-									message: message
-								}),
-							});
-							const data = await res.json();
-							data.body = JSON.parse(data.body);
-						} catch (error) {
-							console.log(error);
-						}
-						this.props.hide();
-						setTimeout(this.props.confirm, 1000);
-					}
-				},
-			]
-		);
+      ]
+    );
 	}
 
 	render() {
-		if (this.state.trainer == 'null' || this.state.trainer == null || this.state.gym == 'null') {
-			return <Expo.AppLoading />
+		if (!this.state.trainer || !this.state.trainer || !this.state.gym) {
+			return <AppLoading />
 		} else {
 			return (
 				<View style={styles.modal}>

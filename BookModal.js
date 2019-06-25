@@ -3,45 +3,27 @@ import { StyleSheet, Text, View, TouchableOpacity, Alert, DatePickerIOS, Picker 
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { AppLoading } from 'expo';
-import { dateToString, timeOverlapCheck } from './Functions';
+import { dateToString, timeOverlapCheck, loadPendingSchedule, sendMessage, loadUser, createPendingSession, loadAcceptedSchedule } from './Functions';
 import COLORS from './Colors';
 
 export class BookModal extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      trainer: 'null',
       bookDate: new Date(),
       bookDuration: '60',
-      user: 'null',
-    };
-    
-    this.bookTrainer = this.bookTrainer.bind(this);
-    this.loadTrainer = this.loadTrainer.bind(this);
+    };    
   }
 
   async componentDidMount() {
-    var trainer = await this.loadTrainer(this.props.trainer.key);
-
-    // Gets user info for state
-    let user = firebase.auth().currentUser;
-    firebase.database().ref('users').child(user.uid).on('value', function (snapshot) {
-      this.setState({ user: snapshot.val(), trainer: trainer});
-    }.bind(this));
+    if(!this.state.trainer || !this.state.user){
+      let trainer = await loadUser(this.props.trainer.key);
+      let user = await loadUser(firebase.auth().currentUser.uid);
+      this.setState({trainer, user});
+    }
   }
 
-  // Loads selected trainer Info from db to state
-  async loadTrainer(trainerKey) {
-    var trainer;
-    await firebase.database().ref('users').child(trainerKey).once('value', function (snapshot) {
-      trainer = snapshot.val();
-    });
-    return trainer;
-  }
-
-  // Books session with trainer
   async bookTrainer() {
-
     // checks stripe account creation for both trainer and client
     if (!this.state.user.cardAdded) {
       Alert.alert('You must have a card on file to book a session.');
@@ -51,7 +33,6 @@ export class BookModal extends Component {
       Alert.alert('This trainer has not added a payment method yet.');
       return;
     }
-
     // checks if client is using trainer account and if trainer is active
     if (this.state.user.trainer) {
       Alert.alert('Sign into a non-trainer account to book sessions.');
@@ -62,54 +43,39 @@ export class BookModal extends Component {
       return;
     }
 
-    var user = firebase.auth().currentUser;
-    var pendingRef = firebase.database().ref('pendingSessions');
-    var trainRef = firebase.database().ref('trainSessions');
-    
     // Pulls schedules for trainers and conflicts to check for overlaps
-    var timeConflict = false;
-    var startTime = this.state.bookDate;
-    var endTime = new Date(new Date(this.state.bookDate).getTime() + (60000 * this.state.bookDuration));
+    let user = firebase.auth().currentUser;    
+    let trainerSchedule = await loadAcceptedSchedule(this.props.trainer.key);
+    let pendingSchedule = await loadPendingSchedule(user.uid);
+    let traineeSchedule = await loadAcceptedSchedule(user.uid);
+    traineeSchedule = traineeSchedule.concat(pendingSchedule);
+    let endTime = new Date(new Date(this.state.bookDate).getTime() + (60000 * this.state.bookDuration));
+    let timeConflict = false;
 
-    firebase.database().ref('/users/' + user.uid +'/pendingschedule/').once('value', function (snapshot) {
-      snapshot.forEach(function (session){
-        let currSession = session.val();
-        if(!timeConflict && timeOverlapCheck(currSession.start, currSession.end, startTime, endTime)){
-          timeConflict = true;
-          Alert.alert('You have a pending session during this sessions time. Either wait for a response or cancel your request.');
-          return;
-        }
-      });
-    });
+		trainerSchedule.forEach(function(currSession){
+			if(timeOverlapCheck(currSession.start, currSession.end, this.state.bookDate, endTime)){
+        Alert.alert('The Trainer has a session during this time.');
+        timeConflict = true;
+				return;
+			}
+		}.bind(this));
 
-    firebase.database().ref('/users/' + user.uid +'/schedule/').once('value', function (snapshot) {
-      snapshot.forEach(function (session){
-        let currSession = session.val();
-        if(!timeConflict && timeOverlapCheck(currSession.start, currSession.end, startTime, endTime)){
-          timeConflict = true;
-          Alert.alert('You have a session during this time. Either cancel your session or book a different time.');
-          return;
-        }
-      });
-    });
+		traineeSchedule.forEach(function(currSession){
+			if(timeOverlapCheck(currSession.start, currSession.end, this.state.bookDate, endTime)){
+        Alert.alert('You already have a pending session or session during this time.');
+        timeConflict = true;
+				return;
+			}
+    }.bind(this));
 
-    firebase.database().ref('/users/' + this.props.trainer.key +'/schedule/').once('value', function (snapshot) {
-      snapshot.forEach(function (session){
-        let currSession = session.val();
-        if(!timeConflict && timeOverlapCheck(currSession.start, currSession.end, startTime, endTime)){
-          timeConflict = true;
-          Alert.alert('The trainer is already booked from' + dateToString(currSession.start) + ' to ' + dateToString(currSession.end));
-          return;
-        }
-      });
-    });
-
-    if(timeConflict){
-      return;
-    }
-
+    if(timeConflict) return;
+    
+    // create session in pending table
     let price = (parseInt(this.state.trainer.rate) * (parseInt(this.state.bookDuration) / 60)).toFixed(2);
-
+    let trainer = this.state.trainer;
+    let trainee = this.state.user;
+    trainee.uid = firebase.auth().currentUser.uid;
+    trainer.key = this.props.trainer.key;
     Alert.alert(
       'Request session with ' + this.state.trainer.name + ' for $' + price + ' at ' + dateToString(this.state.bookDate),
       '',
@@ -117,43 +83,10 @@ export class BookModal extends Component {
         { text: 'No' },
         {
           text: 'Yes', onPress: async () => {
-            var sessionKey = pendingRef.push({
-              trainee: user.uid,
-              traineeName: this.state.user.name,
-              trainer: this.props.trainer.key,
-              trainerName: this.state.trainer.name,
-              start: this.state.bookDate.toString(),
-              duration: this.state.bookDuration,
-              location: this.props.gym.location,
-              gym: this.props.gym.name,
-              rate: this.state.trainer.rate,
-              read: false,
-              traineeStripe: this.state.user.stripeId,
-              trainerStripe: this.state.trainer.stripeId,
-              traineePhone: this.state.user.phone,
-              trainerPhone: this.state.trainer.phone,
-              sentBy: 'trainee'
-            }).key;
-            var end = new Date(new Date(this.state.bookDate).getTime() + (60000 * this.state.bookDuration))
-            firebase.database().ref('users/' + user.uid + '/pendingschedule/').child(sessionKey).set({
-              start: this.state.bookDate.toString(),
-              end: end.toString()
-            });
-            firebase.database().ref('users/' + this.props.trainer.key + '/pendingschedule/').child(sessionKey).set({
-              start: this.state.bookDate.toString(),
-              end: end.toString()
-            });
+            createPendingSession(trainee, trainer, this.props.gym, this.state.bookDate, this.state.bookDuration, 'trainee');
             try {
               let message = this.state.user.name + " has requested a session at " + dateToString(this.state.bookDate) + " for " + this.state.bookDuration + " mins.";
-              const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/twilio/sendMessage/', {
-                method: 'POST',
-                body: JSON.stringify({
-                  phone: this.state.trainer.phone,
-                  message: message
-                }),
-              });
-              const data = await res.json();
-              data.body = JSON.parse(data.body);
+              sendMessage(this.state.trainer.phone, message);
             } catch (error) {
               console.log(error);
               Alert.alert('There was an error sending a notification text to the trainer.');
@@ -167,8 +100,8 @@ export class BookModal extends Component {
   }
 
   render() {
-    if (this.state.trainer == 'null' || typeof this.state.trainer == undefined) {
-      return <Expo.AppLoading />
+    if (!this.state.trainer || !this.state.user) {
+      return <AppLoading />
     } else {
       return (
         <View style={styles.modal}>

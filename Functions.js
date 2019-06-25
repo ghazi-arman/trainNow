@@ -199,3 +199,40 @@ export async function sendMessage(number, message){
   data.body = JSON.parse(data.body);
   return data;
 }
+
+export async function createPendingSession(trainee, trainer, gym, date, duration, sentBy){
+  var sessionKey = firebase.database().ref('pendingSessions').push({
+    trainee: trainee.uid,
+    traineeName: trainee.name,
+    trainer: trainer.key,
+    trainerName: trainer.name,
+    start: date.toString(),
+    duration: duration,
+    location: gym.location,
+    gym: gym.name,
+    rate: trainer.rate,
+    read: false,
+    traineeStripe: trainee.stripeId,
+    trainerStripe: trainer.stripeId,
+    traineePhone: trainee.phone,
+    trainerPhone: trainer.phone,
+    sentBy
+  }).key;
+  let end = new Date(new Date(date).getTime() + (60000 * duration))
+  firebase.database().ref('users/' + trainee.uid + '/pendingschedule/').child(sessionKey).set({
+    start: date.toString(),
+    end: end.toString()
+  });
+  firebase.database().ref('users/' + trainer.key + '/pendingschedule/').child(sessionKey).set({
+    start: date.toString(),
+    end: end.toString()
+  });
+}
+
+export async function loadGym(gymKey) {
+  let gym;
+  await firebase.database().ref('gyms').child(gymKey).once('value', function (snapshot) {
+    gym = snapshot.val()
+  });
+  return gym;
+}
