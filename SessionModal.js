@@ -6,6 +6,9 @@ import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { AppLoading } from 'expo';
 import COLORS from './Colors';
 import { dateToString, timeOverlapCheck, loadUser, loadAcceptedSessions, loadPendingSessions, loadAcceptedSchedule, createSession, sendMessage, cancelPendingSession, cancelAcceptedSession } from './Functions';
+import Modal from 'react-native-modal';
+import { SchedulerModal } from './SchedulerModal';
+import { TrainerSchedule } from './TrainerSchedule';
 
 export class SessionModal extends Component {
 
@@ -13,6 +16,8 @@ export class SessionModal extends Component {
 		super(props);
 		this.state = {
 			sessionsLoaded: false,
+			scheduleModal: false,
+			trainerSchedule: false,
 			currentTab: 'pending',
 		}
 	}
@@ -280,6 +285,15 @@ export class SessionModal extends Component {
 		this.setState({ user: user });
 	}
 
+	hidescheduleModal = () => {
+		this.setState({ scheduleModal: false });
+		setTimeout(() => Alert.alert('Availability Added.'), 700);
+	}
+
+	hidetrainerSchedule = () => {
+		this.setState({ trainerSchedule: false });
+	}
+
 	render() {
 		if (!this.state.sessionsLoaded || !this.state.user) {
 			return <AppLoading />;
@@ -295,9 +309,14 @@ export class SessionModal extends Component {
 						</TouchableOpacity>
 					);
 				}
-				schedule = (
-					<TouchableOpacity style={styles.scheduleButton} onPress={() => this.openScheduler()}>
+				scheduler = (
+					<TouchableOpacity style={styles.scheduleButton} onPress={() => this.setState({ scheduleModal: true })}>
 						<Text style={styles.buttonText}>Set Schedule</Text>
+					</TouchableOpacity>
+				);
+				schedule = (
+					<TouchableOpacity style={styles.scheduleButton} onPress={() => this.setState({ trainerSchedule: true })}>
+						<Text style={styles.buttonText}>View Schedule</Text>
 					</TouchableOpacity>
 				);
 			}
@@ -317,6 +336,7 @@ export class SessionModal extends Component {
 						{this.renderPending()}
 						{active}
 						{schedule}
+						{scheduler}
 					</ScrollView>
 				);
 			} else {
@@ -346,6 +366,14 @@ export class SessionModal extends Component {
 					<Text style={styles.title}>Calendar</Text>
 					{navBar}
 					{content}
+					<Modal isVisible={this.state.scheduleModal}
+          onBackdropPress={this.hidescheduleModal}>
+            <SchedulerModal trainerKey={firebase.auth().currentUser.uid} hide={this.hidescheduleModal} />
+          </Modal>
+					<Modal isVisible={this.state.trainerSchedule}
+					onBackdropPress={this.hidetrainerSchedule}>
+						<TrainerSchedule trainerKey={firebase.auth().currentUser.uid} hide={this.hidetrainerSchedule} />
+					</Modal>
 				</View>
 			);
 		}

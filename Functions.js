@@ -86,6 +86,13 @@ export async function loadAvailableSchedule(userKey){
   return sessions;
 }
 
+export async function addAvailableSession(trainerKey, startDate, endDate){
+  firebase.database().ref('users/' + trainerKey + '/availableschedule/').push({
+    start: startDate.toString(),
+    end: endDate.toString()
+  });
+}
+
 // Loads pending schedule from users table
 export async function loadPendingSchedule(userKey){
   let sessions = [];
