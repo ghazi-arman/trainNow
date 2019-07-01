@@ -79,7 +79,7 @@ export class LoginForm extends Component {
         } else {
           Actions.reset('map');
         }
-      });
+      }.bind(this));
     }.bind(this)).catch(function (error) {
       
       // Authentication Error check

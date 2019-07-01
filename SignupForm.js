@@ -205,6 +205,7 @@ export class SignupForm extends Component {
             Alert.alert('You must enter a debit card for payouts before trainees can book a session with you!');
           });
         }else{
+          Actions.reset('login');
           Alert.alert('Your account is now pending approval. Sign in once your gym manager approves your account.');
         }
       }.bind(this)).catch(function (error) {
