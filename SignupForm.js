@@ -393,7 +393,7 @@ export class SignupForm extends Component {
             rowStyle={styles.inputRow}
             icon={Icons.envelope}
             placeholder="Email"
-            keyboardType="email-address"
+            keyboard="email-address"
             onChange={(email) => this.setState({ email })}
             value={this.state.email}
           />
@@ -417,7 +417,7 @@ export class SignupForm extends Component {
             rowStyle={styles.inputRow}
             icon={Icons.phone}
             placeholder="Phone Number"
-            keyboardType="number-pad"
+            keyboard="number-pad"
             onChange={(phone) => this.setState({ phone })}
             value={this.state.phone}
           />
@@ -455,7 +455,7 @@ export class SignupForm extends Component {
             rowStyle={styles.inputRow}
             icon={Icons.dollar}
             placeholder="Rate ($ hourly)"
-            keyboardType="number-pad"
+            keyboard="number-pad"
             onChange={(rate) => this.setState({ rate })}
             value={this.state.rate}
           />
@@ -478,7 +478,7 @@ export class SignupForm extends Component {
             rowStyle={styles.inputRow}
             icon={Icons.user}
             placeholder="SSN (For Stripe Account)"
-            keyboardType="number-pad"
+            keyboard="number-pad"
             onChange={(ssn) => this.setState({ ssn })}
             value={this.state.ssn}
           />
@@ -512,7 +512,7 @@ export class SignupForm extends Component {
             rowStyle={styles.inputRow}
             icon={Icons.mapMarker}
             placeholder="Zip Code"
-            keyboardType="number-pad"
+            keyboard="number-pad"
             onChange={(zip) => this.setState({ zip })}
             value={this.state.zip}
           />

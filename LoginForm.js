@@ -106,7 +106,7 @@ export class LoginForm extends Component {
           rowStyle={styles.inputRow}
           icon={Icons.user}
           placeholder="Email"
-          keyboardType="email-address"
+          keyboard="email-address"
           onChange={(email) => this.setState({email})}
           value={this.state.email}
         />
