@@ -162,7 +162,7 @@ export class OwnerPage extends Component {
 		await firebase.database().ref('/gyms/' + this.props.gym + '/pendingtrainers/').child(trainerKey).remove();
 		delete this.state.pendingTrainers[trainerKey];
 		const gym = await loadGym(this.props.gym);
-		this.setState({gym});
+		this.setState({pendingTrainers: gym.pendingtrainers, trainers: gym.trainers});
 	}
 
 	renderPending() {
