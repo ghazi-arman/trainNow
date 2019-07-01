@@ -123,7 +123,7 @@ export class ManagedSideMenu extends Component {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity>
-            <Text style={styles.icon} onPress={() => Actions.account()}>
+            <Text style={styles.icon} onPress={() => Actions.account({trainer: true})}>
                 <FontAwesome>{Icons.gear}</FontAwesome> <Text style={styles.menuLink}> Settings</Text>
             </Text>
           </TouchableOpacity>

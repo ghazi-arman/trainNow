@@ -145,7 +145,7 @@ export class OwnerSignupForm extends Component {
 						name: name,
 				    	gym: gymKey,
 			      		phone: phone,
-			      		stripeId: data.body.trainer.id,
+			      		stripeId: data.body.trainer.account,
 			      		pending: true,
 			      		cardAdded: false
 			    	});

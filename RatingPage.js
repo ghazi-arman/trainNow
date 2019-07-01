@@ -195,7 +195,11 @@ export class RatingPage extends Component {
 			var payout = (parseFloat(rate) - (parseFloat(rate) * .2)).toFixed(2);
 
 			if(this.state.session.trainer == user.uid){
-				var cost = <Text style={styles.bookDetails}>Total Earned: ${payout}</Text>
+				if(!this.state.session.managed){
+					var cost = <Text style={styles.bookDetails}>Total Earned: ${payout}</Text>
+				}else{
+					var cost = null;
+				}
 			}else{
 				var cost = <Text style={styles.bookDetails}>Total Cost: ${rate}</Text>;
 			}

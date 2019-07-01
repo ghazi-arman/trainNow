@@ -125,7 +125,7 @@ export class OwnerCardModal extends Component {
 							placeholderTextColor='#0097A7'
 							underlineColorAndroid='transparent'
 							onChangeText={(expMonth) => this.setState({expMonth})}
-							value={this.state.expiration} />
+							value={this.state.expMonth} />
 					</View>
 					<View style={styles.inputRow}>
 						<Text style={styles.icon}>
@@ -139,7 +139,7 @@ export class OwnerCardModal extends Component {
 							placeholderTextColor='#0097A7'
 							underlineColorAndroid='transparent'
 							onChangeText={(expYear) => this.setState({expYear})}
-							value={this.state.expiration} />
+							value={this.state.expYear} />
 					</View>
 					<View style={styles.inputRow}>
 						<Text style={styles.icon}>

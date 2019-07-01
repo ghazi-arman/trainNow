@@ -160,6 +160,7 @@ export async function createSession(session, sessionKey, startTime, endTime){
     read: false,
     traineeEnd: false,
     trainerEnd: false,
+    managed: session.managed
   });
 
   // remove session from pending sessions table and from pending schedule of trainer and trainee

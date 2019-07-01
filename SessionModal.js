@@ -55,6 +55,7 @@ export class SessionModal extends Component {
 	}
 
 	async acceptSession(session) {
+		let currSession = session;
 		// Pulls schedules for trainers and conflicts to check for overlaps
 		let trainerSchedule = await loadAcceptedSchedule(session.trainer);
 		let traineeSchedule = await loadAcceptedSchedule(session.trainee);
@@ -77,6 +78,11 @@ export class SessionModal extends Component {
 		// Creates session if user accepts
 		let pendingSessions = this.state.pendingSessions;
 		let acceptSessions = this.state.acceptSessions;
+		if(this.state.user.trainer && this.state.user.type == 'owner'){
+			currSession.managed = true;
+		}else{
+			currSession.managed = false;
+		}
 		Alert.alert(
 			'Are you sure you want to accept this session?',
 			'',
@@ -85,7 +91,7 @@ export class SessionModal extends Component {
 				{
 					text: 'Yes', onPress: async () => {
 						// creates session in database and moves session object to accepted sessions array for state
-						createSession(session, session.key, session.start, endTime);
+						createSession(currSession, session.key, session.start, endTime);
 						pendingSessions.splice(pendingSessions.indexOf(session), 1);
 						acceptSessions.push(session);
 
@@ -278,7 +284,9 @@ export class SessionModal extends Component {
 	}
 
 	goActive() {
+		var user = this.state.user;
 		firebase.database().ref('users').child(firebase.auth().currentUser.uid).update({ active: true });
+		firebase.database().ref('/gyms/' + user.gym + '/trainers/' + firebase.auth().currentUser.uid).update({ active: true});
 		Alert.alert('You are active now');
 		var user = this.state.user;
 		user.active = true;
