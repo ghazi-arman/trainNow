@@ -311,7 +311,7 @@ export class Map extends Component {
         </View>
       );
     }
-    if(this.state.user.type != 'managed'){
+    if(this.state.user.type != 'owner'){
       var menu = <SideMenu />;
     }else{
       var menu = <ManagedSideMenu />;
