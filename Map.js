@@ -67,6 +67,13 @@ export class Map extends Component {
     }.bind(this));
   }
 
+  async componentWillUnmount() {
+    firebase.database().ref('users').off();
+    firebase.database().ref('trainSessions').off();
+    firebase.database().ref('pendingSessions').off();
+    firebase.database().ref('gyms').off();
+  }
+
   //Gets user location and updates mapRegion in state
   getLocationAsync = async () => {
 

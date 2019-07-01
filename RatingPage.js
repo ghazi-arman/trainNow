@@ -37,7 +37,7 @@ export class RatingPage extends Component {
 		}
 		var user = firebase.auth().currentUser;
 		var sessionRef = firebase.database().ref('trainSessions');
-		sessionRef.orderByKey().equalTo(this.props.session).on('value', function(snapshot){
+		sessionRef.orderByKey().equalTo(this.props.session).once('value', function(snapshot){
 			snapshot.forEach(function(child){
 				var currentSession = child.val();
 				currentSession.key = child.key;
@@ -61,7 +61,7 @@ export class RatingPage extends Component {
 		var userRef = firebase.database().ref('users');
 		firebase.database().ref('/users/' + user.uid + '/schedule/').child(this.state.session.key).remove();
 
-		const sessionLoad = await sessionRef.orderByKey().equalTo(this.state.session.key).on('value', function(snapshot){
+		const sessionLoad = await sessionRef.orderByKey().equalTo(this.state.session.key).once('value', function(snapshot){
 			snapshot.forEach(function(child){
 				var currentSession = child.val();
 				currentSession.key = child.key;

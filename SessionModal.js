@@ -298,7 +298,7 @@ export class SessionModal extends Component {
 		if (!this.state.sessionsLoaded || !this.state.user) {
 			return <AppLoading />;
 		} else {
-			var active = schedule = null;
+			var active = schedule = scheduler = null;
 			if (this.state.user.trainer) {
 				if (this.state.user.active) {
 					active = (<Text style={styles.statusText}>Active</Text>);
@@ -355,6 +355,7 @@ export class SessionModal extends Component {
 						{this.renderAccept()}
 						{active}
 						{schedule}
+						{scheduler}
 					</ScrollView>
 				);
 			}
