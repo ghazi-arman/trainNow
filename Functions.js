@@ -195,11 +195,16 @@ export async function cancelAcceptedSession(session, sessionKey){
 
 // Sends text message using twilio
 export async function sendMessage(number, message){
+  const idToken = await firebase.auth().currentUser.getIdToken(true);
   const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/twilio/sendMessage/', {
     method: 'POST',
+    headers: {
+      Authorization: idToken
+    },
     body: JSON.stringify({
       phone: number,
-      message: message
+      message: message,
+      user: firebase.auth().currentUser.uid
     }),
   });
   const data = await res.json();

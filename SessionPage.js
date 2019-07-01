@@ -7,6 +7,7 @@ import { Actions } from 'react-native-router-flux';
 import geolib from 'geolib';
 console.ignoredYellowBox = ['Setting a timer'];
 import COLORS from './Colors';
+import { sendMessage } from './Functions';
 
 export class SessionPage extends Component {
 
@@ -69,12 +70,17 @@ export class SessionPage extends Component {
 	    });
   	};
 
-  	async charge(traineeStripe, trainerStripe, amount, cut){
+  async charge(traineeStripe, trainerStripe, amount, cut, uid){
 		try{
+			const idToken = await firebase.auth().currentUser.getIdToken(true);
 			const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/charge/', {
 				method: 'POST',
+				headers: {
+					Authorization: idToken
+				},
 				body: JSON.stringify({
 				    charge: {
+								user: uid,
 				        amount: amount,
 				        cut: cut,
 				        traineeId: traineeStripe,
@@ -85,11 +91,15 @@ export class SessionPage extends Component {
 			});
 			const data = await res.json();
 			data.body = JSON.parse(data.body);
+			if(data.body.message == 'Success'){
+				message = `You were charged $ ${(amount/100).toFixed(2)} for your session with ${this.state.session.trainerName}. If this is not accurate please contact support.`
+				sendMessage(this.state.session.traineePhone, message);
+			}
 			console.log(data);
 		} catch(error){
 			console.log(error);
 		}
-  	}
+  }
 	
 	endSession(){
 		var user = firebase.auth().currentUser;
@@ -107,7 +117,7 @@ export class SessionPage extends Component {
 				sessionRef.once('value', function(snapshot){
 					var session = snapshot.val();
 					if(!session.paid){
-						this.charge(this.state.session.traineeStripe, this.state.session.trainerStripe, rate, rate - payout);
+						this.charge(this.state.session.traineeStripe, this.state.session.trainerStripe, rate, rate - payout, user.uid);
 						sessionRef.update({paid: true});
 					}
 				}.bind(this));
@@ -122,7 +132,7 @@ export class SessionPage extends Component {
 				sessionRef.once('value', function(snapshot){
 					var session = snapshot.val();
 					if(!session.paid){
-						this.charge(this.state.session.traineeStripe, this.state.session.trainerStripe, rate, rate - payout);
+						this.charge(this.state.session.traineeStripe, this.state.session.trainerStripe, rate, rate - payout, user.uid);
 						sessionRef.update({paid: true});
 					}
 				}.bind(this));

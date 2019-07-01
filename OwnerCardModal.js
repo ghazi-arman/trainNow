@@ -47,13 +47,18 @@ export class OwnerCardModal extends Component {
 
 		}
 		var user = firebase.auth().currentUser;
-	    var card = await stripe.createToken(information);
+	  var card = await stripe.createToken(information);
 		try {
+			const idToken = await firebase.auth().currentUser.getIdToken(true);
 			const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/addTrainerCard/', {
 				method: 'POST',
+				headers: {
+					Authorization: idToken
+				},
 				body: JSON.stringify({
 					token: card,
-					id: this.state.gym.stripeId
+					id: this.state.gym.stripeId,
+					user: user.uid
 				})
 			})
 			const data = await res.json();

@@ -11,11 +11,33 @@ const twilio = require('twilio')(functions.config().twilio.id, functions.config(
 
 function charge(req, res) {
     const body = JSON.parse(req.body);
+    const user = body.charge.user;
     const traineeStripe = body.charge.traineeId;
     const trainerStripe = body.charge.trainerId;
     const amount = body.charge.amount;
     const cut = body.charge.cut;
     const currency = body.charge.currency;
+    const idToken = req.headers.authorization;
+
+    let isValid = true;
+    if(!idToken){
+        send(res, 401, 'id Token not found');
+        return;
+    }else{
+        admin.auth().verifyIdToken(idToken).then(decodedToken => {
+            let uid = decodedToken.uid;
+            if(uid !== user){
+                isValid = false;
+                send(res, 401, 'Unauthorized User');
+            }
+            return;
+        }).catch(error => {
+            send(res, 401, 'Could not decode user token');
+            return;
+        });
+    }
+
+    if(!isValid) return;
 
     //Create token and charge
     stripe.tokens.create({ customer: traineeStripe}, {stripe_account: trainerStripe }).then(token => {
@@ -45,6 +67,27 @@ function createCustomer(req, res) {
     const id = body.id;
     const email = body.email;
     const token = body.token.id;
+    const idToken = req.headers.authorization;
+
+    let isValid = true;
+    if(!idToken){
+        send(res, 401, 'id Token not found');
+        return;
+    }else{
+        admin.auth().verifyIdToken(idToken).then(decodedToken => {
+            let uid = decodedToken.uid;
+            if(uid !== id){
+                isValid = false;
+                send(res, 401, 'Unauthorized User');
+            }
+            return;
+        }).catch(error => {
+            send(res, 401, 'Could not decode user token');
+            return;
+        });
+    }
+
+    if(!isValid) return;
 
     //Create customer
     stripe.customers.create({
@@ -215,6 +258,29 @@ function addCard(req, res) {
     const body = JSON.parse(req.body);
     const stripeid = body.id;
     const token = body.token.id;
+    const user = body.user;
+    const idToken = req.headers.authorization;
+
+    let isValid = true;
+    if(!idToken){
+        send(res, 401, 'id Token not found');
+        return;
+    }else{
+        admin.auth().verifyIdToken(idToken).then(decodedToken => {
+            let uid = decodedToken.uid;
+            if(uid !== user){
+                isValid = false;
+                send(res, 401, 'Unauthorized User');
+            }
+            return;
+        }).catch(error => {
+            send(res, 401, 'Could not decode user token');
+            return;
+        });
+    }
+
+    if(!isValid) return;
+
 
     //Add Card to Customer
     stripe.customers.createSource(stripeid, {
@@ -237,6 +303,28 @@ function addTrainerCard(req, res) {
     const body = JSON.parse(req.body);
     const stripeid = body.id;
     const token = body.token.id;
+    const user = body.user;
+    const idToken = req.headers.authorization;
+
+    let isValid = true;
+    if(!idToken){
+        send(res, 401, 'id Token not found');
+        return;
+    }else{
+        admin.auth().verifyIdToken(idToken).then(decodedToken => {
+            let uid = decodedToken.uid;
+            if(uid !== user){
+                isValid = false;
+                send(res, 401, 'Unauthorized User');
+            }
+            return;
+        }).catch(error => {
+            send(res, 401, 'Could not decode user token');
+            return;
+        });
+    }
+
+    if(!isValid) return;
 
     //Add Card to Customer
     stripe.accounts.createExternalAccount(stripeid, {
@@ -259,6 +347,28 @@ function deleteCard(req, res){
     const body = JSON.parse(req.body);
     const cardId = body.cardId;
     const stripeId = body.stripeId;
+    const user = body.user;
+    const idToken = req.headers.authorization;
+
+    let isValid = true;
+    if(!idToken){
+        send(res, 401, 'id Token not found');
+        return;
+    }else{
+        admin.auth().verifyIdToken(idToken).then(decodedToken => {
+            let uid = decodedToken.uid;
+            if(uid !== user){
+                isValid = false;
+                send(res, 401, 'Unauthorized User');
+            }
+            return;
+        }).catch(error => {
+            send(res, 401, 'Could not decode user token');
+            return;
+        });
+    }
+
+    if(!isValid) return;
 
     //Remove card from customer
     stripe.customers.deleteCard(stripeId, cardId).then(card => {
@@ -279,6 +389,28 @@ function deleteTrainerCard(req, res){
     const body = JSON.parse(req.body);
     const cardId = body.cardId;
     const stripeId = body.stripeId;
+    const user = body.user;
+    const idToken = req.headers.authorization;
+
+    let isValid = true;
+    if(!idToken){
+        send(res, 401, 'id Token not found');
+        return;
+    }else{
+        admin.auth().verifyIdToken(idToken).then(decodedToken => {
+            let uid = decodedToken.uid;
+            if(uid !== user){
+                isValid = false;
+                send(res, 401, 'Unauthorized User');
+            }
+            return;
+        }).catch(error => {
+            send(res, 401, 'Could not decode user token');
+            return;
+        });
+    }
+
+    if(!isValid) return;
 
     //Remove card from customer
     stripe.accounts.deleteExternalAccount(stripeId, cardId).then(card => {
@@ -298,6 +430,29 @@ function deleteTrainerCard(req, res){
 function listCards(req, res) {
     const body = JSON.parse(req.body);
     const stripeid = body.id;
+    const user = body.user;
+    const idToken = req.headers.authorization;
+
+    let isValid = true;
+    if(!idToken){
+        send(res, 401, 'id Token not found');
+        return;
+    }else{
+        admin.auth().verifyIdToken(idToken).then(decodedToken => {
+            let uid = decodedToken.uid;
+            if(uid !== user){
+                isValid = false;
+                send(res, 401, 'Unauthorized User');
+            }
+            return;
+        }).catch(error => {
+            send(res, 401, 'Could not decode user token');
+            return;
+        });
+    }
+
+    if(!isValid) return;
+
     stripe.customers.listCards(stripeid).then(cards => {
         send(res, 200, {
             message: 'Success',
@@ -315,6 +470,29 @@ function listCards(req, res) {
 function listTrainerCards(req, res) {
     const body = JSON.parse(req.body);
     const stripeid = body.id;
+    const user = body.user;
+    const idToken = req.headers.authorization;
+
+    let isValid = true;
+    if(!idToken){
+        send(res, 401, 'id Token not found');
+        return;
+    }else{
+        admin.auth().verifyIdToken(idToken).then(decodedToken => {
+            let uid = decodedToken.uid;
+            if(uid !== user){
+                isValid = false;
+                send(res, 401, 'Unauthorized User');
+            }
+            return;
+        }).catch(error => {
+            send(res, 401, 'Could not decode user token');
+            return;
+        });
+    }
+
+    if(!isValid) return;
+
     stripe.accounts.listExternalAccounts(stripeid, {object: 'card'}).then(cards => {
         send(res, 200, {
             message: 'Success',
@@ -332,6 +510,29 @@ function listTrainerCards(req, res) {
 function getBalance(req, res) {
     const body = JSON.parse(req.body);
     const stripeid = body.id;
+    const user = body.user;
+    const idToken = req.headers.authorization;
+
+    let isValid = true;
+    if(!idToken){
+        send(res, 401, 'id Token not found');
+        return;
+    }else{
+        admin.auth().verifyIdToken(idToken).then(decodedToken => {
+            let uid = decodedToken.uid;
+            if(uid !== user){
+                isValid = false;
+                send(res, 401, 'Unauthorized User');
+            }
+            return;
+        }).catch(error => {
+            send(res, 401, 'Could not decode user token');
+            return;
+        });
+    }
+
+    if(!isValid) return;
+
     stripe.balance.retrieve({stripe_account: stripeid}).then(balance => {
         send(res, 200, {
             message: 'Success',
@@ -350,6 +551,29 @@ function setDefault(req, res) {
     const body = JSON.parse(req.body);
     const stripeId =  body.id;
     const cardId = body.card;
+    const user = body.user;
+    const idToken = req.headers.authorization;
+
+    let isValid = true;
+    if(!idToken){
+        send(res, 401, 'id Token not found');
+        return;
+    }else{
+        admin.auth().verifyIdToken(idToken).then(decodedToken => {
+            let uid = decodedToken.uid;
+            if(uid !== user){
+                isValid = false;
+                send(res, 401, 'Unauthorized User');
+            }
+            return;
+        }).catch(error => {
+            send(res, 401, 'Could not decode user token');
+            return;
+        });
+    }
+
+    if(!isValid) return;
+
     stripe.customers.update(stripeId, {
         default_source: cardId
     }).then(result => {
@@ -370,6 +594,29 @@ function sendMessage(req, res) {
     const body = JSON.parse(req.body);
     const toPhone = "+1" + body.phone;
     const message = body.message;
+    const user = body.user;
+    const idToken = req.headers.authorization;
+
+    let isValid = true;
+    if(!idToken){
+        send(res, 401, 'id Token not found');
+        return;
+    }else{
+        admin.auth().verifyIdToken(idToken).then(decodedToken => {
+            let uid = decodedToken.uid;
+            if(uid !== user){
+                isValid = false;
+                send(res, 401, 'Unauthorized User');
+            }
+            return;
+        }).catch(error => {
+            send(res, 401, 'Could not decode user token');
+            return;
+        });
+    }
+
+    if(!isValid) return;
+
     twilio.messages.create({
         to: toPhone,
         from: '+18582408311',
@@ -389,8 +636,7 @@ function sendMessage(req, res) {
 }
 
 function send(res, code, body) {
-    res.send({
-        statusCode: code,
+    res.status(code).send({
         headers: {'Access-Control-Allow-Origin': '*'},
         body: JSON.stringify(body),
     });

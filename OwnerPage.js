@@ -55,17 +55,22 @@ export class OwnerPage extends Component {
 			return [];
 		}
 		try {
-	      	const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/listTrainerCards/', {
-		        method: 'POST',
-		        body: JSON.stringify({
-		          id: stripeId,
-		        }),
-		    });
-		    const data = await res.json();
-		    data.body = JSON.parse(data.body);
-		    if(data.body.message == "Success" && data.body.cards !== undefined){
-		    	return data.body.cards.data;
-		    }
+			const idToken = await firebase.auth().currentUser.getIdToken(true);
+			const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/listTrainerCards/', {
+				method: 'POST',
+				headers: {
+					Authorization: idToken
+				},
+				body: JSON.stringify({
+					id: stripeId,
+					user: firebase.auth().currentUser.uid
+				}),
+			});
+			const data = await res.json();
+			data.body = JSON.parse(data.body);
+			if(data.body.message == "Success" && data.body.cards !== undefined){
+				return data.body.cards.data;
+			}
 		}catch(error){
 			console.log(error);
 		}
@@ -75,10 +80,15 @@ export class OwnerPage extends Component {
 	async getBalance(stripeId){
 		try {
 			var user = firebase.auth().currentUser;
+			const idToken = await firebase.auth().currentUser.getIdToken(true);
 			const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/getBalance/', {
 				method: 'POST',
+				headers: {
+					Authorization: idToken
+				},
 				body: JSON.stringify({
 					id: stripeId,
+					user: user.uid
 				}),
 			});
 			const data = await res.json();
@@ -108,21 +118,26 @@ export class OwnerPage extends Component {
 	        {text: 'No'},
 	        {text: 'Yes', onPress: async () => {
 				try {
-				    const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/deleteTrainerCard/', {
-				        method: 'POST',
-				        body: JSON.stringify({
-				          stripeId: stripeId,
-				          cardId: cardId
-				        }),
-				    });
-				    const data = await res.json();
-				    data.body = JSON.parse(data.body);
-				    if(data.body.message == "Success"){
-				    	var cards = await this.loadTrainerCards(stripeId);
-				    	this.setState({cards: cards});
-				    }else{
-				    	Alert.alert('There was an error. Please try again.');
-				    }
+					const idToken = await firebase.auth().currentUser.getIdToken(true);
+					const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/deleteTrainerCard/', {
+							method: 'POST',
+							headers: {
+								Authorization: idToken
+							},
+							body: JSON.stringify({
+								stripeId: stripeId,
+								cardId: cardId,
+								user: firebase.auth().currentUser.uid
+							}),
+					});
+					const data = await res.json();
+					data.body = JSON.parse(data.body);
+					if(data.body.message == "Success"){
+						var cards = await this.loadTrainerCards(stripeId);
+						this.setState({cards: cards});
+					}else{
+						Alert.alert('There was an error. Please try again.');
+					}
 				}catch(error){
 					Alert.alert('There was an error. Please try again.');
 				}

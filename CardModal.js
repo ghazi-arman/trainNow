@@ -47,9 +47,13 @@ export class CardModal extends Component {
 		var user = firebase.auth().currentUser;
 		var card = await stripe.createToken(information);
 		if (this.state.user.stripeId === undefined) {
+			const idToken = await firebase.auth().currentUser.getIdToken(true);
 			try {
 				const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/createCustomer/', {
 					method: 'POST',
+					headers: {
+						Authorization: idToken
+					},
 					body: JSON.stringify({
 						token: card,
 						id: user.uid,
@@ -75,11 +79,16 @@ export class CardModal extends Component {
 		} else {
 			if (this.state.user.trainer) {
 				try {
+					const idToken = await firebase.auth().currentUser.getIdToken(true);
 					const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/addTrainerCard/', {
 						method: 'POST',
+						headers: {
+							Authorization: idToken
+						},
 						body: JSON.stringify({
 							token: card,
-							id: this.state.user.stripeId
+							id: this.state.user.stripeId,
+							user: user.uid
 						})
 					})
 					const data = await res.json();
@@ -100,11 +109,16 @@ export class CardModal extends Component {
 				}
 			} else {
 				try {
+					const idToken = await firebase.auth().currentUser.getIdToken(true);
 					const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/addCard/', {
 						method: 'POST',
+						headers: {
+							Authorization: idToken
+						},
 						body: JSON.stringify({
 							token: card,
 							id: this.state.user.stripeId,
+							user: user.uid
 						}),
 					});
 					const data = await res.json();
