@@ -3,18 +3,14 @@ import { StyleSheet, Text, KeyboardAvoidingView, TouchableOpacity, Alert } from 
 import firebase from 'firebase';
 import { AppLoading } from 'expo';
 import { Icons } from 'react-native-fontawesome';
-import { TextField } from './components/TextField';
+import  TextField from './components/TextField';
 import COLORS from './Colors';
 var stripe = require('stripe-client')('pk_test_6sgeMvomvrZFucRqYhi6TSbO');
 
 export class CardModal extends Component {
 	constructor(props) {
 		super(props);
-		this.state = {
-			user: 'null',
-		};
-
-		this.addCard = this.addCard.bind(this);
+		this.state = {};
 	}
 
 	componentDidMount() {
@@ -142,8 +138,8 @@ export class CardModal extends Component {
 	}
 
 	render() {
-		if (this.state.user == 'null' || typeof this.state.user == undefined) {
-			return <Expo.AppLoading />
+		if (!this.state.user) {
+			return <AppLoading />
 		} else {
 			return (
 				<KeyboardAvoidingView behavior="padding" style={styles.formContainer}>
@@ -160,7 +156,7 @@ export class CardModal extends Component {
 						rowStyle={styles.inputRow}
 						icon={Icons.creditCard}
 						placeholder="Card Number"
-						keyboardType="number-pad"
+						keyboard="number-pad"
 						color={COLORS.PRIMARY}
 						onChange={(number) => this.setState({ number })}
 						value={this.state.number}
@@ -169,7 +165,7 @@ export class CardModal extends Component {
 						rowStyle={styles.inputRow}
 						icon={Icons.calendar}
 						placeholder="Expiration Month (mm)"
-						keyboardType="number-pad"
+						keyboard="number-pad"
 						color={COLORS.PRIMARY}
 						onChange={(expMonth) => this.setState({ expMonth })}
 						value={this.state.expMonth}
@@ -178,7 +174,7 @@ export class CardModal extends Component {
 						rowStyle={styles.inputRow}
 						icon={Icons.calendar}
 						placeholder="Expiration Year (yy)"
-						keyboardType="number-pad"
+						keyboard="number-pad"
 						color={COLORS.PRIMARY}
 						onChange={(expYear) => this.setState({ expYear })}
 						value={this.state.expYear}
@@ -187,7 +183,7 @@ export class CardModal extends Component {
 						rowStyle={styles.inputRow}
 						icon={Icons.calendar}
 						placeholder="CVC Code"
-						keyboardType="number-pad"
+						keyboard="number-pad"
 						color={COLORS.PRIMARY}
 						onChange={(cvc) => this.setState({ cvc })}
 						value={this.state.cvc}
