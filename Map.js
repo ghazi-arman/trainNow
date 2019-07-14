@@ -12,6 +12,7 @@ import { GymModal } from './GymModal';
 import { BookModal } from './BookModal';
 import { ScheduleModal } from './ScheduleModal';
 import COLORS from './Colors';
+import { loadUser } from './Functions';
 const markerImg = require('./images/marker.png');
 
 export class Map extends Component {
@@ -36,7 +37,6 @@ export class Map extends Component {
       modalPresent: false,
       menuOpen: false
     }
-
     this.setTrainer=this.setTrainer.bind(this);
     this.viewSchedule=this.viewSchedule.bind(this);
     this.setLocation=this.setLocation.bind(this);
@@ -55,20 +55,16 @@ export class Map extends Component {
     // get gyms from db
     this.loadGyms();
 
-    var user = firebase.auth().currentUser;
-
     // Checks for sessions in progress and unread messages/sessions
-    this.checkSessions(user.uid);
-    this.goToRating(user.uid);
-    this.checkRead(user.uid);
-    await firebase.database().ref('users').orderByKey().equalTo(user.uid).on('child_added', async function(snapshot) {
-      var user = snapshot.val();
-      this.setState({user: user});
-    }.bind(this));
+    var userId = firebase.auth().currentUser.uid;
+    this.checkSessions(userId);
+    this.goToRating(userId);
+    this.checkRead(userId);
+    let user = loadUser(userId);
+    this.setState({user});
   }
 
   async componentWillUnmount() {
-    firebase.database().ref('users').off();
     firebase.database().ref('trainSessions').off();
     firebase.database().ref('pendingSessions').off();
     firebase.database().ref('gyms').off();
@@ -103,40 +99,41 @@ export class Map extends Component {
   };
 
   goToRating(userKey){
-    var sessionRef = firebase.database().ref('trainSessions');
-    sessionRef.orderByChild('trainee').equalTo(userKey).on('value', function(snapshot){
-      snapshot.forEach(function(child){
-        var session = child.val();
-        if(session.end != null && session.traineeRating == null){
-          Actions.rating({session: child.key});
-        }
+    try {
+      firebase.database().ref('trainSessions').orderByChild('trainee').equalTo(userKey).on('value', function(snapshot){
+        snapshot.forEach(function(child){
+          var session = child.val();
+          if(session.end != null && session.traineeRating == null){
+            Actions.rating({session: child.key});
+          }
+        });
       });
-    });
-    sessionRef.orderByChild('trainer').equalTo(userKey).on('value', function(snapshot){
-      snapshot.forEach(function(child){
-        var session = child.val();
-        if(session.end != null && session.trainerRating == null){
-          Actions.rating({session: child.key});
-        }
+      firebase.database().ref('trainSessions').orderByChild('trainer').equalTo(userKey).on('value', function(snapshot){
+        snapshot.forEach(function(child){
+          var session = child.val();
+          if(session.end != null && session.trainerRating == null){
+            Actions.rating({session: child.key});
+          }
+        });
       });
-    });
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   //Checks for Sessions in Progress and routes to appropriate page
   checkSessions(userKey){
-      //Check for Session in Progress
-      var sessionRef = firebase.database().ref('trainSessions');
+    try {
       var currDate = new Date();
-      sessionRef.orderByChild('trainee').equalTo(userKey).on('value', function(snapshot){
+      firebase.database().ref('trainSessions').orderByChild('trainee').equalTo(userKey).on('value', function(snapshot){
         snapshot.forEach(function(child){
           var session = child.val();
           if(new Date(session.start) < currDate && session.traineeRating == null){
             this.setState({currentSession: child.key});
           }
         }.bind(this));
-      }.bind(this));
-
-      sessionRef.orderByChild('trainer').equalTo(userKey).on('value', function(snapshot){
+      });
+      firebase.database().ref('trainSessions').orderByChild('trainer').equalTo(userKey).on('value', function(snapshot){
         snapshot.forEach(function(child){
           var session = child.val();
           if(new Date(session.start) < currDate && session.trainerRating == null){
@@ -144,72 +141,79 @@ export class Map extends Component {
           }
         }.bind(this));
       }.bind(this));
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   //Checks for unread sessions and sets unread in state to true if they exist
   checkRead(userKey){
-    var pendingRef = firebase.database().ref('pendingSessions');
-    var acceptRef = firebase.database().ref('trainSessions');
-
-    //Trainer check
-    pendingRef.orderByChild('trainer').equalTo(userKey).on('value', function(snapshot) {
-      snapshot.forEach(function(child){
-        var pendingSession = child.val();
-        if(pendingSession.read == false && pendingSession.sentBy == 'trainee'){
-            this.setState({unRead: true});
-            return;
-        }
+    try {
+      //Trainer check
+      firebase.database().ref('pendingSessions').orderByChild('trainer').equalTo(userKey).on('value', function(snapshot) {
+        snapshot.forEach(function(child){
+          var pendingSession = child.val();
+          if(pendingSession.read == false && pendingSession.sentBy == 'trainee'){
+              this.setState({unRead: true});
+              return;
+          }
+        }.bind(this));
       }.bind(this));
-    }.bind(this));
 
-    pendingRef.orderByChild('trainee').equalTo(userKey).on('value', function(snapshot) {
-      snapshot.forEach(function(child){
-        var pendingSession = child.val();
-        if(pendingSession.read == false && pendingSession.sentBy == 'trainer'){
-            this.setState({unRead: true});
-            return;
-        }
+      firebase.database().ref('pendingSessions').orderByChild('trainee').equalTo(userKey).on('value', function(snapshot) {
+        snapshot.forEach(function(child){
+          var pendingSession = child.val();
+          if(pendingSession.read == false && pendingSession.sentBy == 'trainer'){
+              this.setState({unRead: true});
+              return;
+          }
+        }.bind(this));
       }.bind(this));
-    }.bind(this));
 
-    acceptRef.orderByChild('trainee').equalTo(userKey).on('value', function(snapshot) {
-      snapshot.forEach(function(child){
-        var acceptSession = child.val();
-        if(acceptSession.read == false && acceptSession.sentBy == 'trainee'){
-            this.setState({unRead: true});
-            return;
-        }
+      firebase.database().ref('trainSessions').orderByChild('trainee').equalTo(userKey).on('value', function(snapshot) {
+        snapshot.forEach(function(child){
+          var acceptSession = child.val();
+          if(acceptSession.read == false && acceptSession.sentBy == 'trainee'){
+              this.setState({unRead: true});
+              return;
+          }
+        }.bind(this));
       }.bind(this));
-    }.bind(this));
-
-    acceptRef.orderByChild('trainer').equalTo(userKey).on('value', function(snapshot) {
-      snapshot.forEach(function(child){
-        var acceptSession = child.val();
-        if(acceptSession.read == false && acceptSession.sentBy == 'trainer'){
-            this.setState({unRead: true});
-            return;
-        }
+  
+      firebase.database().ref('trainSessions').orderByChild('trainer').equalTo(userKey).on('value', function(snapshot) {
+        snapshot.forEach(function(child){
+          var acceptSession = child.val();
+          if(acceptSession.read == false && acceptSession.sentBy == 'trainer'){
+              this.setState({unRead: true});
+              return;
+          }
+        }.bind(this));
       }.bind(this));
-    }.bind(this));
-
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   //Load gyms from db for MapView
   loadGyms(){
-    var gymsRef = firebase.database().ref('gyms');
-    gymsRef.on('value', function(data) {
-      var items= [];
-      data.forEach(function(dbevent) {
-        var item = dbevent.val();
-        item.key = dbevent.key;
-        items.push(item);
-      });
-        //send info to the state
-        this.setState({
-          gyms: items,
-          gymLoaded: true
+    try {
+      var gymsRef = firebase.database().ref('gyms');
+      gymsRef.on('value', function(data) {
+        var items= [];
+        data.forEach(function(dbevent) {
+          var item = dbevent.val();
+          item.key = dbevent.key;
+          items.push(item);
         });
-    }.bind(this));
+          //send info to the state
+          this.setState({
+            gyms: items,
+            gymLoaded: true
+          });
+      }.bind(this));
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   //ShowModal function to open up different modals

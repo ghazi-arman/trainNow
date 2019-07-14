@@ -61,8 +61,8 @@ export class LoginForm extends Component {
     // Check email and password here
     firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
     firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password).then(function (snapshot) {
-      let usersRef = firebase.database().ref('users');
-      usersRef.orderByKey().equalTo(snapshot.uid).once("child_added", function (data) {
+      let usersRef = firebase.database().ref(`/users/${snapshot.uid}`);
+      usersRef.once("value", function (data) {
         let currentUser = data.val();
 
         // Verification for trainers under gym owners
@@ -79,7 +79,9 @@ export class LoginForm extends Component {
         } else {
           Actions.reset('map');
         }
-      }.bind(this));
+      }.bind(this)).catch(function (error) {
+        console.log(error);
+      });
     }.bind(this)).catch(function (error) {
       
       // Authentication Error check
@@ -90,7 +92,8 @@ export class LoginForm extends Component {
         Alert.alert('Wrong password.');
         return;
       }
-      Alert.alert('There was a problem logging in. Check your connection and try again.')
+      console.log(error);
+      Alert.alert('There was a problem logging in. Check your connection and try again.');
     }.bind(this));
 
   }

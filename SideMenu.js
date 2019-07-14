@@ -26,34 +26,32 @@ export class SideMenu extends Component {
   		fontAwesome: require('./fonts/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf'),
   	});
     //pull user from database and check if trainer
-    let usersRef = firebase.database().ref('users');
-    var user = firebase.auth().currentUser;
-    if(user){
-      usersRef.orderByKey().equalTo(user.uid).once("child_added", function(snapshot) {
-        var currentUser = snapshot.val();
-        var trainerState = currentUser.trainer;
-        var active;
-        if(trainerState){
-          active = currentUser.active;
-        }
-        firebase.storage().ref().child(user.uid).getDownloadURL().then(function(url){
-          this.setState({
-            image: url,
-            trainerState: trainerState,
-            name: currentUser.name,
-            rating: currentUser.rating,
-            active: active,
-          });
-        }.bind(this), function(error){
-          this.setState({
-            trainerState: trainerState,
-            name: currentUser.name,
-            rating: currentUser.rating,
-            active: active
-          });
-        }.bind(this));
+    let userId = firebase.auth().currentUser.uid;
+    let usersRef = firebase.database().ref(`/users/${userId}`);
+    usersRef.once("value", function(snapshot) {
+      var currentUser = snapshot.val();
+      var trainerState = currentUser.trainer;
+      var active;
+      if(trainerState){
+        active = currentUser.active;
+      }
+      firebase.storage().ref().child(userId).getDownloadURL().then(function(url){
+        this.setState({
+          image: url,
+          trainerState: trainerState,
+          name: currentUser.name,
+          rating: currentUser.rating,
+          active: active,
+        });
+      }.bind(this), function(error){
+        this.setState({
+          trainerState: trainerState,
+          name: currentUser.name,
+          rating: currentUser.rating,
+          active: active
+        });
       }.bind(this));
-    }
+    }.bind(this));
 	}
 
     // user log out confirm
