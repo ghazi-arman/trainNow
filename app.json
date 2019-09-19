@@ -1,12 +1,12 @@
 {
   "expo": {
     "name": "TrainNow",
-    "icon": "./logo.png",
+    "icon": "./images/icon.png",
     "splash": {
       "image": "./images/splash.png",
       "resizeMode": "cover"
     },
-    "version": "1.3.0",
+    "version": "1.4.0",
     "slug": "trainNow",
     "sdkVersion": "32.0.0",
     "packagerOpts": {
@@ -14,7 +14,7 @@
     },
     "ios": {
       "bundleIdentifier": "com.trainNow.app",
-      "icon": "./logo-ios.png"
+      "icon": "./images/logo-ios.png"
     },
     "android": {
       "package": "com.trainNow.app",

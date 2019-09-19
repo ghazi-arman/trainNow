@@ -1,22 +1,6 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- * @flow
- */
-
 import React, { Component } from 'react';
-import {
-  Platform,
-  StyleSheet,
-  Text,
-  View
-} from 'react-native';
 import firebase from 'firebase';
-import { Login } from './Login';
-import { Signup } from './Signup';
 import { Routes } from './Routes';
-
-
 var config = {
   apiKey: "AIzaSyBJNVtTG-dr1rTA2OyNbjxDxsRi6bGv2qU",
   authDomain: "trainnow-53f19.firebaseapp.com",
@@ -26,17 +10,16 @@ var config = {
   messagingSenderId: "402226410365"
 };
 
-if(!firebase.apps.length) {
-  const app = firebase.initializeApp(config);
-}
-
-export default class App extends Component<{}> {
+export default class App extends Component {
   
   componentWillUnmount() {
     firebase.off();
   }
 
   componentDidMount(){
+    if(!firebase.apps.length) {
+      firebase.initializeApp(config);
+    }
     Expo.ScreenOrientation.allowAsync(Expo.ScreenOrientation.Orientation.PORTRAIT_UP);
   }
   
@@ -45,18 +28,4 @@ export default class App extends Component<{}> {
       <Routes />
     );
   }
-
 }
-
-
-const styles = StyleSheet.create({
-  container: {
-    height: '100%',
-    width: '100%',
-  },
-  callout: {
-    height: 20,
-    width: 20,
-    backgroundColor: 'white',
-  }
-});

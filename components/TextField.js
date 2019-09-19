@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import {TextInput, Text, View, StyleSheet} from 'react-native';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
-import COLORS from '../Colors';
+import COLORS from './Colors';
 
 const TextField = (props) => {
   return (

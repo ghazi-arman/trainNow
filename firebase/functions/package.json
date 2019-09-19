@@ -1,14 +1,7 @@
 {
-  "name": "functions",
-  "description": "Cloud Functions for Firebase",
-  "scripts": {
-    "lint": "eslint .",
-    "serve": "firebase serve --only functions",
-    "shell": "firebase functions:shell",
-    "start": "npm run shell",
-    "deploy": "firebase deploy --only functions",
-    "logs": "firebase functions:log"
-  },
+  "name": "trainnowfirebase",
+  "description": "Firebase cloud functions used for TrainNow",
+  "private": true,
   "dependencies": {
     "cors": "^2.8.4",
     "express": "^4.17.1",
@@ -17,12 +10,7 @@
     "stripe": "6.26.0",
     "twilio": "^3.33.0"
   },
-  "devDependencies": {
-    "eslint": "^6.0.0",
-    "eslint-plugin-promise": "^4.2.1"
-  },
   "engines": {
     "node": "8"
-  },
-  "private": true
+  }
 }
