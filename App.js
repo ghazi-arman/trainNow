@@ -1,3 +1,4 @@
+import bugsnag from '@bugsnag/expo';
 import React, { Component } from 'react';
 import firebase from 'firebase';
 import { Routes } from './Routes';
@@ -22,6 +23,7 @@ export default class App extends Component {
     if(!firebase.apps.length) {
       firebase.initializeApp(config);
     }
+    const bugsnagClient = bugsnag();
     ScreenOrientation.lockAsync(ScreenOrientation.Orientation.PORTRAIT_UP);
   }
   

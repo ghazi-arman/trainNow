@@ -4,6 +4,7 @@
     "private": true,
     "main": "./node_modules/expo/AppEntry.js",
     "dependencies": {
+        "@bugsnag/expo": "^6.4.0",
         "expo": "^33.0.0",
         "expo-font": "^5.0.1",
         "expo-image-picker": "^5.0.2",

@@ -27,6 +27,19 @@
           "apiKey": "AIzaSyDR3rFZrNLokQzfwOuh-c7dep75SFc0-m8"
         }
       }
+    },
+    "extra": {
+      "bugsnag": {
+        "apiKey": "99105edc36b337a9de8c5bc82173b826"
+      }
+    },
+    "hooks": {
+      "postPublish": [
+        {
+          "file": "@bugsnag/expo/hooks/post-publish.js",
+          "config": {}
+        }
+      ]
     }
   }
 }
