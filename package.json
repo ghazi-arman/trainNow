@@ -2,6 +2,7 @@
     "name": "trainnow",
     "version": "1.5.0",
     "private": true,
+    "main": "./node_modules/expo/AppEntry.js",
     "dependencies": {
         "expo": "^32.0.0",
         "firebase": "^4.6.2",

@@ -1,7 +1,0 @@
-{
-  "files.exclude": {
-    ".*/": true,
-    "android": true,
-    "ios": true
-  }
-}
