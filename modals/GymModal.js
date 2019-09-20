@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, TouchableWithoutFeedback, Image } from 'react-native';
 import firebase from 'firebase';
-import { MapView, AppLoading } from 'expo';
+import { AppLoading } from 'expo';
+import MapView from 'react-native-maps';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import COLORS from '../components/Colors';
 const markerImg = require('../images/marker.png');

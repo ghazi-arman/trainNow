@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Alert, Image } from 'react-native';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
-import { Font, AppLoading } from 'expo';
+import { AppLoading } from 'expo';
+import * as Font from 'expo-font';
 import firebase from 'firebase';
 import { Actions } from 'react-native-router-flux';
 const profileImage = require('../images/profile.png');

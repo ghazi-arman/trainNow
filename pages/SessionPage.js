@@ -1,6 +1,10 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
-import { Permissions, Location, Font, MapView, AppLoading } from 'expo';
+import { AppLoading } from 'expo';
+import MapView from 'react-native-maps';
+import * as Font from 'expo-font';
+import * as Location from 'expo-location';
+import * as Permissions from 'expo-permissions';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { Actions } from 'react-native-router-flux';

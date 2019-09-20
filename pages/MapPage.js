@@ -1,6 +1,9 @@
 import React, {Component} from 'react';
 import { Image, StyleSheet, Text, View, Alert, TouchableOpacity } from 'react-native';
-import { Permissions, Location, MapView, AppLoading } from 'expo';
+import { AppLoading } from 'expo';
+import MapView from 'react-native-maps';
+import * as Location from 'expo-location';
+import * as Permissions from 'expo-permissions';
 import firebase from 'firebase';
 import Modal from 'react-native-modal';
 import { Actions } from 'react-native-router-flux';

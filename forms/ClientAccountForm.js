@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, StatusBar, Alert, Image } from 'react-native';
 import firebase from 'firebase';
-import { ImagePicker, Font, Permissions } from 'expo';
+import * as Permissions from 'expo-permissions';
+import * as Font from 'expo-font';
+import * as ImagePicker from 'expo-image-picker';
 import { Icons } from 'react-native-fontawesome';
 import COLORS from '../components/Colors';
 import TextField from '../components/TextField';

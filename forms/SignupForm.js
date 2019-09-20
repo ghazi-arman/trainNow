@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, StatusBar, Alert, Switch, Image, Picker, Linking } from 'react-native';
 import { Actions } from 'react-native-router-flux';
-import { ImagePicker, Font, Permissions } from 'expo';
+import * as Permissions from 'expo-permissions';
+import * as Font from 'expo-font';
+import * as ImagePicker from 'expo-image-picker';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import COLORS from '../components/Colors';
