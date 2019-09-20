@@ -8,3 +8,4 @@
 /.jscpd/
 report.txt
 /.vscode/
+.env

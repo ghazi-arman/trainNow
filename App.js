@@ -3,14 +3,15 @@ import React, { Component } from 'react';
 import firebase from 'firebase';
 import { Routes } from './Routes';
 import { ScreenOrientation } from 'expo';
+import { API_KEY, AUTH_DOMAIN, DB_URL, PROJECT_ID, STORAGE_BUCKET, MESSAGING_SENDER_ID } from 'react-native-dotenv';
 
-var config = {
-  apiKey: "AIzaSyBJNVtTG-dr1rTA2OyNbjxDxsRi6bGv2qU",
-  authDomain: "trainnow-53f19.firebaseapp.com",
-  databaseURL: "https://trainnow-53f19.firebaseio.com",
-  projectId: "trainnow-53f19",
-  storageBucket: "trainnow-53f19.appspot.com",
-  messagingSenderId: "402226410365"
+const config = {
+  apiKey: API_KEY,
+  authDomain: AUTH_DOMAIN,
+  databaseURL: DB_URL,
+  projectId: PROJECT_ID,
+  storageBucket: STORAGE_BUCKET,
+  messagingSenderId: MESSAGING_SENDER_ID
 };
 
 export default class App extends Component {
@@ -23,7 +24,7 @@ export default class App extends Component {
     if(!firebase.apps.length) {
       firebase.initializeApp(config);
     }
-    const bugsnagClient = bugsnag();
+    bugsnag();
     ScreenOrientation.lockAsync(ScreenOrientation.Orientation.PORTRAIT_UP);
   }
   
