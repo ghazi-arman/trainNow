@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, Button, Image, KeyboardAvoidingView, ScrollView, TouchableOpacity, Alert, TextInput } from 'react-native';
-import { Font } from 'expo';
+import { Font, AppLoading } from 'expo';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import Modal from 'react-native-modal';
@@ -154,7 +154,7 @@ export class OwnerHistoryPage extends Component {
 
 	render() {
 		if(this.state.loaded == false){
-			return <Expo.AppLoading />;
+			return <AppLoading />;
 		}
 		return (
 			<View style = {styles.container}>

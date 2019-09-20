@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, TouchableWithoutFeedback, Image } from 'react-native';
 import firebase from 'firebase';
-import { MapView } from 'expo';
+import { MapView, AppLoading } from 'expo';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import COLORS from '../components/Colors';
 const markerImg = require('../images/marker.png');
@@ -180,7 +180,7 @@ export class GymModal extends Component {
 
 	render(){
 		if(this.state.gym == 'null' || typeof this.state.gym.location === 'undefined' || typeof this.state.gym.location.latitude === 'undefined'){
-			return <Expo.AppLoading />;
+			return <AppLoading />;
 		}else{
 			var map = this.loadMap();
 			return(

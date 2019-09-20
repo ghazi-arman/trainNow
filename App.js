@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import firebase from 'firebase';
 import { Routes } from './Routes';
+import { ScreenOrientation } from 'expo';
+
 var config = {
   apiKey: "AIzaSyBJNVtTG-dr1rTA2OyNbjxDxsRi6bGv2qU",
   authDomain: "trainnow-53f19.firebaseapp.com",
@@ -20,7 +22,7 @@ export default class App extends Component {
     if(!firebase.apps.length) {
       firebase.initializeApp(config);
     }
-    Expo.ScreenOrientation.allowAsync(Expo.ScreenOrientation.Orientation.PORTRAIT_UP);
+    ScreenOrientation.lockAsync(ScreenOrientation.Orientation.PORTRAIT_UP);
   }
   
   render() {

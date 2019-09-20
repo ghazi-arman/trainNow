@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { StyleSheet, Text, View, KeyboardAvoidingView, TextInput, TouchableOpacity, Alert, DatePickerIOS, Picker} from 'react-native';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
+import { AppLoading } from 'expo';
 var stripe = require('stripe-client')('pk_test_6sgeMvomvrZFucRqYhi6TSbO');
 
 export class OwnerCardModal extends Component {
@@ -78,7 +79,7 @@ export class OwnerCardModal extends Component {
 
 	render(){
 		if(this.state.gym == 'null' || typeof this.state.gym == undefined){
-			return <Expo.AppLoading />
+			return <AppLoading />
 		}else{
 			return(
 				<KeyboardAvoidingView behavior="padding" style={styles.formContainer}>

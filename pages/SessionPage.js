@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
-import { Permissions, Location, Font, MapView } from 'expo';
+import { Permissions, Location, Font, MapView, AppLoading } from 'expo';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { Actions } from 'react-native-router-flux';
@@ -208,7 +208,7 @@ export class SessionPage extends Component {
 
 	render() {
 		if(this.state.session == 'null' || typeof this.state.session.location === 'undefined' || typeof this.state.userRegion === 'undefined' || this.state.mapRegion == 'null'){
-			return <Expo.AppLoading />
+			return <AppLoading />
 		}else{
 
 			var displayDate = this.dateToString(this.state.session.start);

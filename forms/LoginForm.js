@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, StatusBar, Alert } from 'react-native';
-import { Font } from 'expo';
+import { Font, AppLoading } from 'expo';
 import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
 import { Icons } from 'react-native-fontawesome';
@@ -100,7 +100,7 @@ export class LoginForm extends Component {
 
   render() {
     if (!this.state.fontLoaded) {
-      return <Expo.AppLoading />;
+      return <AppLoading />;
     }
     return (
       <View>

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, KeyboardAvoidingView, TouchableOpacity, Alert } from 'react-native';
-import { Font } from 'expo';
+import { Font, AppLoading } from 'expo';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import Modal from 'react-native-modal';
@@ -334,7 +334,7 @@ export class PaymentPage extends Component {
 
 	render() {
 		if(this.state.user == 'null' || this.state.cards == 'null' || this.state.balance == 'null'){
-			return <Expo.AppLoading />
+			return <AppLoading />
 		}else{
 			var balanceDiv;
 			var stripeButton;

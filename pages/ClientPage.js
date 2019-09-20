@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { Font } from 'expo';
+import { Font, AppLoading } from 'expo';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import Modal from 'react-native-modal';
@@ -264,7 +264,7 @@ export class ClientPage extends Component {
 
 	render() {
 		if(this.state.user == 'null' || this.state.trainees == 'null' || this.state.requests == 'null' || this.state.incomingRequests == 'null'){
-			return <Expo.AppLoading />
+			return <AppLoading />
 		}else{
 			if(this.state.currentTab == 'requests'){
 				var navBar = (

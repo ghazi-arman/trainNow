@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Alert, Image } from 'react-native';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
-import { Font } from 'expo';
+import { Font, AppLoading } from 'expo';
 import firebase from 'firebase';
 import { Actions } from 'react-native-router-flux';
 const profileImage = require('../images/profile.png');
@@ -74,7 +74,7 @@ export class ManagedSideMenu extends Component {
 
 	render(){
     if(this.state.trainerState == 'null'){
-      return <Expo.AppLoading />
+      return <AppLoading />
     }else{
       var clientLink;
       var active;

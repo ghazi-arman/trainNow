@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
-import { Font } from 'expo';
+import { Font, AppLoading } from 'expo';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { Actions } from 'react-native-router-flux';
@@ -185,7 +185,7 @@ export class RatingPage extends Component {
 
 	render() {
 		if(this.state.session == 'null'){
-			return <Expo.AppLoading />
+			return <AppLoading />
 		}else{
 			var user = firebase.auth().currentUser;
 			var displayDate = this.dateToString(this.state.session.end);

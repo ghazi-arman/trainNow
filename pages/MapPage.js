@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import { Image, StyleSheet, Text, View, Alert, TouchableOpacity } from 'react-native';
-import { Permissions, Location, MapView } from 'expo';
+import { Permissions, Location, MapView, AppLoading } from 'expo';
 import firebase from 'firebase';
 import Modal from 'react-native-modal';
 import { Actions } from 'react-native-router-flux';
@@ -291,7 +291,7 @@ export class MapPage extends Component {
 
   render() {
     if(this.state.mapRegion === null || this.state.gymLoaded == false || this.state.mapRegion.latitude == undefined || this.state.user == 'null'){
-      return <Expo.AppLoading />;
+      return <AppLoading />;
     }
 
     if(this.state.unRead && !this.state.modalPresent){
