@@ -5,8 +5,8 @@ import { AppLoading } from 'expo';
 import * as Font from 'expo-font';
 import firebase from 'firebase';
 import { Actions } from 'react-native-router-flux';
-const profileImage = require('../images/profile.png');
 import COLORS from './Colors';
+const profileImage = require('../images/profile.png');
 
 export class SideMenu extends Component {
 	
@@ -64,7 +64,7 @@ export class SideMenu extends Component {
         {text: 'No'},
         {text: 'Yes', onPress: () => {
           firebase.auth().signOut().then(function() {
-            Actions.reset('login');
+            Actions.reset('LoginPage');
           }, function(error) {
             Alert.alert('Sign Out Error', error);
           });

@@ -17,8 +17,8 @@ export class AccountPage extends Component {
   goToMap() {
     if (this.form.state.change == true) {
       Alert.alert(
+        "Unsaved Changes",
         "Are you sure you want to abandon your changes?",
-        "",
         [
           { text: 'No' },
           { text: 'Yes', onPress: () => {

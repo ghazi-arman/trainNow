@@ -42,11 +42,19 @@ const styles = StyleSheet.create({
     marginRight: 10,
     marginTop: 13
   },
+  inputRow: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+    marginBottom: 20
+  },
 });
 
 export default TextField;
 
 TextField.defaultProps = {
+  rowStyle: styles.inputRow,
   style: styles.input,
   iconStyle: styles.icon,
   secure: false,
