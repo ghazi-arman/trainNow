@@ -1,10 +1,9 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, StatusBar, Alert } from 'react-native';
-import { AppLoading } from 'expo';
-import * as Font from 'expo-font';
+import { StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
 import { Icons } from 'react-native-fontawesome';
+import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import TextField from '../components/TextField';
 
@@ -13,101 +12,86 @@ export class LoginForm extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      fontLoaded: false,
-      submitted: false,
+      submitted: false
     };
-
-    this.login = this.login.bind(this);
+    this.bugsnagClient = bugsnag();
   }
 
-  async componentDidMount() {
-    if (!this.state.fontLoaded) {
-      this.loadFont();
-    }
-  }
-
-  loadFont = async () => {
-    await Font.loadAsync({
-      FontAwesome: require('../fonts/font-awesome-4.7.0/fonts/FontAwesome.otf'),
-      fontAwesome: require('../fonts/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf')
-    });
-    this.setState({ fontLoaded: true });
-  }
-
-  login() {
+  login = async() => {
+    // Prevents multiple form
     if(this.state.submitted){
       return;
-    }else{
-      this.state.submitted = true;
     }
 
-    //Gym Owner Sign up Link
-    if (this.state.email.toLowerCase() == 'owner signup') {
+    // Go to owner sign up page 
+    if (this.state.email && this.state.email.toLowerCase() == 'owner signup') {
       Actions.OwnerSignupPage();
       return;
     }
 
-    // input validation
-    if (!this.state.email.length) {
-      Alert.alert("Please enter email!");
-      this.state.submitted = false;
+    // Input validation
+    if (!this.state.email || !this.state.email.length) {
+      Alert.alert("Please enter an email!");
       return;
     }
-    if (this.state.password.length < 6) {
+    if (!this.state.password || this.state.password.length < 6) {
       Alert.alert("Password must be more than six characters!");
-      this.state.submitted = false;
       return;
     }
+    
+    this.state.submitted = true;
+    try {
+      // Validate username and password combo through firebase
+      const userCredentials = await firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password);
+      const userDatabaseObject = await firebase.database().ref(`/users/${userCredentials.user.uid}`).once('value');
+      //console.log(userDatabaseObject);
+      const user = userDatabaseObject.val();
 
-    // Check email and password here
-    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-    firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password).then(function (snapshot) {
-      let usersRef = firebase.database().ref(`/users/${snapshot.uid}`);
-      usersRef.once("value", function (data) {
-        let currentUser = data.val();
+      // Checks status of current user and routes appropriately
+      if (user.deleted) {
+        Alert.alert('Your account has been deleted. Please contact your gym manager.');
+        return;
+      }
+      if (user.owner && !user.pending) {
+        Actions.OwnerPage({ gym: currentUser.gym });
+        return;
+      }
+      if (user.owner && user.pending) {
+        Alert.alert('Your account is pending');
+        return;
+      }
+      if (user.trainer) {
+        Actions.reset('SchedulePage');
+        return;
+      }
 
-        // Verification for trainers under gym owners
-        if (currentUser.deleted) {
-          this.state.submitted = false;
-          Alert.alert('Your account has been deleted. Please contact your gym manager.');
-        } else if (currentUser.owner && !currentUser.pending) {
-          Actions.OwnerPage({ gym: currentUser.gym });
-        } else if (currentUser.owner && currentUser.pending) {
-          this.state.submitted = false;
-          Alert.alert('Your account is pending');
-        } else if (currentUser.trainer) {
-          Actions.reset('SessionModal');
-        } else {
-          Actions.reset('MapPage');
-        }
-      }.bind(this)).catch(function (error) {
-        console.log(error);
-      });
-    }.bind(this)).catch(function (error) {
-      
-      // Authentication Error check
+      Actions.reset('MapPage');
+    } catch(error) {
       this.state.submitted = false;
-      let errorCode = error.code;
-      let errorMessage = error.message;
-      if (errorCode === 'auth/wrong-password') {
+      if (error.code === "auth/invalid-email") {
+				Alert.alert("Please enter a valid email.");
+				return;
+			}
+      this.bugsnagClient.metaData = {
+        email: this.state.email
+      }
+      this.bugsnagClient.notify(error);
+      if (error.code === 'auth/wrong-password') {
         Alert.alert('Wrong password.');
         return;
       }
-      console.log(error);
-      Alert.alert('There was a problem logging in. Check your connection and try again.');
-    }.bind(this));
-
+      if (error.code === "auth/user-not-found") {
+				Alert.alert("There is no account associated with this email.");
+				return;
+      }
+      Alert.alert('There was an unexpected problem logging in. Please try again.');
+    }
   }
 
   render() {
-    if (!this.state.fontLoaded) {
-      return <AppLoading />;
-    }
     return (
       <View>
-        <StatusBar barStyle="dark-content" />
         <TextField
-          rowStyle={styles.inputRow}
           icon={Icons.user}
           placeholder="Email"
           keyboard="email-address"
@@ -115,7 +99,6 @@ export class LoginForm extends Component {
           value={this.state.email}
         />
         <TextField
-          rowStyle={styles.inputRow}
           icon={Icons.lock}
           placeholder="Password"
           secure={true}
@@ -125,9 +108,7 @@ export class LoginForm extends Component {
           value={this.state.password}
         />
         <TouchableOpacity style={styles.buttonContainer} onPressIn={this.login}>
-          <Text style={styles.buttonText}>
-            Login
-          </Text>
+          <Text style={styles.buttonText}> Login </Text>
         </TouchableOpacity>
       </View>
     );
@@ -135,13 +116,6 @@ export class LoginForm extends Component {
 }
 
 const styles = StyleSheet.create({
-  inputRow: {
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-    marginBottom: 20
-  },
   buttonContainer: {
     backgroundColor: COLORS.SECONDARY,
     paddingVertical: 15,

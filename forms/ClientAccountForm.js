@@ -1,146 +1,146 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, StatusBar, Alert, Image } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Alert, Image } from 'react-native';
+import { AppLoading } from 'expo';
 import firebase from 'firebase';
 import * as Permissions from 'expo-permissions';
-import * as Font from 'expo-font';
 import * as ImagePicker from 'expo-image-picker';
 import { Icons } from 'react-native-fontawesome';
+import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import TextField from '../components/TextField';
+import { loadUser } from '../components/Functions';
+const profileImage = require('../images/profile.png');
 
 export class ClientAccountForm extends Component {
 
   constructor(props) {
     super(props);
     this.state = {
-      fontLoaded: false,
-      image: null,
-      imageToUpload: null,
       change: false
     };
-    this.updateAccount = this.updateAccount.bind(this);
+    this.bugsnagClient = bugsnag();
   }
 
-  componentDidMount() {
-    //Load Font
-    if (!this.state.fontLoaded) {
-      this.loadFont();
+  async componentDidMount() {
+    try {
+      // pull user info and profile image from firebase
+      const userId = firebase.auth().currentUser.uid;
+      var user = await loadUser(userId);
+      const image = await firebase.storage().ref().child(userId).getDownloadURL();
+      this.setState({image, user, name: user.name, imageUploaded: true });
+    } catch(error) {
+      // if image is not found in firebase ignore image and load user
+      if(error.code === "storage/object-not-found") {
+        this.setState({ user, name: user.name, imageUploaded: true });
+        return;
+      }
+      this.bugsnagClient.notify(error);
     }
-
-    let user = firebase.auth().currentUser;
-
-    // pull image from firebase
-    firebase.storage().ref().child(user.uid).getDownloadURL().then(function (url) {
-      this.setState({ image: url });
-    }.bind(this), function (error) {
-      console.log(error);
-    });
-
-    // pull account info from users table
-    const usersRef = firebase.database().ref('users');
-    usersRef.orderByKey().equalTo(user.uid).once("child_added", function (snapshot) {
-      let currentUser = snapshot.val();
-      this.setState({
-        name: currentUser.name,
-      });
-    }.bind(this));
-  }
-
-  loadFont = async () => {
-    await Font.loadAsync({
-      FontAwesome: require('../fonts/font-awesome-4.7.0/fonts/FontAwesome.otf'),
-      fontAwesome: require('../fonts/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf')
-    });
-    this.setState({ fontLoaded: true });
   }
 
   pickImage = async () => {
+    // Ask for image permissions from phone
     const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
-
     if (status === 'granted') {
       let result = await ImagePicker.launchImageLibraryAsync({
         allowsEditing: true,
         aspect: [4, 3],
       });
 
+      // Upload image to state for updateAccount call
       if (!result.cancelled) {
         this.setState({ imageToUpload: result.uri, image: result.uri, change: true });
       }
-    } else {
-      throw new Error('Camera roll permission not granted');
+      return;
+    }
+    Alert.alert('Camera roll permission not granted');
+  }
+
+  uploadImage = async(uri, uid) => {
+    try{
+      // Create image blob for upload
+      const blob = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.onload = function() {
+          resolve(xhr.response);
+        };
+        xhr.onerror = function(error) {
+          reject(new Error(error));
+        };
+        xhr.responseType = 'blob';
+        xhr.open('GET', uri, true);
+        xhr.send(null);
+      });
+
+      // Upload image to firebase storage
+      await firebase.storage().ref().child(uid).put(blob);
+    } catch(error) {
+      bugsnagClient.metaData = {
+        user: this.state.user
+      }
+      bugsnagClient.notify(error);
+      Alert.alert('There was an error uploading the image.')
     }
   }
 
-  async uploadImage(uri, uid) {
-    const response = await fetch(uri);
-    const blob = await new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.onload = function() {
-        resolve(xhr.response);
-      };
-      xhr.onerror = function() {
-        reject(new TypeError('Network request failed'));
-      };
-      xhr.responseType = 'blob';
-      xhr.open('GET', uri, true);
-      xhr.send(null);
-    });
-    const ref = firebase.storage().ref().child(uid);
-
-    const snapshot = await ref.put(blob);
-    return snapshot.downloadURL;
-  }
-
-  updateAccount() {
-    // input validation
-    if (!this.state.name.length) {
+  updateAccount = () => {
+    // Input validation
+    if (!this.state.name || !this.state.name.length) {
       Alert.alert("Please enter a name!");
       return;
     }
 
-    // update info in users table
-    let userRef = firebase.database().ref('users');
-    let user = firebase.auth().currentUser;
-    userRef.child(user.uid).update({
-      name: this.state.name,
-    });
+    try {
+      // Update info in users table
+      let user = firebase.auth().currentUser;
+      firebase.database().ref('users').child(user.uid).update({
+        name: this.state.name,
+      });
 
-    // image upload
-    if (this.state.imageToUpload != null) {
-      this.uploadImage(this.state.imageToUpload, user.uid);
+      // Upload image to firebase
+      if (this.state.imageToUpload) {
+        this.uploadImage(this.state.imageToUpload, user.uid);
+      }
+      
+      this.setState({ change: false })
+      Alert.alert("Updated");
+    } catch(error) {
+      this.bugsnagClient.metaData = {
+        user: this.state.user
+      }
+      this.bugsnagClient.notify(error);
+      Alert.alert('There was an error updating your account info. Please try again.');
     }
-
-    this.setState({ change: false })
-    Alert.alert("Updated");
   }
 
   render() {
-    if (this.state.image != null) {
-      imageHolder = (<View style={styles.imageContainer}><Image source={{ uri: this.state.image }} style={styles.imageHolder} /></View>);
-    } else {
-      imageHolder = (<View style={styles.imageContainer}><View style={styles.imageHolder}></View></View>);
+    if (!this.state.user || !this.state.imageUploaded) {
+      return <AppLoading />;
     }
+    console.log(this.state.image);
+
+    if (this.state.image) {
+      imageHolder = (<Image source={{ uri: this.state.image }} style={styles.imageHolder} />);
+    } else {
+      imageHolder = (<Image source={profileImage} style={styles.imageHolder} />);
+    }
+
     return (
-      <View style={styles.container}>
-        <StatusBar barStyle="light-content" />
-        {imageHolder}
+      <View>
+        <View style={styles.imageContainer}>
+          {imageHolder}
+        </View>
         <TextField
-          rowStyle={styles.inputRow}
           icon={Icons.user}
           placeholder="Name"
-          color={COLORS.PRIMARY}
-          onChange={(name) => this.setState({name, change:true})}
+          onChange={(name) => this.setState({ name, change: true })}
           value={this.state.name}
         />
         <TouchableOpacity style={styles.buttonContainer} onPressIn={this.pickImage}>
-          <Text style={styles.buttonText}>
-            Update Image
-          </Text>
+          <Text style={styles.buttonText}> Update Image </Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.buttonContainer} onPressIn={this.updateAccount}>
-          <Text style={styles.buttonText}>
-            Save Changes
-          </Text>
+          <Text style={styles.buttonText}> Save Changes </Text>
         </TouchableOpacity>
       </View>
     );
@@ -148,16 +148,6 @@ export class ClientAccountForm extends Component {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-  },
-  inputRow: {
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'flex-end',
-    marginBottom: 20
-  },
   buttonContainer: {
     backgroundColor: COLORS.SECONDARY,
     paddingVertical: 15,

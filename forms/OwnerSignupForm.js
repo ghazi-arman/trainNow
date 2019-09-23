@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, StatusBar, Alert, Linking } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Alert, Linking } from 'react-native';
 import { Actions } from 'react-native-router-flux';
-import * as Font from 'expo-font';
 import firebase from 'firebase';
-import FontAwesome, { Icons } from 'react-native-fontawesome';
+import { Icons } from 'react-native-fontawesome';
+import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 var stripe = require('stripe-client')('pk_test_6sgeMvomvrZFucRqYhi6TSbO');
 
@@ -16,36 +16,12 @@ export class OwnerSignupForm extends Component {
 			page: 1,
 			fontLoaded: false,
 			gymLoaded: false,
-			name:'',
-			email: '',
-			password: '',
-			confirmPass: '',
-			gymKey:'',
-			ssn:'',
-			taxId:'',
-		}; 
-
-		this.onSignUpPress=this.onSignUpPress.bind(this);
-		this.goNext=this.goNext.bind(this);
-		this.goBack=this.goBack.bind(this);
+		};
+		this.bugsnagClient = bugsnag();
 	}
 
-	async componentDidMount() {
-		if(!this.state.fontLoaded){
-			this.loadFont();
-		}
-	}
-
-	loadFont = async () => {
-		await Font.loadAsync({
-	      FontAwesome: require('../fonts/font-awesome-4.7.0/fonts/FontAwesome.otf'),
-	      fontAwesome: require('../fonts/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf')
-	    });
-	    this.setState({fontLoaded: true});
-	}
-
-	async onSignUpPress() {
-		// client side authentication
+	onSignUpPress = async() => {
+		// Input validation
 		if(this.state.pressed){
 			return;
 		}
@@ -65,157 +41,140 @@ export class OwnerSignupForm extends Component {
 			Alert.alert("Please enter a valid state Abbreviation!");
 			return;
 		}
+		
 		this.state.pressed = true;
-		var name = this.state.name;
-		var nameSplit = name.split(" ");
-		var firstName = nameSplit[0];
-		var lastName = nameSplit[1];
-		var email = this.state.email;
-		var phone = this.state.phone;
-		var pw = this.state.password;
-		var cpw = this.state.confirmPass;
-		var gymKey = this.state.gymKey;
-		var taxId = {
+		const firstName = this.state.name.split(" ")[0];
+		const lastName = this.state.name.split(" ")[1];
+		const month = this.state.birthDay.split("/")[0];
+		const day = this.state.birthDay.split("/")[1];
+		const year = this.state.birthDay.split("/")[2];
+		const taxId = {
 			pii: {
 				tax_id: this.state.taxId
 			}
 		}
-		var ssn = {
+		const ssn = {
 			pii: {
 				personal_id_number: this.state.ssn
 			}
 		}
 
 		try {
-			var taxTok = await stripe.createToken(taxId);
+			// Create stripe tokens from social security and tax id
+			var taxToken = await stripe.createToken(taxId);
+			var ssnToken = await stripe.createToken(ssn);
 		}catch(error){
 			this.state.pressed = false;
-			Alert.alert('Invalid Tax Id entered. Please check your info and try again!');
-			return;
-		}
-		try {
-			var ssnTok = await stripe.createToken(ssn);
-		}catch(error){
-			this.state.pressed = false;
-			Alert.alert('Invalid Social Security entered. Please check your info and try again!');
+			this.bugsnagClient.notify(error);
+			Alert.alert('Invalid tax id or social security. Please verify information.');
 			return;
 		}
 
-		var date = this.state.birthDay;
-		var dateSplit = date.split("/");
-		var taxToken = taxTok.id;
-		var ssnToken = ssnTok.id;
-		var month = dateSplit[0];
-		var day = dateSplit[1];
-		var year = dateSplit[2];
-		var address = this.state.address;
-		var city = this.state.city;
-		var state = this.state.state;
-		var zip = this.state.zip;
-		var company = this.state.companyName;
-    	try {
+    try {
+			// Call firebase cloud function to create stripe account for owner
 			const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/createOwner/', {
 				method: 'POST',
 				body: JSON.stringify({
-					line1: address,
-					city: city,
-					state: state,
-					zip: zip,
-					email: email,
-					phone: phone,
+					line1: this.state.address,
+					city: this.state.city,
+					state: this.state.state,
+					zip: this.state.zip,
+					email: this.state.email,
+					phone: thisi.state.phone,
 					firstName: firstName,
 					lastName: lastName,
-					ssnToken: ssnToken,	
-					taxToken: taxToken,
+					ssnToken: ssnToken.id,	
+					taxToken: taxToken.id,
 					company: company,
 					day: day,
 					month: month,
 					year: year
 				}),
 			});
-			const data = await res.json();
-		    data.body = JSON.parse(data.body);
-		    console.log(data.body);
-		    if(data.body.message == 'Success'){
-			    firebase.auth().createUserWithEmailAndPassword(this.state.email, pw)
-				.then(async function(firebaseUser) {
-					var userRef = firebase.database().ref('users');
-					userRef.child(firebaseUser.uid).set({
-						owner: true,
-						name: name,
-				    	gym: gymKey,
-			      		phone: phone,
-			      		stripeId: data.body.trainer.account,
-			      		pending: true,
-			      		cardAdded: false
-			    	});
-					firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password).then(function() {
-						Actions.reset('LoginPage');
-						Alert.alert('You must enter a debit card for payouts before trainees can book a sessions at your gym!');
-					});
-				}.bind(this)).catch(function(error) {
-					var errorMessage = error.message;
-					this.state.pressed = false;
-					Alert.alert(errorMessage);
-					return;
-				}.bind(this));
-			}else{
+
+			// Check if stripe account was created successfully
+			const response = await res.json();
+			var data = JSON.parse(response.body);
+
+			if (data.message !== 'Success') {
 				this.state.pressed = false;
-				Alert.alert('There was an error creating your stripe Account. Please review your email, address, birthday, and ssn and try again!');
+				this.bugsnagClient.leaveBreadcrumb(data);
+				Alert.alert('There was an error creating your stripe Account. Please review your information and try again!');
 				return;
 			}
-		}catch(error) {
+			try {
+				// Create firebase account for user
+				const user = await firebase.auth().createUserWithEmailAndPassword(this.state.email, pw);
+				firebase.database().ref('users').child(user.user.uid).set({
+					owner: true,
+					name: name,
+					gym: gymKey,
+					phone: phone,
+					stripeId: data.trainer.account,
+					pending: true,
+					cardAdded: false
+				});
+
+				await firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password);
+				Alert.alert('You must enter a debit card for payouts before trainees can book a sessions at your gym!');
+				Actions.reset('LoginPage');
+				return;
+			} catch(error) {
+				throw new Error(error);
+			}
+		} catch(error) {
 			this.state.pressed = false;
-			Alert.alert('There was an error creating your stripe Account. Please review your email, address, birthday, and ssn and try again!');
+			this.bugsnagClient.notify(error);
+			Alert.alert('There was an error creating your Account. Please try again!');
 			return;
 		}
 	}
 
-	goBack(){
-		if(this.state.page == 2){
+	goBack = () => {
+		if(this.state.page === 2){
 			this.setState({page: 1});
-		}else if(this.state.page == 3){
+		}else if(this.state.page === 3){
 			this.setState({page: 2});
 		}
 	}
 
-	async goNext() {
-		if(this.state.page == 1){
+	goNext = async() => {
+		if(this.state.page === 1){
 			
-			if(!this.state.name.trim().length){
+			if(!this.state.name || !this.state.name.trim().length){
 				Alert.alert("Please enter a name!");
 				return;
 			}
-			if(!this.state.email.trim().length){
+			if(!this.state.email || !this.state.email.trim().length){
 				Alert.alert("Please enter an email!");
 				return;
 			}
-			if(this.state.password.trim().length < 6){
+			if(!this.state.password || this.state.password.trim().length < 6){
 				Alert.alert("Please enter a password at least 6 characters long!");
 				return;
 			}
-			if(this.state.password != this.state.confirmPass){
+			if(!this.state.confirmPass || this.state.password != this.state.confirmPass){
 				Alert.alert("Passwords must match!");
 				return;
 			}
-			if(this.state.phone.trim().length < 10){
+			if(!this.state.phone || this.state.phone.trim().length < 10){
 				Alert.alert("Please enter a valid phone number");
 			}
 
-			var emailExists;
-			const emailCheck = await firebase.auth().fetchSignInMethodsForEmail(this.state.email).then(function(methods){
-				if(methods.length > 0){
-					Alert.alert("That email is already in use.");
+			try {
+				const emailCheck = await firebase.auth().fetchSignInMethodsForEmail(this.state.email);
+				if(emailCheck.length) {
+					Alert.alert("That email is already in use");
 					return;
 				}
-			}, function(error){
+			} catch(error) {
+				this.bugsnagClient.notify(error);
 				Alert.alert("Please enter a valid email");
 				return;
-			}.bind(this));
-
+			}
 			this.setState({page: 2});
 
-		}else if(this.state.page == 2){
+		}else if(this.state.page === 2){
 
 			if(!this.state.companyName.length){
 				Alert.alert("Please enter a company name");
@@ -243,19 +202,12 @@ export class OwnerSignupForm extends Component {
 	}
 
 	render() {
-
-		var image = this.state.image;
-		var gyms = this.state.gyms;
-		var page1 = page2 = page3 = page4 = null;
-		var submitButton = agreement = null;
+		let page1 = page2 = page3 = page4 = null;
+		let submitButton = agreement = null;
 
 		prevButton = (
 			<TouchableOpacity style={styles.buttonContainer} onPressIn={this.goBack}>
-				<Text 
-					style={styles.buttonText}
-					>
-					Previous
-				</Text>
+				<Text style={styles.buttonText}> Previous </Text>
 			</TouchableOpacity>
 		);
 
@@ -265,207 +217,111 @@ export class OwnerSignupForm extends Component {
 			</TouchableOpacity>
 		);
 
-		if(this.state.page == 1){
+		if(this.state.page === 1){
 			prevButton = null;
 			page1 = (
 			<View>
-				<View style={styles.inputRow}>
-					<Text style={styles.icon}>
-						<FontAwesome>{Icons.user}</FontAwesome>
-					</Text>
-					<TextInput
-						placeholder="Full Legal Name (First and Last Only)"
-						style={styles.input}
-						placeholderTextColor={COLORS.PRIMARY}
-						onChangeText={(name) => this.setState({name})}
-						value={this.state.name}
-						underlineColorAndroid='transparent'
-						autoCorrect={false} />
-				</View>
-				<View style={styles.inputRow}>
-					<Text style={styles.icon}>
-						<FontAwesome>{Icons.envelope}</FontAwesome>
-					</Text>
-					<TextInput 
-						placeholder="Email"
-						keyboardType="email-address"
-						autoCapitalize="none"
-						style={styles.input}
-						placeholderTextColor={COLORS.PRIMARY}
-						underlineColorAndroid='transparent'
-						onChangeText={(email) => this.setState({email})}
-						value={this.state.email} />
-				</View>
-				<View style={styles.inputRow}>
-					<Text style={styles.icon}>
-						<FontAwesome>{Icons.lock}</FontAwesome>
-					</Text>
-					<TextInput
-						placeholder="Password"
-						secureTextEntry
-						style={styles.input}
-						placeholderTextColor={COLORS.PRIMARY}
-						underlineColorAndroid='transparent'
-						onChangeText={(password) => this.setState({password})}
-						value={this.state.password} />
-				</View>
-				<View style={styles.inputRow}>
-					<Text style={styles.icon}>
-						<FontAwesome>{Icons.check}</FontAwesome>
-					</Text>
-					<TextInput
-						placeholder="Confirm Password"
-						secureTextEntry
-						style={styles.input}
-						placeholderTextColor={COLORS.PRIMARY}
-						underlineColorAndroid='transparent'
-						onChangeText={(confirmPass) => this.setState({confirmPass})}
-						value={this.state.confirmPass} />
-				</View>
-				<View style={styles.inputRow}>
-					<Text style={styles.icon}>
-						<FontAwesome>{Icons.phone}</FontAwesome>
-					</Text>
-					<TextInput
-						placeholder="Phone Number"
-						returnKeyType="done"
-						keyboardType="number-pad"
-						style={styles.input}
-						placeholderTextColor={COLORS.PRIMARY}
-						underlineColorAndroid='transparent'
-						onChangeText={(phone) => this.setState({phone})}
-						value={this.state.phone} />
-				</View>
+				<TextField
+          icon={Icons.user}
+          placeholder="Full Legal Name (First and Last Only)"
+          onChange={(name) => this.setState({name})}
+          value={this.state.name}
+        />
+				<TextField
+          icon={Icons.envelope}
+          placeholder="Email"
+          keyboard="email-address"
+          onChange={(email) => this.setState({email})}
+          value={this.state.email}
+        />
+				<TextField
+          icon={Icons.lock}
+          placeholder="Password"
+          secure={true}
+          onChange={(password) => this.setState({password})}
+          value={this.state.password}
+        />
+				<TextField
+          icon={Icons.lock}
+          placeholder="Confirm Password"
+          secure={true}
+          onChange={(confirmPass) => this.setState({confirmPass})}
+          value={this.state.confirmPass}
+        />
+				<TextField
+          icon={Icons.phone}
+          placeholder="Phone Number"
+					keyboard="number-pad"
+          onChange={(phone) => this.setState({phone})}
+          value={this.state.phone}
+        />
 			</View>
 			);
 		}else if(this.state.page == 2){
 			page2 = (
-			<View style={styles.container}>
-				<View style={styles.inputRow}>
-					<Text style={styles.icon}>
-						<FontAwesome>{Icons.building}</FontAwesome>
-					</Text>
-					<TextInput
-						placeholder="Company Name (For Stripe Account)"
-						style={styles.input}
-						placeholderTextColor={COLORS.PRIMARY}
-						underlineColorAndroid='transparent'
-						onChangeText={(companyName) => this.setState({companyName})}
-						value={this.state.companyName} />
-				</View>
-				<View style={styles.inputRow}>
-					<Text style={styles.icon}>
-						<FontAwesome>{Icons.building}</FontAwesome>
-					</Text>
-					<TextInput
-						placeholder="Gym Key"
-						style={styles.input}
-						placeholderTextColor={COLORS.PRIMARY}
-						underlineColorAndroid='transparent'
-						onChangeText={(gymKey) => this.setState({gymKey})}
-						value={this.state.gymKey} />
-				</View>
-				<View style={styles.inputRow}>
-					<Text style={styles.icon}>
-						<FontAwesome>{Icons.user}</FontAwesome>
-					</Text>
-					<TextInput
-						placeholder="Company Tax ID (For Stripe Account)"
-						returnKeyType="done"
-						style={styles.input}
-						placeholderTextColor={COLORS.PRIMARY}
-						underlineColorAndroid='transparent'
-						onChangeText={(taxId) => this.setState({taxId})}
-						value={this.state.taxId}
-						keyboardType="number-pad"/>
-				</View>
-				<View style={styles.inputRow}>
-					<Text style={styles.icon}>
-						<FontAwesome>{Icons.user}</FontAwesome>
-					</Text>
-					<TextInput
-						placeholder="SSN (For Stripe Account)"
-						returnKeyType="done"
-						style={styles.input}
-						placeholderTextColor={COLORS.PRIMARY}
-						underlineColorAndroid='transparent'
-						onChangeText={(ssn) => this.setState({ssn})}
-						value={this.state.ssn}
-						keyboardType="number-pad"/>
-				</View>
-				<View style={styles.inputRow}>
-					<Text style={styles.icon}>
-						<FontAwesome>{Icons.user}</FontAwesome>
-					</Text>
-					<TextInput
-						placeholder="Birth Date (mm/dd/yyyy)"
-						returnKeyType="done"
-						style={styles.input}
-						placeholderTextColor={COLORS.PRIMARY}
-						underlineColorAndroid='transparent'
-						onChangeText={(birthDay) => this.setState({birthDay})}
-						value={this.state.birthDay}/>
-				</View>
+			<View>
+				<TextField
+          icon={Icons.building}
+          placeholder="Company Name"
+          onChange={(companyName) => this.setState({companyName})}
+          value={this.state.companyName}
+        />
+				<TextField
+          icon={Icons.building}
+          placeholder="Gym Key"
+          onChange={(gymKey) => this.setState({gymKey})}
+          value={this.state.gymKey}
+        />
+				<TextField
+          icon={Icons.user}
+					placeholder="Company Tax ID"
+					keyboard="number-pad"
+          onChange={(taxId) => this.setState({taxId})}
+          value={this.state.taxId}
+        />
+				<TextField
+          icon={Icons.user}
+					placeholder="Social Security Number"
+					keyboard="number-pad"
+          onChange={(ssn) => this.setState({ssn})}
+          value={this.state.ssn}
+        />
+				<TextField
+          icon={Icons.calendar}
+					placeholder="Birth Date (mm/dd/yyyy)"
+          onChange={(birthDay) => this.setState({birthDay})}
+          value={this.state.birthDay}
+        />
 			</View>
 			);
 		}else if(this.state.page == 3){
 			nextButton = null;
 			var page3 = (
 			<View>
-				<View style={styles.inputRow}>
-					<Text style={styles.icon}>
-						<FontAwesome>{Icons.envelope}</FontAwesome>
-					</Text>
-					<TextInput
-						placeholder="Address"
-						style={styles.input}
-						placeholderTextColor={COLORS.PRIMARY}
-						onChangeText={(address) => this.setState({address})}
-						value={this.state.address}
-						underlineColorAndroid='transparent'
-						autoCorrect={false} />
-				</View>
-				<View style={styles.inputRow}>
-					<Text style={styles.icon}>
-						<FontAwesome>{Icons.map}</FontAwesome>
-					</Text>
-					<TextInput 
-						placeholder="City"
-						autoCapitalize="none"
-						style={styles.input}
-						placeholderTextColor={COLORS.PRIMARY}
-						underlineColorAndroid='transparent'
-						onChangeText={(city) => this.setState({city})}
-						value={this.state.city} />
-				</View>
-				<View style={styles.inputRow}>
-					<Text style={styles.icon}>
-						<FontAwesome>{Icons.mapMarker}</FontAwesome>
-					</Text>
-					<TextInput
-						placeholder="Zip Code"
-						returnKeyType="done"
-						keyboardType="number-pad"
-						style={styles.input}
-						placeholderTextColor={COLORS.PRIMARY}
-						underlineColorAndroid='transparent'
-						onChangeText={(zip) => this.setState({zip})}
-						value={this.state.zip} />
-				</View>
-				<View style={styles.inputRow}>
-					<Text style={styles.icon}>
-						<FontAwesome>{Icons.map}</FontAwesome>
-					</Text>
-					<TextInput 
-						placeholder="State (Abbreviation eg. CA)"
-						autoCapitalize="none"
-						style={styles.input}
-						maxLength={2}
-						placeholderTextColor={COLORS.PRIMARY}
-						underlineColorAndroid='transparent'
-						onChangeText={(state) => this.setState({state})}
-						value={this.state.state} />
-				</View>
+				<TextField
+          icon={Icons.envelope}
+          placeholder="Address"
+          onChange={(address) => this.setState({address})}
+          value={this.state.address}
+        />
+				<TextField
+          icon={Icons.map}
+          placeholder="City"
+          onChange={(city) => this.setState({city})}
+          value={this.state.city}
+        />
+				<TextField
+          icon={Icons.mapMarker}
+          placeholder="Zip Code"
+          onChange={(zip) => this.setState({zip})}
+          value={this.state.zip}
+        />
+				<TextField
+          icon={Icons.map}
+          placeholder="State (Abbreviation)"
+          onChange={(state) => this.setState({state})}
+          value={this.state.state}
+        />
 			</View>
 			);
 			
@@ -491,7 +347,6 @@ export class OwnerSignupForm extends Component {
 
 		return (
 			<View style={styles.container}>
-				<StatusBar barStyle="dark-content" />
 				{page1}
 				{page2}
 				{page3}
@@ -511,77 +366,17 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		alignItems: 'center',
 	},
-	inputRow: {
-		width: '100%',
-		flexDirection: 'row',
-		justifyContent: 'center',
-		alignItems: 'flex-end',
-		marginBottom: 20
-	},
-	input: {
-		height: 40,
-		borderWidth: 0,
-		backgroundColor: 'transparent',
-		borderBottomWidth: 1,
-		borderColor: COLORS.PRIMARY,
-		width: '90%',
-		color: COLORS.PRIMARY
-	},
-	picker: {
-		height: 45,
-		borderWidth: 1,
-		borderColor: COLORS.PRIMARY,
-		width: '90%',
-	},
 	buttonContainer: {
 		backgroundColor: COLORS.SECONDARY,
 		paddingVertical: 15,
 		width: 200,
 		marginTop: 5,
 	},
-	pictureButton: {
-		backgroundColor: COLORS.SECONDARY,
-		width: 40,
-		height: 40,
-		flexDirection: 'column',
-		justifyContent: 'center',
-		alignItems: 'center'
-	},
-	pictureIcon: {
-		color: '#f6f5f5',
-		fontSize: 30,
-		textAlign: 'center'
-	},
 	buttonText: {
 		fontSize: 20,
 		textAlign: 'center',
 		color: COLORS.WHITE,
 		fontWeight: '700'
-	},
-	imageContainer: {
-		flexDirection: 'column',
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-	imageHolder: {
-		width: 220,
-		height: 220,
-		borderWidth: 1,
-		flexDirection: 'column',
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderColor: COLORS.SECONDARY,
-	},
-	icon: {
-		color: COLORS.PRIMARY,
-		fontSize: 30,
-		marginRight: 10,
-		marginTop: 13
-	},
-	hints:{
-		color: COLORS.PRIMARY,		
-		marginBottom: 10,
-		marginRight: 10
 	},
 	agreement:{
 		color: COLORS.PRIMARY,		

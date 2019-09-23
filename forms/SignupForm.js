@@ -1,11 +1,12 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, StatusBar, Alert, Switch, Image, Picker, Linking } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Alert, Switch, Image, Picker, Linking } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import * as Permissions from 'expo-permissions';
-import * as Font from 'expo-font';
 import * as ImagePicker from 'expo-image-picker';
+import { AppLoading } from 'expo';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
+import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import TextField from '../components/TextField';
 const stripe = require('stripe-client')('pk_test_6sgeMvomvrZFucRqYhi6TSbO');
@@ -17,51 +18,35 @@ export class SignupForm extends Component {
     this.state = {
       trainer: false,
       page: 1,
-      fontLoaded: false,
-      gymLoaded: false,
-      gym: 'none',
-      image: 'null',
       pressed: false
     };
-
-    this.signUp = this.signUp.bind(this);
-    this.goNext = this.goNext.bind(this);
-    this.goBack = this.goBack.bind(this);
+    this.bugsnagClient = bugsnag();
   }
 
   async componentDidMount() {
-    if (!this.state.fontLoaded) {
-      this.loadFont();
-    }
-
     if (!this.state.gymLoaded) {
-      let gyms = this.loadGyms();
-      this.setState({ gyms: gyms, gymLoaded: true });
+      try{
+        const gyms = await this.loadGyms();
+        this.setState({ gyms: gyms, gymLoaded: true });
+      } catch(error) {
+        this.bugsnagClient.notify(error);
+      }
     }
   }
 
-  loadFont = async () => {
-    await Font.loadAsync({
-      FontAwesome: require('../fonts/font-awesome-4.7.0/fonts/FontAwesome.otf'),
-      fontAwesome: require('../fonts/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf')
-    });
-    this.setState({ fontLoaded: true });
-  }
-
-  loadGyms() {
+  loadGyms = async() => {
     let gyms = [];
-    let gymsRef = firebase.database().ref('gyms');
-    gymsRef.once('value', function (data) {
-      data.forEach(function (snapshot) {
-        let gym = snapshot.val();
+    const gymsList = await firebase.database().ref('gyms').once('value');
+    gymsList.forEach(function (snapshot) {
+        const gym = snapshot.val();
         gym.key = snapshot.key;
         gyms.push(gym);
-      });
     });
     return gyms;
   }
 
   pickImage = async () => {
+    // Ask for image permissions from phone
     const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
     if (status === 'granted') {
       let result = await ImagePicker.launchImageLibraryAsync({
@@ -69,43 +54,47 @@ export class SignupForm extends Component {
         aspect: [4, 3],
       });
 
+      // Upload image to state for updateAccount call
       if (!result.cancelled) {
         this.setState({ image: result.uri });
       }
-    } else {
-      throw new Error('Camera roll permission not granted');
+      return;
+    }
+    Alert.alert('Camera roll permission not granted');
+  }
+
+  uploadImage = async(uri, uid) => {
+    try{
+      // Create image blob for upload
+      const blob = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.onload = function() {
+          resolve(xhr.response);
+        };
+        xhr.onerror = function(error) {
+          reject(new Error(error));
+        };
+        xhr.responseType = 'blob';
+        xhr.open('GET', uri, true);
+        xhr.send(null);
+      });
+
+      // Upload image to firebase storage
+      await firebase.storage().ref().child(uid).put(blob);
+    } catch(error) {
+      bugsnagClient.notify(error);
+      Alert.alert('There was an error uploading the image.')
     }
   }
 
-  async uploadImage(uri, uid) {
-    const blob = await new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.onload = function() {
-        resolve(xhr.response);
-      };
-      xhr.onerror = function() {
-        Alert.alert('There was an error uploading your picture. Try again in the settings page.');
-        return;
-      };
-      xhr.responseType = 'blob';
-      xhr.open('GET', uri, true);
-      xhr.send(null);
-    });
-    const ref = firebase.storage().ref().child(uid);
-    const snapshot = await ref.put(blob);
-    blob.close();
-    return snapshot.downloadURL;
-  }
-
-  async signUp() {
-    // client side authentication
+  signUp = async() => {
+    // Prevent multiple submissions
     if (this.state.pressed) {
       return;
     }
     this.state.pressed = true;
-    let nameSplit = this.state.name.split(" ");
-    let firstName = nameSplit[0];
-    let lastName = nameSplit[1];
+    let firstName = this.state.name.split(" ")[0];
+    let lastName = this.state.name.split(" ")[1];
 
     if (this.state.trainer) {
       const gymKey = this.state.gyms[this.state.gym].key;
@@ -113,26 +102,25 @@ export class SignupForm extends Component {
       if (gymType == 'independent') {
         let ssn = {
           pii: {
-            personal_id_number: this.state.ssn
+            personal_id_number: this.state.ssn.replace(/\D/g,'')
           }
         }
 
-        // create ssn token
         try {
-          var pii = await stripe.createToken(ssn);
+          // Create token from social security number
+          var token = await stripe.createToken(ssn);
         } catch (error) {
           this.state.pressed = false;
-          Alert.alert('Invalid SSN entered. Please check your info and try again!');
+          this.bugsnagClient.notify(error);
+          Alert.alert('Invalid Social Security Number entered. Please check your info and try again!');
           return;
         }
-        var token = pii.id;
-        let dateSplit = this.state.birthDay.split("/");
-        const month = dateSplit[0];
-        const day = dateSplit[1];
-        const year = dateSplit[2];
+        const month = this.state.birthDay.split("/")[0];
+        const day = this.state.birthDay.split("/")[1];
+        const year = this.state.birthDay.split("/")[2];
 
-        // create stripe account
         try {
+          // Call firebase cloud function to create stripe account
           const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/createTrainer/',
           {
             method: 'POST',
@@ -142,27 +130,32 @@ export class SignupForm extends Component {
               state: this.state.state,
               zip: this.state.zip,
               email: this.state.email,
-              phone: this.state.phone,
+              phone: this.state.phone.replace(/\D/g,''),
               firstName: firstName,
               lastName: lastName,
-              token: token,
+              token: token.id,
               day: day,
               month: month,
               year: year
             }),
           });
-          var data = await res.json();
-          data.body = JSON.parse(data.body);
-          console.log(data.body);
+          const response = await res.json();
+          var data = JSON.parse(response.body);
+          console.log(data);
+          
+          if(data.message !== 'Success') {
+            throw new Error('Stripe Error');
+          }
         } catch (error) {
           this.state.pressed = false;
-          Alert.alert('There wan an error creating your stripe Account. Please review your email, address, birthday, and ssn and try again!');
+          this.bugsnagClient.notify(error);
+          Alert.alert('There was an error creating your stripe Account. Please review your information and try again!');
           return;
         }
       }
 
-      firebase.auth().createUserWithEmailAndPassword(this.state.email, this.state.password)
-        .then(async function (firebaseUser) {
+      try {
+        const user = await firebase.auth().createUserWithEmailAndPassword(this.state.email, this.state.password);
         if(gymType == 'independent'){
           var pending = false;
           var gymRef = firebase.database().ref('/gyms/' + gymKey + '/trainers/');
@@ -171,79 +164,78 @@ export class SignupForm extends Component {
           var gymRef = firebase.database().ref('/gyms/' + gymKey + '/pendingtrainers/');
         }
 
-        gymRef.child(firebaseUser.uid).set({
+        gymRef.child(user.user.uid).set({
           active: false,
           bio: this.state.bio,
           cert: this.state.cert,
           name: this.state.name,
-          rate: this.state.rate,
+          rate: this.state.rate.replace(/\D/g,''),
           rating: 0
         });
 
-        let userRef = firebase.database().ref('users');
-        userRef.child(firebaseUser.uid).set({
+        firebase.database().ref('users').child(user.user.uid).set({
           trainer: true,
           type: gymType,
           pending: pending,
           name: this.state.name,
           gym: gymKey,
           cert: this.state.cert,
-          rate: this.state.rate,
+          rate: this.state.rate.replace(/\D/g,''),
           bio: this.state.bio,
-          phone: this.state.phone,
+          phone: this.state.phone.replace(/\D/g,''),
           active: false,
           rating: 0,
           sessions: 0,
         });
-        
-        if (this.state.image != 'null') {
-          this.uploadImage(this.state.image, firebaseUser.uid);
+          
+        if (this.state.image) {
+          this.uploadImage(this.state.image, user.uid);
         }
 
         if(gymType == 'independent'){
-          userRef.child(firebaseUser.uid).update({stripeId: data.body.trainer.id, cardAdded: false})
-          firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password).then(function () {
-            Actions.reset('SchedulePage');
-            Alert.alert('You must enter a debit card for payouts before trainees can book a session with you!');
-          });
+          firebase.database().ref('users').child(user.user.uid).update({stripeId: data.trainer.id, cardAdded: false});
+          await firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password);
+          Actions.reset('SchedulePage');
+          Alert.alert('You must enter a debit card for payouts before trainees can book a session with you!');
         }else{
           Actions.reset('LoginPage');
           Alert.alert('Your account is now pending approval. Sign in once your gym manager approves your account.');
         }
-      }.bind(this)).catch(function (error) {
+
+      } catch(error) {
         this.state.pressed = false;
-        Alert.alert(error.message);
+        this.bugsnagClient.notify(error);
+        Alert.alert("There was an error creating your account. Please review your info and try again.");
         return;
-      }.bind(this));
+      }
     } else {
-    firebase.auth().createUserWithEmailAndPassword(this.state.email, this.state.password)
-      .then(async function (firebaseUser) {
-        let userRef = firebase.database().ref('users');
-        userRef.child(firebaseUser.uid).set({
+      try {
+        const user = await firebase.auth().createUserWithEmailAndPassword(this.state.email, this.state.password);
+        firebase.database().ref('users').child(user.user.uid).set({
           trainer: false,
           name: this.state.name,
-          phone: this.state.phone,
+          phone: this.state.phone.replace(/\D/g,''),
           rating: 0,
           sessions: 0,
           cardAdded: false,
         });
 
-        if (this.state.image != 'null') {
-          this.uploadImage(this.state.image, firebaseUser.uid);
+        if (this.state.image) {
+          this.uploadImage(this.state.image, user.user.uid);
         }
 
-        firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password).then(function () {
-          Actions.reset('MapPage')
-        });
-      }.bind(this)).catch(function (error) {
+        await firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password);
+        Actions.reset("MapPage");
+
+      } catch(error) {
         this.state.pressed = false;
-        Alert.alert(error.message);
-        return;
-      }.bind(this));
+        this.bugsnagClient.notify(error);
+        Alert.alert("There was an error creating your account. Please try again.");
+      }
     }
   }
 
-  goBack() {
+  goBack = () => {
     if (this.state.page == 2) {
       this.setState({ page: 1 });
     } else if (this.state.page == 3) {
@@ -261,8 +253,8 @@ export class SignupForm extends Component {
     }
   }
 
-  async goNext() {
-    if (this.state.page == 1) {
+  goNext = async() => {
+    if (this.state.page === 1) {
 
       if (!this.state.name) {
         Alert.alert("Please enter a name!");
@@ -272,7 +264,7 @@ export class SignupForm extends Component {
         Alert.alert("Please enter an email!");
         return;
       }
-      if (!this.state.password || this.state.password.length < 6) {
+      if (!this.state.password || this.state.password.trim().length < 6) {
         Alert.alert("Please enter a password at least 6 characters long!");
         return;
       }
@@ -280,25 +272,20 @@ export class SignupForm extends Component {
         Alert.alert("Passwords must match!");
         return;
       }
-      if (!this.state.phone || this.state.phone.length < 10) {
+      if (!this.state.phone || this.state.phone.replace(/\D/g,'').length < 10) {
         Alert.alert("Please enter a valid phone number");
         return;
       }
-      var validEmail = true;
-      await firebase.auth().fetchSignInMethodsForEmail(this.state.email).then(function (methods) {
-        if (methods.length > 0) {
-          Alert.alert("That email is already in use.");
-          validEmail = false;
-          return;
-        }
-      }, function (error) {
-        Alert.alert("Please enter a valid email");
-        validEmail = false;
-        return;
-      }.bind(this));
-
-      if(!validEmail){
-        return;
+      try {
+				const emailCheck = await firebase.auth().fetchSignInMethodsForEmail(this.state.email);
+				if(emailCheck.length) {
+					Alert.alert("That email is already in use");
+					return;
+				}
+			} catch(error) {
+				this.bugsnagClient.notify(error);
+				Alert.alert("Please enter a valid email");
+				return;
       }
 
       if (this.state.trainer) {
@@ -307,8 +294,8 @@ export class SignupForm extends Component {
         this.setState({ page: 4 });
       }
 
-    } else if (this.state.page == 2) {
-      if (this.state.gym == 'none') {
+    } else if (this.state.page === 2) {
+      if (!this.state.gym) {
         Alert.alert("Please select a gym!");
         return;
       }
@@ -323,16 +310,16 @@ export class SignupForm extends Component {
       if (this.state.gyms[this.state.gym].type == 'owner') {
         this.setState({ page: 4 });
       } else {
-        if (this.state.rate == "" || this.state.rate < 25) {
+        if (!this.state.rate || this.state.rate.replace(/\D/g,'') < 25) {
           Alert.alert("Please enter your rate (has to be $25+)!");
           return;
         }
-        if (!this.state.ssn) {
-          Alert.alert("Please enter your SSN!");
+        if (!this.state.ssn || this.state.ssn.replace(/\D/g,'').length < 9) {
+          Alert.alert("Please enter a valid Social Security Number!");
           return;
         }
-        if (!this.state.birthDay) {
-          Alert.alert("Please enter your birthday!");
+        if (!this.state.birthDay || this.state.birthDay.replace(/\D/g,'').length < 8) {
+          Alert.alert("Please enter a valid formatted birthday!");
           return;
         }
         this.setState({ page: 3 });
@@ -359,19 +346,16 @@ export class SignupForm extends Component {
   }
 
   render() {
-
+    if(!this.state.gymLoaded) {
+      return <AppLoading />;
+    }
     let image = this.state.image;
-    let gyms = this.state.gyms;
     let page1 = page2 = page3 = page4 = null;
     let submitButton = agreement = null;
 
     prevButton = (
       <TouchableOpacity style={styles.buttonContainer} onPressIn={this.goBack}>
-        <Text
-          style={styles.buttonText}
-        >
-          Previous
-                </Text>
+        <Text style={styles.buttonText}> Previous </Text>
       </TouchableOpacity>
     );
 
@@ -386,14 +370,12 @@ export class SignupForm extends Component {
       page1 = (
         <View style={styles.container}>
           <TextField 
-            rowStyle={styles.inputRow}
             icon={Icons.user}
             placeholder="Full Legal Name (First and Last Only)"
             onChange={(name) => this.setState({ name })}
             value={this.state.name}
           />
           <TextField 
-            rowStyle={styles.inputRow}
             icon={Icons.envelope}
             placeholder="Email"
             keyboard="email-address"
@@ -401,7 +383,6 @@ export class SignupForm extends Component {
             value={this.state.email}
           />
           <TextField 
-            rowStyle={styles.inputRow}
             icon={Icons.lock}
             placeholder="Password"
             secure={true}
@@ -409,7 +390,6 @@ export class SignupForm extends Component {
             value={this.state.password}
           />
           <TextField 
-            rowStyle={styles.inputRow}
             icon={Icons.lock}
             placeholder="Confirm Password"
             secure={true}
@@ -417,7 +397,6 @@ export class SignupForm extends Component {
             value={this.state.confirmPass}
           />
           <TextField 
-            rowStyle={styles.inputRow}
             icon={Icons.phone}
             placeholder="Phone Number"
             keyboard="number-pad"
@@ -449,13 +428,12 @@ export class SignupForm extends Component {
               selectedValue={this.state.gym}
               onValueChange={(itemValue) => this.setState({ gym: itemValue })}>
               <Picker.Item label="Pick a Gym (Scroll)" value='none' key='0' />
-              {gyms.map(function (gym, index) {
+              {this.state.gyms.map(function (gym, index) {
                 return (<Picker.Item label={gym.name} value={index} key={gym.key} />);
               })}
             </Picker>
           </View>
           <TextField 
-            rowStyle={styles.inputRow}
             icon={Icons.dollar}
             placeholder="Rate ($ hourly)"
             keyboard="number-pad"
@@ -463,7 +441,6 @@ export class SignupForm extends Component {
             value={this.state.rate}
           />
           <TextField 
-            rowStyle={styles.inputRow}
             icon={Icons.info}
             multiline={true}
             placeholder="Enter your bio here (specialities, schedule, experience, etc.)"
@@ -471,14 +448,12 @@ export class SignupForm extends Component {
             value={this.state.bio}
           />
           <TextField 
-            rowStyle={styles.inputRow}
             icon={Icons.vcard}
             placeholder="Certifications"
             onChange={(cert) => this.setState({ cert })}
             value={this.state.cert}
           />
           <TextField 
-            rowStyle={styles.inputRow}
             icon={Icons.user}
             placeholder="SSN (For Stripe Account)"
             keyboard="number-pad"
@@ -486,7 +461,6 @@ export class SignupForm extends Component {
             value={this.state.ssn}
           />
           <TextField 
-            rowStyle={styles.inputRow}
             icon={Icons.user}
             placeholder="Birth Date (mm/dd/yyyy)"
             onChange={(birthDay) => this.setState({ birthDay })}
@@ -498,21 +472,18 @@ export class SignupForm extends Component {
       page3 = (
         <View>
           <TextField 
-            rowStyle={styles.inputRow}
             icon={Icons.envelope}
             placeholder="Address"
             onChange={(address) => this.setState({ address })}
             value={this.state.address}
           />
           <TextField 
-            rowStyle={styles.inputRow}
             icon={Icons.map}
             placeholder="City"
             onChange={(city) => this.setState({ city })}
             value={this.state.city}
           />
           <TextField 
-            rowStyle={styles.inputRow}
             icon={Icons.mapMarker}
             placeholder="Zip Code"
             keyboard="number-pad"
@@ -520,7 +491,6 @@ export class SignupForm extends Component {
             value={this.state.zip}
           />
           <TextField 
-            rowStyle={styles.inputRow}
             icon={Icons.map}
             placeholder="State (Abbreviation eg. CA)"
             onChange={(state) => this.setState({ state })}
@@ -570,7 +540,6 @@ export class SignupForm extends Component {
 
     return (
       <View style={styles.container}>
-        <StatusBar barStyle="dark-content" />
         {page1}
         {page2}
         {page3}

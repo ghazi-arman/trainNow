@@ -1,76 +1,52 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, StatusBar, Alert } from 'react-native';
-import { Actions } from 'react-native-router-flux';
+import { StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
 import firebase from 'firebase';
-import * as Font from 'expo-font';
-import FontAwesome, { Icons } from 'react-native-fontawesome';
+import { Icons } from 'react-native-fontawesome';
+import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
+import TextField from '../components/TextField';
 
 export class ForgotForm extends Component {
 	
 	constructor(props) {
 		super(props);
-		this.state = {
-			email: '',
-		};
-		this.submit=this.submit.bind(this);
+		this.state = {};
+		this.bugsnagClient = bugsnag();
 	}
 
-	async componentDidMount() {
-		if(!this.state.fontLoaded){
-			this.loadFont();
+	submit = async() => {
+		// Prevents multiple form submissions
+		if (this.state.submitted) {
+			return;
 		}
-	}
+		this.state.submitted = true;
 
-	loadFont = async () => {
-		await Font.loadAsync({
-	      FontAwesome: require('../fonts/font-awesome-4.7.0/fonts/FontAwesome.otf'),
-	      fontAwesome: require('../fonts/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf')
-	    });
-	    this.setState({fontLoaded: true});
-	}
-
-	submit() {
-		firebase.auth().sendPasswordResetEmail(this.state.email)
-			.then(function() {
-				Alert.alert("Password Reset Email Sent!");
-				Actions.LoginPage();
-			})
-			.catch(function(error) {
-				Alert.alert(error.message);
-			    this.setState({
-			    	email: '',
-			    });
-			}.bind(this));
+		try {
+			await firebase.auth().sendPasswordResetEmail(this.state.email);
+			Alert.alert("A password reset email has been sent!");
+			this.state.submitted = false;
+		} catch(error) {
+			if (error.code === "auth/user-not-found") {
+				Alert.alert("There is no account associated with this email");
+				return;
+			}
+			Alert.alert("There was an error when sending the email. Please try again.");
+			this.bugsnagClient.notify(error);
+		}
 	}
 
 	render() {
 		return (
-			<View style = {styles.container}>
-			<StatusBar barStyle="dark-content" />
-				<View style={styles.inputRow}>
-					<Text style={styles.icon}>
-							<FontAwesome>{Icons.user}</FontAwesome>
-						</Text>
-					<TextInput 
-						placeholder="Email"
-						placeholderTextColor={COLORS.PRIMARY}
-						returnKeyType="next"
-						keyboardType="email-address"
-						autoCapitalize="none"
-						autoCorrect={false}
-						style={styles.input}
-						onChangeText={(email) => this.setState({email})}
-						value={this.state.email}
-						/>
-				</View>
-				<TouchableOpacity style={styles.buttonContainer}>
-					<Text 
-						style={styles.buttonText}
-						onPress={this.submit}
-						>
-						Submit
-					</Text>
+			<View>
+				<TextField
+					icon={Icons.user}
+					placeholder="Email"
+					keyboard="email-address"
+					onChange={(email) => this.setState({email})}
+					value={this.state.email}
+				/>
+				<TouchableOpacity style={styles.buttonContainer} onPressIn={this.submit}>
+					<Text style={styles.buttonText}> Submit </Text>
 				</TouchableOpacity>
 			</View>
 		);
@@ -78,22 +54,6 @@ export class ForgotForm extends Component {
 }
 
 const styles = StyleSheet.create({
-	inputRow: {
-		width: '100%',
-		flexDirection: 'row',
-		justifyContent: 'center',
-		alignItems: 'flex-start',
-		marginBottom: 20
-	},
-	input: {
-		height: 40,
-		borderWidth: 0,
-		backgroundColor: 'transparent',
-		borderBottomWidth: 1,
-		borderColor: COLORS.PRIMARY,
-		width: '90%',
-		color: COLORS.PRIMARY
-	},
 	buttonContainer: {
 		backgroundColor: COLORS.SECONDARY,
 		paddingVertical: 15,
@@ -103,12 +63,5 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		color: COLORS.WHITE,
 		fontWeight: '700'
-	},
-	icon: {
-		color: COLORS.PRIMARY,
-		fontSize: 30,
-		marginRight: 10,
-		marginTop: 13
 	}
-
 });
