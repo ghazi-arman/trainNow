@@ -1,31 +1,32 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, KeyboardAvoidingView, TextInput, TouchableOpacity, Alert, DatePickerIOS, Picker} from 'react-native';
+import { StyleSheet, Text, KeyboardAvoidingView, TouchableOpacity, Alert } from 'react-native';
 import firebase from 'firebase';
-import FontAwesome, { Icons } from 'react-native-fontawesome';
+import { Icons } from 'react-native-fontawesome';
 import { AppLoading } from 'expo';
+import bugsnag from '@bugsnag/expo';
+import { loadGym, loadUser } from '../components/Functions';
+import  TextField from '../components/TextField';
 var stripe = require('stripe-client')('pk_test_6sgeMvomvrZFucRqYhi6TSbO');
 
 export class OwnerCardModal extends Component {
 	
 	constructor(props) {
 		super(props);
-		this.state = {
-			gym: 'null',
-			name: '',
-			number: '',
-			expiration: '',
-			cvc: '',
-		};
-		this.addCard = this.addCard.bind(this);
+		this.state = {};
+		this.bugsnagClient = bugsnag();
 	}
 
-	componentDidMount(){
-		//Get user info for state
-	    var user = firebase.auth().currentUser;
-	    var gymRef = firebase.database().ref('gyms');
-	    gymRef.orderByKey().equalTo(this.props.gym).on('child_added', function(snapshot) {
-	    	this.setState({gym: snapshot.val()});
-	    }.bind(this));
+	async componentDidMount() {
+		if (!this.state.gym) {
+			try {
+				const gym = await loadGym(this.props.gym);
+				this.setState({ gym });
+			} catch(error) {
+				this.bugsnagClient.notify(error);
+				Alert.alert('There was an error loading the card modal. Please try again later.');
+				this.props.hide();
+			}
+		}
 	}
 
 	addCard = async() => {
@@ -33,7 +34,8 @@ export class OwnerCardModal extends Component {
 			return;
 		}
 		this.state.pressed = true;
-		var information = {
+
+		const information = {
 			card: {
 				number: this.state.number,
 				exp_month: this.state.expMonth,
@@ -44,8 +46,18 @@ export class OwnerCardModal extends Component {
 			}
 
 		}
-		var user = firebase.auth().currentUser;
-	  var card = await stripe.createToken(information);
+
+		let card;
+		try {
+			card = await stripe.createToken(information);
+		} catch(error) {
+			this.state.pressed = false;
+			this.bugsnagClient.notify(error);
+			Alert.alert('There was an error creating a token for the card. Please check your information and try again.');
+			return;
+		}
+		
+		const user = firebase.auth().currentUser;
 		try {
 			const idToken = await firebase.auth().currentUser.getIdToken(true);
 			const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/addTrainerCard/', {
@@ -59,107 +71,69 @@ export class OwnerCardModal extends Component {
 					user: user.uid
 				})
 			})
-			const data = await res.json();
-			data.body = JSON.parse(data.body);
-			console.log(data.body);
-			if(data.body.message == 'Success'){
-				var userRef = firebase.database().ref('users');
-			    userRef.child(user.uid).update({
-			    	cardAdded: true
-			    });
-			}else{
-				Alert.alert('There was an error. Please check the info and make sure it is a debit card before trying again.');
-				return;
+			const response = await res.json();
+			const data = JSON.parse(response.body);
+			if(data.message !== 'Success'){
+				throw new Error('Stripe Error');
 			}
+			
+			await firebase.database().ref('users').child(user.uid).update({
+				cardAdded: true
+			});
 			this.props.hide();
 		} catch(error){
+			this.state.pressed = false;
+			this.bugsnagClient.notify(error);
 			Alert.alert('There was an error adding the card. Please check the info and make sure it is a debit card before trying again.');
+			return;
 		}
 	}
 
 	render(){
-		if(this.state.gym == 'null' || typeof this.state.gym == undefined){
+		if (!this.state.gym) {
 			return <AppLoading />
-		}else{
-			return(
-				<KeyboardAvoidingView behavior="padding" style={styles.formContainer}>
-					<Text style={styles.title}>Add Card</Text>
-					<View style={styles.inputRow}>
-						<Text style={styles.icon}>
-							<FontAwesome>{Icons.user}</FontAwesome>
-						</Text>
-						<TextInput 
-							placeholder="Name"
-							style={styles.input}
-							returnKeyType="next"
-							placeholderTextColor='#0097A7'
-							underlineColorAndroid='transparent'
-							onChangeText={(name) => this.setState({name})}
-							value={this.state.name} />
-					</View>
-		            <View style={styles.inputRow}>
-						<Text style={styles.icon}>
-							<FontAwesome>{Icons.creditCard}</FontAwesome>
-						</Text>
-						<TextInput 
-							placeholder="Card Number"
-							keyboardType="number-pad"
-							returnKeyType="done"
-							style={styles.input}
-							placeholderTextColor='#0097A7'
-							underlineColorAndroid='transparent'
-							onChangeText={(number) => this.setState({number})}
-							value={this.state.number} />
-					</View>
-					<View style={styles.inputRow}>
-						<Text style={styles.icon}>
-							<FontAwesome>{Icons.calendar}</FontAwesome>
-						</Text>
-						<TextInput 
-							placeholder="Expiration Month (mm)"
-							returnKeyType="done"
-							keyboardType="number-pad"
-							style={styles.input}
-							placeholderTextColor='#0097A7'
-							underlineColorAndroid='transparent'
-							onChangeText={(expMonth) => this.setState({expMonth})}
-							value={this.state.expMonth} />
-					</View>
-					<View style={styles.inputRow}>
-						<Text style={styles.icon}>
-							<FontAwesome>{Icons.calendar}</FontAwesome>
-						</Text>
-						<TextInput 
-							placeholder="Expiration Year (yy)"
-							returnKeyType="done"
-							keyboardType="number-pad"
-							style={styles.input}
-							placeholderTextColor='#0097A7'
-							underlineColorAndroid='transparent'
-							onChangeText={(expYear) => this.setState({expYear})}
-							value={this.state.expYear} />
-					</View>
-					<View style={styles.inputRow}>
-						<Text style={styles.icon}>
-							<FontAwesome>{Icons.lock}</FontAwesome>
-						</Text>
-						<TextInput 
-							placeholder="CVC Code"
-							keyboardType="number-pad"
-							returnKeyType="done"
-							style={styles.input}
-							placeholderTextColor='#0097A7'
-							underlineColorAndroid='transparent'
-							onChangeText={(cvc) => this.setState({cvc})}
-							value={this.state.cvc} />
-					</View>
-		            <TouchableOpacity style={styles.submitButton} onPressIn={() => this.addCard()}>
-		            	<Text style={styles.buttonText}>
-		                  Add Card
-		                </Text>
-		            </TouchableOpacity>
-	            </KeyboardAvoidingView>)
 		}
+		return(
+			<KeyboardAvoidingView behavior="padding" style={styles.formContainer}>
+				<Text style={styles.title}>Add Card</Text>
+				<TextField
+					icon={Icons.user}
+					placeholder="Name"
+					onChange={(name) => this.setState({ name })}
+					value={this.state.name}
+				/>
+				<TextField
+					icon={Icons.creditCard}
+					placeholder="Card Number"
+					keyboard="number-pad"
+					onChange={(number) => this.setState({ number })}
+					value={this.state.number}
+				/>
+				<TextField
+					icon={Icons.calendar}
+					placeholder="Expiration Month (mm)"
+				  keyboard="number-pad"
+					onChange={(expMonth) => this.setState({ expMonth })}
+					value={this.state.expMonth}
+				/>
+				<TextField
+					icon={Icons.calendar}
+					placeholder="Expiration Year (yy)"
+					keyboard="number-pad"
+					onChange={(expYear) => this.setState({ expYear })}
+					value={this.state.expYear}
+				/>
+				<TextField
+					icon={Icons.lock}
+					placeholder="CVC Code"
+					onChange={(cvc) => this.setState({ cvc })}
+					value={this.state.cvc}
+				/>
+				<TouchableOpacity style={styles.submitButton} onPressIn={() => this.addCard()}>
+					<Text style={styles.buttonText}> Add Card </Text>
+				</TouchableOpacity>
+			</KeyboardAvoidingView>
+		);
 	}
 }
 
@@ -170,23 +144,8 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		alignItems: 'center',
 		backgroundColor: '#fafafa',
-		borderRadius: 10
-	},
-	inputRow: {
-		width: '80%',
-		flexDirection: 'row',
-		justifyContent: 'flex-start',
-		alignItems: 'flex-start',
-		marginBottom: 10
-	},
-	input: {
-		height: 40,
-		borderWidth: 0,
-		backgroundColor: 'transparent',
-		borderBottomWidth: 1,
-		borderColor: '#0097A7',
-		width: '90%',
-		color: '#0097A7'
+		borderRadius: 10,
+		padding: 20
 	},
 	submitButton: {
 		backgroundColor: '#0097A7',
@@ -201,13 +160,6 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		color: '#FAFAFA',
 		fontWeight: '700'
-	},
-	icon: {
-		color: '#0097A7',
-		width: 40,
-		fontSize: 30,
-		marginRight: 10,
-		marginTop: 13
 	},
 	title: {
 		color: '#0097A7',

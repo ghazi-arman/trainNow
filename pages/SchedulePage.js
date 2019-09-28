@@ -211,7 +211,7 @@ export class SchedulePage extends Component {
 						<TouchableOpacity style={styles.denyContainer} onPressIn={() => this.cancelAccepted(session)}>
 							<Text style={styles.buttonText}> Cancel Session </Text>
 						</TouchableOpacity>
-						<TouchableOpacity style={styles.buttonContainer} onPressIn={() => Actions.SchedulePage({ session: session.key })}>
+						<TouchableOpacity style={styles.buttonContainer} onPressIn={() => Actions.SessionPage({ session: session.key })}>
 							<Text style={styles.buttonText}> Enter Session </Text>
 						</TouchableOpacity>
 					</View>

@@ -303,7 +303,7 @@ export class MapPage extends Component {
         '',
         [
             {text: 'Close'},
-            {text: 'View', onPress: () => Actions.modal()}
+            {text: 'View', onPress: () => Actions.SchedulePage()}
       ]);
       this.state.modalPresent = true;
     }
@@ -312,7 +312,7 @@ export class MapPage extends Component {
     if(this.state.currentSession != null){
       alertBox = (
         <View style={styles.alertBox}>
-          <TouchableOpacity onPress = {() => Actions.session({session: this.state.currentSession})}>
+          <TouchableOpacity onPress = {() => Actions.SessionPage({session: this.state.currentSession})}>
             <Text style={styles.alertText}>Enter Current Session!</Text>
           </TouchableOpacity>
         </View>
@@ -364,7 +364,7 @@ export class MapPage extends Component {
           {/*Gym Modal Info*/}
           <Modal isVisible={this.state.gymModal}
           onBackdropPress={this.hidegymModal}>
-            <GymModal gymKey={this.state.selectedGym.key} setTrainer={this.setTrainer} viewSchedule={this.viewSchedule} />
+            <GymModal gymKey={this.state.selectedGym.key} setTrainer={this.setTrainer} viewSchedule={this.viewSchedule} hide={this.hidegymModal} />
           </Modal>
 
           {/* Booking Modal */}

@@ -3,6 +3,7 @@ import { StyleSheet, Text, View, DatePickerIOS, TouchableOpacity, Alert } from '
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import firebase from 'firebase';
 import { AppLoading } from 'expo';
+import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import { loadUser, addAvailableSession } from '../components/Functions'; 
 
@@ -14,14 +15,21 @@ export class SchedulerModal extends Component {
 			startDate: new Date(),
       endDate: new Date()
 		};
+		this.bugsnagClient = bugsnag();
 	}
 
 	async componentDidMount(){
 		// load user info
 		if(!this.state.user){
-			var user = await loadUser(firebase.auth().currentUser.uid)
+			try {
+				const user = await loadUser(firebase.auth().currentUser.uid);
+				this.setState({ user });
+			} catch(error) {
+				this.bugsnagClient.notify(error);
+				Alert.alert('There was an error loading the scheduler.');
+				this.props.hide();
+			}
 		}
-		this.setState({user});
   }
 
   addSession(startDate, endDate){
@@ -32,58 +40,55 @@ export class SchedulerModal extends Component {
 	render(){
 		if(!this.state.user){
 			return <AppLoading />
-		}else{
-			return(
-				<View style={styles.modal}>
-					<View style={styles.nameContainer}>
-						<Text style={styles.trainerName}>Add Availability</Text>
-					</View>
-					<Text style={styles.backButton} onPress={this.props.hideandOpen}>
-							<FontAwesome>{Icons.arrowLeft}</FontAwesome>
-					</Text>
-					<View style={styles.formContainer}>
-						<Text style={{fontSize:20, color: COLORS.PRIMARY, fontWeight: '500'}}>Start Time</Text>
-						<View style={styles.inputRow}>
-							<View style={styles.datePickerHolder}>
-								<DatePickerIOS
-									mode='datetime'
-									itemStyle={{ color: COLORS.PRIMARY }}
-									textColor={COLORS.PRIMARY}
-									style={styles.datepicker}
-									minuteInterval={5}
-									minimumDate={new Date(new Date().getTime())}
-									date={this.state.startDate}
-									onDateChange={(date) => this.setState({ startDate: date })}
-								/>
-							</View>
-						</View>
-            <Text style={{fontSize:20, color: COLORS.PRIMARY, fontWeight: '500'}}>End Time</Text>
-						<View style={styles.inputRow}>
-							<View style={styles.datePickerHolder}>
-								<DatePickerIOS
-									mode='datetime'
-									itemStyle={{ color: COLORS.PRIMARY }}
-									textColor={COLORS.PRIMARY}
-									style={styles.datepicker}
-									minuteInterval={5}
-									minimumDate={new Date(this.state.startDate.getTime())}
-									date={this.state.endDate}
-									onDateChange={(date) => this.setState({ endDate: date })}
-								/>
-							</View>
-						</View>
-            <TouchableOpacity 
-              style={styles.bookButton} 
-              onPressIn={() => this.addSession(this.state.startDate, this.state.endDate)}
-            >
-							<Text style={styles.buttonText}>
-								Add Availability
-			        </Text>
-						</TouchableOpacity>
-          </View>
-				</View>
-	    )
 		}
+		return(
+			<View style={styles.modal}>
+				<View style={styles.nameContainer}>
+					<Text style={styles.trainerName}>Add Availability</Text>
+				</View>
+				<Text style={styles.backButton} onPress={this.props.hideandOpen}>
+						<FontAwesome>{Icons.arrowLeft}</FontAwesome>
+				</Text>
+				<View style={styles.formContainer}>
+					<Text style={{fontSize:20, color: COLORS.PRIMARY, fontWeight: '500'}}>Start Time</Text>
+					<View style={styles.inputRow}>
+						<View style={styles.datePickerHolder}>
+							<DatePickerIOS
+								mode='datetime'
+								itemStyle={{ color: COLORS.PRIMARY }}
+								textColor={COLORS.PRIMARY}
+								style={styles.datepicker}
+								minuteInterval={5}
+								minimumDate={new Date(new Date().getTime())}
+								date={this.state.startDate}
+								onDateChange={(date) => this.setState({ startDate: date })}
+							/>
+						</View>
+					</View>
+					<Text style={{fontSize:20, color: COLORS.PRIMARY, fontWeight: '500'}}>End Time</Text>
+					<View style={styles.inputRow}>
+						<View style={styles.datePickerHolder}>
+							<DatePickerIOS
+								mode='datetime'
+								itemStyle={{ color: COLORS.PRIMARY }}
+								textColor={COLORS.PRIMARY}
+								style={styles.datepicker}
+								minuteInterval={5}
+								minimumDate={new Date(this.state.startDate.getTime())}
+								date={this.state.endDate}
+								onDateChange={(date) => this.setState({ endDate: date })}
+							/>
+						</View>
+					</View>
+					<TouchableOpacity 
+						style={styles.bookButton} 
+						onPressIn={() => this.addSession(this.state.startDate, this.state.endDate)}
+					>
+						<Text style={styles.buttonText}> Add Availability</Text>
+					</TouchableOpacity>
+				</View>
+			</View>
+		);
 	}
 }
 

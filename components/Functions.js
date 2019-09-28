@@ -1,4 +1,6 @@
 import firebase from 'firebase';
+import FontAwesome, {Icons} from 'react-native-fontawesome';
+import React from 'react';
 
 // Convert date to yyyy-mm-dd format for Agenda events
 export function dateforAgenda(date){
@@ -248,4 +250,20 @@ export async function loadGym(gymKey) {
     gym = snapshot.val()
   });
   return gym;
+}
+
+export function renderStars(rating){
+  var star = [];
+  var numStars = 0;
+  for (let stars = 0; stars < 5; stars++) {
+    if (rating >= 1) {
+      star.push(<FontAwesome key={numStars}>{Icons.star}</FontAwesome>);
+    } else if(rating > 0) {
+      star.push(<FontAwesome key={numStars}>{Icons.starHalfFull}</FontAwesome>);
+    } else {
+      star.push(<FontAwesome key={numStars}>{Icons.starO}</FontAwesome>);
+    }
+    rating--;
+  }
+  return star;
 }

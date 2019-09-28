@@ -4,22 +4,29 @@ import firebase from 'firebase';
 import { AppLoading } from 'expo';
 import { Icons } from 'react-native-fontawesome';
 import  TextField from '../components/TextField';
-import COLORS from '../components/Colors';
+import bugsnag from '@bugsnag/expo';
+import { loadUser } from '../components/Functions';
 var stripe = require('stripe-client')('pk_test_6sgeMvomvrZFucRqYhi6TSbO');
 
 export class CardModal extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {};
+		this.bugsnagClient = bugsnag();
 	}
 
-	componentDidMount() {
+	async componentDidMount() {
 		//Get user info for state
-		var user = firebase.auth().currentUser;
-		var usersRef = firebase.database().ref('users');
-		usersRef.orderByKey().equalTo(user.uid).on('child_added', function (snapshot) {
-			this.setState({ user: snapshot.val() });
-		}.bind(this));
+		if(!this.state.user) {
+			try {
+				const user = await loadUser(firebase.auth().currentUser.uid);
+				this.setState({ user });
+			} catch(error) {
+				this.bugsnagClient.notify(error);
+				Alert.alert('There was an error loading the card modal.');
+				this.props.hide();
+			} 
+		}
 	}
 
 	addCard = async () => {
@@ -27,23 +34,32 @@ export class CardModal extends Component {
 			return;
 		}
 		this.state.pressed = true;
-		var information = {
+
+		const information = {
 			card: {
 				number: this.state.number,
 				exp_month: this.state.expMonth,
 				exp_year: this.state.expYear,
 				cvc: this.state.cvc,
 				name: this.state.name,
+				currency: 'usd'
 			}
 
 		}
-		if (this.state.user.trainer) {
-			information.card.currency = 'usd';
+
+		let card;
+		try {
+			card = await stripe.createToken(information);
+		} catch(error) {
+			this.state.pressed = false;
+			this.bugsnagClient.notify(error);
+			Alert.alert('There was an error creating a token for the card. Please check your information and try again.');
+			return;
 		}
-		var user = firebase.auth().currentUser;
-		var card = await stripe.createToken(information);
-		if (this.state.user.stripeId === undefined) {
-			const idToken = await firebase.auth().currentUser.getIdToken(true);
+
+		const user = firebase.auth().currentUser;
+		const idToken = await firebase.auth().currentUser.getIdToken(true);
+		if (!this.state.user.stripeId) {
 			try {
 				const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/createCustomer/', {
 					method: 'POST',
@@ -56,26 +72,26 @@ export class CardModal extends Component {
 						email: user.email
 					}),
 				});
-				const data = await res.json();
-				data.body = JSON.parse(data.body);
-				if (data.body.message == 'Success') {
-					var userRef = firebase.database().ref('users');
-					userRef.child(user.uid).update({
-						stripeId: data.body.customer.id,
-						cardAdded: true
-					});
-				} else {
-					Alert.alert('There was an error adding the card. Please check the info and try again.');
-					return;
+				const response = await res.json();
+				const data = JSON.parse(response.body);
+				if (data.message !== 'Success') {
+					throw new Error('Stripe Error');
 				}
+
+				await firebase.database().ref('users').child(user.uid).update({
+					stripeId: data.customer.id,
+					cardAdded: true
+				});
 				this.props.hide();
 			} catch (error) {
+				this.state.pressed = false;
+				this.bugsnagClient.notify(error);
 				Alert.alert('There was an error adding the card. Please try again.');
+				return;
 			}
 		} else {
 			if (this.state.user.trainer) {
 				try {
-					const idToken = await firebase.auth().currentUser.getIdToken(true);
 					const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/addTrainerCard/', {
 						method: 'POST',
 						headers: {
@@ -87,21 +103,21 @@ export class CardModal extends Component {
 							user: user.uid
 						})
 					})
-					const data = await res.json();
-					data.body = JSON.parse(data.body);
-					console.log(data.body);
-					if (data.body.message == 'Success') {
-						var userRef = firebase.database().ref('users');
-						userRef.child(user.uid).update({
-							cardAdded: true
-						});
-					} else {
-						Alert.alert('There was an error. Please check the info and make sure it is a debit card before trying again.');
-						return;
+					const response = await res.json();
+					const data = JSON.parse(response.body);
+					if (data.message !== 'Success') {
+						throw new Error('Stripe Error');
 					}
+
+					await firebase.database().ref('users').child(user.uid).update({
+						cardAdded: true
+					});
 					this.props.hide();
 				} catch (error) {
+					this.state.pressed = false;
+					this.bugsnagClient.notify(error);
 					Alert.alert('There was an error adding the card. Please check the info and make sure it is a debit card before trying again.');
+					return;
 				}
 			} else {
 				try {
@@ -117,19 +133,19 @@ export class CardModal extends Component {
 							user: user.uid
 						}),
 					});
-					const data = await res.json();
-					data.body = JSON.parse(data.body);
-					if (data.body.message == 'Success') {
-						var userRef = firebase.database().ref('users');
-						userRef.child(user.uid).update({
-							cardAdded: true
-						});
-					} else {
-						Alert.alert('There was an error adding the card. Please check the info and try again.');
-						return;
+					const response = await res.json();
+					const data = JSON.parse(response.body);
+					if (data.message !== 'Success') {
+						throw new Error('Stripe Error');
 					}
+					
+					await firebase.database().ref('users').child(user.uid).update({
+						cardAdded: true
+					});
 					this.props.hide();
 				} catch (error) {
+					this.state.pressed = false;
+					this.bugsnagClient.notify(error);
 					Alert.alert('There was an error adding the card. Please try again.');
 				}
 			}
@@ -140,62 +156,51 @@ export class CardModal extends Component {
 	render() {
 		if (!this.state.user) {
 			return <AppLoading />
-		} else {
-			return (
-				<KeyboardAvoidingView behavior="padding" style={styles.formContainer}>
-					<Text style={styles.title}>Add Card</Text>
-					<TextField
-						rowStyle={styles.inputRow}
-						icon={Icons.user}
-						placeholder="Name"
-						color={COLORS.PRIMARY}
-						onChange={(name) => this.setState({ name })}
-						value={this.state.name}
-					/>
-					<TextField
-						rowStyle={styles.inputRow}
-						icon={Icons.creditCard}
-						placeholder="Card Number"
-						keyboard="number-pad"
-						color={COLORS.PRIMARY}
-						onChange={(number) => this.setState({ number })}
-						value={this.state.number}
-					/>
-					<TextField
-						rowStyle={styles.inputRow}
-						icon={Icons.calendar}
-						placeholder="Expiration Month (mm)"
-						keyboard="number-pad"
-						color={COLORS.PRIMARY}
-						onChange={(expMonth) => this.setState({ expMonth })}
-						value={this.state.expMonth}
-					/>
-					<TextField
-						rowStyle={styles.inputRow}
-						icon={Icons.calendar}
-						placeholder="Expiration Year (yy)"
-						keyboard="number-pad"
-						color={COLORS.PRIMARY}
-						onChange={(expYear) => this.setState({ expYear })}
-						value={this.state.expYear}
-					/>
-					<TextField
-						rowStyle={styles.inputRow}
-						icon={Icons.calendar}
-						placeholder="CVC Code"
-						keyboard="number-pad"
-						color={COLORS.PRIMARY}
-						onChange={(cvc) => this.setState({ cvc })}
-						value={this.state.cvc}
-					/>
-					<TouchableOpacity style={styles.submitButton} onPressIn={() => this.addCard()}>
-						<Text style={styles.buttonText}>
-							Add Card
-						</Text>
-					</TouchableOpacity>
-				</KeyboardAvoidingView>
-			)
 		}
+		return (
+			<KeyboardAvoidingView behavior="padding" style={styles.formContainer}>
+				<Text style={styles.title}>Add Card</Text>
+				<TextField
+					icon={Icons.user}
+					placeholder="Name"
+					onChange={(name) => this.setState({ name })}
+					value={this.state.name}
+				/>
+				<TextField
+					icon={Icons.creditCard}
+					placeholder="Card Number"
+					keyboard="number-pad"
+					onChange={(number) => this.setState({ number })}
+					value={this.state.number}
+				/>
+				<TextField
+					icon={Icons.calendar}
+					placeholder="Expiration Month (mm)"
+					keyboard="number-pad"
+					onChange={(expMonth) => this.setState({ expMonth })}
+					value={this.state.expMonth}
+				/>
+				<TextField
+					icon={Icons.calendar}
+					placeholder="Expiration Year (yy)"
+					keyboard="number-pad"
+					onChange={(expYear) => this.setState({ expYear })}
+					value={this.state.expYear}
+				/>
+				<TextField
+					icon={Icons.calendar}
+					placeholder="CVC Code"
+					keyboard="number-pad"
+					onChange={(cvc) => this.setState({ cvc })}
+					value={this.state.cvc}
+				/>
+				<TouchableOpacity style={styles.submitButton} onPressIn={() => this.addCard()}>
+					<Text style={styles.buttonText}>
+						Add Card
+					</Text>
+				</TouchableOpacity>
+			</KeyboardAvoidingView>
+		)
 	}
 }
 
@@ -206,23 +211,8 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		alignItems: 'center',
 		backgroundColor: '#fafafa',
-		borderRadius: 10
-	},
-	inputRow: {
-		width: '80%',
-		flexDirection: 'row',
-		justifyContent: 'flex-start',
-		alignItems: 'flex-start',
-		marginBottom: 10
-	},
-	input: {
-		height: 40,
-		borderWidth: 0,
-		backgroundColor: 'transparent',
-		borderBottomWidth: 1,
-		borderColor: '#0097A7',
-		width: '90%',
-		color: '#0097A7'
+		borderRadius: 10,
+		padding: 20
 	},
 	submitButton: {
 		backgroundColor: '#0097A7',
@@ -237,13 +227,6 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		color: '#FAFAFA',
 		fontWeight: '700'
-	},
-	icon: {
-		color: '#0097A7',
-		width: 40,
-		fontSize: 30,
-		marginRight: 10,
-		marginTop: 13
 	},
 	title: {
 		color: '#0097A7',

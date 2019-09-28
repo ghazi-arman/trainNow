@@ -3,9 +3,10 @@ import { StyleSheet, Text, View } from 'react-native';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import firebase from 'firebase';
 import { AppLoading } from 'expo';
+import { Agenda } from 'react-native-calendars';
+import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import { dateToString, loadUser, loadAcceptedSchedule, dateforAgenda, loadAvailableSchedule } from '../components/Functions';
-import { Agenda } from 'react-native-calendars';
 
 export class ScheduleModal extends Component {
 	
@@ -14,21 +15,25 @@ export class ScheduleModal extends Component {
 		this.state = {
 			date: new Date()
 		};
+		this.bugsnagClient = bugsnag();
 	}
 
 	async componentDidMount(){
 		// load trainer and user info and trainer sessions
 		if(!this.state.trainer || !this.state.sessions || !this.state.user){
-			var user = await loadUser(firebase.auth().currentUser.uid)
-			var trainer = await loadUser(this.props.trainer.key);
-			var sessions = await loadAcceptedSchedule(this.props.trainer.key);
-			var availability = await loadAvailableSchedule(this.props.trainer.key);
-			sessions = sessions.concat(availability);
+			try {
+				var user = await loadUser(firebase.auth().currentUser.uid)
+				var trainer = await loadUser(this.props.trainer.key);
+				var sessions = await loadAcceptedSchedule(this.props.trainer.key);
+				var availability = await loadAvailableSchedule(this.props.trainer.key);
+				sessions = sessions.concat(availability);
+				this.setState({user, trainer, sessions});
+			} catch(error) {
+				this.bugsnagClient.notify(error);
+				Alert.alert(`There was an error loading the trainer's schedule.`);
+				this.props.hideandOpen();
+			}
 		}
-
-		// set previously retrieved values in state
-		this.setState({user, trainer, sessions});
-		//console.log(sessions);
 	}
 
 	renderAgendaItem(item, firstItemInDay){
@@ -39,18 +44,18 @@ export class ScheduleModal extends Component {
 				<Text style={styles.agendaItemText}>to</Text>
 				<Text style={styles.agendaItemText}>{dateToString(item.end)}</Text>
 			</View>
-		)
+		);
 	}
 
 	renderAgendaEvents(){
-		let startDate = this.state.date.getTime();
-		let endDate = new Date(this.state.date.getTime() + 86400000 * 14).getTime();
-		let events = {};
+		const startDate = this.state.date.getTime();
+		const endDate = new Date(this.state.date.getTime() + 86400000 * 14).getTime();
+		const events = {};
 		for(let currDate = startDate; currDate <= endDate; currDate += 86400000){
-			let currentDay = new Date(currDate);
-			events[dateforAgenda(currentDay)] = this.state.sessions.filter(function(session){
+			const currentDay = new Date(currDate);
+			events[dateforAgenda(currentDay)] = this.state.sessions.filter((session) => {
 				return dateforAgenda(currentDay) == dateforAgenda(new Date(session.start))
-			})
+			});
 		}
 		return events;
 	}
@@ -58,28 +63,27 @@ export class ScheduleModal extends Component {
 	render(){
 		if(!this.state.trainer || !this.state.user || !this.state.sessions){
 			return <AppLoading />
-		}else{
-			let events = this.renderAgendaEvents();
-			return(
-				<View style={styles.modal}>
-					<View style={styles.nameContainer}>
-						<Text style={styles.trainerName}>{this.state.trainer.name}</Text>
-					</View>
-					<Text style={styles.backButton} onPress={this.props.hideandOpen}>
-							<FontAwesome>{Icons.arrowLeft}</FontAwesome>
-					</Text>
-					<Agenda 
-						style={styles.calendar}
-						minDate={this.state.date}
-						maxDate={new Date(this.state.date.getTime() + 86400000 * 14)}
-						items={events}
-						renderItem={this.renderAgendaItem}
-						renderEmptyDate={() => {return (<View />);}}
-						rowHasChanged={(r1, r2) => {return r1.text !== r2.text}}
-					/>
-				</View>
-	    )
 		}
+		const events = this.renderAgendaEvents();
+		return(
+			<View style={styles.modal}>
+				<View style={styles.nameContainer}>
+					<Text style={styles.trainerName}> {this.state.trainer.name} </Text>
+				</View>
+				<Text style={styles.backButton} onPress={this.props.hideandOpen}>
+						<FontAwesome>{Icons.arrowLeft}</FontAwesome>
+				</Text>
+				<Agenda 
+					style={styles.calendar}
+					minDate={this.state.date}
+					maxDate={new Date(this.state.date.getTime() + 86400000 * 14)}
+					items={events}
+					renderItem={this.renderAgendaItem}
+					renderEmptyDate={() => {return (<View />);}}
+					rowHasChanged={(r1, r2) => {return r1.text !== r2.text}}
+				/>
+			</View>
+		);
 	}
 }
 

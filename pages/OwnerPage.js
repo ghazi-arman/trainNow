@@ -23,12 +23,12 @@ export class OwnerPage extends Component {
 		});
 		let gym = await loadGym(this.props.gym);
 		let user = await loadUser(firebase.auth().currentUser.uid);
-		let cards = await this.loadTrainerCards(user.stripeId);
+		let cards = await this.loadTrainerCards(gym.stripeId);
 		let balance = await this.getBalance(user.stripeId);
-		this.setState({ cards, balance, user, pendingTrainers: gym.pendingtrainers, trainers: gym.trainers })
+		this.setState({ cards, balance, user, pendingTrainers: gym.pendingtrainers, trainers: gym.trainers, gym })
 	}
 
-	async loadTrainerCards(stripeId) {
+	loadTrainerCards = async(stripeId) => {
 		if (stripeId === undefined) {
 			return [];
 		}
@@ -156,7 +156,7 @@ export class OwnerPage extends Component {
 	}
 
 	async acceptTrainer(trainerKey) {
-		await firebase.database().ref('users').child(trainerKey).update({ pending: false, stripeId: this.state.user.stripeId });
+		await firebase.database().ref('users').child(trainerKey).update({ pending: false, stripeId: this.state.gym.stripeId });
 		await firebase.database().ref('/gyms/' + this.props.gym + '/pendingtrainers/').child(trainerKey).once("value", function (snapshot) {
 			firebase.database().ref('/gyms/' + this.props.gym + '/trainers/').child(trainerKey).set(snapshot.val());
 		}.bind(this));
@@ -187,7 +187,7 @@ export class OwnerPage extends Component {
 		return result;
 	}
 
-	renderTrainers() {
+	renderTrainers = () => {
 		if (!this.state.trainers) {
 			return (<Text style={styles.navText}>None</Text>);
 		}
@@ -199,7 +199,7 @@ export class OwnerPage extends Component {
 					<TouchableOpacity style={styles.denyButton} onPress={() => this.deleteTrainer(key)}>
 						<Text style={styles.buttonText}><FontAwesome>{Icons.close}</FontAwesome> Remove</Text>
 					</TouchableOpacity>
-					<TouchableOpacity style={styles.requestButton} onPress={() => Actions.ownerhistory({ userKey: key })}>
+					<TouchableOpacity style={styles.requestButton} onPress={() => Actions.OwnerHistoryPage({ userKey: key })}>
 						<Text style={styles.buttonText}><FontAwesome>{Icons.calendar}</FontAwesome> History</Text>
 					</TouchableOpacity>
 				</View>
@@ -208,7 +208,7 @@ export class OwnerPage extends Component {
 		return result;
 	}
 
-	logout() {
+	logout = () => {
 		Alert.alert(
 			"Are you sure you wish to sign out?",
 			"",
@@ -227,12 +227,12 @@ export class OwnerPage extends Component {
 		);
 	}
 
-	hideCardModal() {
+	hideCardModal = () => {
 		this.setState({ cardModal: false });
 	}
 
-	async hideCardModalOnAdd() {
-		var cards = await this.loadTrainerCards(this.state.user.stripeId);
+	hideCardModalOnAdd = async() => {
+		var cards = await this.loadTrainerCards(this.state.gym.stripeId);
 		this.setState({ cardModal: false, cards: cards });
 	}
 
@@ -248,7 +248,7 @@ export class OwnerPage extends Component {
 					<Text style={styles.icon}>{this.getCardIcon(currCard.brand)}</Text>
 					<Text>•••••• {currCard.last4}</Text>
 					<Text>{currCard.exp_month.toString()} / {currCard.exp_year.toString().substring(2, 4)}</Text>
-					<TouchableOpacity style={styles.deleteButton} onPress={() => this.deleteTrainerCard(this.state.user.stripeId, currCard.id, index)}>
+					<TouchableOpacity style={styles.deleteButton} onPress={() => this.deleteTrainerCard(this.state.gym.stripeId, currCard.id, index)}>
 						<Text style={{ fontSize: 15, color: COLORS.WHITE }}><FontAwesome>{Icons.remove}</FontAwesome></Text>
 					</TouchableOpacity>
 				</View>
@@ -258,7 +258,7 @@ export class OwnerPage extends Component {
 	}
 
 	render() {
-		if (!this.state.user) {
+		if (!this.state.user || !this.state.gym) {
 			return <AppLoading />
 		} else {
 			if (this.state.currentTab == 'pending') {

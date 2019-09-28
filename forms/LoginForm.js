@@ -53,7 +53,7 @@ export class LoginForm extends Component {
         return;
       }
       if (user.owner && !user.pending) {
-        Actions.OwnerPage({ gym: currentUser.gym });
+        Actions.OwnerPage({ gym: user.gym });
         return;
       }
       if (user.owner && user.pending) {

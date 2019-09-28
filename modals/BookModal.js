@@ -3,6 +3,7 @@ import { StyleSheet, Text, View, TouchableOpacity, Alert, DatePickerIOS, Picker 
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { AppLoading } from 'expo';
+import bugsnag from '@bugsnag/expo';
 import { dateToString, timeOverlapCheck, loadPendingSchedule, sendMessage, loadUser, createPendingSession, loadAcceptedSchedule } from '../components/Functions';
 import COLORS from '../components/Colors';
 
@@ -12,19 +13,32 @@ export class BookModal extends Component {
     this.state = {
       bookDate: new Date(),
       bookDuration: '60',
-    };    
+      submitted: false
+    };
+    this.bugsnagClient = bugsnag();
   }
 
   async componentDidMount() {
     if(!this.state.trainer || !this.state.user){
-      let trainer = await loadUser(this.props.trainer.key);
-      let user = await loadUser(firebase.auth().currentUser.uid);
-      this.setState({trainer, user});
+      try {
+        // Load trainer and user logged in
+        const trainer = await loadUser(this.props.trainer.key);
+        const user = await loadUser(firebase.auth().currentUser.uid);
+        this.setState({trainer, user});
+      } catch(error) {
+        this.bugsnagClient.notify(error);
+        Alert.alert("There was an error loading this trainer. Please try again later.");
+        this.props.hide();
+      }
     }
   }
 
-  async bookTrainer() {
-    // checks stripe account creation for both trainer and client
+  bookTrainer = async() => {
+    // Prevent multiple form submits
+    if (this.state.submitted) {
+      return;
+    }
+    // Checks stripe account creation for both trainer and client
     if (!this.state.user.cardAdded) {
       Alert.alert('You must have a card on file to book a session.');
       return;
@@ -42,57 +56,64 @@ export class BookModal extends Component {
       Alert.alert('Sorry, this trainer is no longer active.');
       return;
     }
+    this.state.submitted = true;
 
     // Pulls schedules for trainers and conflicts to check for overlaps
     let user = firebase.auth().currentUser;    
-    let trainerSchedule = await loadAcceptedSchedule(this.props.trainer.key);
-    let pendingSchedule = await loadPendingSchedule(user.uid);
+    const trainerSchedule = await loadAcceptedSchedule(this.props.trainer.key);
+    const pendingSchedule = await loadPendingSchedule(user.uid);
     let traineeSchedule = await loadAcceptedSchedule(user.uid);
     traineeSchedule = traineeSchedule.concat(pendingSchedule);
-    let endTime = new Date(new Date(this.state.bookDate).getTime() + (60000 * this.state.bookDuration));
+    const endTime = new Date(new Date(this.state.bookDate).getTime() + (60000 * this.state.bookDuration));
     let timeConflict = false;
 
-		trainerSchedule.forEach(function(currSession){
+		trainerSchedule.forEach((currSession) => {
 			if(timeOverlapCheck(currSession.start, currSession.end, this.state.bookDate, endTime)){
         Alert.alert('The Trainer has a session during this time.');
         timeConflict = true;
-				return;
 			}
-		}.bind(this));
+		});
 
-		traineeSchedule.forEach(function(currSession){
+		traineeSchedule.forEach((currSession) => {
 			if(timeOverlapCheck(currSession.start, currSession.end, this.state.bookDate, endTime)){
         Alert.alert('You already have a pending session or session during this time.');
         timeConflict = true;
-				return;
 			}
-    }.bind(this));
+    });
 
-    if(timeConflict) return;
+    if (timeConflict) {
+      this.state.submitted = false;
+      return;
+    }
     
     // create session in pending table
-    let price = (parseInt(this.state.trainer.rate) * (parseInt(this.state.bookDuration) / 60)).toFixed(2);
+    const price = (parseInt(this.state.trainer.rate) * (parseInt(this.state.bookDuration) / 60)).toFixed(2);
     let trainer = this.state.trainer;
     let trainee = this.state.user;
     trainee.uid = firebase.auth().currentUser.uid;
     trainer.key = this.props.trainer.key;
     Alert.alert(
-      'Request session with ' + this.state.trainer.name + ' for $' + price + ' at ' + dateToString(this.state.bookDate),
-      '',
+      `Book Session`,
+      `Request session with ${this.state.trainer.name} for $${price} at ${dateToString(this.state.bookDate)}`,
       [
-        { text: 'No' },
+        { 
+          text: 'No', onPress: () => {
+            this.state.submitted = false;
+          } 
+        },
         {
           text: 'Yes', onPress: async () => {
             createPendingSession(trainee, trainer, this.props.gym, this.state.bookDate, this.state.bookDuration, 'trainee');
             try {
-              let message = this.state.user.name + " has requested a session at " + dateToString(this.state.bookDate) + " for " + this.state.bookDuration + " mins.";
+              const message = `${this.state.user.name} has requested a session at ${dateToString(this.state.bookDate)} for ${this.state.bookDuration} mins.`;
               sendMessage(this.state.trainer.phone, message);
             } catch (error) {
-              console.log(error);
+              this.bugsnagClient.notify(error);
               Alert.alert('There was an error sending a notification text to the trainer.');
+            } finally {
+              this.props.hide();
+              setTimeout(this.props.confirm, 1000);
             }
-            this.props.hide();
-            setTimeout(this.props.confirm, 1000);
           }
         }
       ]
@@ -102,51 +123,51 @@ export class BookModal extends Component {
   render() {
     if (!this.state.trainer || !this.state.user) {
       return <AppLoading />
-    } else {
-      return (
-        <View style={styles.modal}>
-          <View style={styles.nameContainer}>
-            <Text style={styles.trainerName}>{this.state.trainer.name}</Text>
-          </View>
-          <Text style={styles.backButton} onPress={this.props.hideandOpen}>
-            <FontAwesome>{Icons.arrowLeft}</FontAwesome>
-          </Text>
-          <View style={styles.formContainer}>
-            <Text style={{fontSize:20, color: COLORS.PRIMARY, fontWeight: '500'}}>Session Time</Text>
-            <View style={styles.inputRow}>
-              <View style={styles.datePickerHolder}>
-                <DatePickerIOS
-                  mode='datetime'
-                  itemStyle={{ color: COLORS.PRIMARY }}
-                  textColor={COLORS.PRIMARY}
-                  style={styles.datepicker}
-                  minuteInterval={5}
-                  minimumDate={new Date(new Date().getTime())}
-                  date={this.state.bookDate}
-                  onDateChange={(bookDate) => this.setState({ bookDate: bookDate })}
-                />
-              </View>
-            </View>
-            <View style={styles.inputRow}>
-              <Text style={styles.bookFormLabel}>Session Duration</Text>
-              <Picker
-                style={styles.picker}
-                itemStyle={{ height: 70, color: COLORS.PRIMARY }}
-                selectedValue={this.state.bookDuration}
-                onValueChange={(itemValue, itemIndex) => this.setState({ bookDuration: itemValue })}>
-                <Picker.Item label='60' value='60' />
-                <Picker.Item label='90' value='90' />
-                <Picker.Item label='120' value='120' />
-              </Picker>
-            </View>
-            <TouchableOpacity style={styles.bookButton} onPressIn={() => this.bookTrainer()}>
-              <Text style={styles.buttonText}>
-                Schedule Session
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>)
     }
+    return (
+      <View style={styles.modal}>
+        <View style={styles.nameContainer}>
+          <Text style={styles.trainerName}>{this.state.trainer.name}</Text>
+        </View>
+        <Text style={styles.backButton} onPress={this.props.hideandOpen}>
+          <FontAwesome>{Icons.arrowLeft}</FontAwesome>
+        </Text>
+        <View style={styles.formContainer}>
+          <Text style={{fontSize:20, color: COLORS.PRIMARY, fontWeight: '500'}}>Session Time</Text>
+          <View style={styles.inputRow}>
+            <View style={styles.datePickerHolder}>
+              <DatePickerIOS
+                mode='datetime'
+                itemStyle={{ color: COLORS.PRIMARY }}
+                textColor={COLORS.PRIMARY}
+                style={styles.datepicker}
+                minuteInterval={5}
+                minimumDate={new Date(new Date().getTime())}
+                date={this.state.bookDate}
+                onDateChange={(bookDate) => this.setState({ bookDate: bookDate })}
+              />
+            </View>
+          </View>
+          <View style={styles.inputRow}>
+            <Text style={styles.bookFormLabel}>Session Duration</Text>
+            <Picker
+              style={styles.picker}
+              itemStyle={{ height: 70, color: COLORS.PRIMARY }}
+              selectedValue={this.state.bookDuration}
+              onValueChange={(itemValue, itemIndex) => this.setState({ bookDuration: itemValue })}>
+              <Picker.Item label='60' value='60' />
+              <Picker.Item label='90' value='90' />
+              <Picker.Item label='120' value='120' />
+            </Picker>
+          </View>
+          <TouchableOpacity style={styles.bookButton} onPressIn={() => this.bookTrainer()}>
+            <Text style={styles.buttonText}>
+              Schedule Session
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
   }
 }
 
