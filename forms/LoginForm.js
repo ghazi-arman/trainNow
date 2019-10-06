@@ -44,11 +44,11 @@ export class LoginForm extends Component {
       // Validate username and password combo through firebase
       const userCredentials = await firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password);
       const userDatabaseObject = await firebase.database().ref(`/users/${userCredentials.user.uid}`).once('value');
-      //console.log(userDatabaseObject);
       const user = userDatabaseObject.val();
 
       // Checks status of current user and routes appropriately
       if (user.deleted) {
+        this.state.submitted = false;
         Alert.alert('Your account has been deleted. Please contact your gym manager.');
         return;
       }
@@ -57,6 +57,7 @@ export class LoginForm extends Component {
         return;
       }
       if (user.owner && user.pending) {
+        this.state.submitted = false;
         Alert.alert('Your account is pending');
         return;
       }

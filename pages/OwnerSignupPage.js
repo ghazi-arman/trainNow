@@ -2,13 +2,12 @@ import React, { Component } from 'react';
 import { StyleSheet, Text, View, Image, KeyboardAvoidingView, TouchableOpacity } from 'react-native';
 import { OwnerSignupForm } from '../forms/OwnerSignupForm';
 import { Actions } from 'react-native-router-flux';
-const logo=require('../images/logo.png');
 import COLORS from '../components/Colors';
+const logo = require('../images/logo.png');
 
 export class OwnerSignupPage extends Component {
-	goback() {
-		Actions.LoginPage();
-	}
+	goback = () => Actions.LoginPage();
+	
 	render() {
 		return (
 			<View style={styles.container} behavior='padding'>

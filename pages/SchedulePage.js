@@ -4,9 +4,10 @@ import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { AppLoading } from 'expo';
-import COLORS from '../components/Colors';
-import { dateToString, timeOverlapCheck, loadUser, loadAcceptedSessions, loadPendingSessions, loadAcceptedSchedule, createSession, sendMessage, cancelPendingSession, cancelAcceptedSession } from '../components/Functions';
 import Modal from 'react-native-modal';
+import bugsnag from '@bugsnag/expo';
+import { dateToString, timeOverlapCheck, loadUser, loadAcceptedSessions, loadPendingSessions, loadAcceptedSchedule, createSession, sendMessage, cancelPendingSession, cancelAcceptedSession, markSessionsAsRead } from '../components/Functions';
+import COLORS from '../components/Colors';
 import { SchedulerModal } from '../modals/SchedulerModal';
 import { TrainerSchedule } from '../components/TrainerSchedule';
 
@@ -15,47 +16,32 @@ export class SchedulePage extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			sessionsLoaded: false,
 			scheduleModal: false,
 			trainerSchedule: false,
 			currentTab: 'pending',
 		}
+		this.bugsnagClient = bugsnag();
 	}
 
 	async componentDidMount() {
-		let uid = firebase.auth().currentUser.uid;
-		if (!this.state.user || !this.state.sessionsLoaded) {
-			let user = await loadUser(uid);
-
-			let pendingSessions, acceptSessions;
-			if(user.trainer){
-				pendingSessions = await loadPendingSessions(uid, 'trainer');
-				acceptSessions = await loadAcceptedSessions(uid, 'trainer');
-			}else{
-				pendingSessions = await loadPendingSessions(uid, 'trainee');
-				acceptSessions = await loadAcceptedSessions(uid, 'trainee')
+		if (!this.state.user || !this.state.pendingSessions || !this.state.acceptSessions) {
+			try {
+				const userId = firebase.auth().currentUser.uid;
+				const user = await loadUser(userId);
+				const userType = (user.trainer ? 'trainer' : 'trainee')
+				const pendingSessions = await loadPendingSessions(userId, userType);
+				const acceptSessions = await loadAcceptedSessions(userId, userType);
+				this.setState({ user, pendingSessions, acceptSessions });
+				markSessionsAsRead(pendingSessions, acceptSessions, user.trainer);
+			} catch(error) {
+				this.bugsnagClient.notify(error);
+				Alert.alert('There was as an error loading the schedule page.');
+				Actions.reset('MapPage');
 			}
-			this.setState({user, pendingSessions, acceptSessions, sessionsLoaded: true});
-			this.markRead(pendingSessions, acceptSessions, user);
 		}
 	}
 
-	markRead(pendingSessions, acceptSessions, user) {
-		// marks sessions as read in database to prevent new session alert message from appearing twice
-		pendingSessions.map(function (session) {
-			if ((user.trainer && session.sentBy == 'trainee') || (!user.trainer && session.sentBy == 'trainer')) {
-					firebase.database().ref('/pendingSessions/' + session.key).update({ read: true });
-			}
-		});
-		acceptSessions.map(function (session) {
-			if ((user.trainer && session.sentBy == 'trainer') || (!user.trainer && session.sentBy == 'trainee')) {
-					firebase.database().ref('/trainSessions/' + session.key).update({ read: true });
-			}
-		});
-	}
-
-	async acceptSession(session) {
-		let currSession = session;
+	acceptSession = async(session) => {
 		// Pulls schedules for trainers and conflicts to check for overlaps
 		let trainerSchedule = await loadAcceptedSchedule(session.trainer);
 		let traineeSchedule = await loadAcceptedSchedule(session.trainee);
@@ -75,29 +61,32 @@ export class SchedulePage extends Component {
 			}
 		});
 
-		// Creates session if user accepts
-		let pendingSessions = this.state.pendingSessions;
-		let acceptSessions = this.state.acceptSessions;
-		if(this.state.user.trainer && this.state.user.type == 'owner'){
-			currSession.managed = true;
+		if(this.state.user.trainer && this.state.user.type === 'owner'){
+			session.managed = true;
 		}else{
-			currSession.managed = false;
+			session.managed = false;
 		}
 		Alert.alert(
+			'Accept Session',
 			'Are you sure you want to accept this session?',
-			'',
 			[
 				{ text: 'No' },
 				{
 					text: 'Yes', onPress: async () => {
 						// creates session in database and moves session object to accepted sessions array for state
-						createSession(currSession, session.key, session.start, endTime);
-						pendingSessions.splice(pendingSessions.indexOf(session), 1);
-						acceptSessions.push(session);
+						try {
+							await createSession(session, session.key, session.start, endTime);
+							this.state.pendingSessions.splice(this.state.pendingSessions.indexOf(session), 1);
+							this.state.acceptSessions.push(session);
+							this.forceUpdate();
+						} catch(error) {
+							this.bugsnagClient.notify(error);
+							Alert.alert('There was an error when accepting the session. Please try again later.');
+						}
 
 						// sends appropriate text message to trainer or trainee who requested session
 						let phoneNumber, message;
-						if (session.sentBy == 'trainer') {
+						if (session.sentBy === 'trainer') {
 							phoneNumber = session.trainerPhone;
 							message = session.traineeName + " has accepted your session at " + dateToString(session.start) + " for " + session.duration + " mins";
 						} else {
@@ -107,31 +96,37 @@ export class SchedulePage extends Component {
 						try {
 							sendMessage(phoneNumber, message);
 						} catch (error) {
-							console.log(error);
+							this.bugsnagClient.notify('error');
+							Alert.alert('There was an error sending a text message to the other person');
 						}
-
-						// updates state with new session arrays
-						this.setState({ pendingSessions, acceptSessions });
 					}
-				}]);
+				}
+			]
+		);
 	}
 
-	cancelSession(session) {
-		let pendingSessions = this.state.pendingSessions;
+	cancelSession = (session) => {
 		Alert.alert(
+			'Cancel Session',
 			'Are you sure you want to cancel this session?',
-			'',
 			[
 				{ text: 'No' },
 				{
 					text: 'Yes', onPress: async () => {
 						// cancels pending session and updates array for state
-						cancelPendingSession(session, session.key);
-						pendingSessions.splice(pendingSessions.indexOf(session), 1);
+						try {
+							await cancelPendingSession(session, session.key);
+							this.state.pendingSessions.splice(this.state.pendingSessions.indexOf(session), 1);
+							this.forceUpdate();
+						} catch(error) {
+							this.bugsnagClient.notify(error);
+							Alert.alert('There was as error cancelling the sessions. Please try again later.');
+							return;
+						}
 
 						// send appropriate text message to requested user
 						let phoneNumber, message;
-						if (session.sentBy == 'trainee') {
+						if (session.sentBy === 'trainee') {
 							phoneNumber = session.trainerPhone;
 							message = session.traineeName + " has cancelled the requested session at " + dateToString(session.start) + " for " + session.duration + " mins";
 						} else {
@@ -139,11 +134,11 @@ export class SchedulePage extends Component {
 							message = session.trainerName + " has cancelled the requested session at " + dateToString(session.start) + " for " + session.duration + " mins";
 						}
 						try {
-							sendMessage(phoneNumber, message);
+							await sendMessage(phoneNumber, message);
 						} catch (error) {
-							console.log(error);
+							this.bugsnagClient.notify(error);
+							Alert.alert('There was an error sending a message to the other person.');
 						}
-						this.setState({ pendingSessions: pendingSessions });
 					}
 				}
 			]
@@ -151,22 +146,28 @@ export class SchedulePage extends Component {
 	}
 
 	//Cancel accept session as trainee
-	cancelAccepted(session) {
+	cancelAccepted = async(session) => {
 		if (new Date(session.start) <= new Date()) {
 			Alert.alert("You cannot cancel a session after it has started!");
 			return;
 		}
-		var acceptSessions = this.state.acceptSessions;
 		Alert.alert(
+			'Cancel Session',
 			'Are you sure you want to cancel this session?',
-			'',
 			[
 				{ text: 'No' },
 				{
 					text: 'Yes', onPress: async () => {
 						// cancels accepted session
-						cancelAcceptedSession(session, session.key);
-						acceptSessions.splice(acceptSessions.indexOf(session), 1);
+						try {
+							await cancelAcceptedSession(session, session.key);
+							this.state.acceptSessions.splice(this.state.acceptSessions.indexOf(session), 1);
+							this.forceUpdate();
+						} catch(error) {
+							this.bugsnagClient.notify(error);
+							Alert.alert('There was an error cancelling this session. Please try again later');
+							return;
+						}
 						
 						// send appropriate text message
 						let phoneNumber, message;
@@ -178,27 +179,30 @@ export class SchedulePage extends Component {
 							message = session.traineeName + " has cancelled your session at " + dateToString(session.start) + " for " + session.duration + " mins";
 						}
 						try {
-							sendMessage(phoneNumber, message);
+							await sendMessage(phoneNumber, message);
 						} catch (error) {
-							console.log(error);
+							this.bugsnagClient.notify(error);
+							Alert.alert('There was an error sending a message to the other person.');
 						}
-						this.setState({ acceptSessions: acceptSessions });
 					}
-				}]);
+				}
+			]
+		);
 	}
 
-	renderAccept() {
+	renderAccept = () => {
 		var userKey = firebase.auth().currentUser.uid;
-		if (this.state.acceptSessions.length == 0) {
+		if (!this.state.acceptSessions.length) {
 			return (<Text style={styles.navText} >None</Text>);
 		}
-		var acceptList = this.state.acceptSessions.map(function (session) {
+		return this.state.acceptSessions.map((session) => {
 
-			var displayDate = dateToString(session.start);
-			if (session.trainee == userKey) {
-				var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.trainerName}</Text></View>);
+			const displayDate = dateToString(session.start);
+			let name;
+			if (session.trainee === userKey) {
+				name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.trainerName}</Text></View>);
 			} else {
-				var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.traineeName}</Text></View>);
+				name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.traineeName}</Text></View>);
 			}
 			return (
 				<View style={{ flexDirection: 'column', justifyContent: 'flex-start' }} key={session.key}>
@@ -217,53 +221,44 @@ export class SchedulePage extends Component {
 					</View>
 				</View>
 			);
-		}.bind(this));
-		return acceptList;
+		});
 	}
 
-	renderPending() {
-		var userKey = firebase.auth().currentUser.uid;
-		if (this.state.pendingSessions.length == 0) {
+	renderPending = () => {
+		const userKey = firebase.auth().currentUser.uid;
+		if (!this.state.pendingSessions.length) {
 			return (<Text style={styles.navText}>None</Text>);
 		}
-		var pendingList = this.state.pendingSessions.map(function (session) {
 
-			var displayDate = dateToString(session.start);
-			if ((session.trainee == userKey && session.sentBy == 'trainee') || (session.trainer == userKey && session.sentBy == 'trainer')) {
-				var button = (
+		return this.state.pendingSessions.map((session) => {
+			const displayDate = dateToString(session.start);
+			let button, button2, name;
+			if ((session.trainee === userKey && session.sentBy == 'trainee') || (session.trainer == userKey && session.sentBy == 'trainer')) {
+				button = (
 					<TouchableOpacity style={styles.denyContainer} onPressIn={() => this.cancelSession(session)}>
-						<Text
-							style={styles.buttonText}
-						>
-							Cancel Session
-	              </Text>
-					</TouchableOpacity>);
+						<Text style={styles.buttonText}> Cancel Session </Text>
+					</TouchableOpacity>
+				);
 				if (session.trainee == userKey) {
-					var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.trainerName}</Text></View>);
+					name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.trainerName}</Text></View>);
 				} else {
-					var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.traineeName}</Text></View>);
+					name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.traineeName}</Text></View>);
 				}
 			} else {
-				var button = (
+				button = (
 					<TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.acceptSession(session)}>
-						<Text
-							style={styles.buttonText}
-						>
-							Accept Session
-	              </Text>
-					</TouchableOpacity>);
-				var button2 = (
+						<Text style={styles.buttonText}> Accept Session </Text>
+					</TouchableOpacity>
+				);
+				button2 = (
 					<TouchableOpacity style={styles.denyContainer} onPressIn={() => this.cancelSession(session)}>
-						<Text
-							style={styles.buttonText}
-						>
-							Deny Session
-	              </Text>
-					</TouchableOpacity>);
-				if (session.trainee == userKey) {
-					var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.trainerName}</Text></View>);
+						<Text style={styles.buttonText}> Deny Session</Text>
+					</TouchableOpacity>
+				);
+				if (session.trainee === userKey) {
+					name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.trainerName}</Text></View>);
 				} else {
-					var name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.traineeName}</Text></View>);
+					name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.traineeName}</Text></View>);
 				}
 			}
 			return (
@@ -279,18 +274,17 @@ export class SchedulePage extends Component {
 					</View>
 				</View>
 			);
-		}.bind(this));
-		return pendingList;
+		});
 	}
 
-	goActive() {
-		var user = this.state.user;
-		firebase.database().ref('users').child(firebase.auth().currentUser.uid).update({ active: true });
-		firebase.database().ref('/gyms/' + user.gym + '/trainers/' + firebase.auth().currentUser.uid).update({ active: true});
+	goActive = async() => {
+		const userId = firebase.auth().currentUser.uid;
+		await firebase.database().ref('users').child(userId).update({ active: true });
+		await firebase.database().ref(`/gyms/${this.state.user.gym}/trainers/${userId}`).update({ active: true});
 		Alert.alert('You are active now');
-		var user = this.state.user;
-		user.active = true;
-		this.setState({ user: user });
+		this.state.user.active = true;
+		this.forceUpdate();
+		
 	}
 
 	hidescheduleModal = () => {
@@ -298,94 +292,91 @@ export class SchedulePage extends Component {
 		setTimeout(() => Alert.alert('Availability Added.'), 700);
 	}
 
-	hidetrainerSchedule = () => {
-		this.setState({ trainerSchedule: false });
-	}
+	hidetrainerSchedule = () => this.setState({ trainerSchedule: false })
 
 	render() {
-		if (!this.state.sessionsLoaded || !this.state.user) {
+		if (!this.state.acceptSessions || !this.state.user || !this.state.pendingSessions) {
 			return <AppLoading />;
-		} else {
-			var active = schedule = scheduler = null;
-			if (this.state.user.trainer) {
-				if (this.state.user.active) {
-					active = (<Text style={styles.statusText}>Active</Text>);
-				} else {
-					active = (
-						<TouchableOpacity style={styles.activeButton} onPress={() => this.goActive()}>
-							<Text style={styles.buttonText}>Go Active</Text>
-						</TouchableOpacity>
-					);
-				}
-				scheduler = (
-					<TouchableOpacity style={styles.scheduleButton} onPress={() => this.setState({ scheduleModal: true })}>
-						<Text style={styles.buttonText}>Set Schedule</Text>
-					</TouchableOpacity>
-				);
-				schedule = (
-					<TouchableOpacity style={styles.scheduleButton} onPress={() => this.setState({ trainerSchedule: true })}>
-						<Text style={styles.buttonText}>View Schedule</Text>
-					</TouchableOpacity>
-				);
-			}
-			if (this.state.currentTab == 'pending') {
-				var navBar = (
-					<View style={styles.navigationBar}>
-						<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({ currentTab: 'pending' })}>
-							<Text style={styles.activeText}>Awaiting Responses</Text>
-						</TouchableOpacity>
-						<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({ currentTab: 'accepted' })}>
-							<Text style={styles.navText}>Upcoming Sessions</Text>
-						</TouchableOpacity>
-					</View>
-				);
-				var content = (
-					<ScrollView contentContainerStyle={styles.sessionContainer} showsVerticalScrollIndicator={false}>
-						{this.renderPending()}
-						{active}
-						{schedule}
-						{scheduler}
-					</ScrollView>
-				);
+		}
+		let active, schedule, scheduler;
+		if (this.state.user.trainer) {
+			if (this.state.user.active) {
+				active = (<Text style={styles.statusText}>Active</Text>);
 			} else {
-				var navBar = (
-					<View style={styles.navigationBar}>
-						<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({ currentTab: 'pending' })}>
-							<Text style={styles.navText}>Awaiting Response</Text>
-						</TouchableOpacity>
-						<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({ currentTab: 'accepted' })}>
-							<Text style={styles.activeText}>Upcoming Sessions</Text>
-						</TouchableOpacity>
-					</View>
-				);
-				var content = (
-					<ScrollView contentContainerStyle={styles.sessionContainer} showsVerticalScrollIndicator={false}>
-						{this.renderAccept()}
-						{active}
-						{schedule}
-						{scheduler}
-					</ScrollView>
+				active = (
+					<TouchableOpacity style={styles.activeButton} onPress={() => this.goActive()}>
+						<Text style={styles.buttonText}>Go Active</Text>
+					</TouchableOpacity>
 				);
 			}
-			return (
-				<View style={styles.container}>
-					<Text style={styles.backButton} onPress={() => Actions.reset('MapPage')}>
-						<FontAwesome>{Icons.arrowLeft}</FontAwesome>
-					</Text>
-					<Text style={styles.title}>Calendar</Text>
-					{navBar}
-					{content}
-					<Modal isVisible={this.state.scheduleModal}
-          onBackdropPress={this.hidescheduleModal}>
-            <SchedulerModal trainerKey={firebase.auth().currentUser.uid} hide={this.hidescheduleModal} />
-          </Modal>
-					<Modal isVisible={this.state.trainerSchedule}
-					onBackdropPress={this.hidetrainerSchedule}>
-						<TrainerSchedule trainerKey={firebase.auth().currentUser.uid} hide={this.hidetrainerSchedule} />
-					</Modal>
-				</View>
+			scheduler = (
+				<TouchableOpacity style={styles.scheduleButton} onPress={() => this.setState({ scheduleModal: true })}>
+					<Text style={styles.buttonText}>Set Schedule</Text>
+				</TouchableOpacity>
+			);
+			schedule = (
+				<TouchableOpacity style={styles.scheduleButton} onPress={() => this.setState({ trainerSchedule: true })}>
+					<Text style={styles.buttonText}>View Schedule</Text>
+				</TouchableOpacity>
 			);
 		}
+		if (this.state.currentTab == 'pending') {
+			var navBar = (
+				<View style={styles.navigationBar}>
+					<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({ currentTab: 'pending' })}>
+						<Text style={styles.activeText}>Awaiting Responses</Text>
+					</TouchableOpacity>
+					<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({ currentTab: 'accepted' })}>
+						<Text style={styles.navText}>Upcoming Sessions</Text>
+					</TouchableOpacity>
+				</View>
+			);
+			var content = (
+				<ScrollView contentContainerStyle={styles.sessionContainer} showsVerticalScrollIndicator={false}>
+					{this.renderPending()}
+					{active}
+					{schedule}
+					{scheduler}
+				</ScrollView>
+			);
+		} else {
+			var navBar = (
+				<View style={styles.navigationBar}>
+					<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({ currentTab: 'pending' })}>
+						<Text style={styles.navText}>Awaiting Response</Text>
+					</TouchableOpacity>
+					<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({ currentTab: 'accepted' })}>
+						<Text style={styles.activeText}>Upcoming Sessions</Text>
+					</TouchableOpacity>
+				</View>
+			);
+			var content = (
+				<ScrollView contentContainerStyle={styles.sessionContainer} showsVerticalScrollIndicator={false}>
+					{this.renderAccept()}
+					{active}
+					{schedule}
+					{scheduler}
+				</ScrollView>
+			);
+		}
+		return (
+			<View style={styles.container}>
+				<Text style={styles.backButton} onPress={() => Actions.reset('MapPage')}>
+					<FontAwesome>{Icons.arrowLeft}</FontAwesome>
+				</Text>
+				<Text style={styles.title}>Calendar</Text>
+				{navBar}
+				{content}
+				<Modal isVisible={this.state.scheduleModal}
+				onBackdropPress={this.hidescheduleModal}>
+					<SchedulerModal trainerKey={firebase.auth().currentUser.uid} hide={this.hidescheduleModal} />
+				</Modal>
+				<Modal isVisible={this.state.trainerSchedule}
+				onBackdropPress={this.hidetrainerSchedule}>
+					<TrainerSchedule trainerKey={firebase.auth().currentUser.uid} hide={this.hidetrainerSchedule} />
+				</Modal>
+			</View>
+		);
 	}
 }
 

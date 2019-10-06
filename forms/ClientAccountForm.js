@@ -75,10 +75,10 @@ export class ClientAccountForm extends Component {
       // Upload image to firebase storage
       await firebase.storage().ref().child(uid).put(blob);
     } catch(error) {
-      bugsnagClient.metaData = {
+      this.bugsnagClient.metaData = {
         user: this.state.user
       }
-      bugsnagClient.notify(error);
+      this.bugsnagClient.notify(error);
       Alert.alert('There was an error uploading the image.')
     }
   }
@@ -117,8 +117,7 @@ export class ClientAccountForm extends Component {
     if (!this.state.user || !this.state.imageUploaded) {
       return <AppLoading />;
     }
-    console.log(this.state.image);
-
+    
     if (this.state.image) {
       imageHolder = (<Image source={{ uri: this.state.image }} style={styles.imageHolder} />);
     } else {
@@ -126,7 +125,7 @@ export class ClientAccountForm extends Component {
     }
 
     return (
-      <View>
+      <View style={styles.form}>
         <View style={styles.imageContainer}>
           {imageHolder}
         </View>
@@ -148,6 +147,9 @@ export class ClientAccountForm extends Component {
 }
 
 const styles = StyleSheet.create({
+  form: {
+    padding: 20
+  },
   buttonContainer: {
     backgroundColor: COLORS.SECONDARY,
     paddingVertical: 15,

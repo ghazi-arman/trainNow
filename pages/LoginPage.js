@@ -6,13 +6,9 @@ import COLORS from '../components/Colors';
 const logo = require('../images/logo.png');
 
 export class LoginPage extends Component {
-  signup() {
-    Actions.SignupPage();
-  }
+  signup = () => Actions.SignupPage();
 
-  forgot() {
-    Actions.ForgotPage();
-  }
+  forgot = () => Actions.ForgotPage();
 
   render() {
     return (

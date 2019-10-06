@@ -1,6 +1,8 @@
 import firebase from 'firebase';
 import FontAwesome, {Icons} from 'react-native-fontawesome';
 import React from 'react';
+import * as Location from 'expo-location';
+import { Actions } from 'react-native-router-flux';
 
 // Convert date to yyyy-mm-dd format for Agenda events
 export function dateforAgenda(date){
@@ -234,7 +236,7 @@ export async function createPendingSession(trainee, trainer, gym, date, duration
     sentBy
   }).key;
   let end = new Date(new Date(date).getTime() + (60000 * duration))
-  firebase.database().ref('users/' + trainee.uid + '/pendingschedule/').child(sessionKey).set({
+  firebase.database().ref('users/' + trainee.key + '/pendingschedule/').child(sessionKey).set({
     start: date.toString(),
     end: end.toString()
   });
@@ -266,4 +268,529 @@ export function renderStars(rating){
     rating--;
   }
   return star;
+}
+
+export async function loadRecentTrainers(clientKey){
+  const trainers = [];
+  const trainerMap = [];
+  await firebase.database().ref(`pastSessions/${clientKey}`).once('value', function(data) {
+    data.forEach(function(sessionValue) {
+      const session = sessionValue.val().session;
+      if(!trainerMap.includes(session.trainer)){
+        trainers.push({
+          name: session.trainerName,
+          key: session.trainer,
+          date: session.start,
+          gym: session.gym
+        });
+        trainerMap.push(session.trainer);
+      }
+    });
+  });
+  return trainers;
+}
+
+export async function loadRecentClients(trainerKey) {
+  const clients = [];
+  const clientMap = [];
+  await firebase.database().ref(`pastSessions/${trainerKey}`).once('value', function(data) {
+    data.forEach(function(sessionValue) {
+      const session = sessionValue.val().session;
+      if(!clientMap.includes(session.trainee)){
+        clients.push({
+          name: session.traineeName,
+          key: session.trainee,
+          date: session.start,
+          gym: session.gym
+        });
+        clientMap.push(session.trainee);
+      }
+    });
+  });
+  return clients;
+}
+
+export async function loadClientRequests(clientKey) {
+  const requests = [];
+  try {
+    
+    const clientRequests = await firebase.database().ref('clientRequests').child(clientKey).once('value');
+    clientRequests.forEach(sessionValue => {
+      const session = sessionValue.val();
+      session.key = sessionValue.key;
+      requests.push(session);
+    });
+  } catch(error) {
+    throw error;
+  }
+	return requests;
+}
+
+export async function loadTrainerRequests(trainerKey) {
+  const requests = [];
+  try {
+    const trainerRequests = await firebase.database().ref('trainerRequests').child(trainerKey).once('value');
+    trainerRequests.forEach(sessionValue => {
+      const session = sessionValue.val();
+      session.key = sessionValue.key;
+      requests.push(session);
+    });
+    return requests;
+  } catch(error) {
+    throw error;
+  }
+}
+
+export async function denyClientRequest(requestKey, traineeKey, trainerKey) {
+  await firebase.database().ref('trainerRequests').child(trainerKey).child(requestKey).remove();
+  await firebase.database().ref('users').child(traineeKey).child('requests').child(trainerKey).remove();
+}
+
+export async function denyTrainerRequest(requestKey, clientKey, trainerKey) {
+  await firebase.database().ref('clientRequests').child(clientKey).child(requestKey).remove();
+  await firebase.database().ref('users').child(trainerKey).child('requests').child(clientKey).remove();
+}
+
+export async function acceptTrainerRequest(requestKey, trainerKey, trainerName, clientKey, traineeName, gymKey){
+  await firebase.database().ref('trainerRequests').child(trainerKey).child(requestKey).remove();
+  await firebase.database().ref('users').child(clientKey).child('requests').child(trainerKey).remove();
+
+  await firebase.database().ref(`users/${trainerKey}/clients/${clientKey}`).set({
+    trainee: clientKey,
+    traineeName
+  });
+
+  await firebase.database().ref(`users/${clientKey}/trainers/${trainerKey}`).set({
+    trainerName: trainerName,
+    trainer: trainerKey,
+    gym: gymKey
+  });
+}
+
+export async function acceptClientRequest(requestKey, trainerKey, trainerName, clientKey, traineeName, gymKey) {
+  await firebase.database().ref('clientRequests').child(clientKey).child(requestKey).remove();
+  await firebase.database().ref('users').child(trainerKey).child('requests').child(clientKey).remove();
+
+  await firebase.database().ref(`users/${trainerKey}/clients/${clientKey}`).set({
+    trainee: clientKey,
+    traineeName
+  });
+
+  await firebase.database().ref(`users/${clientKey}/trainers/${trainerKey}`).set({
+    trainerName: trainerName,
+    trainer: trainerKey,
+    gym: gymKey
+  });
+}
+
+export async function sendTrainerRequest(trainerKey, traineeName, traineeKey, gymKey) {
+  await firebase.database().ref('trainerRequests').child(trainerKey).push({
+    status: 'pending',
+    trainee: traineeKey,
+    traineeName: traineeName,
+    gym: gymKey
+  });
+  await firebase.database().ref(`users/${traineeKey}/requests/${trainerKey}`).set(true);
+}
+
+export async function sendClientRequest(traineeKey, trainerKey, trainerName, gymKey) {
+  await firebase.database().ref('clientRequests').child(traineeKey).push({
+    status: 'pending',
+    trainer: trainerKey,
+    trainerName: trainerName,
+    gym: gymKey
+  });
+  await firebase.database().ref(`users/${trainerKey}/requests/${traineeKey}`).set(true);
+}
+
+export async function loadSessions(userKey) {
+  const sessions = [];
+  await firebase.database().ref('pastSessions/' + userKey).once('value', function(data) {
+    data.forEach(function(sessionValue) {
+      const session = sessionValue.val().session;
+      session.key = sessionValue.key;
+      sessions.push(session);
+    });
+  });
+  return sessions;
+}
+
+export async function getLocation() {
+  const location = await Location.getCurrentPositionAsync({});
+  return {
+    latitude:  Number(JSON.stringify(location.coords.latitude)),
+    longitude: Number(JSON.stringify(location.coords.longitude)),
+    latitudeDelta: 0.0422,
+    longitudeDelta: 0.0221
+  };
+}
+
+export async function loadGyms(){
+  try {
+    const gyms = [];
+    await firebase.database().ref('gyms').once('value', function(data) {
+      data.forEach(function(gymValue) {
+        var gym = gymValue.val();
+        gym.key = gymValue.key;
+        gyms.push(gym);
+      });
+    });
+    return gyms;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function goToPendingRating(trainer, userKey){
+  try {
+    const queryValue = (trainer ? 'trainer' : 'trainee');
+    await firebase.database().ref('trainSessions').orderByChild(queryValue).equalTo(userKey).once('value', function(snapshot){
+      snapshot.forEach(function(sessionValue){
+        const session = sessionValue.val();
+        if(session.end && !session.traineeRating){
+          Actions.RatingPage({session: sessionValue.key});
+        }
+      });
+    });
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function loadCurrentSession(trainer, userKey) {
+  try {
+    const queryValue = (trainer ? 'trainer' : 'trainee');
+    let currentSession = null;
+    await firebase.database().ref('trainSessions').orderByChild(queryValue).equalTo(userKey).once('value', function(snapshot){
+      snapshot.forEach(function(sessionValue){
+        const session = sessionValue.val();
+        if(new Date(session.start) < new Date() && !session.trainerRating){
+          currentSession = sessionValue.key
+        }
+      });
+    });
+    return currentSession;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function checkForUnreadSessions(trainer, userKey){
+  try {
+    const queryValue = (trainer ? 'trainer' : 'trainee');
+    let unread = false;
+
+    await firebase.database().ref('pendingSessions').orderByChild(queryValue).equalTo(userKey).once('value', function(snapshot) {
+      snapshot.forEach(function(sessionValue){
+        const session = sessionValue.val();
+        if(!session.read && session.sentBy === queryValue){
+          unread = true;
+        }
+      });
+    });
+
+    await firebase.database().ref('trainSessions').orderByChild(queryValue).equalTo(userKey).once('value', function(snapshot) {
+      snapshot.forEach(function(sessionValue){
+        const session = sessionValue.val();
+        if(!session.read && session.sentBy === queryValue){
+            unread = true;
+        }
+      });
+    });
+
+    return unread;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function reportSession(session, reporter, report) {
+  await firebase.database().ref('reportSessions').child(`${session.key}/${reporter}`).set({
+    sessionKey: session.key,
+    trainer: session.trainer,
+    trainee: session.trainee,
+    reportedBy: reporter,
+    reason: report,
+  });
+}
+
+export async function loadTrainerCards(stripeId) {
+  if (!stripeId) {
+    return [];
+  }
+  try {
+    const idToken = await firebase.auth().currentUser.getIdToken(true);
+    const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/listTrainerCards/', {
+      method: 'POST',
+      headers: {
+        Authorization: idToken
+      },
+      body: JSON.stringify({
+        id: stripeId,
+        user: firebase.auth().currentUser.uid
+      }),
+    });
+    const data = await res.json();
+    data.body = JSON.parse(data.body);
+    if (data.body.message === "Success" && data.body.cards) {
+      return data.body.cards.data;
+    }
+    return [];
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function loadBalance(stripeId) {
+  if (!stripeId) {
+    return [];
+  }
+  try {
+    const user = firebase.auth().currentUser;
+    const idToken = await firebase.auth().currentUser.getIdToken(true);
+    const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/getBalance/', {
+      method: 'POST',
+      headers: {
+        Authorization: idToken
+      },
+      body: JSON.stringify({
+        id: stripeId,
+        user: user.uid
+      }),
+    });
+    const data = await res.json();
+    data.body = JSON.parse(data.body);
+    if (data.body.message === "Success" && data.body.balance) {
+      return data.body.balance.available[0].amount + data.body.balance.pending[0].amount;;
+    }
+    return 0;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function deleteTrainerCard(stripeId, cardId) {
+  try {
+    const idToken = await firebase.auth().currentUser.getIdToken(true);
+    const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/deleteTrainerCard/', {
+      method: 'POST',
+      headers: {
+        Authorization: idToken
+      },
+      body: JSON.stringify({
+        stripeId: stripeId,
+        cardId: cardId,
+        user: firebase.auth().currentUser.uid
+      }),
+    });
+    const data = await res.json();
+    data.body = JSON.parse(data.body);
+    if (data.body.message !== "Success") {
+      throw new Error('Stripe Error.');
+    }
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function deleteCard(stripeId, cardId) {
+  try {
+    const idToken = await firebase.auth().currentUser.getIdToken(true);
+    const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/deleteCard/', {
+      method: 'POST',
+      headers:{
+        Authorization: idToken
+      },
+      body: JSON.stringify({
+        stripeId: stripeId,
+        cardId: cardId,
+        user: firebase.auth().currentUser.uid
+      }),
+    });
+    const data = await res.json();
+    data.body = JSON.parse(data.body);
+    if (data.body.message !== "Success") {
+      throw new Error('Stripe Error');
+    }
+  } catch(error) {
+    throw error;
+  }
+}
+
+export async function getCardIcon(brand) {
+  if (brand == 'Visa') {
+    return (<FontAwesome>{Icons.ccVisa}</FontAwesome>);
+  } else if (brand == 'American Express') {
+    return (<FontAwesome>{Icons.ccAmex}</FontAwesome>);
+  } else if (brand == 'MasterCard') {
+    return (<FontAwesome>{Icons.ccMastercard}</FontAwesome>);
+  } else if (brand == 'Discover') {
+    return (<FontAwesome>{Icons.ccDiscover}</FontAwesome>);
+  } else if (brand == 'JCB') {
+    return (<FontAwesome>{Icons.ccJcb}</FontAwesome>);
+  } else if (brand == 'Diners Club') {
+    return (<FontAwesome>{Icons.ccDinersClub}</FontAwesome>);
+  } else {
+    return (<FontAwesome>{Icons.creditCard}</FontAwesome>);
+  }
+}
+
+export async function loadCards(stripeId) {
+  if (!stripeId) {
+    return [];
+  }
+  try {
+    const idToken = await firebase.auth().currentUser.getIdToken(true);
+    const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/listCards/', {
+      method: 'POST',
+      headers: {
+        Authorization: idToken
+      },
+      body: JSON.stringify({
+        id: stripeId,
+        user: firebase.auth().currentUser.uid
+      }),
+    });
+    const data = await res.json();
+    data.body = JSON.parse(data.body);
+    if(data.body.message === "Success" && data.body.cards){
+      return data.body.cards.data;
+    }
+    return [];
+  }catch(error){
+    throw error;
+  }
+}
+
+export async function setDefaultCard(stripeId, cardId) {
+  try {
+    const idToken = await firebase.auth().currentUser.getIdToken(true);
+    const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/setDefault/', {
+      method: 'POST',
+      headers: {
+        Authorization: idToken
+      },
+      body: JSON.stringify({
+        id: stripeId,
+        card: cardId,
+        user: firebase.auth().currentUser.uid
+      }),
+    });
+    const data = await res.json();
+    data.body = JSON.parse(data.body);
+    if(data.body.message !== "Success"){
+      throw new Error('Stripe Error')
+    }
+  }catch(error) {
+    throw error;
+  }
+}
+
+export async function loadSession(sessionKey) {
+  let sessionToReturn;
+  await firebase.database().ref('trainSessions').orderByKey().equalTo(sessionKey).once('value', function(snapshot){
+    snapshot.forEach(function(sessionValue){
+      const session = sessionValue.val();
+      session.key = sessionValue.key;
+      sessionToReturn = session;
+    });
+  });
+  return sessionToReturn;
+}
+
+export async function rateSession(session, rating, isTrainer){
+  try {
+    const userId = firebase.auth().currentUser.uid;
+    const otherUserKey = (isTrainer ? session.trainee : session.trainer);
+    const otherUser = loadUser(otherUserKey);
+    const newRating = (((otherUser.rating * otherUser.sessions) + parseInt(rating)) / (otherUser.sessions + 1)).toFixed(2);
+    await firebase.database().ref(`/users/${otherUserKey}`).update({ rating: newRating, sessions: otherUser.sessions + 1});
+    await firebase.database().ref(`/users/${userId}/schedule/${session.key}`).remove();
+    await firebase.database().ref(`/pastSessions/${user.uid}/${session.key}`).set({ session });
+
+    if (isTrainer) {
+      await firebase.database().ref(`/trainSessions/${session.key}`).update({trainerRating: rating});
+      if (session.traineeRating) {
+        firebase.database().ref(`/pastSessions/${session.trainee}/${session.key}/session/`).update({trainerRating: rating});
+        firebase.database().ref(`/trainSessions/${session.key}`).remove();
+      }
+    } else {
+      await firebase.database().ref(`/trainSessions/${session.key}`).update({traineeRating: rating});
+      if (session.trainerRating) {
+        firebase.database().ref(`/pastSessions/${session.trainee}/${session.key}/session/`).update({traineeRating: rating});
+        firebase.database().ref(`/trainSessions/${session.key}`).remove();
+      }
+    }
+  } catch(error) {
+    throw error;
+  }
+}
+
+export async function markSessionsAsRead(pendingSessions, acceptSessions, isTrainer) {
+  // marks sessions as read in database to prevent new session alert message from appearing twice
+  pendingSessions.map(async(session) => {
+    if ((isTrainer && session.sentBy === 'trainee') || (!isTrainer && session.sentBy === 'trainer')) {
+      await firebase.database().ref(`/pendingSessions/${session.key}`).update({ read: true });
+    }
+  });
+  acceptSessions.map(async(session) => {
+    if ((isTrainer && session.sentBy === 'trainer') || (!isTrainer && session.sentBy === 'trainee')) {
+      await firebase.database().ref(`/trainSessions/${session.key}`).update({ read: true });
+    }
+  });
+}
+
+export async function chargeCard(traineeStripe, trainerStripe, amount, cut, uid, session){
+  try{
+    const idToken = await firebase.auth().currentUser.getIdToken(true);
+    const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/charge/', {
+      method: 'POST',
+      headers: {
+        Authorization: idToken
+      },
+      body: JSON.stringify({
+        charge: {
+          user: uid,
+          amount: amount,
+          cut: cut,
+          traineeId: traineeStripe,
+          trainerId: trainerStripe,
+          currency: 'USD',
+        },
+      }),
+    });
+    const data = await res.json();
+    data.body = JSON.parse(data.body);
+    if(data.body.message === 'Success'){
+      message = `You were charged $ ${(amount/100).toFixed(2)} for your session with ${session.trainerName}. If this is not accurate please contact support.`
+      sendMessage(session.traineePhone, message);
+    }
+  } catch(error){
+    throw error;
+  }
+}
+
+export async function startSession(session, userRegion){
+  if(geolib.getDistance(userRegion, session.location) > 100){
+    Alert.alert("You must be within 300 feet to press ready!");
+    return;
+  }
+
+  const user = firebase.auth().currentUser;
+  const sessionDatabase = firebase.database().ref(`/trainSessions/${session.key}`)
+  if(session.trainer === user.uid){
+    //If both are ready set metup true and start time
+    if(session.traineeReady){
+      sessionDatabase.update({trainerReady: true, met: true, start: new Date()});
+    }else{
+      sessionDatabase.update({trainerReady: true});
+    }
+  }else{
+    //If both are ready set metup true and start time
+    if(session.trainerReady){
+      sessionDatabase.update({traineeReady: true, met: true, start: new Date()});
+    }else{
+      sessionDatabase.update({traineeReady: true});
+    }
+  }
 }

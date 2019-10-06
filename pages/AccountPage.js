@@ -11,10 +11,9 @@ export class AccountPage extends Component {
 
   constructor(props) {
     super(props);
-    this.goToMap = this.goToMap.bind(this);
   }
 
-  goToMap() {
+  goToMap = () =>{
     if (this.form.state.change == true) {
       Alert.alert(
         "Unsaved Changes",
@@ -32,16 +31,8 @@ export class AccountPage extends Component {
     }
   }
 
-  // load font after render the page
-  async componentDidMount() {
-    await Font.loadAsync({
-      fontAwesome: require('../fonts/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf'),
-    });
-    this.setState({ fontLoaded: true });
-  }
-
   render() {
-    let accountForm = null;
+    let accountForm;
     if (this.props.trainer) {
       accountForm = <TrainerAccountForm ref={(form) => { this.form = form }}/>
     } else {
@@ -80,7 +71,7 @@ const styles = StyleSheet.create({
   form: {
     width: '90%',
     height: '100%',
-    paddingBottom: 50
+    paddingBottom: 50,
   },
   backButton: {
     position: 'absolute',

@@ -37,7 +37,7 @@ export class OwnerCardModal extends Component {
 
 		const information = {
 			card: {
-				number: this.state.number,
+				number: this.state.number.trim(),
 				exp_month: this.state.expMonth,
 				exp_year: this.state.expYear,
 				cvc: this.state.cvc,

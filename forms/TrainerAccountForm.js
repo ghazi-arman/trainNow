@@ -92,10 +92,10 @@ export class TrainerAccountForm extends Component {
       // Upload image to firebase storage
       await firebase.storage().ref().child(uid).put(blob);
     } catch(error) {
-      bugsnagClient.metaData = {
+      this.bugsnagClient.metaData = {
         trainer: this.state.trainer
       }
-      bugsnagClient.notify(error);
+      this.bugsnagClient.notify(error);
       Alert.alert('There was an error uploading the image.')
     }
   }
@@ -120,9 +120,9 @@ export class TrainerAccountForm extends Component {
     }
 
     try {
-      const userId = firebase.auth().currentUser;
+      const userId = firebase.auth().currentUser.uid;
       // gym table updated
-      firebase.database().ref('/gyms/' + this.state.gym + '/trainers/' + userId).update({
+      firebase.database().ref(`/gyms/${this.state.gym}/trainers/${userId}`).update({
         name: this.state.name,
         cert: this.state.cert,
         rate: this.state.rate,
@@ -142,7 +142,7 @@ export class TrainerAccountForm extends Component {
 
       // image upload
       if (this.state.imageToUpload != null) {
-        this.uploadImage(this.state.imageToUpload, user.uid);
+        this.uploadImage(this.state.imageToUpload, userId);
       }
 
       this.setState({ change: false })
@@ -168,7 +168,7 @@ export class TrainerAccountForm extends Component {
     }
 
     return (
-      <View>
+      <View style={styles.form}>
         <View style={styles.switchRow}>
           <Text style={styles.hints}>Active? </Text>
           <Switch
@@ -219,6 +219,9 @@ export class TrainerAccountForm extends Component {
 }
 
 const styles = StyleSheet.create({
+  form: {
+    padding: 20
+  },
   switchRow: {
     width: '100%',
     flexDirection: 'row',

@@ -1,167 +1,98 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, Button, Image, KeyboardAvoidingView, ScrollView, TouchableOpacity, Alert, TextInput } from 'react-native';
+import { StyleSheet, Text, View, KeyboardAvoidingView, ScrollView, TouchableOpacity, Alert, TextInput } from 'react-native';
 import { AppLoading } from 'expo';
-import * as Font from 'expo-font';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import Modal from 'react-native-modal';
 import { Actions } from 'react-native-router-flux';
+import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
+import { loadSessions, dateToString, renderStars, reportSession } from './../components/Functions';
 
 export class OwnerHistoryPage extends Component {
 
 	constructor(props) {
 		super(props);
-		
 		this.state = {
-      		sessions: 'null',
-      		loaded: false,
-      		reportModal: false,
-      		reportSession: '',
-      		report: ''
-      	}
+			reportModal: false,
+			report: ''
+		}
+		this.bugsnagClient = bugsnag();
 	}
 
 	// load font after render the page
-	componentDidMount() {
-		Font.loadAsync({
-		  fontAwesome: require('../fonts/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf'),
-		});
-		this.loadSessions(this.props.userKey);
+	async componentDidMount() {
+		try {
+			const sessions = await loadSessions(this.props.userKey);
+			this.setState({ sessions });
+		} catch(error) {
+			this.bugsnagClient.notify(error);
+			Alert.alert('There was an error loading the history for that trainer.');
+			this.goBack();
+		}
+	}
+	
+	goBack = () => Actions.pop();
+
+  hideReportModal = () => this.setState({ reportModal: false, report: '' });
+
+	reportSession = async(session) => {
+		this.hideReportModal();
+		reportSession(session, session.trainer, this.state.report);
+		setTimeout(() => Alert.alert('Session Reported!'), 1000);
 	}
 
-	loadSessions(userKey){
-		var sessions = [];
-    	var gymsRef = firebase.database().ref('pastSessions/' + userKey);
-    	gymsRef.on('value', function(data) {
-    		data.forEach(function(dbevent) {
-        		var item = dbevent.val();
-        		item.session.key = dbevent.key;
-        		sessions.push(item.session);
-      		}.bind(this));
-      		this.setState({sessions: sessions, loaded: true});
-    	}.bind(this));
-    }
-
-    //go to map
-    goToMap(){
-    	Actions.MapPage();
-    }
-
-    //Convert Date to readable format
-	dateToString(start){
-
-	    var pendingDate = new Date(start);
-	    var hour = pendingDate.getHours();
-	    var minute = pendingDate.getMinutes();
-	    var abbr;
-
-	    if(minute < 10){
-	        minute = '0' + minute;
-	    }
-	    if(hour == 0){
-	    	hour = 12;
-	    }
-	    //Sets abbr to AM or PM
-	    if(hour > 12){
-	      hour = hour - 12;
-	      abbr = 'PM';
-	    }else{
-	      abbr = 'AM'
-	    }
-
-	    var displayDate = hour + ':' + minute + abbr;
-	    return displayDate;
-  	}
-  	renderStars(rating){
-  		var star = [];
-  		var numStars = 0;
-  		while(rating > 0){
-  			star.push(<FontAwesome key={numStars}>{Icons.star}</FontAwesome>);
-  			rating--;
-  			numStars++;
-  		}
-  		while(numStars < 5){
-  			star.push(<FontAwesome key={numStars}>{Icons.starO}</FontAwesome>);
-  			numStars++;
-  		}
-  		return star;
-  	}
-
-  	hideReportModal = () => this.setState({ reportModal: false, report: '' });
-
-  	reportSession(session){
-  		this.hideReportModal();
-  		var reportRef = firebase.database().ref('reportSessions');
-    	var user = firebase.auth().currentUser;
-    	var reason = this.state.report;
-    	if(this.props.userKey  == session.trainee){
-    		var reporter = session.trainee;
-    	}else{
-    		var reporter = session.trainer;
-    	}
-  		reportRef.child(session.key + reporter).set({
-  			sessionKey: session.key,
-  			trainer: session.trainer,
-  			trainee: session.trainee,
-  			reportedBy: reporter,
-  			reason: reason,
-  		});
-  		setTimeout(() => Alert.alert('Session Reported!'), 1000);
-  	}
-
-	renderSessions(){
-		var sessions = this.state.sessions;
-		sessions.sort(function(a, b){ return (new Date(b.start) - new Date(a.start))});
-		var sessionsList = sessions.map(function(session){
-
-	       	var startDate = this.dateToString(session.start);
-	       	var endDate = this.dateToString(session.end);
-	       	var day = (new Date(session.start).getMonth() + 1) + " / " + new Date(session.start).getDate();
-			var minutes = Math.floor(((new Date(session.end) - new Date(session.start))/1000)/60);
-			var rate = (parseInt(minutes) * (parseInt(session.rate) / 60)).toFixed(2);
-			var payout = (parseFloat(rate) - (parseFloat(rate) * .2)).toFixed(2);
-
+	renderSessions = () => {
+		this.state.sessions.sort(function(a, b){ return (new Date(b.start) - new Date(a.start))});
+		return this.state.sessions.map((session) => {
+	  	const startDate = dateToString(session.start);
+			const endDate = dateToString(session.end);
+			const day = (new Date(session.start).getMonth() + 1) + " / " + new Date(session.start).getDate();
+			const minutes = Math.floor(((new Date(session.end) - new Date(session.start))/1000)/60);
+			const rate = (parseInt(minutes) * (parseInt(session.rate) / 60)).toFixed(2);
+			const payout = (parseFloat(rate) - (parseFloat(rate) * .2)).toFixed(2);
+			
+			let rateView, client, stars;
 			if(session.trainee == this.props.userKey){
-				var rateView = (<View style={styles.sessionRow}><Text style={styles.smallText}>${rate}</Text></View>);
-				var client = (<Text style={styles.titleText}>Trained by {session.trainerName}</Text>);
-				var stars = this.renderStars(session.traineeRating);
+				rateView = (<View style={styles.sessionRow}><Text style={styles.smallText}>${rate}</Text></View>);
+				client = (<Text style={styles.titleText}>Trained by {session.trainerName}</Text>);
+				stars = renderStars(session.traineeRating);
 			}else{
-				var rateView = (<View style={styles.sessionRow}><Text style={styles.smallText}>${payout}</Text></View>);
-				var client = (<Text style={styles.titleText}>You trained {session.traineeName}</Text>);
-				var stars = this.renderStars(session.trainerRating);
+				rateView = (<View style={styles.sessionRow}><Text style={styles.smallText}>${payout}</Text></View>);
+				client = (<Text style={styles.titleText}>You trained {session.traineeName}</Text>);
+				stars = renderStars(session.trainerRating);
 			}
+			
 			return(
-		        <View style={styles.sessionContainer} key={session.key}>
-		            <View style={styles.sessionRow}>{client}</View>
-		            <View style={styles.sessionRow}><Text style={styles.icon}>{stars}</Text></View>
-		            <View style={styles.sessionRow}><Text style={styles.smallText}>{session.gym}</Text></View>
-		            {rateView}
-		            <View style={styles.sessionRow}><Text style={styles.smallText}>{day}</Text></View>
-		            <View style={styles.sessionRow}>
-		            	<View style={styles.halfRow}><Text style={styles.timeText}>Start: {startDate}</Text></View>
-		            	<View style={styles.halfRow}><Text style={styles.timeText}>End: {endDate}</Text></View>
-		            </View>
-		            <View style={styles.sessionRow}>
-		            	<TouchableOpacity style={styles.buttonContainer} onPress={() => this.setState({reportModal: true, reportSession: session})}>
-		            		<Text style={styles.buttonText}>Report Session</Text>
-		            	</TouchableOpacity>
-		            </View>
-		        </View>
-	        );
-	    }.bind(this));
-	    return sessionsList;
+				<View style={styles.sessionContainer} key={session.key}>
+					<View style={styles.sessionRow}>{client}</View>
+					<View style={styles.sessionRow}><Text style={styles.icon}>{stars}</Text></View>
+					<View style={styles.sessionRow}><Text style={styles.smallText}>{session.gym}</Text></View>
+					{rateView}
+					<View style={styles.sessionRow}><Text style={styles.smallText}>{day}</Text></View>
+					<View style={styles.sessionRow}>
+						<View style={styles.halfRow}><Text style={styles.timeText}>Start: {startDate}</Text></View>
+						<View style={styles.halfRow}><Text style={styles.timeText}>End: {endDate}</Text></View>
+					</View>
+					<View style={styles.sessionRow}>
+						<TouchableOpacity style={styles.buttonContainer} onPress={() => this.setState({reportModal: true, reportSession: session})}>
+							<Text style={styles.buttonText}>Report Session</Text>
+						</TouchableOpacity>
+					</View>
+				</View>
+			);
+	  });
 	}
 
 	render() {
-		if(this.state.loaded == false){
+		if(!this.state.sessions){
 			return <AppLoading />;
 		}
 		return (
 			<View style = {styles.container}>
-				<Text style={styles.backButton} onPress={this.goToMap}>
-              		<FontAwesome>{Icons.arrowLeft}</FontAwesome>
-            	</Text>
+				<Text style={styles.backButton} onPress={this.goBack}>
+          <FontAwesome>{Icons.arrowLeft}</FontAwesome>
+        </Text>
 				<Text style={styles.header}>Trainer History</Text>
 				<View style={styles.historyContainer}>		
 					<ScrollView showsVerticalScrollIndicator={false}>
@@ -169,10 +100,10 @@ export class OwnerHistoryPage extends Component {
 					</ScrollView>
 				</View>
 				<Modal isVisible={this.state.reportModal}
-        			onBackdropPress={this.hideReportModal}>
-        			<KeyboardAvoidingView behavior="padding" style={styles.reportModal}>
-        				<Text style={styles.titleText}>Report Session</Text>
-        				<TextInput 
+					onBackdropPress={this.hideReportModal}>
+					<KeyboardAvoidingView behavior="padding" style={styles.reportModal}>
+						<Text style={styles.titleText}>Report Session</Text>
+						<TextInput 
 						placeholder="What was the problem?"
 						style={styles.input}
 						returnKeyType="done"
@@ -180,16 +111,15 @@ export class OwnerHistoryPage extends Component {
 						placeholderTextColor={COLORS.PRIMARY}
 						onChangeText = {(report) => this.setState({report})}
 						value={this.state.report} />
-        				<TouchableOpacity style={styles.submitButton} onPress={() => this.reportSession(this.state.reportSession)}>
-		            		<Text style={styles.buttonText}>Report Session</Text>
-		            	</TouchableOpacity>
-        			</KeyboardAvoidingView>
-        		</Modal>
+        		<TouchableOpacity style={styles.submitButton} onPress={() => this.reportSession(this.state.reportSession)}>
+		          <Text style={styles.buttonText}>Report Session</Text>
+		        </TouchableOpacity>
+        	</KeyboardAvoidingView>
+      	</Modal>
 			</View>	
 		);
 	}
 }
-
 
 const styles = StyleSheet.create({
 	container: {

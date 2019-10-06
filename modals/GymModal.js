@@ -17,22 +17,25 @@ export class GymModal extends Component {
 		this.bugsnagClient = bugsnag();
 	}
 
-	async componentDidMount(){
+	async componentDidMount() {
 		if(!this.state.gym) {
 			try {
 				const gym = await loadGym(this.props.gymKey);
 				this.loadImages(gym);
-				this.setState({gym})
+				this.setState({ gym })
 			} catch(error) {
 				this.bugsnagClient.notify(error);
-				this.props.hide();
 				Alert.alert('There was an error loading this gym. Please try again later.');
+				this.props.hide();
 			}
 		}
 	}
 
 	// Loads trainer images from firesbase
 	loadImages = (gym) => {
+		if(!gym.trainers) {
+			return;
+		}
 		Object.keys(gym.trainers).map(async(key) => {
 			try {
 				const url = await firebase.storage().ref().child(key).getDownloadURL();
@@ -54,9 +57,12 @@ export class GymModal extends Component {
 	}
 
   //Returns list of trainers with corresponding view
-	getTrainers = () => {
+	renderTrainers = () => {
+		if (!this.state.gym.trainers) {
+			return;
+		}
+
 		const trainers = [];
-		
 		Object.keys(this.state.gym.trainers).map((key) => {
 			const trainer = this.state.gym.trainers[key];
 			trainer.key = key;
@@ -168,7 +174,7 @@ export class GymModal extends Component {
 				</View>
 				<View style={styles.trainersContainer}>
 					<ScrollView showsVerticalScrollIndicator={false}>
-						{this.getTrainers()}
+						{this.renderTrainers()}
 					</ScrollView>
 				</View>
 			</View>

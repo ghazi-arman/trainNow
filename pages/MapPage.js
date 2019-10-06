@@ -2,97 +2,59 @@ import React, {Component} from 'react';
 import { Image, StyleSheet, Text, View, Alert, TouchableOpacity } from 'react-native';
 import { AppLoading } from 'expo';
 import MapView from 'react-native-maps';
-import * as Location from 'expo-location';
-import * as Permissions from 'expo-permissions';
 import firebase from 'firebase';
 import Modal from 'react-native-modal';
 import { Actions } from 'react-native-router-flux';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import Drawer from 'react-native-drawer';
+import bugsnag from '@bugsnag/expo';
 import { SideMenu } from '../components/SideMenu';
 import { ManagedSideMenu } from '../components/ManagedSideMenu';
 import { GymModal } from '../modals/GymModal';
 import { BookModal } from '../modals/BookModal';
 import { ScheduleModal } from '../modals/ScheduleModal';
 import COLORS from '../components/Colors';
-import { loadUser } from '../components/Functions';
+import { loadUser, getLocation, loadGyms, goToPendingRating, loadCurrentSession, checkForUnreadSessions } from '../components/Functions';
 const markerImg = require('../images/marker.png');
 
 export class MapPage extends Component {
-  // Initialize Firebase
+
   constructor(props) {
     super(props);
-
     this.state = {
-      userRegion: {},
-      mapRegion: {},
-      gyms: [],
-      user: 'null',
-      gymLoaded: false,
-      selectedGym: 'null',
-      bookingTrainer: 'null',
+      selectedGym: {},
       currentSession: null,
       locationLoaded: false,
       gymModal: false,
       bookModal: false,
       scheduleModal: false,
-      unRead: false,
+      unread: false,
       modalPresent: false,
       menuOpen: false
     }
-    this.setTrainer=this.setTrainer.bind(this);
-    this.viewSchedule=this.viewSchedule.bind(this);
-    this.setLocation=this.setLocation.bind(this);
-    this.checkSessions=this.checkSessions.bind(this);
-    this.checkRead=this.checkRead.bind(this);
-    this.loadGyms=this.loadGyms.bind(this);
-    this.toggleMenu=this.toggleMenu.bind(this);
-    this.hideandOpen=this.hideandOpen.bind(this);
+    this.bugsnagClient = bugsnag();
   }
 
   async componentDidMount() {
-    if(!this.state.locationLoaded){
-      this.getLocationAsync();
+    if (!this.state.userRegion || !this.state.mapRegion) {
+      const location = await getLocation();
+      this.setState({ userRegion: location, mapRegion: location });
     }
-
-    // get gyms from db
-    this.loadGyms();
-
-    // Checks for sessions in progress and unread messages/sessions
-    var userId = firebase.auth().currentUser.uid;
-    this.checkSessions(userId);
-    this.goToRating(userId);
-    this.checkRead(userId);
-    let user = loadUser(userId);
-    this.setState({user});
+    if (!this.state.gyms || !this.state.user) {
+      try {
+        const user = await loadUser(firebase.auth().currentUser.uid);
+        await goToPendingRating(user.trainer, firebase.auth().currentUser.uid);
+        const gyms = await loadGyms();
+        const currentSession = await loadCurrentSession(user.trainer, firebase.auth().currentUser.uid);
+        const unread = await checkForUnreadSessions(user.trainer, firebase.auth().currentUser.uid);
+        this.setState({gyms, user, currentSession, unread });
+      } catch(error) {
+        this.bugsnagClient.notify(error);
+        Alert.alert('There was an error loading the map.');
+      }
+    }
   }
 
-  async componentWillUnmount() {
-    firebase.database().ref('trainSessions').off();
-    firebase.database().ref('pendingSessions').off();
-    firebase.database().ref('gyms').off();
-  }
-
-  //Gets user location and updates mapRegion in state
-  getLocationAsync = async () => {
-
-    //grab user location and store it
-    let { status } = await Permissions.askAsync(Permissions.LOCATION);
-    let location = await Location.getCurrentPositionAsync({});
-    let locationObject = {
-      latitude:  Number(JSON.stringify(location.coords.latitude)),
-      longitude: Number(JSON.stringify(location.coords.longitude)),
-      latitudeDelta: 0.0422,
-      longitudeDelta: 0.0221
-    };
-    this.setState({
-      userRegion: locationObject,
-      mapRegion: locationObject,
-      locationLoaded: true,
-    });
-  };
-
-  //updates mapRegion object in state
   handleMapRegionChange = mapRegion => {
     if(this.state.regionSet){
       this.setState({ mapRegion });
@@ -101,129 +63,8 @@ export class MapPage extends Component {
     }
   };
 
-  goToRating(userKey){
-    try {
-      firebase.database().ref('trainSessions').orderByChild('trainee').equalTo(userKey).on('value', function(snapshot){
-        snapshot.forEach(function(child){
-          var session = child.val();
-          if(session.end != null && session.traineeRating == null){
-            Actions.RatingPage({session: child.key});
-          }
-        });
-      });
-      firebase.database().ref('trainSessions').orderByChild('trainer').equalTo(userKey).on('value', function(snapshot){
-        snapshot.forEach(function(child){
-          var session = child.val();
-          if(session.end != null && session.trainerRating == null){
-            Actions.RatingPage({session: child.key});
-          }
-        });
-      });
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  //Checks for Sessions in Progress and routes to appropriate page
-  checkSessions(userKey){
-    try {
-      var currDate = new Date();
-      firebase.database().ref('trainSessions').orderByChild('trainee').equalTo(userKey).on('value', function(snapshot){
-        snapshot.forEach(function(child){
-          var session = child.val();
-          if(new Date(session.start) < currDate && session.traineeRating == null){
-            this.setState({currentSession: child.key});
-          }
-        }.bind(this));
-      }.bind(this));
-      firebase.database().ref('trainSessions').orderByChild('trainer').equalTo(userKey).on('value', function(snapshot){
-        snapshot.forEach(function(child){
-          var session = child.val();
-          if(new Date(session.start) < currDate && session.trainerRating == null){
-            this.setState({currentSession: child.key});
-          }
-        }.bind(this));
-      }.bind(this));
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  //Checks for unread sessions and sets unread in state to true if they exist
-  checkRead(userKey){
-    try {
-      //Trainer check
-      firebase.database().ref('pendingSessions').orderByChild('trainer').equalTo(userKey).on('value', function(snapshot) {
-        snapshot.forEach(function(child){
-          var pendingSession = child.val();
-          if(pendingSession.read == false && pendingSession.sentBy == 'trainee'){
-              this.setState({unRead: true});
-              return;
-          }
-        }.bind(this));
-      }.bind(this));
-
-      firebase.database().ref('pendingSessions').orderByChild('trainee').equalTo(userKey).on('value', function(snapshot) {
-        snapshot.forEach(function(child){
-          var pendingSession = child.val();
-          if(pendingSession.read == false && pendingSession.sentBy == 'trainer'){
-              this.setState({unRead: true});
-              return;
-          }
-        }.bind(this));
-      }.bind(this));
-
-      firebase.database().ref('trainSessions').orderByChild('trainee').equalTo(userKey).on('value', function(snapshot) {
-        snapshot.forEach(function(child){
-          var acceptSession = child.val();
-          if(acceptSession.read == false && acceptSession.sentBy == 'trainee'){
-              this.setState({unRead: true});
-              return;
-          }
-        }.bind(this));
-      }.bind(this));
-  
-      firebase.database().ref('trainSessions').orderByChild('trainer').equalTo(userKey).on('value', function(snapshot) {
-        snapshot.forEach(function(child){
-          var acceptSession = child.val();
-          if(acceptSession.read == false && acceptSession.sentBy == 'trainer'){
-              this.setState({unRead: true});
-              return;
-          }
-        }.bind(this));
-      }.bind(this));
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  //Load gyms from db for MapView
-  loadGyms(){
-    try {
-      var gymsRef = firebase.database().ref('gyms');
-      gymsRef.on('value', function(data) {
-        var items= [];
-        data.forEach(function(dbevent) {
-          var item = dbevent.val();
-          item.key = dbevent.key;
-          items.push(item);
-        });
-          //send info to the state
-          this.setState({
-            gyms: items,
-            gymLoaded: true
-          });
-      }.bind(this));
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  //ShowModal function to open up different modals
-  showModal(type, option){
-
-    //open gym modal
-    if(type == 'gym'){
+  showModal = (type, option) => {
+    if(type === 'gym'){
       this.setState({
         bookModal: false,
         scheduleModal: false,
@@ -233,8 +74,7 @@ export class MapPage extends Component {
       });
     }
 
-    //open book modal
-    if(type == 'book'){
+    if(type === 'book'){
       this.setState({
         gymModal: false,
         scheduleModal: false,
@@ -244,7 +84,7 @@ export class MapPage extends Component {
       setTimeout(() => this.setState({bookModal: true}), 800);
     }
 
-    if(type == 'schedule'){
+    if(type === 'schedule'){
       this.setState({
         gymModal: false,
         bookModal: false,
@@ -253,63 +93,60 @@ export class MapPage extends Component {
       });
       setTimeout(() => this.setState({scheduleModal: true}), 800);
     }
-
   }
 
-  setTrainer(trainer){
-    if(!trainer.active){
+  setTrainer = (trainer) => {
+    if (!trainer.active) {
       Alert.alert("Please select an active trainer!");
-    }else{
+    } else {
       this.showModal('book', trainer);
     }
   }
 
-  viewSchedule(trainer){
-    this.showModal('schedule', trainer);
-  }
+  viewSchedule = (trainer) => this.showModal('schedule', trainer);
 
-  setLocation(){
-    if(this.state.userRegion !== null){
+  setLocation = () => {
+    if(this.state.userRegion){
       _map.animateToRegion(this.state.userRegion, 499);
     }
   }
 
-  toggleMenu(){
-    if(this.state.menuOpen == true){
+  toggleMenu = () => {
+    if(this.state.menuOpen){
       this.setState({menuOpen: false});
     }else{
       this.setState({menuOpen: true});
     }
   }
 
-  //Hide Modal Functions
   hidegymModal = () => this.setState({ gymModal: false, modalPresent: false });
-  hidebookModal = () => this.setState({ bookModal: false, bookingTrainer: 'null', modalPresent: false });
+  hidebookModal = () => this.setState({ bookModal: false, modalPresent: false });
   hidescheduleModal = () => this.setState({ scheduleModal: false, modalPresent: false});
 
-  hideandOpen(){
+  hideandOpen = () => {
     this.setState({scheduleModal: false, bookModal: false})
     setTimeout(() => this.setState({gymModal: true}), 500);
   }
 
   render() {
-    if(this.state.mapRegion === null || this.state.gymLoaded == false || this.state.mapRegion.latitude == undefined || this.state.user == 'null'){
+    if(!this.state.mapRegion || !this.state.gyms || !this.state.user) {
       return <AppLoading />;
     }
 
-    if(this.state.unRead && !this.state.modalPresent){
+    if (this.state.unread && !this.state.modalPresent) {
       Alert.alert(
-        'You have a new Session!',
-        '',
+        `Hello ${this.state.user.name}`,
+        'You have a new session!',
         [
-            {text: 'Close'},
-            {text: 'View', onPress: () => Actions.SchedulePage()}
-      ]);
+          {text: 'Close'},
+          {text: 'View', onPress: () => Actions.SchedulePage()}
+        ]
+      );
       this.state.modalPresent = true;
     }
 
-    var alertBox = null;
-    if(this.state.currentSession != null){
+    let alertBox, menu;
+    if (this.state.currentSession) {
       alertBox = (
         <View style={styles.alertBox}>
           <TouchableOpacity onPress = {() => Actions.SessionPage({session: this.state.currentSession})}>
@@ -318,10 +155,11 @@ export class MapPage extends Component {
         </View>
       );
     }
-    if(this.state.user.type != 'owner'){
-      var menu = <SideMenu />;
-    }else{
-      var menu = <ManagedSideMenu />;
+
+    if (this.state.user.type != 'owner') {
+      menu = <SideMenu />;
+    } else {
+      menu = <ManagedSideMenu />;
     }
 
     return (
@@ -348,32 +186,27 @@ export class MapPage extends Component {
               <FontAwesome>{Icons.bars}</FontAwesome>
             </Text>
             {this.state.gyms.map(marker => (
-                <MapView.Marker
-                  ref={marker => (this.marker = marker)}
-                  key={marker.key}
-                  coordinate={marker.location}
-                  onPress={() => {
-                   this.showModal('gym', marker);
-                  }}
-                >
-                  <Image source={markerImg} style={{width: 50, height: 50}} />
-                </MapView.Marker>
+              <MapView.Marker
+                ref={marker => (this.marker = marker)}
+                key={marker.key}
+                coordinate={marker.location}
+                onPress={() => this.showModal('gym', marker)}
+              >
+                <Image source={markerImg} style={{width: 50, height: 50}} />
+              </MapView.Marker>
             ))}
           </MapView>
 
-          {/*Gym Modal Info*/}
           <Modal isVisible={this.state.gymModal}
           onBackdropPress={this.hidegymModal}>
             <GymModal gymKey={this.state.selectedGym.key} setTrainer={this.setTrainer} viewSchedule={this.viewSchedule} hide={this.hidegymModal} />
           </Modal>
 
-          {/* Booking Modal */}
           <Modal isVisible={this.state.bookModal}
           onBackdropPress={this.hidebookModal}>
             <BookModal trainer={this.state.bookingTrainer} gym={this.state.selectedGym} hide={this.hidebookModal} confirm={() => Alert.alert('Session Booked!')} hideandOpen={this.hideandOpen} />
           </Modal>
 
-          {/* Schedule Modal */}
           <Modal isVisible={this.state.scheduleModal}
           onBackdropPress={this.hidescheduleModal}>
             <ScheduleModal trainer={this.state.scheduleTrainer} hide={this.hidescheduleModal} hideandOpen={this.hideandOpen}/>

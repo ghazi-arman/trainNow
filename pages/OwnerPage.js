@@ -1,177 +1,111 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { AppLoading } from 'expo';
-import * as Font from 'expo-font';
 import firebase from 'firebase';
 import Modal from 'react-native-modal';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { Actions } from 'react-native-router-flux';
+import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import { OwnerCardModal } from '../modals/OwnerCardModal';
-import { loadUser, loadGym } from '../components/Functions';
+import { loadUser, loadGym, loadTrainerCards, loadBalance, deleteTrainerCard, getCardIcon } from '../components/Functions';
 
 export class OwnerPage extends Component {
 
 	constructor(props) {
 		super(props);
-		this.state = {}
+		this.state = {
+			cardModal: false
+		}
+		this.bugsnagClient = bugsnag();
 	}
 
 	async componentDidMount() {
-		await Font.loadAsync({
-			fontAwesome: require('../fonts/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf'),
-		});
-		let gym = await loadGym(this.props.gym);
-		let user = await loadUser(firebase.auth().currentUser.uid);
-		let cards = await this.loadTrainerCards(gym.stripeId);
-		let balance = await this.getBalance(user.stripeId);
-		this.setState({ cards, balance, user, pendingTrainers: gym.pendingtrainers, trainers: gym.trainers, gym })
-	}
-
-	loadTrainerCards = async(stripeId) => {
-		if (stripeId === undefined) {
-			return [];
-		}
 		try {
-			const idToken = await firebase.auth().currentUser.getIdToken(true);
-			const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/listTrainerCards/', {
-				method: 'POST',
-				headers: {
-					Authorization: idToken
-				},
-				body: JSON.stringify({
-					id: stripeId,
-					user: firebase.auth().currentUser.uid
-				}),
-			});
-			const data = await res.json();
-			data.body = JSON.parse(data.body);
-			if (data.body.message == "Success" && data.body.cards !== undefined) {
-				return data.body.cards.data;
-			}
-		} catch (error) {
-			console.log(error);
-		}
-		return [];
-	}
-
-	async getBalance(stripeId) {
-		try {
-			var user = firebase.auth().currentUser;
-			const idToken = await firebase.auth().currentUser.getIdToken(true);
-			const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/getBalance/', {
-				method: 'POST',
-				headers: {
-					Authorization: idToken
-				},
-				body: JSON.stringify({
-					id: stripeId,
-					user: user.uid
-				}),
-			});
-			const data = await res.json();
-			data.body = JSON.parse(data.body);
-			if (data.body.message = "Success") {
-				if (data.body.balance !== undefined) {
-					return data.body.balance.available[0].amount + data.body.balance.pending[0].amount;;
-				}
-			}
-			return 0;
-		} catch (error) {
-			console.log(error);
-			return 0;
+			let gym = await loadGym(this.props.gym);
+			let user = await loadUser(firebase.auth().currentUser.uid);
+			let cards = await loadTrainerCards(gym.stripeId);
+			let balance = await loadBalance(gym.stripeId);
+			this.setState({ cards, balance, user, gym });
+		} catch(error) {
+			this.bugsnagClient.notify(error);
+			Alert.alert('There was an error loading the dashboard. Try again later');
+			this.logout();
 		}
 	}
 
-	async deleteTrainerCard(stripeId, cardId, index) {
+	deleteTrainerCard = async(stripeId, cardId) => {
 		if (this.state.cards.length == 1) {
 			Alert.alert("You must have at least one card on file. Add another one before deleting this card.");
 			return;
 		}
 		Alert.alert(
+			'Delete Card',
 			'Are you sure you want to delete this card?',
-			'',
 			[
 				{ text: 'No' },
 				{
 					text: 'Yes', onPress: async () => {
 						try {
-							const idToken = await firebase.auth().currentUser.getIdToken(true);
-							const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/deleteTrainerCard/', {
-								method: 'POST',
-								headers: {
-									Authorization: idToken
-								},
-								body: JSON.stringify({
-									stripeId: stripeId,
-									cardId: cardId,
-									user: firebase.auth().currentUser.uid
-								}),
-							});
-							const data = await res.json();
-							data.body = JSON.parse(data.body);
-							if (data.body.message == "Success") {
-								var cards = await this.loadTrainerCards(stripeId);
-								this.setState({ cards: cards });
-							} else {
-								Alert.alert('There was an error. Please try again.');
-							}
+							await deleteTrainerCard(stripeId, cardId);
+							const cards = await loadTrainerCards(stripeId);
+							this.setState({ cards });
 						} catch (error) {
-							Alert.alert('There was an error. Please try again.');
+							this.bugsnagClient.notify(error);
+							Alert.alert('There was an error. Please try again later.');
 						}
 					}
 				}
-			]);
+			]
+		);
 	}
 
-	getCardIcon(brand) {
-		if (brand == 'Visa') {
-			return (<FontAwesome>{Icons.ccVisa}</FontAwesome>);
-		} else if (brand == 'American Express') {
-			return (<FontAwesome>{Icons.ccAmex}</FontAwesome>);
-		} else if (brand == 'MasterCard') {
-			return (<FontAwesome>{Icons.ccMastercard}</FontAwesome>);
-		} else if (brand == 'Discover') {
-			return (<FontAwesome>{Icons.ccDiscover}</FontAwesome>);
-		} else if (brand == 'JCB') {
-			return (<FontAwesome>{Icons.ccJcb}</FontAwesome>);
-		} else if (brand == 'Diners Club') {
-			return (<FontAwesome>{Icons.ccDinersClub}</FontAwesome>);
-		} else {
-			return (<FontAwesome>{Icons.creditCard}</FontAwesome>);
+	denyTrainer = async(trainerKey) => {
+		try {
+			await firebase.database().ref('/gyms/' + this.props.gym + '/pendingtrainers/').child(trainerKey).remove();
+			delete this.state.gym.pendingTrainers[trainerKey];
+			Alert.alert('Trainer denied');
+		} catch(error) {
+			this.bugsnagClient.notify(error);
+			Alert.alert('There was an error when trying to deny that trainer.');
 		}
 	}
 
-	async denyTrainer(trainerKey) {
-		await firebase.database().ref('/gyms/' + this.props.gym + '/pendingtrainers/').child(trainerKey).remove();
-		delete this.state.pendingTrainers[trainerKey];
-		Alert.alert('Trainer denied');
+	deleteTrainer = async(trainerKey) => {
+		try {
+			await firebase.database().ref('users').child(trainerKey).update({ deleted: true });
+			await firebase.database().ref('/gyms/' + this.props.gym + '/trainers/').child(trainerKey).remove();
+			delete this.state.gym.trainers[trainerKey];
+			Alert.alert('Trainer removed from gym.');
+		} catch(error) {
+			this.bugsnagClient.notify(error);
+			Alert.alert('There was an error when trying to delete that trainer.');
+		}
 	}
 
-	async deleteTrainer(trainerKey) {
-		await firebase.database().ref('users').child(trainerKey).update({ deleted: true });
-		await firebase.database().ref('/gyms/' + this.props.gym + '/trainers/').child(trainerKey).remove();
-		delete this.state.trainers[trainerKey];
-		Alert.alert('Trainer removed from gym.');
+	acceptTrainer = async(trainerKey) => {
+		try {
+			await firebase.database().ref('users').child(trainerKey).update({ pending: false, stripeId: this.state.gym.stripeId });
+			await firebase.database().ref('/gyms/' + this.props.gym + '/pendingtrainers/').child(trainerKey).once("value", (snapshot) => {
+				firebase.database().ref('/gyms/' + this.props.gym + '/trainers/').child(trainerKey).set(snapshot.val());
+			});
+			await firebase.database().ref('/gyms/' + this.props.gym + '/pendingtrainers/').child(trainerKey).remove();
+			delete this.state.gym.pendingTrainers[trainerKey];
+			const gym = await loadGym(this.props.gym);
+			this.setState({ gym });
+			Alert.alert('Trainer added to gym.');
+		} catch(error) {
+			this.bugsnagClient.notify(error);
+			Alert.alert('There was an error when accepting that trainer.');
+		}
 	}
 
-	async acceptTrainer(trainerKey) {
-		await firebase.database().ref('users').child(trainerKey).update({ pending: false, stripeId: this.state.gym.stripeId });
-		await firebase.database().ref('/gyms/' + this.props.gym + '/pendingtrainers/').child(trainerKey).once("value", function (snapshot) {
-			firebase.database().ref('/gyms/' + this.props.gym + '/trainers/').child(trainerKey).set(snapshot.val());
-		}.bind(this));
-		await firebase.database().ref('/gyms/' + this.props.gym + '/pendingtrainers/').child(trainerKey).remove();
-		delete this.state.pendingTrainers[trainerKey];
-		const gym = await loadGym(this.props.gym);
-		this.setState({pendingTrainers: gym.pendingtrainers, trainers: gym.trainers});
-	}
-
-	renderPending() {
-		if (!this.state.pendingTrainers) {
+	renderPending = () => {
+		if (!this.state.gym.pendingTrainers) {
 			return (<Text style={styles.navText}>None</Text>);
 		}
-		var result = Object.keys(this.state.pendingTrainers).map(function (key) {
-			var trainer = this.state.pendingTrainers[key];
+		return Object.keys(this.state.gym.pendingTrainers).map((key) => {
+			const trainer = this.state.gym.pendingTrainers[key];
 			return (
 				<View key={trainer.name} style={styles.traineeRow}>
 					<Text style={{ width: 120 }}>{trainer.name}</Text>
@@ -183,16 +117,15 @@ export class OwnerPage extends Component {
 					</TouchableOpacity>
 				</View>
 			);
-		}.bind(this));
-		return result;
+		});
 	}
 
 	renderTrainers = () => {
-		if (!this.state.trainers) {
+		if (!this.state.gym.trainers) {
 			return (<Text style={styles.navText}>None</Text>);
 		}
-		var result = Object.keys(this.state.trainers).map(function (key) {
-			var trainer = this.state.trainers[key];
+		return Object.keys(this.state.gym.trainers).map((key) => {
+			const trainer = this.state.gym.trainers[key];
 			return (
 				<View key={trainer.name} style={styles.traineeRow}>
 					<Text style={{ width: 120 }}>{trainer.name}</Text>
@@ -204,22 +137,22 @@ export class OwnerPage extends Component {
 					</TouchableOpacity>
 				</View>
 			);
-		}.bind(this));
-		return result;
+		});
 	}
 
 	logout = () => {
 		Alert.alert(
-			"Are you sure you wish to sign out?",
-			"",
+			"Log Out",
+			"Are you sure you wish to log out?",
 			[
 				{ text: 'No' },
 				{
 					text: 'Yes', onPress: () => {
-						firebase.auth().signOut().then(function () {
+						firebase.auth().signOut().then(() => {
 							Actions.reset('LoginPage');
-						}, function (error) {
-							Alert.alert('Sign Out Error', error);
+						}, (error) => {
+							this.bugsnagClient.notify(error);
+							Actions.reset('LoginPage');
 						});
 					}
 				},
@@ -227,25 +160,23 @@ export class OwnerPage extends Component {
 		);
 	}
 
-	hideCardModal = () => {
-		this.setState({ cardModal: false });
-	}
+	hideCardModal = () => this.setState({ cardModal: false });
 
 	hideCardModalOnAdd = async() => {
-		var cards = await this.loadTrainerCards(this.state.gym.stripeId);
-		this.setState({ cardModal: false, cards: cards });
+		var cards = await loadTrainerCards(this.state.gym.stripeId);
+		this.setState({ cardModal: false, cards });
 	}
 
-	renderCards() {
-		if (this.state.cards === undefined || this.state.cards.length == 0) {
+	renderCards = () => {
+		if (!this.state.cards || !this.state.cards.length) {
 			return (<Text style={{ marginTop: 10, fontSize: 20, color: COLORS.PRIMARY }}>No Cards Added</Text>);
 		}
-		var index = 0;
-		var result = this.state.cards.map(function (currCard) {
+		let index = 0;
+		return this.state.cards.map((currCard) => {
 			index++;
 			return (
 				<View style={styles.cardRow} key={currCard.id}>
-					<Text style={styles.icon}>{this.getCardIcon(currCard.brand)}</Text>
+					<Text style={styles.icon}>{getCardIcon(currCard.brand)}</Text>
 					<Text>•••••• {currCard.last4}</Text>
 					<Text>{currCard.exp_month.toString()} / {currCard.exp_year.toString().substring(2, 4)}</Text>
 					<TouchableOpacity style={styles.deleteButton} onPress={() => this.deleteTrainerCard(this.state.gym.stripeId, currCard.id, index)}>
@@ -253,80 +184,78 @@ export class OwnerPage extends Component {
 					</TouchableOpacity>
 				</View>
 			);
-		}.bind(this));
-		return result;
+		});
 	}
 
 	render() {
-		if (!this.state.user || !this.state.gym) {
+		if (!this.state.user || !this.state.gym || !this.state.cards || !this.state.balance) {
 			return <AppLoading />
-		} else {
-			if (this.state.currentTab == 'pending') {
-				var navBar = (
-					<View style={styles.navigationBar}>
-						<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({ currentTab: 'pending' })}>
-							<Text style={styles.activeText}>Pending Trainers</Text>
-						</TouchableOpacity>
-						<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({ currentTab: 'current' })}>
-							<Text style={styles.navText}>Current Trainers</Text>
-						</TouchableOpacity>
-					</View>
-				);
-				var content = (
-					<View style={styles.trainerContainer}>
-						<ScrollView style={{ width: '90%' }} showsVerticalScrollIndicator={false}>
-							{this.renderPending()}
-						</ScrollView>
-					</View>
-				);
-			} else {
-				var navBar = (
-					<View style={styles.navigationBar}>
-						<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({ currentTab: 'pending' })}>
-							<Text style={styles.navText}>Pending Trainers</Text>
-						</TouchableOpacity>
-						<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({ currentTab: 'current' })}>
-							<Text style={styles.activeText}>Current Trainers</Text>
-						</TouchableOpacity>
-					</View>
-				);
-				var content = (
-					<View style={styles.trainerContainer}>
-						<ScrollView style={{ width: '90%' }} showsVerticalScrollIndicator={false}>
-							{this.renderTrainers()}
-						</ScrollView>
-					</View>
-				);
-			}
-			if (this.state.balance == 0) {
-				var balanceFormatted = "0.00"
-			} else {
-				var balanceFormatted = (parseInt(this.state.balance) / 100).toFixed(2);
-			}
-			return (
-				<View style={styles.container}>
-					<Text style={styles.backButton} onPress={this.logout}>
-						<FontAwesome>{Icons.powerOff}</FontAwesome>
-					</Text>
-					<Text style={styles.title}>Trainers</Text>
-					{navBar}
-					{content}
-					<Text style={styles.balanceText}>${balanceFormatted}</Text>
-					<View style={styles.cardHolder}>
-						{this.renderCards()}
-					</View>
-					<TouchableOpacity style={styles.button} onPress={() => this.setState({ cardModal: true })}>
-						<Text style={styles.largeText}><FontAwesome>{Icons.creditCard}</FontAwesome> Add Card </Text>
+		}
+		if (this.state.currentTab === 'pending') {
+			var navBar = (
+				<View style={styles.navigationBar}>
+					<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({ currentTab: 'pending' })}>
+						<Text style={styles.activeText}>Pending Trainers</Text>
 					</TouchableOpacity>
-					<Text style={{ fontSize: 20, textAlign: 'center', color: COLORS.PRIMARY, marginTop: 10 }}>Funds will be transfered daily</Text>
-					<Modal
-						isVisible={this.state.cardModal}
-						onBackdropPress={this.hideCardModal}>
-						<OwnerCardModal hide={this.hideCardModalOnAdd} gym={this.props.gym} />
-					</Modal>
+					<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({ currentTab: 'current' })}>
+						<Text style={styles.navText}>Current Trainers</Text>
+					</TouchableOpacity>
+				</View>
+			);
+			var content = (
+				<View style={styles.trainerContainer}>
+					<ScrollView style={{ width: '90%' }} showsVerticalScrollIndicator={false}>
+						{this.renderPending()}
+					</ScrollView>
+				</View>
+			);
+		} else {
+			var navBar = (
+				<View style={styles.navigationBar}>
+					<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({ currentTab: 'pending' })}>
+						<Text style={styles.navText}>Pending Trainers</Text>
+					</TouchableOpacity>
+					<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({ currentTab: 'current' })}>
+						<Text style={styles.activeText}>Current Trainers</Text>
+					</TouchableOpacity>
+				</View>
+			);
+			var content = (
+				<View style={styles.trainerContainer}>
+					<ScrollView style={{ width: '90%' }} showsVerticalScrollIndicator={false}>
+						{this.renderTrainers()}
+					</ScrollView>
 				</View>
 			);
 		}
+		if (this.state.balance == 0) {
+			var balanceFormatted = "0.00"
+		} else {
+			var balanceFormatted = (parseInt(this.state.balance) / 100).toFixed(2);
+		}
+		return (
+			<View style={styles.container}>
+				<Text style={styles.backButton} onPress={this.logout}>
+					<FontAwesome>{Icons.powerOff}</FontAwesome>
+				</Text>
+				<Text style={styles.title}>Trainers</Text>
+				{navBar}
+				{content}
+				<Text style={styles.balanceText}>${balanceFormatted}</Text>
+				<View style={styles.cardHolder}>
+					{this.renderCards()}
+				</View>
+				<TouchableOpacity style={styles.button} onPress={() => this.setState({ cardModal: true })}>
+					<Text style={styles.largeText}><FontAwesome>{Icons.creditCard}</FontAwesome> Add Card </Text>
+				</TouchableOpacity>
+				<Text style={{ fontSize: 20, textAlign: 'center', color: COLORS.PRIMARY, marginTop: 10 }}>Funds will be transfered daily</Text>
+				<Modal
+					isVisible={this.state.cardModal}
+					onBackdropPress={this.hideCardModal}>
+					<OwnerCardModal hide={this.hideCardModalOnAdd} gym={this.props.gym} />
+				</Modal>
+			</View>
+		);
 	}
 }
 

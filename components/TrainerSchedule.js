@@ -24,9 +24,7 @@ export class TrainerSchedule extends Component {
 			sessions = sessions.concat(availability);
 		}
 
-		// set previously retrieved values in state
 		this.setState({trainer, sessions});
-		//console.log(sessions);
 	}
 
 	renderAgendaItem(item, firstItemInDay){

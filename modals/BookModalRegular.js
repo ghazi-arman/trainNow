@@ -33,7 +33,7 @@ export class BookModalRegular extends Component {
 
 	bookTrainer = async() => {
 		const user = firebase.auth().currentUser;
-		if (this.state.gym.type !== 'owner' || !this.state.user.cardAdded) {
+		if (!this.state.user.cardAdded) {
 			Alert.alert('You must have a card on file to book a session.');
 			return;
 		}

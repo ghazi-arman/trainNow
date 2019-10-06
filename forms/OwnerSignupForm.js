@@ -5,6 +5,7 @@ import firebase from 'firebase';
 import { Icons } from 'react-native-fontawesome';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
+import TextField from '../components/TextField';
 var stripe = require('stripe-client')('pk_test_6sgeMvomvrZFucRqYhi6TSbO');
 
 export class OwnerSignupForm extends Component {
@@ -80,12 +81,12 @@ export class OwnerSignupForm extends Component {
 					state: this.state.state,
 					zip: this.state.zip,
 					email: this.state.email,
-					phone: thisi.state.phone,
+					phone: this.state.phone,
 					firstName: firstName,
 					lastName: lastName,
 					ssnToken: ssnToken.id,	
 					taxToken: taxToken.id,
-					company: company,
+					company: this.state.company,
 					day: day,
 					month: month,
 					year: year
@@ -104,12 +105,12 @@ export class OwnerSignupForm extends Component {
 			}
 			try {
 				// Create firebase account for user
-				const user = await firebase.auth().createUserWithEmailAndPassword(this.state.email, pw);
+				const user = await firebase.auth().createUserWithEmailAndPassword(this.state.email, this.state.password);
 				firebase.database().ref('users').child(user.user.uid).set({
 					owner: true,
-					name: name,
-					gym: gymKey,
-					phone: phone,
+					name: this.state.name,
+					gym: this.state.gymKey,
+					phone: this.state.phone,
 					stripeId: data.trainer.account,
 					pending: true,
 					cardAdded: false

@@ -82,7 +82,7 @@ export class SignupForm extends Component {
       // Upload image to firebase storage
       await firebase.storage().ref().child(uid).put(blob);
     } catch(error) {
-      bugsnagClient.notify(error);
+      this.bugsnagClient.notify(error);
       Alert.alert('There was an error uploading the image.')
     }
   }
@@ -141,7 +141,6 @@ export class SignupForm extends Component {
           });
           const response = await res.json();
           var data = JSON.parse(response.body);
-          console.log(data);
           
           if(data.message !== 'Success') {
             throw new Error('Stripe Error');
@@ -189,7 +188,7 @@ export class SignupForm extends Component {
         });
           
         if (this.state.image) {
-          this.uploadImage(this.state.image, user.uid);
+          this.uploadImage(this.state.image, user.user.uid);
         }
 
         if(gymType == 'independent'){
@@ -295,7 +294,7 @@ export class SignupForm extends Component {
       }
 
     } else if (this.state.page === 2) {
-      if (!this.state.gym) {
+      if (this.state.gym === undefined) {
         Alert.alert("Please select a gym!");
         return;
       }

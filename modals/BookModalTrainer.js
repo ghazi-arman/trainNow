@@ -32,10 +32,6 @@ export class BookModalTrainer extends Component {
 	}
 
 	bookClient = async() => {
-		if (this.state.gym.type !== 'owner' || !this.state.trainer.cardAdded) {
-			Alert.alert('You no longer have a card on file');
-			return;
-		}
 		if (!this.state.trainee.cardAdded) {
 			Alert.alert('This client no longer has a card on file.');
 			return;

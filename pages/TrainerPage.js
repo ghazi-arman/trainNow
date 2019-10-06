@@ -1,196 +1,89 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { AppLoading } from 'expo';
-import * as Font from 'expo-font';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import Modal from 'react-native-modal';
 import { Actions } from 'react-native-router-flux';
+import bugsnag from '@bugsnag/expo';
 import { BookModalRegular } from '../modals/BookModalRegular';
 import COLORS from '../components/Colors';
+import { loadUser, loadRecentTrainers, loadClientRequests, dateToString, denyTrainerRequest, acceptClientRequest, sendTrainerRequest } from '../components/Functions';
 
 export class TrainerPage extends Component {
 
 	constructor(props) {
 		super(props);
 		this.state = {
-			user: 'null',
-			trainers: 'null',
-			requests: 'null',
-			incomingRequests: 'null',
+			currentTab: 'recent',
 			bookModal: false
 		}
-		this.loadRecent=this.loadRecent.bind(this);
-		this.renderRecent=this.renderRecent.bind(this);
-		this.getDate=this.getDate.bind(this);
-		this.loadRequests=this.loadRequests.bind(this);
-		this.renderRequests=this.renderRequests.bind(this);
-		this.denyRequest=this.denyRequest.bind(this);
-		this.acceptRequest=this.acceptRequest.bind(this);
-		this.renderTrainers=this.renderTrainers.bind(this);
-		this.bookSession=this.bookSession.bind(this);
-		this.hidebookModal=this.hidebookModal.bind(this);
+		this.bugsnagClient = bugsnag();
 	}
 
 	async componentDidMount() {
-		await Font.loadAsync({
-		  fontAwesome: require('../fonts/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf'),
-		});
-		//Get user info for state
-		var recentTrainers = await this.loadRecent();
-		var incomingRequests = await this.loadRequests();
-	    var user = firebase.auth().currentUser;
-	    var usersRef = await firebase.database().ref('users');
-	    usersRef.orderByKey().equalTo(user.uid).on('child_added', async function(snapshot) {
-	    	var user = snapshot.val();
-	    	if(user.requests === undefined){
-	    		var requests = [];
-	    	}else{
-	    		var requests = user.requests;
-	    	}
-	    	this.setState({user: user, trainers: recentTrainers, requests: requests, incomingRequests: incomingRequests});
-	    }.bind(this));
-	}
-
-	async loadRecent(){
-		var user = firebase.auth().currentUser;
-		var trainers = [];
-		var trainerMap = [];
-    	var pastRef = firebase.database().ref('pastSessions/' + user.uid);
-    	await pastRef.on('value', function(data) {
-    		data.forEach(function(dbevent) {
-        		var item = dbevent.val();
-        		if(!trainerMap.includes(item.session.trainer)){
-        			var trainer = {
-        				name: item.session.trainerName,
-        				key: item.session.trainer,
-        				date: item.session.start,
-        				gym: item.session.gym
-        			}
-        			trainerMap.push(item.session.trainer);
-        			trainers.push(trainer);
-        		}
-      		});
-    	});
-		return trainers;
-	}
-
-	sendTrainerRequest(trainerId, traineeName, gymKey) {
-		var user = firebase.auth().currentUser;
-		firebase.database().ref('trainerRequests').child(trainerId).push({
-			status: 'pending',
-			trainee: user.uid,
-			traineeName: traineeName,
-			gym: gymKey
-		});
-		var requests = this.state.requests;
-		requests.push(trainerId);
-		firebase.database().ref('users').child(user.uid).update({
-			requests: requests
-		});
-		this.setState({requests: requests});
-	}
-
-	async loadRequests(){
-		var requests = [];
-		var user = firebase.auth().currentUser;
-		var requestRef = firebase.database().ref('clientRequests').child(user.uid);
-		await requestRef.on('child_added', function(snapshot){
-			var request = snapshot.val();
-			request.key = snapshot.key;
-			requests.push(request);
-		});
-		return requests;
-	}
-
-	getDate(dateString){
-		var date = new Date(dateString);
-		return (date.getMonth() + 1).toString() + " / " + date.getDate().toString();
-	}
-
-	async denyRequest(requestKey, trainerId){
-		var user = firebase.auth().currentUser;
-
-		//Grab all requests from clientRequests table except current one
-		firebase.database().ref('clientRequests').child(user.uid).child(requestKey).remove();
-		var requests = [];
-		await firebase.database().ref('users').child(trainerId).child('requests').on('child_added', function(snapshot){
-			if(snapshot.val() != user.uid){
-				requests.push(snapshot.val());
+		if (!this.state.user || !this.state.recentTrainers || !this.state.clientRequests) {
+			try {
+				const userId = firebase.auth().currentUser.uid;
+				const user = await loadUser(userId);
+				const recentTrainers = await loadRecentTrainers(userId);
+				const clientRequests = await loadClientRequests(userId);
+				this.setState({ user, recentTrainers, clientRequests });
+			} catch(error) {
+				this.bugsnagClient.notify(error);
+				Alert.alert('There was an error loading the trainer page. Please try again later.');
+				this.goToMap();
 			}
-		});
-		firebase.database().ref('users').child(trainerId).update({requests: requests});
-		
-		//refresh incomingRequests for state change
-		var incomingRequests = await this.loadRequests();
-		this.setState({incomingRequests: incomingRequests});
+		}
 	}
 
-	async acceptRequest(requestKey, trainerId, trainerName, trainerGym){
-		var user = firebase.auth().currentUser;
-
-		//Get requests from clientRequests table and push all but accepted request to requests array
-		firebase.database().ref('clientRequests').child(user.uid).child(requestKey).remove();
-		var requests = [];
-		await firebase.database().ref('users').child(trainerId).child('requests').on('child_added', function(snapshot){
-			if(snapshot.val() != user.uid){
-				requests.push(snapshot.val());
-			}
-		});
-
-		//Push new client to clients array in trainer user object in user tb
-		var clientRef = firebase.database().ref('users').child(trainerId).child('clients');
-		if(clientRef === undefined){
-			var clients = [];
-		}else{
-			var clients = [];
-			await clientRef.on('child_added', function(snapshot) {
-				clients.push(snapshot.val());
-			})
+	sendTrainerRequest = async (trainerKey, traineeName, gymKey) => {
+		try {
+			const userId = firebase.auth().currentUser.uid;
+			await sendTrainerRequest(trainerKey, traineeName, userId, gymKey);
+			const user = await loadUser(userId);
+			const clientRequests = await loadClientRequests(userId);
+			this.setState({ user, clientRequests });
+		} catch(error) {
+			this.bugsnagClient.notify(error);
+			Alert.alert('There was an error sending the request.');
 		}
-		clients.push({
-			traineeName: this.state.user.name,
-			trainee: user.uid
-		})
-
-		//Push new trainer to trainers array in trainee user object in user db
-		var trainerRef = firebase.database().ref('users').child(user.uid).child('trainers');
-		if(trainerRef === undefined){
-			var trainers = [];
-		}else{
-			var trainers = [];
-			await trainerRef.on('child_added', function(snapshot) {
-				trainers.push(snapshot.val());
-			})
-		}
-		trainers.push({
-			trainerName: trainerName,
-			trainer: trainerId,
-			gym: trainerGym
-		})
-
-		//Push changes to clients and trainers arrays to user db
-		firebase.database().ref('users').child(user.uid).update({trainers: trainers});
-		firebase.database().ref('users').child(trainerId).update({requests: requests, clients: clients});
-
-		//refresh incomingRequests for state change
-		var incomingRequests = await this.loadRequests();
-		await firebase.database().ref('users').orderByKey().equalTo(user.uid).on('child_added', function(snapshot) {
-	    	var user = snapshot.val();
-	    	this.setState({incomingRequests: incomingRequests, user: user});
-	    }.bind(this));
 	}
 
-	bookSession(trainer, trainerGym){
+	denyRequest = async(requestKey, trainerKey) => {
+		try {
+			const userId = firebase.auth().currentUser.uid;
+			await denyTrainerRequest(requestKey, userId, trainerKey);
+			const clientRequests = await loadClientRequests(userId);
+			this.setState({ clientRequests });
+		} catch(error) {
+			this.bugsnagClient.notify(error);
+			Alert.alert('There was an error denying the request.');
+		}
+	}
+
+	acceptRequest = async(requestKey, trainerKey, trainerName, gymKey) => {
+		try {
+			await acceptClientRequest(requestKey, trainerKey, trainerName, firebase.auth().currentUser.uid, this.state.user.name, gymKey);
+			const clientRequests = await loadClientRequests(firebase.auth().currentUser.uid);
+			const user = await loadUser(firebase.auth().currentUser.uid);
+			this.setState({ clientRequests, user });
+		} catch(error) {
+			this.bugsnagClient.notify(error);
+			Alert.alert('There was an error accepting the request.');
+		}
+	}
+
+	bookSession = (trainer, trainerGym) => {
 		this.setState({bookingTrainer: trainer, selectedGym: trainerGym, bookModal: true});
 	}
 
-	hidebookModal(){
+	hidebookModal = () => {
 		this.setState({bookModal: false});
 	}
 
-	renderRequests(){
-		var result = this.state.incomingRequests.map(function(request){
+	renderRequests = () => {
+		return this.state.clientRequests.map((request) => {
 			return(
 				<View key={request.trainer} style={styles.traineeRow}>
 					<Text style={{width: 120}}>{request.trainerName}</Text>
@@ -202,15 +95,15 @@ export class TrainerPage extends Component {
 					</TouchableOpacity>
 				</View>
 			);
-		}.bind(this));
-		return result;
+		});
 	}
 
-	renderTrainers() {
-		if(this.state.user.trainers === undefined){
+	renderTrainers = () => {
+		if(!this.state.user.trainers){
 			return;
 		}
-		var result = this.state.user.trainers.map(function(trainer){
+		return Object.keys(this.state.user.trainers).map((key) => {
+			const trainer = this.state.user.trainers[key];
 			return(
 				<View key={trainer.trainer} style={styles.traineeRow}>
 					<Text style={{width: 120}}>{trainer.trainerName}</Text>
@@ -219,20 +112,18 @@ export class TrainerPage extends Component {
 					</TouchableOpacity>
 				</View>
 			);
-		}.bind(this));
-		return result;
+		});
 	}
 
-	renderRecent() {
-		var result = this.state.trainers.map(function(trainer){
-			if(this.state.incomingRequests.filter(request => (request.trainer == trainer.key)).length > 0){
+	renderRecent = () => {
+		return this.state.recentTrainers.map((trainer) => {
+			if(this.state.clientRequests.filter(request => (request.trainer == trainer.key)).length > 0 ||
+				(this.state.user.trainers && this.state.user.trainers[trainer.key])){
 				return;
 			}
-			if(this.state.user.trainers !== undefined && this.state.user.trainers.filter(request => (request.trainer == trainer.key)).length > 0){
-				return;
-			}
-			var button;
-			if(this.state.requests.includes(trainer.key)){
+
+			let button;
+			if(this.state.user.requests && this.state.user.requests[trainer.key]){
 				button = (
 					<TouchableOpacity style={styles.requestButton} disabled={true}> 
 						<Text><FontAwesome>{Icons.hourglass}</FontAwesome> Pending</Text>
@@ -248,97 +139,94 @@ export class TrainerPage extends Component {
 			return(
 				<View key={trainer.key} style={styles.traineeRow}>
 					<Text style={{width: 120}}>{trainer.name}</Text>
-					<Text style={{width:50}}>{this.getDate(trainer.date)}</Text>
+					<Text style={{width:50}}>{dateToString(trainer.date)}</Text>
 					{button}
 				</View>
 			);
-		}.bind(this));
-		return result;
+		});
 	}
 
-	goToMap(){
+	goToMap = () => {
 		Actions.MapPage();
 	}
 
-
 	render() {
-		if(this.state.user == 'null' || this.state.trainees == 'null' || this.state.requests == 'null' || this.state.incomingRequests == 'null'){
+		if (!this.state.user || !this.state.clientRequests || !this.state.recentTrainers) {
 			return <AppLoading />
+		}
+		if(this.state.currentTab == 'requests'){
+			var navBar = (
+				<View style={styles.navigationBar}>
+					<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({currentTab: 'requests'})}>
+						<Text style={styles.activeText}>Trainer Requests</Text>
+					</TouchableOpacity>
+					<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'recent'})}>
+						<Text style={styles.navText}>Recent Trainers</Text>
+					</TouchableOpacity>
+					<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'trainers'})}>
+						<Text style={styles.navText}>Your Trainers</Text>
+					</TouchableOpacity>
+				</View>
+			);
+			var content = (
+				<ScrollView showsVerticalScrollIndicator={false}>
+					{this.renderRequests()}
+				</ScrollView>
+			);
+		}else if(this.state.currentTab == 'recent'){
+			var navBar = (
+				<View style={styles.navigationBar}>
+					<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'requests'})}>
+						<Text style={styles.navText}>Trainer Requests</Text>
+					</TouchableOpacity>
+					<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({currentTab: 'recent'})}>
+						<Text style={styles.activeText}>Recent Trainers</Text>
+					</TouchableOpacity>
+					<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'trainers'})}>
+						<Text style={styles.navText}>Your Trainers</Text>
+					</TouchableOpacity>
+				</View>
+			);
+			var content = (
+				<ScrollView showsVerticalScrollIndicator={false}>
+					{this.renderRecent()}
+				</ScrollView>
+			);
 		}else{
-			if(this.state.currentTab == 'requests'){
-				var navBar = (
-					<View style={styles.navigationBar}>
-						<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({currentTab: 'requests'})}>
-							<Text style={styles.activeText}>Trainer Requests</Text>
-						</TouchableOpacity>
-						<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'recent'})}>
-							<Text style={styles.navText}>Recent Trainers</Text>
-						</TouchableOpacity>
-						<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'trainers'})}>
-							<Text style={styles.navText}>Your Trainers</Text>
-						</TouchableOpacity>
-					</View>
-				);
-				var content = (
-					<ScrollView showsVerticalScrollIndicator={false}>
-	            		{this.renderRequests()}
-	            	</ScrollView>
-				);
-			}else if(this.state.currentTab == 'recent'){
-				var navBar = (
-					<View style={styles.navigationBar}>
-						<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'requests'})}>
-							<Text style={styles.navText}>Trainer Requests</Text>
-						</TouchableOpacity>
-						<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({currentTab: 'recent'})}>
-							<Text style={styles.activeText}>Recent Trainers</Text>
-						</TouchableOpacity>
-						<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'trainers'})}>
-							<Text style={styles.navText}>Your Trainers</Text>
-						</TouchableOpacity>
-					</View>
-				);
-				var content = (
-					<ScrollView showsVerticalScrollIndicator={false}>
-	            		{this.renderRecent()}
-	            	</ScrollView>
-				);
-			}else{
-				var navBar = (
-					<View style={styles.navigationBar}>
-						<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'requests'})}>
-							<Text style={styles.navText}>Trainer Requests</Text>
-						</TouchableOpacity>
-						<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'recent'})}>
-							<Text style={styles.navText}>Recent Trainers</Text>
-						</TouchableOpacity>
-						<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({currentTab: 'trainers'})}>
-							<Text style={styles.activeText}>Your Trainers</Text>
-						</TouchableOpacity>
-					</View>
-				);
-				var content = (
-					<ScrollView showsVerticalScrollIndicator={false}>
-	            		{this.renderTrainers()}
-	            	</ScrollView>
-				);
-			}
-			return (
-				<View style = {styles.container}>
-					<Text style={styles.backButton} onPress={this.goToMap}>
-	              		<FontAwesome>{Icons.arrowLeft}</FontAwesome>
-	            	</Text>
-	            	<Text style={styles.title}>Trainers</Text>
-					{navBar}
-					{content}
-					<Modal 
-						isVisible={this.state.bookModal}
-          				onBackdropPress={this.hidebookModal}>
-            				<BookModalRegular trainer={this.state.bookingTrainer} gym={this.state.selectedGym} hide={this.hidebookModal} confirm={() => Alert.alert('Session Booked!')}/>
-          			</Modal>
-				</View>	
+			var navBar = (
+				<View style={styles.navigationBar}>
+					<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'requests'})}>
+						<Text style={styles.navText}>Trainer Requests</Text>
+					</TouchableOpacity>
+					<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'recent'})}>
+						<Text style={styles.navText}>Recent Trainers</Text>
+					</TouchableOpacity>
+					<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({currentTab: 'trainers'})}>
+						<Text style={styles.activeText}>Your Trainers</Text>
+					</TouchableOpacity>
+				</View>
+			);
+			var content = (
+				<ScrollView showsVerticalScrollIndicator={false}>
+					{this.renderTrainers()}
+				</ScrollView>
 			);
 		}
+		return (
+			<View style = {styles.container}>
+				<Text style={styles.backButton} onPress={this.goToMap}>
+					<FontAwesome>{Icons.arrowLeft}</FontAwesome>
+				</Text>
+				<Text style={styles.title}>Trainers</Text>
+				{navBar}
+				{content}
+				<Modal 
+					isVisible={this.state.bookModal}
+					onBackdropPress={this.hidebookModal}>
+						<BookModalRegular trainer={this.state.bookingTrainer} gym={this.state.selectedGym} hide={this.hidebookModal} confirm={() => Alert.alert('Session Booked!')}/>
+				</Modal>
+			</View>	
+		);
 	}
 }
 
