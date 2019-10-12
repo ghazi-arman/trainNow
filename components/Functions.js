@@ -742,7 +742,31 @@ export async function loadCards(stripeId) {
 export async function setDefaultCard(stripeId, cardId) {
   try {
     const idToken = await firebase.auth().currentUser.getIdToken(true);
-    const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/setDefault/', {
+    const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/setDefaultCard/', {
+      method: 'POST',
+      headers: {
+        Authorization: idToken
+      },
+      body: JSON.stringify({
+        id: stripeId,
+        card: cardId,
+        user: firebase.auth().currentUser.uid
+      }),
+    });
+    const data = await res.json();
+    data.body = JSON.parse(data.body);
+    if(data.body.message !== "Success"){
+      throw new Error('Stripe Error')
+    }
+  }catch(error) {
+    throw error;
+  }
+}
+
+export async function setDefaultTrainerCard(stripeId, cardId) {
+  try {
+    const idToken = await firebase.auth().currentUser.getIdToken(true);
+    const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/setDefaultTrainerCard/', {
       method: 'POST',
       headers: {
         Authorization: idToken

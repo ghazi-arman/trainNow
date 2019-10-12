@@ -8,7 +8,7 @@ import { Actions } from 'react-native-router-flux';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import { OwnerCardModal } from '../modals/OwnerCardModal';
-import { loadUser, loadGym, loadTrainerCards, loadBalance, deleteTrainerCard, getCardIcon } from '../components/Functions';
+import { loadUser, loadGym, loadTrainerCards, loadBalance, deleteTrainerCard, getCardIcon, setDefaultTrainerCard } from '../components/Functions';
 
 export class OwnerPage extends Component {
 
@@ -34,9 +34,9 @@ export class OwnerPage extends Component {
 		}
 	}
 
-	deleteTrainerCard = async(stripeId, cardId) => {
-		if (this.state.cards.length == 1) {
-			Alert.alert("You must have at least one card on file. Add another one before deleting this card.");
+	deleteTrainerCard = async(stripeId, cardId, defaultCard) => {
+		if (defaultCard) {
+			Alert.alert("You cannot delete your default card.");
 			return;
 		}
 		Alert.alert(
@@ -140,6 +140,27 @@ export class OwnerPage extends Component {
 		});
 	}
 
+	async setDefaultTrainerCard(stripeId, cardId){
+		Alert.alert(
+			'Are you sure you want to make this your default card?', 
+			'',
+			[
+				{text: 'No'},
+				{text: 'Yes', onPress: async () => {
+					try {
+						await setDefaultTrainerCard(stripeId, cardId);
+						const cards = await loadTrainerCards(stripeId);
+						this.setState({ cards });
+					}catch(error) {
+						console.log(error);
+						this.bugsnagClient.notify(error);
+						Alert.alert('There was an error. Please try again.');
+					}
+				}}
+			]
+		);
+	}
+
 	logout = () => {
 		Alert.alert(
 			"Log Out",
@@ -174,12 +195,25 @@ export class OwnerPage extends Component {
 		let index = 0;
 		return this.state.cards.map((currCard) => {
 			index++;
+			let defaultButton;
+			let defaultCard = false;
+			if (currCard.default_for_currency) {
+				defaultButton = (<FontAwesome style={styles.greenIcon}>{Icons.checkCircle}</FontAwesome>);
+				defaultCard = true;
+			} else {
+				defaultButton = (
+					<TouchableOpacity style={styles.defaultButton} onPress={() => this.setDefaultTrainerCard(this.state.user.stripeId, currCard.id)}>
+							<Text style={{fontSize: 15, color: COLORS.WHITE}}><FontAwesome>{Icons.check}</FontAwesome></Text>
+						</TouchableOpacity>
+				);
+			}
 			return (
 				<View style={styles.cardRow} key={currCard.id}>
 					<Text style={styles.icon}>{getCardIcon(currCard.brand)}</Text>
 					<Text>•••••• {currCard.last4}</Text>
+					{defaultButton}
 					<Text>{currCard.exp_month.toString()} / {currCard.exp_year.toString().substring(2, 4)}</Text>
-					<TouchableOpacity style={styles.deleteButton} onPress={() => this.deleteTrainerCard(this.state.user.stripeId, currCard.id, index)}>
+					<TouchableOpacity style={styles.deleteButton} onPress={() => this.deleteTrainerCard(this.state.user.stripeId, currCard.id, defaultCard)}>
 						<Text style={{ fontSize: 15, color: COLORS.WHITE }}><FontAwesome>{Icons.remove}</FontAwesome></Text>
 					</TouchableOpacity>
 				</View>
@@ -363,6 +397,18 @@ const styles = StyleSheet.create({
 		width: '50%',
 		height: 50,
 		marginTop: 10
+	},
+	defaultButton: {
+		backgroundColor: COLORS.GREEN,
+		flexDirection: 'column',
+		justifyContent: 'center',
+		alignItems: 'center',
+		width: 30,
+		height: 30
+	},
+	greenIcon: {
+		fontSize: 20,
+		color: COLORS.GREEN
 	},
 	deleteButton: {
 		backgroundColor: COLORS.RED,

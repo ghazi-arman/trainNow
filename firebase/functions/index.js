@@ -34,6 +34,7 @@ function charge(req, res) {
             }
             return;
         }).catch(error => {
+            isValid = false;
             send(res, 401, 'Could not decode user token');
             return;
         });
@@ -84,6 +85,7 @@ function createCustomer(req, res) {
             }
             return;
         }).catch(error => {
+            isValid = false;
             send(res, 401, 'Could not decode user token');
             return;
         });
@@ -131,7 +133,7 @@ function createTrainer(req, res) {
         type: 'custom',
         country: 'US',
         email: email,
-        requested_capabilities: ['card_payments'],
+        requested_capabilities: ['card_payments', 'transfers'],
         business_type: 'individual',
         business_profile: {
             product_description: 'Personal Trainer who sells his services to clients.',
@@ -195,7 +197,7 @@ function createOwner(req, res) {
         type: 'custom',
         country: 'US',
         email: email,
-        requested_capabilities: ['card_payments'],
+        requested_capabilities: ['card_payments', 'transfers'],
         business_type: 'company',
         business_profile: {
             product_description: 'Gym',
@@ -278,6 +280,7 @@ function addCard(req, res) {
             }
             return;
         }).catch(error => {
+            isValid = false;
             send(res, 401, 'Could not decode user token');
             return;
         });
@@ -325,6 +328,7 @@ function addTrainerCard(req, res) {
             }
             return;
         }).catch(error => {
+            isValid = false;
             send(res, 401, 'Could not decode user token');
             return;
         });
@@ -356,25 +360,21 @@ function deleteCard(req, res){
     const idToken = req.headers.authorization;
 
     let isValid = true;
-    if(!idToken){
-        send(res, 401, 'id Token not found');
+    admin.auth().verifyIdToken(idToken).then(async decodedToken => {
+        let uid = decodedToken.uid;
+        let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
+        userStripe = userStripe.val();
+        if(stripeId !== userStripe) {
+            isValid = false;
+            send(res, 401, 'Unauthorized User');
+            return;
+        }
         return;
-    }else{
-        admin.auth().verifyIdToken(idToken).then(async decodedToken => {
-            let uid = decodedToken.uid;
-            let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
-            userStripe = userStripe.val();
-            if(stripeid !== userStripe) {
-                isValid = false;
-                send(res, 401, 'Unauthorized User');
-                return;
-            }
-            return;
-        }).catch(error => {
-            send(res, 401, 'Could not decode user token');
-            return;
-        });
-    }
+    }).catch(error => {
+        isValid = false;
+        send(res, 401, 'Could not decode user token');
+        return;
+    });
 
     if(!isValid) return;
 
@@ -408,13 +408,14 @@ function deleteTrainerCard(req, res){
             let uid = decodedToken.uid;
             let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
             userStripe = userStripe.val();
-            if(stripeid !== userStripe) {
+            if(stripeId !== userStripe) {
                 isValid = false;
                 send(res, 401, 'Unauthorized User');
                 return;
             }
             return;
         }).catch(error => {
+            isValid = false;
             send(res, 401, 'Could not decode user token');
             return;
         });
@@ -459,6 +460,7 @@ function listCards(req, res) {
             return;
         }).catch(error => {
             console.log(error);
+            isValid = false;
             send(res, 401, 'Could not decode user token');
             return;
         });
@@ -501,6 +503,7 @@ function listTrainerCards(req, res) {
             }
             return;
         }).catch(error => {
+            isValid = false;
             send(res, 401, 'Could not decode user token');
             return;
         });
@@ -543,6 +546,7 @@ function getBalance(req, res) {
             }
             return;
         }).catch(error => {
+            isValid = false;
             send(res, 401, 'Could not decode user token');
             return;
         });
@@ -564,7 +568,7 @@ function getBalance(req, res) {
     });
 }
 
-function setDefault(req, res) {
+function setDefaultCard(req, res) {
     const body = JSON.parse(req.body);
     const stripeId =  body.id;
     const cardId = body.card;
@@ -579,13 +583,14 @@ function setDefault(req, res) {
             let uid = decodedToken.uid;
             let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
             userStripe = userStripe.val();
-            if(stripeid !== userStripe) {
+            if(stripeId !== userStripe) {
                 isValid = false;
                 send(res, 401, 'Unauthorized User');
                 return;
             }
             return;
         }).catch(error => {
+            isValid = false;
             send(res, 401, 'Could not decode user token');
             return;
         });
@@ -595,6 +600,52 @@ function setDefault(req, res) {
 
     stripe.customers.update(stripeId, {
         default_source: cardId
+    }).then(result => {
+        send(res, 200, {
+            message: 'Success',
+            result: result
+        });
+        return;
+    }).catch(err => {
+        console.log(err);
+        send(res, 500, {
+            error: err.message
+        });
+    });
+}
+
+function setDefaultTrainerCard(req, res) {
+    const body = JSON.parse(req.body);
+    const stripeId =  body.id;
+    const cardId = body.card;
+    const idToken = req.headers.authorization;
+
+    let isValid = true;
+    if(!idToken){
+        send(res, 401, 'id Token not found');
+        return;
+    }else{
+        admin.auth().verifyIdToken(idToken).then(async decodedToken => {
+            let uid = decodedToken.uid;
+            let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
+            userStripe = userStripe.val();
+            if(stripeId !== userStripe) {
+                isValid = false;
+                send(res, 401, 'Unauthorized User');
+                return;
+            }
+            return;
+        }).catch(error => {
+            isValid = false;
+            send(res, 401, 'Could not decode user token');
+            return;
+        });
+    }
+
+    if(!isValid) return;
+
+    stripe.accounts.updateExternalAccount(stripeId, cardId, {
+        default_for_currency: true
     }).then(result => {
         send(res, 200, {
             message: 'Success',
@@ -630,6 +681,7 @@ function sendMessage(req, res) {
             }
             return;
         }).catch(error => {
+            isValid = false;
             send(res, 401, 'Could not decode user token');
             return;
         });
@@ -687,10 +739,22 @@ app.post('/stripe/createCustomer', (req, res) => {
     }
 });
 
-app.post('/stripe/setDefault', (req, res) => {
+app.post('/stripe/setDefaultCard', (req, res) => {
     //Catch any unexpected errors to prevent crashing
     try {
-        setDefault(req, res);
+        setDefaultCard(req, res);
+    } catch(e) {
+        console.log(e);
+        send(res, 500, {
+            error: JSON.stringify(e)
+        });
+    }
+})
+
+app.post('/stripe/setDefaultTrainerCard', (req, res) => {
+    //Catch any unexpected errors to prevent crashing
+    try {
+        setDefaultTrainerCard(req, res);
     } catch(e) {
         console.log(e);
         send(res, 500, {
