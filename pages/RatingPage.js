@@ -6,7 +6,7 @@ import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { Actions } from 'react-native-router-flux';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
-import { loadSession, loadUser, rateSession, renderStars, dateToString } from '../components/Functions';
+import { loadSession, loadUser, rateSession, dateToString, chargeCard } from '../components/Functions';
 
 export class RatingPage extends Component {
 
@@ -21,7 +21,8 @@ export class RatingPage extends Component {
 		const user = await loadUser(userId);
 		const session = await loadSession(this.props.session);
 		const userType = (user.trainer ? 'trainer' : 'trainee');
-		if(session[userType] === userId && currentSession.traineeRating){
+		const ratingField = `${userType}Rating`;
+		if(session[userType] === userId && session[ratingField]){
 			Actions.reset('MapPage');
 			return;
 		}
@@ -31,7 +32,7 @@ export class RatingPage extends Component {
 	backtomap = () => Actions.reset('MapPage');
 
 
-	rateSession = async(rating) => {
+	rateSession = async() => {
 		if (this.state.submitted) {
 			return;
 		}
@@ -41,7 +42,15 @@ export class RatingPage extends Component {
 		}
 		this.state.submitted = true;
 		try {
-			await rateSession(this.state.session, rating, this.state.user.trainer);
+			if (!this.state.user.trainer) {
+				var duration = new Date() - new Date(this.state.session.start);
+				var minutes = Math.floor((duration/1000)/60);
+				const rate = ((parseInt(minutes) * (parseInt(this.state.session.rate) / 60)) * 100).toFixed(0);
+				const payout = (parseInt(rate) - (parseInt(rate) * .17)).toFixed(0);
+				chargeCard(this.state.session.traineeStripe, this.state.session.trainerStripe, rate, rate - payout, this.state.session);
+			}
+
+			await rateSession(this.state.session, this.state.rating, this.state.user.trainer);
 		} catch(error) {
 			this.state.submitted = false;
 			this.bugsnagClient.notify(error);
@@ -54,12 +63,27 @@ export class RatingPage extends Component {
 	setRating = (key) => this.setState({rating: key});
 
 	renderStar = (number, outline) => {
-		const starToRender = (outline ? Icons.star : Icons.starO)
+		const starToRender = outline ? Icons.starO : Icons.star;
 		return(
 			<TouchableOpacity key={number} onPress={() => this.setRating(number)}>
 				<Text style={styles.icon}><FontAwesome>{starToRender}</FontAwesome></Text>
 			</TouchableOpacity>
 		);
+	}
+
+	renderStars = (rating) => {
+		var star = [];
+		let numStars = 0;
+		while(rating >= 1){
+			numStars++;
+			star.push(this.renderStar(numStars, false));
+			rating--;
+		}
+		while(numStars < 5){
+			numStars++;
+			star.push(this.renderStar(numStars, true));
+		}
+		return star;
 	}
 
 	render() {
@@ -74,12 +98,14 @@ export class RatingPage extends Component {
 		const payout = (parseFloat(rate) - (parseFloat(rate) * .2)).toFixed(2);
 
 		let cost = null;
-		if (this.state.session.trainer === userId && !this.state.session.managed) {
-			cost = <Text style={styles.bookDetails}>Total Earned: ${payout}</Text>
+		if (this.state.session.trainer === userId) {
+			if (this.state.session.trainerType === 'independent') {
+				cost = <Text style={styles.bookDetails}>Total Earned: ${payout}</Text>
+			}
 		} else {
 			cost = <Text style={styles.bookDetails}>Total Cost: ${rate}</Text>;
 		}
-		const stars = renderStars(this.state.rating);
+		const stars = this.renderStars(this.state.rating);
 		return (
 			<View style = {styles.container}>	
 				<View style={styles.formContainer}>

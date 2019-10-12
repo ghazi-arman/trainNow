@@ -24,8 +24,8 @@ export class OwnerPage extends Component {
 		try {
 			let gym = await loadGym(this.props.gym);
 			let user = await loadUser(firebase.auth().currentUser.uid);
-			let cards = await loadTrainerCards(gym.stripeId);
-			let balance = await loadBalance(gym.stripeId);
+			let cards = await loadTrainerCards(user.stripeId);
+			let balance = await loadBalance(user.stripeId);
 			this.setState({ cards, balance, user, gym });
 		} catch(error) {
 			this.bugsnagClient.notify(error);
@@ -85,7 +85,7 @@ export class OwnerPage extends Component {
 
 	acceptTrainer = async(trainerKey) => {
 		try {
-			await firebase.database().ref('users').child(trainerKey).update({ pending: false, stripeId: this.state.gym.stripeId });
+			await firebase.database().ref('users').child(trainerKey).update({ pending: false, stripeId: this.state.user.stripeId });
 			await firebase.database().ref('/gyms/' + this.props.gym + '/pendingtrainers/').child(trainerKey).once("value", (snapshot) => {
 				firebase.database().ref('/gyms/' + this.props.gym + '/trainers/').child(trainerKey).set(snapshot.val());
 			});
@@ -163,7 +163,7 @@ export class OwnerPage extends Component {
 	hideCardModal = () => this.setState({ cardModal: false });
 
 	hideCardModalOnAdd = async() => {
-		var cards = await loadTrainerCards(this.state.gym.stripeId);
+		var cards = await loadTrainerCards(this.state.user.stripeId);
 		this.setState({ cardModal: false, cards });
 	}
 
@@ -179,7 +179,7 @@ export class OwnerPage extends Component {
 					<Text style={styles.icon}>{getCardIcon(currCard.brand)}</Text>
 					<Text>•••••• {currCard.last4}</Text>
 					<Text>{currCard.exp_month.toString()} / {currCard.exp_year.toString().substring(2, 4)}</Text>
-					<TouchableOpacity style={styles.deleteButton} onPress={() => this.deleteTrainerCard(this.state.gym.stripeId, currCard.id, index)}>
+					<TouchableOpacity style={styles.deleteButton} onPress={() => this.deleteTrainerCard(this.state.user.stripeId, currCard.id, index)}>
 						<Text style={{ fontSize: 15, color: COLORS.WHITE }}><FontAwesome>{Icons.remove}</FontAwesome></Text>
 					</TouchableOpacity>
 				</View>
@@ -188,7 +188,7 @@ export class OwnerPage extends Component {
 	}
 
 	render() {
-		if (!this.state.user || !this.state.gym || !this.state.cards || !this.state.balance) {
+		if (!this.state.user || !this.state.gym || !this.state.cards || this.state.balance === undefined) {
 			return <AppLoading />
 		}
 		if (this.state.currentTab === 'pending') {

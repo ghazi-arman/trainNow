@@ -20,7 +20,8 @@ export class OwnerCardModal extends Component {
 		if (!this.state.gym) {
 			try {
 				const gym = await loadGym(this.props.gym);
-				this.setState({ gym });
+				const user = await loadUser(firebase.auth().currentUser.uid);
+				this.setState({ gym, user });
 			} catch(error) {
 				this.bugsnagClient.notify(error);
 				Alert.alert('There was an error loading the card modal. Please try again later.');
@@ -67,7 +68,7 @@ export class OwnerCardModal extends Component {
 				},
 				body: JSON.stringify({
 					token: card,
-					id: this.state.gym.stripeId,
+					id: this.state.user.stripeId,
 					user: user.uid
 				})
 			})
@@ -90,7 +91,7 @@ export class OwnerCardModal extends Component {
 	}
 
 	render(){
-		if (!this.state.gym) {
+		if (!this.state.gym || !this.state.user) {
 			return <AppLoading />
 		}
 		return(

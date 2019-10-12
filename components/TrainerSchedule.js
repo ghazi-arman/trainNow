@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { AppLoading } from 'expo';
 import COLORS from './Colors';
-import { dateToString, loadUser, loadAcceptedSchedule, dateforAgenda, loadAvailableSchedule } from './Functions';
+import { dateToString, loadUser, loadAcceptedSchedule, dateforAgenda, loadAvailableSchedule, loadOtherTrainer } from './Functions';
 import { Agenda } from 'react-native-calendars';
 
 export class TrainerSchedule extends Component {
@@ -18,13 +18,13 @@ export class TrainerSchedule extends Component {
 	async componentDidMount(){
 		// load trainer and user info and trainer sessions
 		if(!this.state.trainer || !this.state.sessions){
-			var trainer = await loadUser(this.props.trainerKey);
+			var trainer = await loadOtherTrainer(this.props.trainerKey);
 			var sessions = await loadAcceptedSchedule(this.props.trainerKey);
 			var availability = await loadAvailableSchedule(this.props.trainerKey);
 			sessions = sessions.concat(availability);
 		}
 
-		this.setState({trainer, sessions});
+		this.setState({trainer, sessions, trainer});
 	}
 
 	renderAgendaItem(item, firstItemInDay){

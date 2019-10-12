@@ -8,7 +8,7 @@ import { Actions } from 'react-native-router-flux';
 import bugsnag from '@bugsnag/expo';
 import { BookModalRegular } from '../modals/BookModalRegular';
 import COLORS from '../components/Colors';
-import { loadUser, loadRecentTrainers, loadClientRequests, dateToString, denyTrainerRequest, acceptClientRequest, sendTrainerRequest } from '../components/Functions';
+import { loadUser, loadRecentTrainers, loadClientRequests, dateToString, acceptClientRequest, sendTrainerRequest, denyClientRequest } from '../components/Functions';
 
 export class TrainerPage extends Component {
 
@@ -41,9 +41,9 @@ export class TrainerPage extends Component {
 		try {
 			const userId = firebase.auth().currentUser.uid;
 			await sendTrainerRequest(trainerKey, traineeName, userId, gymKey);
+			Alert.alert(`Request was sent to the trainer.`);
 			const user = await loadUser(userId);
-			const clientRequests = await loadClientRequests(userId);
-			this.setState({ user, clientRequests });
+			this.setState({ user });
 		} catch(error) {
 			this.bugsnagClient.notify(error);
 			Alert.alert('There was an error sending the request.');
@@ -53,7 +53,7 @@ export class TrainerPage extends Component {
 	denyRequest = async(requestKey, trainerKey) => {
 		try {
 			const userId = firebase.auth().currentUser.uid;
-			await denyTrainerRequest(requestKey, userId, trainerKey);
+			await denyClientRequest(requestKey, userId, trainerKey);
 			const clientRequests = await loadClientRequests(userId);
 			this.setState({ clientRequests });
 		} catch(error) {

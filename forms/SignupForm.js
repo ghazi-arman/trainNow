@@ -98,7 +98,7 @@ export class SignupForm extends Component {
 
     if (this.state.trainer) {
       const gymKey = this.state.gyms[this.state.gym].key;
-      const gymType = this.state.gyms[this.state.gym].type
+      const gymType = this.state.gyms[this.state.gym].type;
       if (gymType == 'independent') {
         let ssn = {
           pii: {
@@ -155,7 +155,7 @@ export class SignupForm extends Component {
 
       try {
         const user = await firebase.auth().createUserWithEmailAndPassword(this.state.email, this.state.password);
-        if(gymType == 'independent'){
+        if (gymType === 'independent'){
           var pending = false;
           var gymRef = firebase.database().ref('/gyms/' + gymKey + '/trainers/');
         }else{
@@ -186,6 +186,13 @@ export class SignupForm extends Component {
           rating: 0,
           sessions: 0,
         });
+
+        if (gymType === 'independent') {
+          const gymOwnerKey = this.state.gyms[this.state.gym].ownerKey;
+          firebase.database().ref('users').child(user.user.uid).update({
+            ownerKey: gymOwnerKey
+          })
+        }
           
         if (this.state.image) {
           this.uploadImage(this.state.image, user.user.uid);

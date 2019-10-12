@@ -4,7 +4,7 @@ import firebase from 'firebase';
 import { AppLoading } from 'expo';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
-import { dateToString, timeOverlapCheck, loadUser, loadGym, loadAcceptedSchedule, loadPendingSchedule, createPendingSession, sendMessage } from '../components/Functions';
+import { dateToString, timeOverlapCheck, loadUser, loadGym, loadAcceptedSchedule, loadPendingSchedule, createPendingSession, sendMessage, loadOtherTrainer } from '../components/Functions';
 
 export class BookModalRegular extends Component {
 	constructor(props) {
@@ -19,7 +19,7 @@ export class BookModalRegular extends Component {
 	async componentDidMount() {
 		if(!this.state.trainer || !this.state.user || !this.state.gym){
 			try {
-				let trainer = await loadUser(this.props.trainer);
+				let trainer = await loadOtherTrainer(this.props.trainer);
 				let user = await loadUser(firebase.auth().currentUser.uid);
 				let gym = await loadGym(this.props.gym);
 				this.setState({ user, trainer, gym });

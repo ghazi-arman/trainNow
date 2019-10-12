@@ -18,57 +18,45 @@ export class SessionPage extends Component {
 		this.bugsnagClient = bugsnag();
 	}
 
-	componentDidMount() {
-		try {
-			const location = getLocation();
-			const session = loadSession(this.props.session);
-			if (this.state.session.end) {
-				Actions.RatingPage({session: session.key});
+	async componentDidMount() {
+		this._interval = setInterval(async () => {
+			try {
+				const location = await getLocation();
+				const session = await loadSession(this.props.session);
+				if (session.end) {
+					clearInterval(this._interval);
+					Actions.RatingPage({session: session.key});
+				}
+				this.setState({ session, userRegion: location, mapRegion: location });
+			} catch(error) {
+				this.bugsnagClient.notify(error);
+				Alert.alert('There was an error when trying to load the current session.');
+				this.goToMap();
 			}
-			this.setState({ session, userRegion: location, mapRegion: location });
-		} catch(error) {
-			this.bugsnagClient.notify(error);
-			Alert.alert('There was an error when trying to load the current session.');
-			this.goToMap();
-		}
+		}, 1000);
+	}
+
+	componentWillUnmount() {
+		clearInterval(this._interval);
 	}
 	
 	startSession = () => {
 		startSession(this.state.session, this.state.userRegion);
 	}
 	endSession = () => {
-		var user = firebase.auth().currentUser;
-		var sessionRef = firebase.database().ref('/trainSessions/' + this.state.session.key);
-		var duration = new Date() - new Date(this.state.session.start);
-		var minutes = Math.floor((duration/1000)/60);
-		var rate = ((parseInt(minutes) * (parseInt(this.state.session.rate) / 60)) * 100).toFixed(0);
-		var payout = (parseInt(rate) - (parseInt(rate) * .17)).toFixed(0);
-
+		const user = firebase.auth().currentUser;
+		const sessionRef = firebase.database().ref(`/trainSessions/${this.state.session.key}`);
+		
 		if(this.state.session.trainer == user.uid){
 			if(this.state.session.traineeEnd){
 				sessionRef.update({trainerEnd: true, end: new Date()});
-				sessionRef.once('value', function(snapshot){
-					var session = snapshot.val();
-					if(!session.paid){
-						chargeCard(this.state.session.traineeStripe, this.state.session.trainerStripe, rate, rate - payout, user.uid, this.state.session);
-						sessionRef.update({paid: true});
-					}
-				}.bind(this));
 				Actions.RatingPage({session: this.state.session.key});
-
 			}else{
 				sessionRef.update({trainerEnd: true});
 			}
 		}else{
 			if(this.state.session.trainerEnd){
 				sessionRef.update({traineeEnd: true, end: new Date()});
-				sessionRef.once('value', function(snapshot){
-					var session = snapshot.val();
-					if(!session.paid){
-						chargeCard(this.state.session.traineeStripe, this.state.session.trainerStripe, rate, rate - payout, user.uid, this.state.session);
-						sessionRef.update({paid: true});
-					}
-				}.bind(this));
 				Actions.RatingPage({session: this.state.session.key});
 			}else{
 				sessionRef.update({traineeEnd: true});

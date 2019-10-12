@@ -9,7 +9,7 @@ import { Actions } from 'react-native-router-flux';
 import bugsnag from '@bugsnag/expo';
 import { CardModal } from '../modals/CardModal';
 import COLORS from '../components/Colors';
-import { loadUser, loadTrainerCards, loadCards, getCardIcon, deleteCard, setDefaultCard } from '../components/Functions';
+import { loadUser, loadTrainerCards, loadCards, getCardIcon, deleteCard, setDefaultCard, loadBalance } from '../components/Functions';
 
 export class PaymentPage extends Component {
 
@@ -22,20 +22,28 @@ export class PaymentPage extends Component {
 	}
 
 	async componentDidMount() {
-		const user = await loadUser(firebase.auth().currentUser.uid);
-		if (user.type === 'owner') {
-			Alert.alert('You do not have access to this page.');
-			Actions.reset('MapPage');
-			return;
+		if (!this.state.cards || !this.state.balance || !this.state.user) {
+			try {
+				const user = await loadUser(firebase.auth().currentUser.uid);
+				if (user.type === 'owner') {
+					Alert.alert('You do not have access to this page.');
+					Actions.reset('MapPage');
+					return;
+				}
+				let balance, cards;
+				if (user.trainer) {
+					balance = await loadBalance(user.stripeId);
+					cards = await loadTrainerCards(user.stripeId);
+				} else {
+					cards = await loadCards(user.stripeId);
+				}
+				this.setState({ user, cards, balance });
+			} catch(error) {
+				this.bugsnagClient.notify(error);
+				Alert.alert('There was an error accessing your payment information.');
+				this.goToMap();
+			}
 		}
-		let balance, cards;
-		if (user.trainer) {
-			balance = await getBalance(user.stripeId);
-			cards = await loadTrainerCards(user.stripeId);
-		} else {
-			cards = await loadCards(user.stripeId);
-		}
-		this.setState({ user, cards, balance });
 	}
 
 	goToMap = () => Actions.MapPage();

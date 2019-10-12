@@ -11,7 +11,6 @@ const twilio = require('twilio')(functions.config().twilio.id, functions.config(
 
 function charge(req, res) {
     const body = JSON.parse(req.body);
-    const user = body.charge.user;
     const traineeStripe = body.charge.traineeId;
     const trainerStripe = body.charge.trainerId;
     const amount = body.charge.amount;
@@ -24,11 +23,14 @@ function charge(req, res) {
         send(res, 401, 'id Token not found');
         return;
     }else{
-        admin.auth().verifyIdToken(idToken).then(decodedToken => {
+        admin.auth().verifyIdToken(idToken).then(async decodedToken => {
             let uid = decodedToken.uid;
-            if(uid !== user){
+            let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
+            userStripe = userStripe.val();
+            if(traineeStripe !== userStripe) {
                 isValid = false;
                 send(res, 401, 'Unauthorized User');
+                return;
             }
             return;
         }).catch(error => {
@@ -258,7 +260,6 @@ function addCard(req, res) {
     const body = JSON.parse(req.body);
     const stripeid = body.id;
     const token = body.token.id;
-    const user = body.user;
     const idToken = req.headers.authorization;
 
     let isValid = true;
@@ -266,11 +267,14 @@ function addCard(req, res) {
         send(res, 401, 'id Token not found');
         return;
     }else{
-        admin.auth().verifyIdToken(idToken).then(decodedToken => {
+        admin.auth().verifyIdToken(idToken).then(async decodedToken => {
             let uid = decodedToken.uid;
-            if(uid !== user){
+            let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
+            userStripe = userStripe.val();
+            if(stripeid !== userStripe) {
                 isValid = false;
                 send(res, 401, 'Unauthorized User');
+                return;
             }
             return;
         }).catch(error => {
@@ -303,7 +307,6 @@ function addTrainerCard(req, res) {
     const body = JSON.parse(req.body);
     const stripeid = body.id;
     const token = body.token.id;
-    const user = body.user;
     const idToken = req.headers.authorization;
 
     let isValid = true;
@@ -311,11 +314,14 @@ function addTrainerCard(req, res) {
         send(res, 401, 'id Token not found');
         return;
     }else{
-        admin.auth().verifyIdToken(idToken).then(decodedToken => {
+        admin.auth().verifyIdToken(idToken).then(async decodedToken => {
             let uid = decodedToken.uid;
-            if(uid !== user){
+            let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
+            userStripe = userStripe.val();
+            if(stripeid !== userStripe) {
                 isValid = false;
                 send(res, 401, 'Unauthorized User');
+                return;
             }
             return;
         }).catch(error => {
@@ -347,7 +353,6 @@ function deleteCard(req, res){
     const body = JSON.parse(req.body);
     const cardId = body.cardId;
     const stripeId = body.stripeId;
-    const user = body.user;
     const idToken = req.headers.authorization;
 
     let isValid = true;
@@ -355,11 +360,14 @@ function deleteCard(req, res){
         send(res, 401, 'id Token not found');
         return;
     }else{
-        admin.auth().verifyIdToken(idToken).then(decodedToken => {
+        admin.auth().verifyIdToken(idToken).then(async decodedToken => {
             let uid = decodedToken.uid;
-            if(uid !== user){
+            let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
+            userStripe = userStripe.val();
+            if(stripeid !== userStripe) {
                 isValid = false;
                 send(res, 401, 'Unauthorized User');
+                return;
             }
             return;
         }).catch(error => {
@@ -389,7 +397,6 @@ function deleteTrainerCard(req, res){
     const body = JSON.parse(req.body);
     const cardId = body.cardId;
     const stripeId = body.stripeId;
-    const user = body.user;
     const idToken = req.headers.authorization;
 
     let isValid = true;
@@ -397,11 +404,14 @@ function deleteTrainerCard(req, res){
         send(res, 401, 'id Token not found');
         return;
     }else{
-        admin.auth().verifyIdToken(idToken).then(decodedToken => {
+        admin.auth().verifyIdToken(idToken).then(async decodedToken => {
             let uid = decodedToken.uid;
-            if(uid !== user){
+            let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
+            userStripe = userStripe.val();
+            if(stripeid !== userStripe) {
                 isValid = false;
                 send(res, 401, 'Unauthorized User');
+                return;
             }
             return;
         }).catch(error => {
@@ -430,7 +440,6 @@ function deleteTrainerCard(req, res){
 function listCards(req, res) {
     const body = JSON.parse(req.body);
     const stripeid = body.id;
-    const user = body.user;
     const idToken = req.headers.authorization;
 
     let isValid = true;
@@ -438,14 +447,18 @@ function listCards(req, res) {
         send(res, 401, 'id Token not found');
         return;
     }else{
-        admin.auth().verifyIdToken(idToken).then(decodedToken => {
+        admin.auth().verifyIdToken(idToken).then(async decodedToken => {
             let uid = decodedToken.uid;
-            if(uid !== user){
+            let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
+            userStripe = userStripe.val();
+            if(stripeid !== userStripe) {
                 isValid = false;
                 send(res, 401, 'Unauthorized User');
+                return;
             }
             return;
         }).catch(error => {
+            console.log(error);
             send(res, 401, 'Could not decode user token');
             return;
         });
@@ -470,7 +483,6 @@ function listCards(req, res) {
 function listTrainerCards(req, res) {
     const body = JSON.parse(req.body);
     const stripeid = body.id;
-    const user = body.user;
     const idToken = req.headers.authorization;
 
     let isValid = true;
@@ -478,11 +490,14 @@ function listTrainerCards(req, res) {
         send(res, 401, 'id Token not found');
         return;
     }else{
-        admin.auth().verifyIdToken(idToken).then(decodedToken => {
+        admin.auth().verifyIdToken(idToken).then(async decodedToken => {
             let uid = decodedToken.uid;
-            if(uid !== user){
+            let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
+            userStripe = userStripe.val();
+            if(stripeid !== userStripe) {
                 isValid = false;
                 send(res, 401, 'Unauthorized User');
+                return;
             }
             return;
         }).catch(error => {
@@ -510,7 +525,6 @@ function listTrainerCards(req, res) {
 function getBalance(req, res) {
     const body = JSON.parse(req.body);
     const stripeid = body.id;
-    const user = body.user;
     const idToken = req.headers.authorization;
 
     let isValid = true;
@@ -518,11 +532,14 @@ function getBalance(req, res) {
         send(res, 401, 'id Token not found');
         return;
     }else{
-        admin.auth().verifyIdToken(idToken).then(decodedToken => {
+        admin.auth().verifyIdToken(idToken).then(async decodedToken => {
             let uid = decodedToken.uid;
-            if(uid !== user){
+            let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
+            userStripe = userStripe.val();
+            if(stripeid !== userStripe) {
                 isValid = false;
                 send(res, 401, 'Unauthorized User');
+                return;
             }
             return;
         }).catch(error => {
@@ -551,7 +568,6 @@ function setDefault(req, res) {
     const body = JSON.parse(req.body);
     const stripeId =  body.id;
     const cardId = body.card;
-    const user = body.user;
     const idToken = req.headers.authorization;
 
     let isValid = true;
@@ -559,11 +575,14 @@ function setDefault(req, res) {
         send(res, 401, 'id Token not found');
         return;
     }else{
-        admin.auth().verifyIdToken(idToken).then(decodedToken => {
+        admin.auth().verifyIdToken(idToken).then(async decodedToken => {
             let uid = decodedToken.uid;
-            if(uid !== user){
+            let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
+            userStripe = userStripe.val();
+            if(stripeid !== userStripe) {
                 isValid = false;
                 send(res, 401, 'Unauthorized User');
+                return;
             }
             return;
         }).catch(error => {
@@ -607,6 +626,7 @@ function sendMessage(req, res) {
             if(uid !== user){
                 isValid = false;
                 send(res, 401, 'Unauthorized User');
+                return;
             }
             return;
         }).catch(error => {

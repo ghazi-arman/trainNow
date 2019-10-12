@@ -4,7 +4,7 @@ import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { AppLoading } from 'expo';
 import bugsnag from '@bugsnag/expo';
-import { dateToString, timeOverlapCheck, loadPendingSchedule, sendMessage, loadUser, createPendingSession, loadAcceptedSchedule } from '../components/Functions';
+import { dateToString, timeOverlapCheck, loadPendingSchedule, sendMessage, loadUser, createPendingSession, loadAcceptedSchedule, loadOtherTrainer } from '../components/Functions';
 import COLORS from '../components/Colors';
 
 export class BookModal extends Component {
@@ -22,13 +22,13 @@ export class BookModal extends Component {
     if(!this.state.trainer || !this.state.user){
       try {
         // Load trainer and user logged in
-        const trainer = await loadUser(this.props.trainer.key);
+        const trainer = await loadOtherTrainer(this.props.trainer.key);
         const user = await loadUser(firebase.auth().currentUser.uid);
         this.setState({trainer, user});
       } catch(error) {
         this.bugsnagClient.notify(error);
-        Alert.alert("There was an error loading this trainer. Please try again later.");
         this.props.hide();
+        Alert.alert("There was an error loading this trainer. Please try again later.");
       }
     }
   }
@@ -50,10 +50,6 @@ export class BookModal extends Component {
     // checks if client is using trainer account and if trainer is active
     if (this.state.user.trainer) {
       Alert.alert('Sign into a non-trainer account to book sessions.');
-      return;
-    }
-    if (this.state.trainer.active == false) {
-      Alert.alert('Sorry, this trainer is no longer active.');
       return;
     }
     this.state.submitted = true;

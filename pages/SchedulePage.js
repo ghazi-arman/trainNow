@@ -31,8 +31,8 @@ export class SchedulePage extends Component {
 				const userType = (user.trainer ? 'trainer' : 'trainee')
 				const pendingSessions = await loadPendingSessions(userId, userType);
 				const acceptSessions = await loadAcceptedSessions(userId, userType);
+				await markSessionsAsRead(pendingSessions, acceptSessions, user.trainer);
 				this.setState({ user, pendingSessions, acceptSessions });
-				markSessionsAsRead(pendingSessions, acceptSessions, user.trainer);
 			} catch(error) {
 				this.bugsnagClient.notify(error);
 				Alert.alert('There was as an error loading the schedule page.');
