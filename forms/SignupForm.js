@@ -10,6 +10,7 @@ import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import TextField from '../components/TextField';
 const stripe = require('stripe-client')('pk_test_6sgeMvomvrZFucRqYhi6TSbO');
+const defaultProfilePic = require('../images/profile.png');
 
 export class SignupForm extends Component {
 
@@ -18,7 +19,8 @@ export class SignupForm extends Component {
     this.state = {
       trainer: false,
       page: 1,
-      pressed: false
+      pressed: false,
+      image: defaultProfilePic.uri
     };
     this.bugsnagClient = bugsnag();
   }
@@ -377,7 +379,7 @@ export class SignupForm extends Component {
         <View style={styles.container}>
           <TextField 
             icon={Icons.user}
-            placeholder="Full Legal Name (First and Last Only)"
+            placeholder="Name (First and Last)"
             onChange={(name) => this.setState({ name })}
             value={this.state.name}
           />
@@ -506,30 +508,27 @@ export class SignupForm extends Component {
       );
     } else {
       nextButton = null;
-      if (image != 'null') {
-        page4 = (
-          <View style={styles.imageContainer}>
-            <Image source={{ uri: image }} style={styles.imageHolder} />
-            <TouchableOpacity style={styles.pictureButton} onPressIn={this.pickImage}>
-              <Text style={styles.buttonText}><FontAwesome>{Icons.plusSquare}</FontAwesome></Text>
-            </TouchableOpacity>
-          </View>);
-      } else {
-        page4 = (
-          <View style={styles.imageContainer}>
-            <View style={styles.imageHolder}>
-              <TouchableOpacity style={styles.pictureButton} onPressIn={this.pickImage}>
-                <Text style={styles.pictureIcon}><FontAwesome>{Icons.plusSquare}</FontAwesome></Text>
-              </TouchableOpacity>
-            </View>
-          </View>);
+      let buttonText = 'Add Picture';
+      let profileImage = <Image source={defaultProfilePic} style={styles.imageHolder} />
+      if (image != defaultProfilePic.uri) {
+        buttonText = 'Change';
+        profileImage = <Image source={{ uri: image }} style={styles.imageHolder} />
       }
+      page4 = (
+        <View style={styles.imageContainer}>
+          {profileImage}
+          <TouchableOpacity style={styles.pictureButton} onPressIn={this.pickImage}>
+            <Text style={styles.pictureButtonText}> {buttonText} </Text>
+          </TouchableOpacity>
+        </View>
+      );
 
       submitButton = (
         <TouchableOpacity ref={btn => { this.btn = btn; }} style={styles.buttonContainer} onPressIn={this.signUp}>
           <Text style={styles.buttonText}> Signup </Text>
         </TouchableOpacity>
       );
+      
       agreement = (
         <View style={{ marginTop: 15 }}>
           <Text style={styles.agreement}>
@@ -582,19 +581,21 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.SECONDARY,
     paddingVertical: 15,
     width: 200,
-    marginTop: 5,
+    margin: 5,
   },
   pictureButton: {
-    backgroundColor: COLORS.SECONDARY,
-    width: 40,
-    height: 40,
+    padding: 10,
+    backgroundColor: COLORS.PRIMARY,
+    height: 50,
     flexDirection: 'column',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    margin: 5
   },
-  pictureIcon: {
+  pictureButtonText: {
+    fontWeight: '700',
     color: '#f6f5f5',
-    fontSize: 30,
+    fontSize: 20,
     textAlign: 'center'
   },
   buttonText: {
@@ -615,7 +616,8 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
-    borderColor: COLORS.SECONDARY,
+    borderColor: COLORS.PRIMARY,
+    marginBottom: 10
   },
   icon: {
     color: COLORS.PRIMARY,

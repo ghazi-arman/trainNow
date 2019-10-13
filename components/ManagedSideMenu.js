@@ -5,7 +5,6 @@ import { AppLoading } from 'expo';
 import * as Font from 'expo-font';
 import firebase from 'firebase';
 import { Actions } from 'react-native-router-flux';
-const profileImage = require('../images/profile.png');
 import COLORS from './Colors';
 
 export class ManagedSideMenu extends Component {
@@ -101,15 +100,12 @@ export class ManagedSideMenu extends Component {
           </TouchableOpacity>
         );
       }
-      if(this.state.image != 'null'){
-        var imageHolder = (<View style={styles.imageContainer}><Image style={styles.image} source={{ uri: this.state.image }} /></View>);
-      }else{
-        var imageHolder = (<View style={styles.imageContainer}><Image style={styles.image} source={profileImage} /></View>);
-      }
     	return(
     		<View style={styles.container}>
           <View style={styles.nameContainer}>
-            {imageHolder}
+            <View style={styles.imageContainer}>
+              <Image style={styles.image} source={{ uri: this.state.image }} />
+            </View>
             <View style={styles.infoContainer}>
               <Text style={{fontSize: 25, color: COLORS.WHITE}}>{this.state.name}</Text>
               <Text style={{fontSize: 20, color: COLORS.WHITE}}>Rating: {this.state.rating}</Text>

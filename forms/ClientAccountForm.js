@@ -9,7 +9,6 @@ import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import TextField from '../components/TextField';
 import { loadUser } from '../components/Functions';
-const profileImage = require('../images/profile.png');
 
 export class ClientAccountForm extends Component {
 
@@ -117,17 +116,11 @@ export class ClientAccountForm extends Component {
     if (!this.state.user || !this.state.imageUploaded) {
       return <AppLoading />;
     }
-    
-    if (this.state.image) {
-      imageHolder = (<Image source={{ uri: this.state.image }} style={styles.imageHolder} />);
-    } else {
-      imageHolder = (<Image source={profileImage} style={styles.imageHolder} />);
-    }
 
     return (
       <View style={styles.form}>
         <View style={styles.imageContainer}>
-          {imageHolder}
+          <Image source={{ uri: this.state.image }} style={styles.imageHolder} />
         </View>
         <TextField
           icon={Icons.user}

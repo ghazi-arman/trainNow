@@ -224,7 +224,7 @@ export class OwnerSignupForm extends Component {
 			<View>
 				<TextField
           icon={Icons.user}
-          placeholder="Full Legal Name (First and Last Only)"
+          placeholder="Name (First and Last Only)"
           onChange={(name) => this.setState({name})}
           value={this.state.name}
         />

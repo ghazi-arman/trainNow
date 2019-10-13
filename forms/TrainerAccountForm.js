@@ -9,7 +9,6 @@ import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import TextField from '../components/TextField';
 import { loadUser } from '../components/Functions';
-const profileImage = require('../images/profile.png');
 
 export class TrainerAccountForm extends Component {
 
@@ -160,13 +159,7 @@ export class TrainerAccountForm extends Component {
     if (!this.state.trainer || !this.state.imageUploaded) {
       return <AppLoading />;
     }
-
-    if (this.state.image) {
-      imageHolder = (<Image source={{ uri: this.state.image }} style={styles.imageHolder} />);
-    } else {
-      imageHolder = (<Image source={profileImage} style={styles.imageHolder} />);
-    }
-
+    
     return (
       <View style={styles.form}>
         <View style={styles.switchRow}>
@@ -180,7 +173,7 @@ export class TrainerAccountForm extends Component {
           />
         </View>
         <View style={styles.imageContainer}>
-          {imageHolder}
+          <Image source={{ uri: this.state.image }} style={styles.imageHolder} />
         </View>
         <TextField
           icon={Icons.user}
