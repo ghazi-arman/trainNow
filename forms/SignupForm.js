@@ -189,7 +189,7 @@ export class SignupForm extends Component {
           sessions: 0,
         });
 
-        if (gymType === 'independent') {
+        if (gymType !== 'independent') {
           const gymOwnerKey = this.state.gyms[this.state.gym].ownerKey;
           firebase.database().ref('users').child(user.user.uid).update({
             ownerKey: gymOwnerKey
