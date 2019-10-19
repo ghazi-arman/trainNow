@@ -62,7 +62,7 @@ export class LoginForm extends Component {
         return;
       }
       if (user.trainer) {
-        Actions.reset('SchedulePage');
+        Actions.reset('CalendarPage');
         return;
       }
 

@@ -203,7 +203,7 @@ export class SignupForm extends Component {
         if(gymType == 'independent'){
           firebase.database().ref('users').child(user.user.uid).update({stripeId: data.trainer.id, cardAdded: false});
           await firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password);
-          Actions.reset('SchedulePage');
+          Actions.reset('CalendarPage');
           Alert.alert('You must enter a debit card for payouts before trainees can book a session with you!');
         }else{
           Actions.reset('LoginPage');

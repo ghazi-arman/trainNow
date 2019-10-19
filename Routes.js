@@ -9,7 +9,7 @@ import {AccountPage} from './pages/AccountPage';
 import {SessionPage} from './pages/SessionPage';
 import {RatingPage} from './pages/RatingPage';
 import {HistoryPage} from './pages/HistoryPage';
-import {SchedulePage} from './pages/SchedulePage';
+import {CalendarPage} from './pages/CalendarPage';
 import {PaymentPage} from './pages/PaymentPage';
 import {ClientPage} from './pages/ClientPage';
 import {TrainerPage} from './pages/TrainerPage';
@@ -30,7 +30,7 @@ export class Routes extends Component {
 			    	<Scene key="SessionPage" component={SessionPage} title="SessionPage" />
 			    	<Scene key="RatingPage" component={RatingPage} title="RatingPage" />
 			    	<Scene key="HistoryPage" component={HistoryPage} title="HistoryPage" />
-			    	<Scene key="SchedulePage" component={SchedulePage} title="SchedulePage" />
+			    	<Scene key="CalendarPage" component={CalendarPage} title="CalendarPage" />
 			    	<Scene key="PaymentPage" component={PaymentPage} title="PaymentPage" />
 			    	<Scene key="ClientPage" component={ClientPage} title="ClientPage" />
 			    	<Scene key="TrainerPage" component={TrainerPage} title="TrainerPage" />

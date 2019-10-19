@@ -11,7 +11,7 @@ import COLORS from '../components/Colors';
 import { SchedulerModal } from '../modals/SchedulerModal';
 import { TrainerSchedule } from '../components/TrainerSchedule';
 
-export class SchedulePage extends Component {
+export class CalendarPage extends Component {
 
 	constructor(props) {
 		super(props);

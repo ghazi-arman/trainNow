@@ -123,7 +123,7 @@ export class SideMenu extends Component {
                 <FontAwesome>{Icons.gear}</FontAwesome> <Text style={styles.menuLink}> Settings</Text>
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => Actions.SchedulePage()}>
+          <TouchableOpacity onPress={() => Actions.CalendarPage()}>
             <Text style={styles.icon}>
                 <FontAwesome>{Icons.calendar}</FontAwesome> <Text style={styles.menuLink}> Calendar</Text>
             </Text>

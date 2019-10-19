@@ -139,7 +139,7 @@ export class MapPage extends Component {
         'You have a new session!',
         [
           {text: 'Close'},
-          {text: 'View', onPress: () => Actions.SchedulePage()}
+          {text: 'View', onPress: () => Actions.CalendarPage()}
         ]
       );
       this.state.modalPresent = true;
