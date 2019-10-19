@@ -85,7 +85,7 @@ export class GymModal extends Component {
 			if (trainer.active) {
 				activeField = <Text style={[styles.rate, styles.active]}>Active - ${trainer.rate}/hr</Text>;
 			} else {
-				activeField = <Text style={[styles.rate, styles.away]}>Away</Text>;
+				activeField = <Text style={[styles.rate, styles.away]}>Away - ${trainer.rate}/hr</Text>;
 			}
 
 			let imageHolder;
@@ -184,7 +184,7 @@ export class GymModal extends Component {
 
 const styles = StyleSheet.create({
 	modal: {
-		flex: .9,
+		flex: .95,
 		flexDirection: 'column',
 		justifyContent: 'flex-start',
 		alignItems: 'center',
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
   imageContainer: {
 		width: 90,
 		height:90,
-		borderRadius: 45,
+		borderRadius: 5,
 		flexDirection: 'row',
 		justifyContent: 'center',
 		alignItems: 'center',
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
 	imageHolder: {
 		width: 90,
 		height: 90,
-		borderRadius: 45
+		borderRadius: 5
 	},
 	trainerInfoContainer:{
 		width: '60%',
@@ -283,9 +283,10 @@ const styles = StyleSheet.create({
 		minHeight: 100,
 	},
 	ratingContainer: {
+		height: 50,
 		flexDirection: 'column',
-		justifyContent: 'flex-start',
-		alignItems: 'center'
+		justifyContent: 'space-between',
+		alignItems: 'center',
 	},
 	trainerName: {
 		fontSize: 22,
@@ -309,7 +310,8 @@ const styles = StyleSheet.create({
 		backgroundColor: COLORS.SECONDARY,
 		flexDirection: 'column',
 		justifyContent: 'center',
-		margin: 10
+		margin: 10,
+		borderRadius: 5
 	},
 	buttonText: {
 		textAlign: 'center',
@@ -320,7 +322,7 @@ const styles = StyleSheet.create({
 		color: COLORS.SECONDARY
 	},
 	away:{
-		color: COLORS.RED
+		color: COLORS.PRIMARY
 	},
 	icon: {
 		color: COLORS.SECONDARY,

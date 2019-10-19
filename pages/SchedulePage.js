@@ -193,7 +193,7 @@ export class SchedulePage extends Component {
 	renderAccept = () => {
 		var userKey = firebase.auth().currentUser.uid;
 		if (!this.state.acceptSessions.length) {
-			return (<Text style={styles.navText} >None</Text>);
+			return (<Text style={styles.navText}>None</Text>);
 		}
 		return this.state.acceptSessions.map((session) => {
 
@@ -389,8 +389,11 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	sessionContainer: {
-		flex: .4,
+		flex: 0.4,
 		width: '100%',
+		flexDirection: 'column',
+		justifyContent: 'flex-start',
+		alignItems: 'center'
 	},
 	title: {
 		marginTop: 45,
@@ -465,6 +468,7 @@ const styles = StyleSheet.create({
 	scheduleButton: {
 		padding: 10,
 		height: 48,
+		width: 200,
 		backgroundColor: COLORS.SECONDARY,
 		flexDirection: 'column',
 		justifyContent: 'center',
@@ -495,6 +499,6 @@ const styles = StyleSheet.create({
 		left: 20,
 		fontSize: 35,
 		color: COLORS.SECONDARY,
-		lineHeight: 20
+		lineHeight: 35
 	}
 })

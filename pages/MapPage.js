@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import { Image, StyleSheet, Text, View, Alert, TouchableOpacity } from 'react-native';
 import { AppLoading } from 'expo';
+import * as Permissions from 'expo-permissions';
 import MapView from 'react-native-maps';
 import firebase from 'firebase';
 import Modal from 'react-native-modal';
@@ -37,8 +38,11 @@ export class MapPage extends Component {
 
   async componentDidMount() {
     if (!this.state.userRegion || !this.state.mapRegion) {
-      const location = await getLocation();
-      this.setState({ userRegion: location, mapRegion: location });
+      const { status, permissions } = await Permissions.askAsync(Permissions.LOCATION);
+      if (status === 'granted') {
+        const location = await getLocation();
+        this.setState({ userRegion: location, mapRegion: location });
+      }
     }
     if (!this.state.gyms || !this.state.user) {
       try {
@@ -96,11 +100,7 @@ export class MapPage extends Component {
   }
 
   setTrainer = (trainer) => {
-    if (!trainer.active) {
-      Alert.alert("Please select an active trainer!");
-    } else {
-      this.showModal('book', trainer);
-    }
+    this.showModal('book', trainer);
   }
 
   viewSchedule = (trainer) => this.showModal('schedule', trainer);

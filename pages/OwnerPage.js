@@ -63,7 +63,7 @@ export class OwnerPage extends Component {
 	denyTrainer = async(trainerKey) => {
 		try {
 			await firebase.database().ref('/gyms/' + this.props.gym + '/pendingtrainers/').child(trainerKey).remove();
-			delete this.state.gym.pendingTrainers[trainerKey];
+			delete this.state.gym.pendingtrainers[trainerKey];
 			Alert.alert('Trainer denied');
 		} catch(error) {
 			this.bugsnagClient.notify(error);
@@ -72,15 +72,26 @@ export class OwnerPage extends Component {
 	}
 
 	deleteTrainer = async(trainerKey) => {
-		try {
-			await firebase.database().ref('users').child(trainerKey).update({ deleted: true });
-			await firebase.database().ref('/gyms/' + this.props.gym + '/trainers/').child(trainerKey).remove();
-			delete this.state.gym.trainers[trainerKey];
-			Alert.alert('Trainer removed from gym.');
-		} catch(error) {
-			this.bugsnagClient.notify(error);
-			Alert.alert('There was an error when trying to delete that trainer.');
-		}
+		Alert.alert(
+			'Remove Trainer',
+			'Are you sure you want to remove this trainer?',
+			[
+				{ text: 'No' },
+				{
+					text: 'Yes', onPress: async () => {
+						try {
+							await firebase.database().ref('users').child(trainerKey).update({ deleted: true });
+							await firebase.database().ref('/gyms/' + this.props.gym + '/trainers/').child(trainerKey).remove();
+							delete this.state.gym.trainers[trainerKey];
+							Alert.alert('Trainer removed from gym.');
+						} catch(error) {
+							this.bugsnagClient.notify(error);
+							Alert.alert('There was an error when trying to delete that trainer.');
+						}
+					}
+				}
+			]
+		);
 	}
 
 	acceptTrainer = async(trainerKey) => {
@@ -90,7 +101,7 @@ export class OwnerPage extends Component {
 				firebase.database().ref('/gyms/' + this.props.gym + '/trainers/').child(trainerKey).set(snapshot.val());
 			});
 			await firebase.database().ref('/gyms/' + this.props.gym + '/pendingtrainers/').child(trainerKey).remove();
-			delete this.state.gym.pendingTrainers[trainerKey];
+			delete this.state.gym.pendingtrainers[trainerKey];
 			const gym = await loadGym(this.props.gym);
 			this.setState({ gym });
 			Alert.alert('Trainer added to gym.');
@@ -101,19 +112,20 @@ export class OwnerPage extends Component {
 	}
 
 	renderPending = () => {
-		if (!this.state.gym.pendingTrainers) {
+		if (!this.state.gym.pendingtrainers) {
 			return (<Text style={styles.navText}>None</Text>);
 		}
-		return Object.keys(this.state.gym.pendingTrainers).map((key) => {
-			const trainer = this.state.gym.pendingTrainers[key];
+		return Object.keys(this.state.gym.pendingtrainers).map((key) => {
+			const trainer = this.state.gym.pendingtrainers[key];
+			console.log(trainer);
 			return (
 				<View key={trainer.name} style={styles.traineeRow}>
 					<Text style={{ width: 120 }}>{trainer.name}</Text>
 					<TouchableOpacity style={styles.denyButton} onPress={() => this.denyTrainer(key)}>
-						<Text style={styles.buttonText}><FontAwesome>{Icons.close}</FontAwesome> Deny</Text>
+						<Text style={styles.buttonText}><FontAwesome>{Icons.close}</FontAwesome></Text>
 					</TouchableOpacity>
-					<TouchableOpacity style={styles.requestButton} onPress={() => this.acceptTrainer(key)}>
-						<Text style={styles.buttonText}><FontAwesome>{Icons.check}</FontAwesome> Accept</Text>
+					<TouchableOpacity style={styles.acceptButton} onPress={() => this.acceptTrainer(key)}>
+						<Text style={styles.buttonText}><FontAwesome>{Icons.check}</FontAwesome></Text>
 					</TouchableOpacity>
 				</View>
 			);
@@ -130,7 +142,7 @@ export class OwnerPage extends Component {
 				<View key={trainer.name} style={styles.traineeRow}>
 					<Text style={{ width: 120 }}>{trainer.name}</Text>
 					<TouchableOpacity style={styles.denyButton} onPress={() => this.deleteTrainer(key)}>
-						<Text style={styles.buttonText}><FontAwesome>{Icons.close}</FontAwesome> Remove</Text>
+						<Text style={styles.buttonText}><FontAwesome>{Icons.close}</FontAwesome></Text>
 					</TouchableOpacity>
 					<TouchableOpacity style={styles.requestButton} onPress={() => Actions.OwnerHistoryPage({ userKey: key })}>
 						<Text style={styles.buttonText}><FontAwesome>{Icons.calendar}</FontAwesome> History</Text>
@@ -229,10 +241,10 @@ export class OwnerPage extends Component {
 			var navBar = (
 				<View style={styles.navigationBar}>
 					<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({ currentTab: 'pending' })}>
-						<Text style={styles.activeText}>Pending Trainers</Text>
+						<Text style={styles.activeText}>Pending</Text>
 					</TouchableOpacity>
 					<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({ currentTab: 'current' })}>
-						<Text style={styles.navText}>Current Trainers</Text>
+						<Text style={styles.navText}>Trainers</Text>
 					</TouchableOpacity>
 				</View>
 			);
@@ -247,10 +259,10 @@ export class OwnerPage extends Component {
 			var navBar = (
 				<View style={styles.navigationBar}>
 					<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({ currentTab: 'pending' })}>
-						<Text style={styles.navText}>Pending Trainers</Text>
+						<Text style={styles.navText}>Pending</Text>
 					</TouchableOpacity>
 					<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({ currentTab: 'current' })}>
-						<Text style={styles.activeText}>Current Trainers</Text>
+						<Text style={styles.activeText}>Trainers</Text>
 					</TouchableOpacity>
 				</View>
 			);
@@ -280,7 +292,7 @@ export class OwnerPage extends Component {
 					{this.renderCards()}
 				</View>
 				<TouchableOpacity style={styles.button} onPress={() => this.setState({ cardModal: true })}>
-					<Text style={styles.largeText}><FontAwesome>{Icons.creditCard}</FontAwesome> Add Card </Text>
+					<Text style={styles.activeText}><FontAwesome>{Icons.creditCard}</FontAwesome> Add Card </Text>
 				</TouchableOpacity>
 				<Text style={{ fontSize: 20, textAlign: 'center', color: COLORS.PRIMARY, marginTop: 10 }}>Funds will be transfered daily</Text>
 				<Modal
@@ -429,7 +441,7 @@ const styles = StyleSheet.create({
 		textAlign: 'center'
 	},
 	requestButton: {
-		backgroundColor: COLORS.SECONDARY,
+		backgroundColor: COLORS.PRIMARY,
 		flexDirection: 'column',
 		justifyContent: 'center',
 		alignItems: 'center',
@@ -442,8 +454,17 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		justifyContent: 'center',
 		alignItems: 'center',
-		width: 80,
+		width: 40,
 		height: 40,
+	},
+	acceptButton: {
+		backgroundColor: COLORS.GREEN,
+		flexDirection: 'column',
+		justifyContent: 'center',
+		alignItems: 'center',
+		width: 40,
+		height: 40,
+		marginLeft: 10
 	},
 	icon: {
 		fontSize: 15
