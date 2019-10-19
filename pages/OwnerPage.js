@@ -117,7 +117,6 @@ export class OwnerPage extends Component {
 		}
 		return Object.keys(this.state.gym.pendingtrainers).map((key) => {
 			const trainer = this.state.gym.pendingtrainers[key];
-			console.log(trainer);
 			return (
 				<View key={trainer.name} style={styles.traineeRow}>
 					<Text style={{ width: 120 }}>{trainer.name}</Text>
@@ -164,7 +163,6 @@ export class OwnerPage extends Component {
 						const cards = await loadTrainerCards(stripeId);
 						this.setState({ cards });
 					}catch(error) {
-						console.log(error);
 						this.bugsnagClient.notify(error);
 						Alert.alert('There was an error. Please try again.');
 					}

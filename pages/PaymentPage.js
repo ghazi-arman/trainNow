@@ -140,7 +140,6 @@ export class PaymentPage extends Component {
 						const cards = await loadTrainerCards(stripeId);
 						this.setState({ cards });
 					}catch(error) {
-						console.log(error);
 						this.bugsnagClient.notify(error);
 						Alert.alert('There was an error. Please try again.');
 					}
@@ -155,7 +154,6 @@ export class PaymentPage extends Component {
 		}
 		let index = 0;
 		return this.state.cards.map((currCard) => {
-			console.log(currCard);
 			let deleteButton, defaultButton;
 			let defaultCard = false;
 			if (this.state.user.trainer) {
