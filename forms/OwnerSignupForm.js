@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
 		backgroundColor: COLORS.SECONDARY,
 		paddingVertical: 15,
 		width: '45%',
-		marginTop: 5,
+		margin: 5,
 	},
 	buttonHolder: {
     flexDirection: 'row',

@@ -14,7 +14,7 @@ export class SignupPage extends Component {
         <View style={styles.logoContainer}>
           <Image style={styles.logo} source={logo} />
         </View>
-        <KeyboardAvoidingView style={styles.formContainer} behavior="padding">
+        <KeyboardAvoidingView style={styles.formContainer} behavior='padding'>
           <SignupForm />
         </KeyboardAvoidingView>
         <View style={styles.linkContainer}>
