@@ -325,14 +325,13 @@ export async function loadGym(gymKey) {
 
 export function renderStars(rating){
   var star = [];
-  var numStars = 0;
   for (let stars = 0; stars < 5; stars++) {
     if (rating >= 1) {
-      star.push(<FontAwesome key={numStars}>{Icons.star}</FontAwesome>);
+      star.push(<FontAwesome key={stars}>{Icons.star}</FontAwesome>);
     } else if(rating > 0) {
-      star.push(<FontAwesome key={numStars}>{Icons.starHalfFull}</FontAwesome>);
+      star.push(<FontAwesome key={stars}>{Icons.starHalfFull}</FontAwesome>);
     } else {
-      star.push(<FontAwesome key={numStars}>{Icons.starO}</FontAwesome>);
+      star.push(<FontAwesome key={stars}>{Icons.starO}</FontAwesome>);
     }
     rating--;
   }
