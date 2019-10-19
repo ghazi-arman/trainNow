@@ -59,20 +59,22 @@ export class TrainerSchedule extends Component {
 			return(
 				<View style={styles.modal}>
 					<View style={styles.nameContainer}>
-						<Text style={styles.trainerName}>{this.state.trainer.name}</Text>
+						<Text style={styles.trainerName}>Schedule</Text>
+						<Text style={styles.closeButton} onPress={this.props.hideandOpen}>
+							<FontAwesome>{Icons.close}</FontAwesome>
+						</Text>
 					</View>
-					<Text style={styles.backButton} onPress={this.props.hideandOpen}>
-							<FontAwesome>{Icons.arrowLeft}</FontAwesome>
-					</Text>
-					<Agenda 
-						style={styles.calendar}
-						minDate={this.state.date}
-						maxDate={new Date(this.state.date.getTime() + 86400000 * 14)}
-						items={events}
-						renderItem={this.renderAgendaItem}
-						renderEmptyDate={() => {return (<View />);}}
-						rowHasChanged={(r1, r2) => {return r1.text !== r2.text}}
-					/>
+					<View style={styles.calendarContainer}>
+						<Agenda 
+							style={styles.calendar}
+							minDate={this.state.date}
+							maxDate={new Date(this.state.date.getTime() + 86400000 * 14)}
+							items={events}
+							renderItem={this.renderAgendaItem}
+							renderEmptyDate={() => {return (<View />);}}
+							rowHasChanged={(r1, r2) => {return r1.text !== r2.text}}
+						/>
+					</View>
 				</View>
 	    )
 		}
@@ -91,28 +93,33 @@ const styles = StyleSheet.create({
 	trainerName: {
 		fontSize: 30,
 		color: COLORS.WHITE,
-		fontWeight: '500'
+		fontWeight: '500',
+		textAlign: 'center'
 	},
 	nameContainer: {
-	  height: '12%',
+	  flex: 1,
 		width: '100%',
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
 		backgroundColor: COLORS.PRIMARY,
-		flexDirection: 'column',
+		flexDirection: 'row',
 		justifyContent: 'center',
 		alignItems: 'center'
 	},
-	backButton: {
+	closeButton: {
 		position: 'absolute',
-		top: 25,
-		left: 20,
-		fontSize: 35, 
-		color: COLORS.SECONDARY, 
+		top: 5,
+		right: 5,
+		fontSize: 35,
+		color: COLORS.RED,
+	},
+	calendarContainer: {
+		flex: 6,
+		width: '100%'
 	},
 	calendar: {
-		width: '100%',
-		height: '100%'
+		height: '100%',
+		width: '100%'
 	},
 	agendaItem: {
 		height: 100,

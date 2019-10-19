@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, DatePickerIOS, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, Text, View, DatePickerIOS, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import firebase from 'firebase';
 import { AppLoading } from 'expo';
@@ -33,8 +33,8 @@ export class SchedulerModal extends Component {
   }
 
   addSession(startDate, endDate){
-    addAvailableSession(this.props.trainerKey, startDate, endDate);
-    this.props.hide();
+		addAvailableSession(this.props.trainerKey, startDate, endDate);
+		this.props.hideandConfirm();
   }
 
 	render(){
@@ -45,47 +45,49 @@ export class SchedulerModal extends Component {
 			<View style={styles.modal}>
 				<View style={styles.nameContainer}>
 					<Text style={styles.trainerName}>Add Availability</Text>
+					<Text style={styles.closeButton} onPress={this.props.hide}>
+						<FontAwesome>{Icons.close}</FontAwesome>
+					</Text>
 				</View>
-				<Text style={styles.backButton} onPress={this.props.hideandOpen}>
-						<FontAwesome>{Icons.arrowLeft}</FontAwesome>
-				</Text>
 				<View style={styles.formContainer}>
-					<Text style={{fontSize:20, color: COLORS.PRIMARY, fontWeight: '500'}}>Start Time</Text>
-					<View style={styles.inputRow}>
-						<View style={styles.datePickerHolder}>
-							<DatePickerIOS
-								mode='datetime'
-								itemStyle={{ color: COLORS.PRIMARY }}
-								textColor={COLORS.PRIMARY}
-								style={styles.datepicker}
-								minuteInterval={5}
-								minimumDate={new Date(new Date().getTime())}
-								date={this.state.startDate}
-								onDateChange={(date) => this.setState({ startDate: date })}
-							/>
+					<ScrollView contentContainerStyle={styles.center}>
+						<View style={styles.inputRow}>
+							<Text style={styles.formLabel}>Start Time</Text>
+							<View style={styles.datePickerHolder}>
+								<DatePickerIOS
+									mode='datetime'
+									itemStyle={{ color: COLORS.PRIMARY }}
+									textColor={COLORS.PRIMARY}
+									style={styles.datepicker}
+									minuteInterval={5}
+									minimumDate={new Date(new Date().getTime())}
+									date={this.state.startDate}
+									onDateChange={(date) => this.setState({ startDate: date })}
+								/>
+							</View>
 						</View>
-					</View>
-					<Text style={{fontSize:20, color: COLORS.PRIMARY, fontWeight: '500'}}>End Time</Text>
-					<View style={styles.inputRow}>
-						<View style={styles.datePickerHolder}>
-							<DatePickerIOS
-								mode='datetime'
-								itemStyle={{ color: COLORS.PRIMARY }}
-								textColor={COLORS.PRIMARY}
-								style={styles.datepicker}
-								minuteInterval={5}
-								minimumDate={new Date(this.state.startDate.getTime())}
-								date={this.state.endDate}
-								onDateChange={(date) => this.setState({ endDate: date })}
-							/>
+						<View style={styles.inputRow}>
+							<Text style={styles.formLabel}>End Time</Text>
+							<View style={styles.datePickerHolder}>
+								<DatePickerIOS
+									mode='datetime'
+									itemStyle={{ color: COLORS.PRIMARY }}
+									textColor={COLORS.PRIMARY}
+									style={styles.datepicker}
+									minuteInterval={5}
+									minimumDate={new Date(this.state.startDate.getTime())}
+									date={this.state.endDate}
+									onDateChange={(date) => this.setState({ endDate: date })}
+								/>
+							</View>
 						</View>
-					</View>
-					<TouchableOpacity 
-						style={styles.bookButton} 
-						onPressIn={() => this.addSession(this.state.startDate, this.state.endDate)}
-					>
-						<Text style={styles.buttonText}> Add Availability</Text>
-					</TouchableOpacity>
+						<TouchableOpacity 
+							style={styles.bookButton} 
+							onPressIn={() => this.addSession(this.state.startDate, this.state.endDate)}
+						>
+							<Text style={styles.buttonText}> Add Availability</Text>
+						</TouchableOpacity>
+					</ScrollView>
 				</View>
 			</View>
 		);
@@ -94,7 +96,7 @@ export class SchedulerModal extends Component {
 
 const styles = StyleSheet.create({
 	modal: {
-		flex: .8,
+		flex: 0.9,
 		flexDirection: 'column',
 		justifyContent: 'flex-start',
 		alignItems: 'center',
@@ -107,21 +109,32 @@ const styles = StyleSheet.create({
 		fontWeight: '500'
 	},
 	nameContainer: {
-	  height: '12%',
+	  height: '15%',
 		width: '100%',
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
 		backgroundColor: COLORS.PRIMARY,
-		flexDirection: 'column',
+		flexDirection: 'row',
 		justifyContent: 'center',
 		alignItems: 'center'
 	},
-	backButton: {
+	formContainer: {
+		height: '80%',
+		width: '100%',
+		flexDirection: 'column',
+		justifyContent: 'flex-start',
+		alignItems: 'center',
+	},
+	center: {
+		flexDirection: 'column',
+		alignItems: 'center'
+	},
+	closeButton: {
 		position: 'absolute',
-		top: 25,
-		left: 20,
-		fontSize: 35, 
-		color: COLORS.SECONDARY, 
+		top: 5,
+		right: 5,
+		fontSize: 35,
+		color: COLORS.RED,
 	},
   bookButton: {
 		paddingVertical: 15,
@@ -129,13 +142,21 @@ const styles = StyleSheet.create({
 		width: '70%',
 		marginTop: 10
 	},
-	inputRow: {
-		width: '95%',
-		flexDirection: 'row',
-		justifyContent: 'space-between',
+  inputRow: {
+    width: '100%',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
 		alignItems: 'center',
-		marginTop: 10
-	},
+		paddingTop: 10,
+		paddingBottom: 10
+  },
+	formLabel: {
+    fontSize: 20,
+    fontWeight: '500',
+    textAlign: 'center',
+		color: COLORS.PRIMARY,
+		paddingBottom: 10
+  },
 	buttonText: {
 		textAlign: 'center',
 		color: COLORS.WHITE,
@@ -143,7 +164,7 @@ const styles = StyleSheet.create({
   },
   datePickerHolder: {
 		height: 200,
-		width: '100%',
+		width: 250,
 	},
   datepicker: {
 		height: 200,

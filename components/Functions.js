@@ -32,12 +32,12 @@ export function dateToString(start) {
   // Sets abbr to AM or PM
   if (hour > 12) {
     hour = hour - 12;
-    abbr = 'PM';
+    abbr = ' PM';
   } else {
-    abbr = 'AM'
+    abbr = ' AM'
   }
 
-  var displayDate = month + '-' + day + ' ' + hour + ':' + minute + abbr;
+  var displayDate = month + '/' + day + ' ' + hour + ':' + minute + abbr;
   return displayDate;
 }
 

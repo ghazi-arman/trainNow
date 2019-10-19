@@ -46,10 +46,12 @@ export class SchedulePage extends Component {
 		let trainerSchedule = await loadAcceptedSchedule(session.trainer);
 		let traineeSchedule = await loadAcceptedSchedule(session.trainee);
 		let endTime = new Date(new Date(session.start).getTime() + (60000 * session.duration));
+		let timeConflict = false;
 
 		trainerSchedule.forEach(function(currSession){
 			if(timeOverlapCheck(currSession.start, currSession.end, session.start, endTime)){
 				Alert.alert('The Trainer has a session during this time.');
+				timeConflict = true;
 				return;
 			}
 		});
@@ -57,9 +59,14 @@ export class SchedulePage extends Component {
 		traineeSchedule.forEach(function(currSession){
 			if(timeOverlapCheck(currSession.start, currSession.end, session.start, endTime)){
 				Alert.alert('The client is already booked during this time.');
+				timeConflict = true;
 				return;
 			}
 		});
+
+		if (timeConflict) {
+			return;
+		}
 
 		if(this.state.user.trainer && this.state.user.type === 'owner'){
 			session.managed = true;
@@ -205,7 +212,7 @@ export class SchedulePage extends Component {
 				name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.traineeName}</Text></View>);
 			}
 			return (
-				<View style={{ flexDirection: 'column', justifyContent: 'flex-start' }} key={session.key}>
+				<View style={{ flexDirection: 'column', justifyContent: 'flex-start', width: '100%' }} key={session.key}>
 					<View style={{ flexDirection: 'row', justifyContent: 'space-around', height: 50 }}>
 						{name}
 						<View style={styles.rateView}><Text style={styles.trainerInfo}>{session.duration} min</Text></View>
@@ -213,10 +220,10 @@ export class SchedulePage extends Component {
 					</View>
 					<View style={{ flexDirection: 'row', justifyContent: 'space-around', height: 50 }}>
 						<TouchableOpacity style={styles.denyContainer} onPressIn={() => this.cancelAccepted(session)}>
-							<Text style={styles.buttonText}> Cancel Session </Text>
+							<Text style={styles.buttonText}> Cancel </Text>
 						</TouchableOpacity>
 						<TouchableOpacity style={styles.buttonContainer} onPressIn={() => Actions.SessionPage({ session: session.key })}>
-							<Text style={styles.buttonText}> Enter Session </Text>
+							<Text style={styles.buttonText}> Enter </Text>
 						</TouchableOpacity>
 					</View>
 				</View>
@@ -236,7 +243,7 @@ export class SchedulePage extends Component {
 			if ((session.trainee === userKey && session.sentBy == 'trainee') || (session.trainer == userKey && session.sentBy == 'trainer')) {
 				button = (
 					<TouchableOpacity style={styles.denyContainer} onPressIn={() => this.cancelSession(session)}>
-						<Text style={styles.buttonText}> Cancel Session </Text>
+						<Text style={styles.buttonText}> Cancel </Text>
 					</TouchableOpacity>
 				);
 				if (session.trainee == userKey) {
@@ -247,12 +254,12 @@ export class SchedulePage extends Component {
 			} else {
 				button = (
 					<TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.acceptSession(session)}>
-						<Text style={styles.buttonText}> Accept Session </Text>
+						<Text style={styles.buttonText}> Accept </Text>
 					</TouchableOpacity>
 				);
 				button2 = (
 					<TouchableOpacity style={styles.denyContainer} onPressIn={() => this.cancelSession(session)}>
-						<Text style={styles.buttonText}> Deny Session</Text>
+						<Text style={styles.buttonText}> Reject </Text>
 					</TouchableOpacity>
 				);
 				if (session.trainee === userKey) {
@@ -262,7 +269,7 @@ export class SchedulePage extends Component {
 				}
 			}
 			return (
-				<View style={{ flexDirection: 'column', justifyContent: 'flex-start' }} key={session.key}>
+				<View style={{ flexDirection: 'column', justifyContent: 'flex-start', width: '100%' }} key={session.key}>
 					<View style={{ flexDirection: 'row', justifyContent: 'space-around', height: 50 }}>
 						{name}
 						<View style={styles.rateView}><Text style={styles.trainerInfo}>{session.duration} min</Text></View>
@@ -287,9 +294,13 @@ export class SchedulePage extends Component {
 		
 	}
 
+	hideandConfirm = () => {
+		this.hidescheduleModal();
+		setTimeout(() => Alert.alert('Availability Added.'), 700);
+	}
+ 
 	hidescheduleModal = () => {
 		this.setState({ scheduleModal: false });
-		setTimeout(() => Alert.alert('Availability Added.'), 700);
 	}
 
 	hidetrainerSchedule = () => this.setState({ trainerSchedule: false })
@@ -332,18 +343,20 @@ export class SchedulePage extends Component {
 				</View>
 			);
 			var content = (
-				<ScrollView contentContainerStyle={styles.sessionContainer} showsVerticalScrollIndicator={false}>
-					{this.renderPending()}
-					{active}
-					{schedule}
-					{scheduler}
-				</ScrollView>
+				<View style={styles.sessionContainer}>
+					<ScrollView contentContainerStyle={styles.center} showsVerticalScrollIndicator={false}>
+						{this.renderPending()}
+						{active}
+						{schedule}
+						{scheduler}
+					</ScrollView>
+				</View>
 			);
 		} else {
 			var navBar = (
 				<View style={styles.navigationBar}>
 					<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({ currentTab: 'pending' })}>
-						<Text style={styles.navText}>Awaiting Response</Text>
+						<Text style={styles.navText}>Awaiting Responses</Text>
 					</TouchableOpacity>
 					<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({ currentTab: 'accepted' })}>
 						<Text style={styles.activeText}>Upcoming Sessions</Text>
@@ -351,29 +364,33 @@ export class SchedulePage extends Component {
 				</View>
 			);
 			var content = (
-				<ScrollView contentContainerStyle={styles.sessionContainer} showsVerticalScrollIndicator={false}>
-					{this.renderAccept()}
-					{active}
-					{schedule}
-					{scheduler}
-				</ScrollView>
+				<View style={styles.sessionContainer}>
+					<ScrollView contentContainerStyle={styles.center} showsVerticalScrollIndicator={false}>
+						{this.renderAccept()}
+						{active}
+						{schedule}
+						{scheduler}
+					</ScrollView>
+				</View>
 			);
 		}
 		return (
 			<View style={styles.container}>
-				<Text style={styles.backButton} onPress={() => Actions.reset('MapPage')}>
-					<FontAwesome>{Icons.arrowLeft}</FontAwesome>
-				</Text>
-				<Text style={styles.title}>Calendar</Text>
+				<View style={styles.headerContainer}>
+					<Text style={styles.backButton} onPress={() => Actions.reset('MapPage')}>
+						<FontAwesome>{Icons.arrowLeft}</FontAwesome>
+					</Text>
+					<Text style={styles.title}>Calendar</Text>
+				</View>
 				{navBar}
 				{content}
 				<Modal isVisible={this.state.scheduleModal}
 				onBackdropPress={this.hidescheduleModal}>
-					<SchedulerModal trainerKey={firebase.auth().currentUser.uid} hide={this.hidescheduleModal} />
+					<SchedulerModal trainerKey={firebase.auth().currentUser.uid} hide={this.hidescheduleModal} hideandConfirm={this.hideandConfirm} />
 				</Modal>
 				<Modal isVisible={this.state.trainerSchedule}
 				onBackdropPress={this.hidetrainerSchedule}>
-					<TrainerSchedule trainerKey={firebase.auth().currentUser.uid} hide={this.hidetrainerSchedule} />
+					<TrainerSchedule trainerKey={firebase.auth().currentUser.uid} hideandOpen={this.hidetrainerSchedule} />
 				</Modal>
 			</View>
 		);
@@ -389,17 +406,29 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	sessionContainer: {
-		flex: 0.4,
+		flex: 6,
 		width: '100%',
 		flexDirection: 'column',
 		justifyContent: 'flex-start',
 		alignItems: 'center'
 	},
+	center: {
+		flexDirection: 'column',
+		justifyContent: 'center',
+		alignItems: 'center'
+	},
+	headerContainer: {
+		flex: 1,
+		width: '100%',
+		flexDirection: 'row',
+		justifyContent: 'center',
+		alignItems: 'flex-end'
+	},
 	title: {
-		marginTop: 45,
-		fontSize: 34,
+		fontSize: 35,
 		color: COLORS.PRIMARY,
 		fontWeight: '700',
+		textAlign: 'center'
 	},
 	navigationBar: {
 		width: '100%',
@@ -407,7 +436,6 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		justifyContent: 'flex-start',
 		alignItems: 'center',
-		marginTop: 5,
 	},
 	activeTab: {
 		width: '50%',
@@ -432,11 +460,11 @@ const styles = StyleSheet.create({
 		textAlign: 'center'
 	},
 	trainerView: {
-		width: '35%',
+		width: '33%',
 		height: 50
 	},
 	timeView: {
-		width: '30%',
+		width: '37%',
 		height: 50
 	},
 	trainerInfo: {
@@ -447,10 +475,12 @@ const styles = StyleSheet.create({
 		color: COLORS.PRIMARY,
 	},
 	rateView: {
-		width: '18%',
+		width: '20%',
 		height: 50
 	},
 	buttonContainer: {
+		borderRadius: 5,
+		width: 100,
 		padding: 10,
 		height: 48,
 		backgroundColor: COLORS.SECONDARY,
@@ -458,6 +488,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'center'
 	},
 	activeButton: {
+		borderRadius: 5,
 		padding: 10,
 		height: 48,
 		backgroundColor: COLORS.SECONDARY,
@@ -466,6 +497,7 @@ const styles = StyleSheet.create({
 		marginTop: 20
 	},
 	scheduleButton: {
+		borderRadius: 5,
 		padding: 10,
 		height: 48,
 		width: 200,
@@ -475,6 +507,8 @@ const styles = StyleSheet.create({
 		marginTop: 15
 	},
 	denyContainer: {
+		borderRadius: 5,
+		width: 100,
 		padding: 10,
 		height: 48,
 		backgroundColor: COLORS.RED,
@@ -495,10 +529,10 @@ const styles = StyleSheet.create({
 	},
 	backButton: {
 		position: 'absolute',
-		top: 45,
 		left: 20,
 		fontSize: 35,
+		paddingBottom: 5,
+		fontWeight: '700',
 		color: COLORS.SECONDARY,
-		lineHeight: 35
 	}
 })
