@@ -347,14 +347,16 @@ export class OwnerSignupForm extends Component {
 		}
 
 		return (
-			<View style={styles.container}>
+			<View style={styles.formContainer}>
 				{page1}
 				{page2}
 				{page3}
 				{page4}
-				{prevButton}
-				{nextButton}
-				{submitButton}
+				<View style={styles.buttonHolder}>
+					{prevButton}
+					{nextButton}
+					{submitButton}
+				</View>
 				{agreement}
 			</View>
 		);
@@ -362,17 +364,30 @@ export class OwnerSignupForm extends Component {
 }
 
 const styles = StyleSheet.create({
+	formContainer: {
+    height: '100%',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 	container: {
+		height: '80%',
 		flexDirection: 'column',
-		justifyContent: 'center',
+		justifyContent: 'space-around',
 		alignItems: 'center',
 	},
 	buttonContainer: {
 		backgroundColor: COLORS.SECONDARY,
 		paddingVertical: 15,
-		width: 200,
+		width: '45%',
 		marginTop: 5,
 	},
+	buttonHolder: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10
+  },
 	buttonText: {
 		fontSize: 20,
 		textAlign: 'center',

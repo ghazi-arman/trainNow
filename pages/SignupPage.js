@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, Image, KeyboardAvoidingView, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, Image, TouchableOpacity, KeyboardAvoidingView } from 'react-native';
 import { SignupForm } from '../forms/SignupForm';
 import { Actions } from 'react-native-router-flux';
 import COLORS from '../components/Colors';
@@ -10,11 +10,11 @@ export class SignupPage extends Component {
   
   render() {
     return (
-      <View style={styles.container} behavior='padding'>
+      <View style={styles.container}>
         <View style={styles.logoContainer}>
           <Image style={styles.logo} source={logo} />
         </View>
-        <KeyboardAvoidingView style={styles.formContainer} behavior='padding'>
+        <KeyboardAvoidingView style={styles.formContainer} behavior="padding">
           <SignupForm />
         </KeyboardAvoidingView>
         <View style={styles.linkContainer}>
@@ -38,11 +38,11 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.WHITE
   },
   logo: {
-    flex: 1,
+    height: '50%',
     resizeMode: 'contain'
   },
   formContainer: {
-    height: '70%',
+    flex: 7,
     width: '80%',
     flexDirection: 'column',
     alignItems: 'center',
@@ -52,18 +52,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    height: '20%',
-    width: '80%',
-    marginTop: 25
-  },
-  textContain: {
-    height: 30
+    flex: 1,
+    width: '80%'
   },
   linkContainer: {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    height: '15%',
+    flex: 1
   },
   linkText: {
     color: COLORS.PRIMARY,

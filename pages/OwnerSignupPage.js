@@ -10,7 +10,7 @@ export class OwnerSignupPage extends Component {
 	
 	render() {
 		return (
-			<View style={styles.container} behavior='padding'>
+			<View style={styles.container}>
 				<View style = {styles.logoContainer}>
 					<Image style={styles.logo} source={logo} />
 				</View>
@@ -38,11 +38,11 @@ const styles = StyleSheet.create({
 		backgroundColor: COLORS.WHITE
 	},
 	logo: {
-		flex: 1,
+		height: '50%',
 		resizeMode: 'contain'
 	},
 	formContainer: {
-		height: '70%',
+		flex: 7,
 		width: '80%',
 		flexDirection: 'column',
 		alignItems: 'center',
@@ -52,9 +52,8 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		justifyContent: 'center',
 		alignItems: 'center',
-		height: '20%',
+		flex: 1,
 		width: '80%',
-		marginTop: 25
 	},
 	textContain:{
 		height: 30
@@ -63,7 +62,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		alignItems: 'center',
 		justifyContent: 'center',
-		height: '15%',
+		flex: 1,
 	},
 	linkText: {
 		color: COLORS.PRIMARY,
