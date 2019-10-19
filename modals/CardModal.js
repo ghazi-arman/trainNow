@@ -2,10 +2,11 @@ import React, { Component } from 'react';
 import { StyleSheet, Text, KeyboardAvoidingView, TouchableOpacity, Alert } from 'react-native';
 import firebase from 'firebase';
 import { AppLoading } from 'expo';
-import { Icons } from 'react-native-fontawesome';
+import FontAwesome, { Icons } from 'react-native-fontawesome';
 import  TextField from '../components/TextField';
 import bugsnag from '@bugsnag/expo';
 import { loadUser } from '../components/Functions';
+import Colors from '../components/Colors';
 var stripe = require('stripe-client')('pk_test_6sgeMvomvrZFucRqYhi6TSbO');
 
 export class CardModal extends Component {
@@ -159,6 +160,9 @@ export class CardModal extends Component {
 		}
 		return (
 			<KeyboardAvoidingView behavior="padding" style={styles.formContainer}>
+				<Text style={styles.closeButton} onPress={this.props.hide}>
+					<FontAwesome>{Icons.close}</FontAwesome>
+				</Text>
 				<Text style={styles.title}>Add Card</Text>
 				<TextField
 					icon={Icons.user}
@@ -206,33 +210,38 @@ export class CardModal extends Component {
 
 const styles = StyleSheet.create({
 	formContainer: {
-		flex: 0.6,
+		flex: 0.9,
 		flexDirection: 'column',
-		justifyContent: 'center',
+		justifyContent: 'space-around',
 		alignItems: 'center',
-		backgroundColor: '#fafafa',
+		backgroundColor: Colors.WHITE,
 		borderRadius: 10,
 		padding: 20
 	},
 	submitButton: {
-		backgroundColor: '#0097A7',
+		borderRadius: 5,
+		backgroundColor: Colors.SECONDARY,
 		paddingVertical: 15,
-		marginTop: 10,
-		width: '50%',
+		width: 150,
 		flexDirection: 'column',
 		justifyContent: 'center'
 	},
 	buttonText: {
 		fontSize: 20,
 		textAlign: 'center',
-		color: '#FAFAFA',
+		color: Colors.WHITE,
 		fontWeight: '700'
 	},
+	closeButton: {
+		position: 'absolute',
+		top: 5,
+		right: 5,
+		fontSize: 35,
+		color: Colors.RED,
+	},
 	title: {
-		color: '#0097A7',
+		color: Colors.PRIMARY,
 		fontSize: 30,
-		marginTop: 5,
-		marginBottom: 10,
-		textDecorationLine: 'underline'
+		fontWeight: '700'
 	}
 })

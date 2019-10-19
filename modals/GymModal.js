@@ -3,6 +3,7 @@ import { StyleSheet, Text, View, TouchableOpacity, ScrollView, TouchableWithoutF
 import firebase from 'firebase';
 import { AppLoading } from 'expo';
 import MapView from 'react-native-maps';
+import FontAwesome, { Icons } from 'react-native-fontawesome';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import { loadGym, renderStars } from '../components/Functions';
@@ -168,6 +169,9 @@ export class GymModal extends Component {
 				<View style={styles.nameContainer}>
 					<Text style={styles.gymName}>{this.state.gym.name}</Text>
 					<Text style={styles.hourDetails}>{this.state.gym.hours}</Text>
+					<Text style={styles.closeButton} onPress={this.props.hide}>
+						<FontAwesome>{Icons.close}</FontAwesome>
+					</Text>
 				</View>
 				<View style={styles.mapContainer}>
 					{this.loadMap()}
@@ -292,6 +296,13 @@ const styles = StyleSheet.create({
 		fontSize: 22,
 		fontWeight: '600',
 		color: COLORS.PRIMARY
+	},
+	closeButton: {
+		position: 'absolute',
+		top: 5,
+		right: 5,
+		fontSize: 35,
+		color: COLORS.RED,
 	},
 	rate: {
 		fontSize: 16,

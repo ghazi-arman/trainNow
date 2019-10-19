@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, KeyboardAvoidingView, TouchableOpacity, Alert } from 'react-native';
 import { AppLoading } from 'expo';
-import * as Font from 'expo-font';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import Modal from 'react-native-modal';
@@ -294,10 +293,11 @@ const styles = StyleSheet.create({
 		textAlign: 'center'
 	},
 	button: {
+		borderRadius: 5,
 		backgroundColor: COLORS.SECONDARY,
 		flexDirection: 'column',
 		justifyContent: 'center',
-		width: '50%',
+		width: 200,
 		height: 50,
 		marginTop: 10
 	},
@@ -305,8 +305,11 @@ const styles = StyleSheet.create({
 		fontSize: 15
 	},
 	greenIcon: {
+		height: 30,
+		width: 30,
 		fontSize: 20,
-		color: COLORS.GREEN
+		color: COLORS.GREEN,
+		textAlign: 'center'
 	},
 	deleteButton: {
 		backgroundColor: COLORS.RED,
