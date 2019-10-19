@@ -3,6 +3,7 @@ import FontAwesome, {Icons} from 'react-native-fontawesome';
 import React from 'react';
 import { Alert } from 'react-native';
 import * as Location from 'expo-location';
+import geolib from 'geolib';
 import { Actions } from 'react-native-router-flux';
 
 // Convert date to yyyy-mm-dd format for Agenda events

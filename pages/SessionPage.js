@@ -6,9 +6,8 @@ import firebase from 'firebase';
 import bugsnag from '@bugsnag/expo';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { Actions } from 'react-native-router-flux';
-import geolib from 'geolib';
 import COLORS from '../components/Colors';
-import { getLocation, loadSession, dateToString, chargeCard, startSession } from '../components/Functions';
+import { getLocation, loadSession, dateToString, startSession } from '../components/Functions';
 
 export class SessionPage extends Component {
 
@@ -43,6 +42,7 @@ export class SessionPage extends Component {
 	startSession = () => {
 		startSession(this.state.session, this.state.userRegion);
 	}
+	
 	endSession = () => {
 		const user = firebase.auth().currentUser;
 		const sessionRef = firebase.database().ref(`/trainSessions/${this.state.session.key}`);
@@ -89,23 +89,16 @@ export class SessionPage extends Component {
 					rotateEnabled = {false}
 					scrollEnabled = {false}
 					zoomEnabled = {false}
-							style={styles.mapContainer}
-							region={this.state.mapRegion}
-							showsUserLocation={true}
-						>
-								<MapView.Marker
-										ref={this.state.session.trainer}
-										key={this.state.session.trainer}
-										coordinate={this.state.session.location}
+					style={styles.mapContainer}
+					region={this.state.mapRegion}
+					showsUserLocation={true}
+				>
+					<MapView.Marker
+							ref={this.state.session.trainer}
+							key={this.state.session.trainer}
+							coordinate={this.state.session.location}
 					/>
-					<MapView.Polyline
-							coordinates={[
-									{latitude: this.state.userRegion.latitude, longitude: this.state.userRegion.longitude},
-									{latitude: this.state.session.location.latitude, longitude: this.state.session.location.longitude},
-							]}
-							strokeWidth={4}
-					/>
-						</MapView>);
+				</MapView>);
 			button = (
 				<TouchableOpacity 
 					style={styles.buttonContainer}
@@ -165,12 +158,14 @@ export class SessionPage extends Component {
 		}
 		return (
 			<View style={styles.container}>
-				<View style={styles.formContainer}>
+				<View style={styles.nameContainer}>
 					<Text style={styles.backButton} onPress={this.goToMap}>
 						<FontAwesome>{Icons.arrowLeft}</FontAwesome>
 					</Text>
+					<Text style={styles.header}>Your Session</Text>
+				</View>
+				<View style={styles.formContainer}>
 					<View style={styles.infoContainer}>
-						<Text style={styles.header}>Your Session</Text>
 						{description}
 						{time}
 						{length}
@@ -190,22 +185,22 @@ export class SessionPage extends Component {
 
 const styles = StyleSheet.create({
 	bookDetails:{
-    	fontSize: 18,
-    	fontWeight: '500',
-    	color: COLORS.PRIMARY
-  	},
-  	smallText:{
-  		marginTop: 5,
-  		fontSize: 15,
-  		fontWeight: '300',
-  		color: COLORS.SECONDARY,
-  		textAlign: 'center'
-  	},
-  	header: {
-  		fontSize: 30,
-  		fontWeight: '700',
-  		color: COLORS.PRIMARY
-  	},
+		fontSize: 18,
+		fontWeight: '500',
+		color: COLORS.PRIMARY
+  },
+	smallText:{
+		marginTop: 5,
+		fontSize: 15,
+		fontWeight: '300',
+		color: COLORS.SECONDARY,
+		textAlign: 'center'
+	},
+	header: {
+		fontSize: 30,
+		fontWeight: '700',
+		color: COLORS.PRIMARY
+	},
 	container: {
 		flex: 1,
 		backgroundColor: COLORS.WHITE,
@@ -213,29 +208,38 @@ const styles = StyleSheet.create({
 		justifyContent: 'space-between',
 		alignItems: 'center'
 	},
+	nameContainer: {
+		flex: 1,
+		width: '100%',
+		flexDirection: 'row',
+		justifyContent: 'center',
+		alignItems: 'center'
+	},
 	formContainer: {
-	    width: '95%',
-	    flexDirection: 'column',
-	    justifyContent: 'center',
-	    alignItems: 'center'
-  	},
-  	mapContainer: {
-  		width: '90%',
-  		height: '35%'
-  	},
-  	buttonContain: {
-  		width: '50%',
-  		height: '20%',
-  		marginTop: 10,
-  	},
-  	infoContainer: {
-  		height: '35%',
-  		width: '80%',
-  		flexDirection: 'column',
-  		justifyContent: 'center',
-  		alignItems: 'center',
-  	},	
+		flex: 6,
+		width: '95%',
+		flexDirection: 'column',
+		justifyContent: 'center',
+		alignItems: 'center'
+	},
+	mapContainer: {
+		width: '90%',
+		height: '35%'
+	},
+	buttonContain: {
+		width: '50%',
+		height: '20%',
+		marginTop: 10,
+	},
+	infoContainer: {
+		height: '35%',
+		width: '80%',
+		flexDirection: 'column',
+		justifyContent: 'center',
+		alignItems: 'center',
+	},	
 	buttonContainer: {
+		borderRadius: 5,
 		backgroundColor: COLORS.SECONDARY,
 		paddingVertical: 15,
 		width: '100%',
@@ -248,12 +252,10 @@ const styles = StyleSheet.create({
 		color: COLORS.WHITE,
 		fontWeight: '700'
 	},
-	  	backButton: {
+	backButton: {
 		position: 'absolute',
-		top: 45,
 		left: 20,
 		fontSize: 35, 
 		color: COLORS.SECONDARY, 
-		lineHeight: 20
 	}
 });
