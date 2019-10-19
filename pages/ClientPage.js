@@ -168,7 +168,7 @@ export class ClientPage extends Component {
 						<Text style={styles.navText}>Recent Trainees</Text>
 					</TouchableOpacity>
 					<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'clients'})}>
-						<Text style={styles.navText}>Your Clients</Text>
+						<Text style={styles.navText}>Your</Text><br /><Text style={styles.navText}>Clients</Text>
 					</TouchableOpacity>
 				</View>
 			);
@@ -181,13 +181,13 @@ export class ClientPage extends Component {
 			var navBar = (
 				<View style={styles.navigationBar}>
 					<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'requests'})}>
-						<Text style={styles.navText}>Client Requests</Text>
+						<Text style={styles.navText}>Trainee Requests</Text>
 					</TouchableOpacity>
 					<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({currentTab: 'recent'})}>
 						<Text style={styles.activeText}>Recent Trainees</Text>
 					</TouchableOpacity>
 					<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'clients'})}>
-						<Text style={styles.navText}>Your Clients</Text>
+						<Text style={styles.navText}>Your Trainees</Text>
 					</TouchableOpacity>
 				</View>
 			);
@@ -200,13 +200,13 @@ export class ClientPage extends Component {
 			var navBar = (
 				<View style={styles.navigationBar}>
 					<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'requests'})}>
-						<Text style={styles.navText}>Client Requests</Text>
+						<Text style={styles.navText}>Trainee Requests</Text>
 					</TouchableOpacity>
 					<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'recent'})}>
 						<Text style={styles.navText}>Recent Trainees</Text>
 					</TouchableOpacity>
 					<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({currentTab: 'clients'})}>
-						<Text style={styles.activeText}>Your Clients</Text>
+						<Text style={styles.activeText}>Your Trainees</Text>
 					</TouchableOpacity>
 				</View>
 			);

@@ -123,37 +123,36 @@ export class BookModal extends Component {
     return (
       <View style={styles.modal}>
         <View style={styles.nameContainer}>
+          <Text style={styles.backButton} onPress={this.props.hideandOpen}>
+            <FontAwesome>{Icons.arrowLeft}</FontAwesome>
+          </Text>
           <Text style={styles.trainerName}>{this.state.trainer.name}</Text>
         </View>
-        <Text style={styles.backButton} onPress={this.props.hideandOpen}>
-          <FontAwesome>{Icons.arrowLeft}</FontAwesome>
-        </Text>
         <View style={styles.formContainer}>
-          <Text style={{fontSize:20, color: COLORS.PRIMARY, fontWeight: '500'}}>Session Time</Text>
           <View style={styles.inputRow}>
-            <View style={styles.datePickerHolder}>
-              <DatePickerIOS
-                mode='datetime'
-                itemStyle={{ color: COLORS.PRIMARY }}
-                textColor={COLORS.PRIMARY}
-                style={styles.datepicker}
-                minuteInterval={5}
-                minimumDate={new Date(new Date().getTime())}
-                date={this.state.bookDate}
-                onDateChange={(bookDate) => this.setState({ bookDate: bookDate })}
-              />
-            </View>
+            <Text style={styles.formLabel}>Session Time</Text>
+            <DatePickerIOS
+              mode='datetime'
+              itemStyle={{ color: COLORS.PRIMARY }}
+              textColor={COLORS.PRIMARY}
+              style={styles.datePicker}
+              minuteInterval={5}
+              minimumDate={new Date(new Date().getTime())}
+              date={this.state.bookDate}
+              onDateChange={(bookDate) => this.setState({ bookDate: bookDate })}
+            />
           </View>
           <View style={styles.inputRow}>
-            <Text style={styles.bookFormLabel}>Session Duration</Text>
+            <Text style={styles.formLabel}>Session Duration</Text>
             <Picker
               style={styles.picker}
               itemStyle={{ height: 70, color: COLORS.PRIMARY }}
               selectedValue={this.state.bookDuration}
-              onValueChange={(itemValue, itemIndex) => this.setState({ bookDuration: itemValue })}>
-              <Picker.Item label='60' value='60' />
-              <Picker.Item label='90' value='90' />
-              <Picker.Item label='120' value='120' />
+              onValueChange={(itemValue, itemIndex) => this.setState({ bookDuration: itemValue })}
+            >
+              <Picker.Item label='1 hour' value='60' />
+              <Picker.Item label='90 minutes' value='90' />
+              <Picker.Item label='2 hours' value='120' />
             </Picker>
           </View>
           <TouchableOpacity style={styles.bookButton} onPressIn={() => this.bookTrainer()}>
@@ -169,7 +168,7 @@ export class BookModal extends Component {
 
 const styles = StyleSheet.create({
   modal: {
-    flex: .8,
+    flex: 0.95,
     flexDirection: 'column',
     justifyContent: 'flex-start',
     alignItems: 'center',
@@ -179,69 +178,66 @@ const styles = StyleSheet.create({
   trainerName: {
     fontSize: 30,
     color: COLORS.WHITE,
-    fontWeight: '500'
+    fontWeight: '500',
+    textAlign: 'center'
   },
   nameContainer: {
-    height: '12%',
+    flex: 1,
     width: '100%',
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
     backgroundColor: COLORS.PRIMARY,
-    flexDirection: 'column',
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center'
   },
-  bookFormLabel: {
+  formLabel: {
     fontSize: 20,
     fontWeight: '500',
-    width: '33%',
     textAlign: 'center',
-    color: COLORS.PRIMARY
+    color: COLORS.PRIMARY,
+    marginBottom: 15,
   },
   formContainer: {
     flexDirection: 'column',
     justifyContent: 'space-around',
     alignItems: 'center',
+    flex: 6,
     width: '95%',
-    height: '85%'
   },
-  datePickerHolder: {
+  inputRow: {
+    width: '100%',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  datePicker: {
     height: 200,
     width: '100%',
-  },
-  datepicker: {
-    height: 200,
     borderWidth: 1,
     borderColor: COLORS.PRIMARY,
   },
   picker: {
     height: 70,
+    width: '100%',
     borderWidth: 1,
     borderColor: COLORS.PRIMARY,
-    width: '65%',
   },
   bookButton: {
-    paddingVertical: 15,
+    paddingVertical: 10,
     backgroundColor: COLORS.SECONDARY,
     width: '70%',
-    marginTop: 10
-  },
-  inputRow: {
-    width: '95%',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 10
+    borderRadius: 5
   },
   buttonText: {
     textAlign: 'center',
     color: COLORS.WHITE,
+    fontSize: 15,
     fontWeight: '700'
   },
   backButton: {
     position: 'absolute',
-    top: 25,
-    left: 20,
+    left: 10,
     fontSize: 35,
     color: COLORS.SECONDARY,
   }

@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Alert, DatePickerIOS, Picker } from 'react-native';
 import firebase from 'firebase';
 import { AppLoading } from 'expo';
+import FontAwesome, { Icons } from 'react-native-fontawesome';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import { dateToString, timeOverlapCheck, loadUser, loadGym, loadAcceptedSchedule, loadPendingSchedule, createPendingSession, sendMessage, loadOtherUser } from '../components/Functions';
@@ -102,11 +103,13 @@ export class BookModalTrainer extends Component {
 			<View style={styles.modal}>
 				<View style={styles.nameContainer}>
 					<Text style={styles.trainerName}>{this.state.trainee.name}</Text>
+					<Text style={styles.closeButton} onPress={this.props.hide}>
+						<FontAwesome>{Icons.close}</FontAwesome>
+					</Text>
 				</View>
 				<View style={styles.formContainer}>
-					<Text style={styles.bookDetails}>{this.state.gym.name}</Text>
-					<Text style={{fontSize:20, color: COLORS.PRIMARY, fontWeight: '500'}}>Session Time</Text>
 					<View style={styles.inputRow}>
+						<Text style={styles.formLabel}>Session Time</Text>
 						<View style={styles.datePickerHolder}>
 							<DatePickerIOS
 								mode='datetime'
@@ -121,15 +124,15 @@ export class BookModalTrainer extends Component {
 						</View>
 					</View>
 					<View style={styles.inputRow}>
-						<Text style={styles.bookFormLabel}>Session Duration</Text>
+						<Text style={styles.formLabel}>Session Duration</Text>
 						<Picker
 							style={styles.picker}
 							itemStyle={{ height: 70, color: COLORS.PRIMARY }}
 							selectedValue={this.state.bookDuration}
 							onValueChange={(itemValue, itemIndex) => this.setState({ bookDuration: itemValue })}>
-							<Picker.Item label='60' value='60' />
-							<Picker.Item label='90' value='90' />
-							<Picker.Item label='120' value='120' />
+							<Picker.Item label='1 hour' value='60' />
+							<Picker.Item label='90 minutes' value='90' />
+							<Picker.Item label='2 hours' value='120' />
 						</Picker>
 					</View>
 					<TouchableOpacity style={styles.bookButton} onPressIn={() => this.bookClient()}>
@@ -155,36 +158,39 @@ const styles = StyleSheet.create({
 	trainerName: {
 		fontSize: 30,
 		color: COLORS.WHITE,
-		fontWeight: '500'
+		fontWeight: '500',
+		textAlign: 'center'
 	},
 	nameContainer: {
-		height: '12%',
+		flex: 1,
 		width: '100%',
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
 		backgroundColor: COLORS.PRIMARY,
-		flexDirection: 'column',
+		flexDirection: 'row',
 		justifyContent: 'center',
 		alignItems: 'center'
 	},
-	bookDetails: {
-		fontSize: 20,
-		fontWeight: '500',
-		color: COLORS.PRIMARY
+	closeButton: {
+		position: 'absolute',
+		top: 5,
+		right: 5,
+		fontSize: 35,
+		color: COLORS.RED,
 	},
-	bookFormLabel: {
-		fontSize: 20,
-		fontWeight: '500',
-		width: '33%',
-		textAlign: 'center',
-		color: COLORS.PRIMARY
-	},
+	formLabel: {
+    fontSize: 20,
+    fontWeight: '500',
+    textAlign: 'center',
+    color: COLORS.PRIMARY,
+    marginBottom: 15,
+  },
 	formContainer: {
+		flex: 6,
 		flexDirection: 'column',
 		justifyContent: 'space-around',
 		alignItems: 'center',
 		width: '95%',
-		height: '85%'
 	},
 	datePickerHolder: {
 		height: 200,
@@ -199,20 +205,19 @@ const styles = StyleSheet.create({
 		height: 70,
 		borderWidth: 1,
 		borderColor: COLORS.PRIMARY,
-		width: '65%',
+		width: '100%',
 	},
 	bookButton: {
-		paddingVertical: 15,
+		paddingVertical: 10,
 		backgroundColor: COLORS.SECONDARY,
 		width: '70%',
-		marginTop: 10
+		borderRadius: 5
 	},
 	inputRow: {
 		width: '95%',
-		flexDirection: 'row',
+		flexDirection: 'column',
 		justifyContent: 'space-between',
 		alignItems: 'center',
-		marginTop: 10
 	},
 	buttonText: {
 		textAlign: 'center',
