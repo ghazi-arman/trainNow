@@ -138,8 +138,7 @@ export class TrainerPage extends Component {
 			}
 			return(
 				<View key={trainer.key} style={styles.traineeRow}>
-					<Text style={{width: 120}}>{trainer.name}</Text>
-					<Text style={{width:50}}>{dateToString(trainer.date)}</Text>
+					<Text style={{width: '60%', textAlign: 'center'}}>{trainer.name}</Text>
 					{button}
 				</View>
 			);

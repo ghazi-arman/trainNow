@@ -138,8 +138,7 @@ export class ClientPage extends Component {
 			}
 			return(
 				<View key={trainee.key} style={styles.traineeRow}>
-					<Text style={{width:120}}>{trainee.name}</Text>
-					<Text style={{width:50}}>{dateToString(trainee.date)}</Text>
+					<Text style={{width: '60%', textAlign: 'center'}}>{trainee.name}</Text>
 					{button}
 				</View>
 			);
