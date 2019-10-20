@@ -168,7 +168,7 @@ export class ClientPage extends Component {
 						<Text style={styles.navText}>Recent Trainees</Text>
 					</TouchableOpacity>
 					<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'clients'})}>
-						<Text style={styles.navText}>Your</Text><br /><Text style={styles.navText}>Clients</Text>
+						<Text style={styles.navText}>Your Trainees</Text>
 					</TouchableOpacity>
 				</View>
 			);

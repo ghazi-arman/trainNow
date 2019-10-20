@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	sessionContainer: {
-		flex: 6,
+		flex: 7,
 		width: '100%',
 		flexDirection: 'column',
 		justifyContent: 'flex-start',

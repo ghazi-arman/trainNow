@@ -216,10 +216,12 @@ export class PaymentPage extends Component {
 		}
 		return (
 			<KeyboardAvoidingView behavior="padding" style = {styles.container}>
-				<Text style={styles.backButton} onPress={this.goToMap}>
-					<FontAwesome>{Icons.arrowLeft}</FontAwesome>
-				</Text>
-				<Text style={styles.title}>Payments</Text>
+				<View style={styles.nameContainer}>
+					<Text style={styles.backButton} onPress={this.goToMap}>
+						<FontAwesome>{Icons.arrowLeft}</FontAwesome>
+					</Text>
+					<Text style={styles.title}>Payments</Text>
+				</View>
 				{balanceDiv}
 				<View style={styles.cardHolder}>
 					{this.renderCards()}
@@ -248,7 +250,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	cardHolder: {
-		flex: 0.4,
+		flex: 0.5,
 		marginTop: 20,
 		backgroundColor: '#f6f5f5',
 		width: '90%',
@@ -264,12 +266,18 @@ const styles = StyleSheet.create({
 		justifyContent: 'space-around',
 		alignItems: 'center'
 	},
+	nameContainer: {
+		flex: 0.2,
+		width: '100%',
+		flexDirection: 'row',
+		justifyContent: 'center',
+		alignItems: 'center'
+	},
 	title: {
-		marginTop: 45,
-    	fontSize: 34,
-    	color: COLORS.PRIMARY,
-    	fontWeight: '700',
-  	},
+		fontSize: 34,
+		color: COLORS.PRIMARY,
+		fontWeight: '700',
+	},
 	form: {
 		width: '90%',
 		height: '100%',
@@ -277,7 +285,6 @@ const styles = StyleSheet.create({
 	},
 	backButton: {
 		position: 'absolute',
-		top: 45,
 		left: 20,
 		fontSize: 35, 
 		color: COLORS.SECONDARY, 
