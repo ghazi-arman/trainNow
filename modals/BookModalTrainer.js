@@ -78,9 +78,9 @@ export class BookModalTrainer extends Component {
         { text: 'No' },
         {
           text: 'Yes', onPress: async () => {
-            createPendingSession(trainee, trainer, this.state.gym, this.state.bookDate, this.state.bookDuration, 'trainer');
+            createPendingSession(trainee, trainer, this.state.gym, this.state.bookDate, this.state.bookDuration, 'trainer', true);
             try {
-              const message = this.state.trainee.name + " has requested a session at " + dateToString(this.state.bookDate) + " for " + this.state.bookDuration + " mins.";
+              const message = `${this.state.trainee.name} has requested a session at ${dateToString(this.state.bookDate)} for ${this.state.bookDuration} mins.`;
               sendMessage(this.state.trainer.phone, message);
             } catch (error) {
 							this.bugsnagClient.notify(error);

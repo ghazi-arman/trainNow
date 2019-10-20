@@ -238,6 +238,7 @@ export async function createSession(session, sessionKey, startTime, endTime){
     gym: session.gym,
     gymKey: session.gymKey,
     sentBy: session.sentBy,
+    regular: session.regular,
     [userStripeField]: user.stripeId,
     [otherUserStripeField]: otherUserStripe,
     traineePhone: session.traineePhone,
@@ -305,7 +306,7 @@ export async function sendMessage(number, message){
   return data;
 }
 
-export async function createPendingSession(trainee, trainer, gym, date, duration, sentBy){
+export async function createPendingSession(trainee, trainer, gym, date, duration, sentBy, regular){
   const userStripeField = (sentBy === 'trainee') ? 'traineeStripe' : 'trainerStripe';
   const userStripe = (sentBy === 'trainee') ? trainee.stripeId : trainer.stripeId;
   var sessionKey = firebase.database().ref('pendingSessions').push({
@@ -324,7 +325,8 @@ export async function createPendingSession(trainee, trainer, gym, date, duration
     traineePhone: trainee.phone,
     trainerPhone: trainer.phone,
     trainerType: trainer.type,
-    sentBy
+    sentBy,
+    regular
   }).key;
   let end = new Date(new Date(date).getTime() + (60000 * duration))
   const userId = firebase.auth().currentUser.uid;

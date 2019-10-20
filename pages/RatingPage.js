@@ -45,9 +45,10 @@ export class RatingPage extends Component {
 			if (!this.state.user.trainer) {
 				var duration = new Date() - new Date(this.state.session.start);
 				var minutes = Math.floor((duration/1000)/60);
-				const rate = ((parseInt(minutes) * (parseInt(this.state.session.rate) / 60)) * 100).toFixed(0);
-				const payout = (parseInt(rate) - (parseInt(rate) * .17)).toFixed(0);
-				chargeCard(this.state.session.traineeStripe, this.state.session.trainerStripe, rate, rate - payout, this.state.session);
+				const total = ((parseInt(minutes) * (parseInt(this.state.session.rate) / 60)) * 100).toFixed(0);
+				const percentage = this.state.session.regular ? 0.1 : 0.25;
+				const payout = parseInt(total) - parseInt(total * percentage);
+				chargeCard(this.state.session.traineeStripe, this.state.session.trainerStripe, total, total - payout, this.state.session);
 			}
 
 			await rateSession(this.state.session, this.state.rating, this.state.user.trainer);
@@ -94,8 +95,9 @@ export class RatingPage extends Component {
 		const displayDate = dateToString(this.state.session.end);
 		const duration = new Date(this.state.session.end) - new Date(this.state.session.start);
 		const minutes = Math.floor((duration/1000)/60);
-		const rate = (parseInt(minutes) * (parseInt(this.state.session.rate) / 60)).toFixed(2);
-		const payout = (parseFloat(rate) - (parseFloat(rate) * .2)).toFixed(2);
+		const total = (parseInt(minutes) * (parseInt(this.state.session.rate) / 60)).toFixed(2);
+		const percentage = this.state.session.regular ? 0.1 : 0.25;
+		const payout = parseInt(total) - parseInt(total * percentage);
 
 		let cost = null;
 		if (this.state.session.trainer === userId) {
@@ -103,7 +105,7 @@ export class RatingPage extends Component {
 				cost = <Text style={styles.bookDetails}>Total Earned: ${payout}</Text>
 			}
 		} else {
-			cost = <Text style={styles.bookDetails}>Total Cost: ${rate}</Text>;
+			cost = <Text style={styles.bookDetails}>Total Cost: ${total}</Text>;
 		}
 		const stars = this.renderStars(this.state.rating);
 		return (

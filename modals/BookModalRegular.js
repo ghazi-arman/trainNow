@@ -82,7 +82,7 @@ export class BookModalRegular extends Component {
         { text: 'No' },
         {
           text: 'Yes', onPress: async () => {
-            createPendingSession(trainee, trainer, this.state.gym, this.state.bookDate, this.state.bookDuration, 'trainee');
+            createPendingSession(trainee, trainer, this.state.gym, this.state.bookDate, this.state.bookDuration, 'trainee', true);
             try {
               const message = `${this.state.user.name} has requested a session at ${dateToString(this.state.bookDate)} for ${this.state.bookDuration} mins.`;
               sendMessage(this.state.trainer.phone, message);

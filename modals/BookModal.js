@@ -99,7 +99,7 @@ export class BookModal extends Component {
         },
         {
           text: 'Yes', onPress: async () => {
-            createPendingSession(trainee, trainer, this.props.gym, this.state.bookDate, this.state.bookDuration, 'trainee');
+            createPendingSession(trainee, trainer, this.props.gym, this.state.bookDate, this.state.bookDuration, 'trainee', false);
             try {
               const message = `${this.state.user.name} has requested a session at ${dateToString(this.state.bookDate)} for ${this.state.bookDuration} mins.`;
               sendMessage(this.state.trainer.phone, message);
