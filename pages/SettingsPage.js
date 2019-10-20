@@ -73,7 +73,8 @@ const styles = StyleSheet.create({
     width: '100%',
     flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'flex-end',
+    marginBottom: 10
   },
   title: {
     fontSize: 34,
@@ -92,5 +93,6 @@ const styles = StyleSheet.create({
     left: 20,
     fontSize: 35,
     color: COLORS.SECONDARY,
+    paddingBottom: 5
   }
 });
