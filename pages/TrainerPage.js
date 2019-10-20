@@ -213,10 +213,12 @@ export class TrainerPage extends Component {
 		}
 		return (
 			<View style = {styles.container}>
-				<Text style={styles.backButton} onPress={this.goToMap}>
-					<FontAwesome>{Icons.arrowLeft}</FontAwesome>
-				</Text>
-				<Text style={styles.title}>Trainers</Text>
+				<View style={styles.nameContainer}>
+					<Text style={styles.backButton} onPress={this.goToMap}>
+						<FontAwesome>{Icons.arrowLeft}</FontAwesome>
+					</Text>
+					<Text style={styles.title}>Trainers</Text>
+				</View>
 				{navBar}
 				{content}
 				<Modal 
@@ -238,18 +240,24 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	title: {
-		marginTop: 45,
-    	fontSize: 34,
-    	color: COLORS.PRIMARY,
-    	fontWeight: '700',
-  	},
-  	navigationBar: {
+		fontSize: 34,
+		color: COLORS.PRIMARY,
+		fontWeight: '700',
+	},
+  navigationBar: {
 		width: '100%',
 		height: 100,
 		flexDirection: 'row',
 		justifyContent: 'flex-start',
 		alignItems: 'center',
 		marginTop: 5,
+	},
+	nameContainer: {
+	  height: '10%',
+		width: '100%',
+		flexDirection: 'row',
+		justifyContent: 'center',
+		alignItems: 'flex-end'
 	},
 	activeTab: {
 		width: '33%',
@@ -273,19 +281,19 @@ const styles = StyleSheet.create({
 		color: COLORS.WHITE,
 		textAlign: 'center'
 	},
-  	traineeRow: {
-  		flexDirection: 'row',
-  		justifyContent: 'space-around',
-  		alignItems: 'center',
-  		width: '90%',
-  		marginTop: 10
-  	},
+  traineeRow: {
+		flexDirection: 'row',
+		justifyContent: 'space-around',
+		alignItems: 'center',
+		width: '90%',
+		marginTop: 10
+	},
 	backButton: {
 		position: 'absolute',
-		top: 45,
 		left: 20,
 		fontSize: 35, 
-		color: COLORS.SECONDARY, 
+		color: COLORS.SECONDARY,
+		paddingBottom: 5
 	},
 	buttonText: {
 		fontSize: 30,
