@@ -97,7 +97,7 @@ export class RatingPage extends Component {
 		const minutes = Math.floor((duration/1000)/60);
 		const total = (parseInt(minutes) * (parseInt(this.state.session.rate) / 60)).toFixed(2);
 		const percentage = this.state.session.regular ? 0.1 : 0.25;
-		const payout = parseInt(total) - parseInt(total * percentage);
+		const payout = (parseInt(total) - parseInt(total * percentage)).toFixed(2);
 
 		let cost = null;
 		if (this.state.session.trainer === userId) {
