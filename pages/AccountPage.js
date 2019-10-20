@@ -39,17 +39,19 @@ export class AccountPage extends Component {
       accountForm = <ClientAccountForm ref={(form) => { this.form = form }}/>
     }
     return (
-      <KeyboardAvoidingView behavior="padding" style={styles.container}>
-        <Text style={styles.backButton} onPress={this.goToMap}>
-          <FontAwesome>{Icons.arrowLeft}</FontAwesome>
-        </Text>
-        <Text style={styles.title}>Settings</Text>
-        <View style={styles.form}>
-          <ScrollView>
+      <View style={styles.container}>
+        <View style={styles.nameContainer}>
+          <Text style={styles.backButton} onPress={this.goToMap}>
+            <FontAwesome>{Icons.arrowLeft}</FontAwesome>
+          </Text>
+          <Text style={styles.title}>Settings</Text>
+        </View>
+        <KeyboardAvoidingView style={styles.formContainer} behavior="padding">
+          <ScrollView contentContainerStyle={styles.center} showsVerticalScrollIndicator={false}>
             {accountForm}
           </ScrollView>
-        </View>
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </View>
     );
   }
 }
@@ -57,25 +59,37 @@ export class AccountPage extends Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.WHITE,
     flexDirection: 'column',
-    justifyContent: 'flex-start',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    backgroundColor: COLORS.WHITE
+  },
+  center: {
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  nameContainer: {
+    flex: 1,
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center'
   },
   title: {
-    marginTop: 45,
     fontSize: 34,
     color: COLORS.PRIMARY,
     fontWeight: '700',
   },
-  form: {
+  formContainer: {
+    flex: 7,
     width: '90%',
-    height: '100%',
-    paddingBottom: 50,
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'space-around'
   },
   backButton: {
     position: 'absolute',
-    top: 45,
     left: 20,
     fontSize: 35,
     color: COLORS.SECONDARY,

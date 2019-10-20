@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderBottomWidth: 1,
     borderColor: COLORS.PRIMARY,
-    width: '90%',
+    width: '85%',
     color: COLORS.PRIMARY
   },
   icon: {

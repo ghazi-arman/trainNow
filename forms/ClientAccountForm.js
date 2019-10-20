@@ -118,7 +118,7 @@ export class ClientAccountForm extends Component {
     }
 
     return (
-      <View style={styles.form}>
+      <View style={styles.container}>
         <View style={styles.imageContainer}>
           <Image source={{ uri: this.state.image }} style={styles.imageHolder} />
         </View>
@@ -140,10 +140,16 @@ export class ClientAccountForm extends Component {
 }
 
 const styles = StyleSheet.create({
-  form: {
-    padding: 20
+  container: {
+    flex: 1,
+    width: '95%',
+    flexDirection: 'column',
+    justifyContent: 'space-around',
+    alignItems: 'center',
   },
   buttonContainer: {
+    borderRadius: 5,
+    width: 200,
     backgroundColor: COLORS.SECONDARY,
     paddingVertical: 15,
     marginTop: 10
@@ -159,8 +165,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   imageHolder: {
-    width: 220,
-    height: 220,
+    width: 200,
+    height: 200,
     borderWidth: 1,
     borderColor: COLORS.PRIMARY,
   },
