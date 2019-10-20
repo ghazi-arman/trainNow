@@ -7,7 +7,7 @@ import Modal from 'react-native-modal';
 import { Actions } from 'react-native-router-flux';
 import bugsnag from '@bugsnag/expo';
 import COLORS from './../components/Colors';
-import { loadSessions, dateToString, renderStars, reportSession } from './../components/Functions';
+import { loadSessions, renderStars, reportSession, timeToString } from './../components/Functions';
 
 export class HistoryPage extends Component {
 
@@ -47,9 +47,9 @@ export class HistoryPage extends Component {
 		this.state.sessions.sort(function(a, b){ return (new Date(b.start) - new Date(a.start))});
 		return this.state.sessions.map((session) => {
 
-			const startDate = dateToString(session.start);
-			const endDate = dateToString(session.end);
-			const day = (new Date(session.start).getMonth() + 1) + " / " + new Date(session.start).getDate();
+			const startDate = timeToString(session.start);
+			const endDate = timeToString(session.end);
+			const day = (new Date(session.start).getMonth() + 1) + "/" + new Date(session.start).getDate();
 			const minutes = Math.floor(((new Date(session.end) - new Date(session.start))/1000)/60);
 			const rate = (parseInt(minutes) * (parseInt(session.rate) / 60)).toFixed(2);
 			const payout = (parseFloat(rate) - (parseFloat(rate) * .2)).toFixed(2);
@@ -71,10 +71,7 @@ export class HistoryPage extends Component {
 					<View style={styles.sessionRow}><Text style={styles.smallText}>{session.gym}</Text></View>
 					{rateView}
 					<View style={styles.sessionRow}><Text style={styles.smallText}>{day}</Text></View>
-					<View style={styles.sessionRow}>
-						<View style={styles.halfRow}><Text style={styles.timeText}>Start: {startDate}</Text></View>
-						<View style={styles.halfRow}><Text style={styles.timeText}>End: {endDate}</Text></View>
-					</View>
+					<View style={styles.sessionRow}><Text style={styles.timeText}>{startDate} to {endDate}</Text></View>
 					<View style={styles.sessionRow}>
 						<TouchableOpacity style={styles.buttonContainer} onPress={() => this.setState({reportModal: true, reportSession: session})}>
 							<Text style={styles.buttonText}>Report Session</Text>
@@ -91,12 +88,14 @@ export class HistoryPage extends Component {
 		}
 		return (
 			<View style = {styles.container}>
-				<Text style={styles.backButton} onPress={this.goToMap}>
-          <FontAwesome>{Icons.arrowLeft}</FontAwesome>
-      	</Text>
-				<Text style={styles.header}>Trainer History</Text>
+				<View style={styles.nameContainer}>
+					<Text style={styles.backButton} onPress={this.goToMap}>
+						<FontAwesome>{Icons.arrowLeft}</FontAwesome>
+					</Text>
+					<Text style={styles.header}>Trainer History</Text>
+				</View>
 				<View style={styles.historyContainer}>		
-					<ScrollView showsVerticalScrollIndicator={false}>
+					<ScrollView contentContainerStyle={styles.center} showsVerticalScrollIndicator={false}>
 						{this.renderSessions()}
 					</ScrollView>
 				</View>
@@ -105,7 +104,10 @@ export class HistoryPage extends Component {
 					onBackdropPress={this.hideReportModal}
 				>
 					<KeyboardAvoidingView behavior="padding" style={styles.reportModal}>
-						<Text style={styles.titleText}>Report Session</Text>
+						<Text style={styles.closeButton} onPress={this.hideReportModal}>
+							<FontAwesome>{Icons.close}</FontAwesome>
+						</Text>
+						<Text style={styles.header}>Report Session</Text>
 						<TextInput 
 							placeholder="What was the problem?"
 							style={styles.input}
@@ -128,22 +130,29 @@ export class HistoryPage extends Component {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
+		width: '100%',
 		backgroundColor: COLORS.WHITE,
 		flexDirection: 'column',
 		justifyContent: 'flex-start',
 		alignItems: 'center'	
 	},
 	reportModal: {
-		flex: .3,
+		flex: 0.6,
 		flexDirection: 'column',
 		justifyContent: 'space-around',
 		alignItems: 'center',
 		backgroundColor: COLORS.WHITE,
 		borderRadius: 10,
 	},
-	historyContainer: {
-		paddingLeft: 27,
+	nameContainer: {
+	  height: '10%',
 		width: '100%',
+		flexDirection: 'row',
+		justifyContent: 'center',
+		alignItems: 'flex-end'
+	},
+	historyContainer: {
+		width: '85%',
 		height: '80%',
 		flexDirection: 'column',
 		justifyContent: 'flex-start',
@@ -158,24 +167,28 @@ const styles = StyleSheet.create({
 		borderRadius: 5,
 		borderWidth: 1,
 		borderColor: COLORS.PRIMARY,
-		marginTop: 20
+		marginTop: 20,
+		padding: 10
+	},
+	center: {
+		flexDirection: 'column',
+		alignItems: 'center'
 	},
 	sessionRow: {
+		width: '100%',
 		flexDirection: 'row',
-		justifyContent: 'center'
-	},
-	halfRow: {
-		width: '50%',
-		flexDirection: 'row',
-		justifyContent: 'center'
+		justifyContent: 'center',
+		alignItems: 'center',
+		padding: 5
 	},
 	header: {
-		marginTop: 45,
+		textAlign: 'center',
 		fontSize: 30,
 		fontWeight: '700',
 		color: COLORS.PRIMARY,
 	},
 	titleText: {
+		textAlign: 'center',
 		fontSize: 20,
 		fontWeight: '600',
 		color: COLORS.PRIMARY
@@ -192,7 +205,14 @@ const styles = StyleSheet.create({
 	},
 	icon: {
 		color: COLORS.SECONDARY,
-	fontSize: 15,
+		fontSize: 15,
+	},
+	closeButton: {
+		position: 'absolute',
+		top: 5,
+		right: 5,
+		fontSize: 35,
+		color: COLORS.RED,
 	},
   buttonText: {
 		fontSize: 15,
@@ -201,18 +221,21 @@ const styles = StyleSheet.create({
 		fontWeight: '500'
 	},
 	buttonContainer: {
+		borderRadius: 5,
 		backgroundColor: COLORS.SECONDARY,
-		padding: 5,
-		margin: 5
+		width: 150,
+		height: 30,
+		flexDirection: 'column',
+		justifyContent: 'center'
 	},
 	submitButton: {
+		borderRadius: 5,
 		backgroundColor: COLORS.SECONDARY,
-		paddingVertical: 10,
-		margin: 5,
-		width: '80%'
+		paddingVertical: 15,
+		width: 200
 	},
 	input: {
-		height: 80,
+		height: '50%',
 		width: '80%',
 		backgroundColor: 'transparent',
 		borderWidth: 1,
@@ -222,7 +245,6 @@ const styles = StyleSheet.create({
 	},
 	backButton: {
 		position: 'absolute',
-		top: 45,
 		left: 20,
 		fontSize: 35, 
 		color: COLORS.SECONDARY, 

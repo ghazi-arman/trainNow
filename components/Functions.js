@@ -42,6 +42,28 @@ export function dateToString(start) {
   return displayDate;
 }
 
+// Convert date to readable time format
+export function timeToString(start) {
+  var pendingDate = new Date(start);
+  var hour = pendingDate.getHours();
+  var minute = pendingDate.getMinutes();
+  var abbr;
+
+  if (minute < 10) {
+    minute = '0' + minute;
+  }
+  // Sets abbr to AM or PM
+  if (hour > 12) {
+    hour = hour - 12;
+    abbr = ' PM';
+  } else {
+    abbr = ' AM'
+  }
+
+  var displayDate = hour + ':' + minute + abbr;
+  return displayDate;
+}
+
 // Checks if two date/time ranges overlap
 export function timeOverlapCheck(sessionOneStart, sessionOneEnd, sessionTwoStart, sessionTwoEnd){
   let startOne = new Date(sessionOneStart).getTime();
