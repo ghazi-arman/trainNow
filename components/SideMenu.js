@@ -119,7 +119,7 @@ export class SideMenu extends Component {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity>
-            <Text style={styles.icon} onPress={() => Actions.AccountPage({trainer: this.state.trainerState})}>
+            <Text style={styles.icon} onPress={() => Actions.SettingsPage({trainer: this.state.trainerState})}>
                 <FontAwesome>{Icons.gear}</FontAwesome> <Text style={styles.menuLink}> Settings</Text>
             </Text>
           </TouchableOpacity>

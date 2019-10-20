@@ -5,7 +5,7 @@ import {LoginPage} from './pages/LoginPage';
 import {SignupPage} from './pages/SignupPage';
 import {ForgotPage} from './pages/ForgotPage';
 import {MapPage} from './pages/MapPage';
-import {AccountPage} from './pages/AccountPage';
+import {SettingsPage} from './pages/SettingsPage';
 import {SessionPage} from './pages/SessionPage';
 import {RatingPage} from './pages/RatingPage';
 import {HistoryPage} from './pages/HistoryPage';
@@ -26,7 +26,7 @@ export class Routes extends Component {
 			    	<Scene key="SignupPage" component={SignupPage} title="SignupPage" />
 			    	<Scene key="ForgotPage" component={ForgotPage} title="ForgotPage"  />
 			    	<Scene key="MapPage" component={MapPage} title="MapPage" />
-			    	<Scene key="AccountPage" component={AccountPage} title="AccountPage" />
+			    	<Scene key="SettingsPage" component={SettingsPage} title="SettingsPage" />
 			    	<Scene key="SessionPage" component={SessionPage} title="SessionPage" />
 			    	<Scene key="RatingPage" component={RatingPage} title="RatingPage" />
 			    	<Scene key="HistoryPage" component={HistoryPage} title="HistoryPage" />

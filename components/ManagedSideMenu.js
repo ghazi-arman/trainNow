@@ -118,7 +118,7 @@ export class ManagedSideMenu extends Component {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity>
-            <Text style={styles.icon} onPress={() => Actions.AccountPage({trainer: true})}>
+            <Text style={styles.icon} onPress={() => Actions.SettingsPage({trainer: true})}>
                 <FontAwesome>{Icons.gear}</FontAwesome> <Text style={styles.menuLink}> Settings</Text>
             </Text>
           </TouchableOpacity>

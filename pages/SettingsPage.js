@@ -7,7 +7,7 @@ import { TrainerAccountForm } from '../forms/TrainerAccountForm';
 import { Actions } from 'react-native-router-flux';
 import COLORS from '../components/Colors';
 
-export class AccountPage extends Component {
+export class SettingsPage extends Component {
 
   constructor(props) {
     super(props);
