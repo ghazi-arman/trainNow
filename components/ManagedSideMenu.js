@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Alert, Image } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { AppLoading } from 'expo';
 import firebase from 'firebase';
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: COLORS.SECONDARY,
     paddingBottom: 20,
-    paddingTop: 30
+    paddingTop: 40
   },
   icon:{
     fontSize: 30,

@@ -78,7 +78,7 @@ export class SideMenu extends Component {
           </Text>
         </TouchableOpacity>
         <TouchableOpacity>
-          <Text style={styles.icon} onPress={() => Actions.SettingsPage({trainer: this.state.user.active})}>
+          <Text style={styles.icon} onPress={() => Actions.SettingsPage({trainer: this.state.user.trainer})}>
               <FontAwesome>{Icons.gear}</FontAwesome> <Text style={styles.menuLink}> Settings</Text>
           </Text>
         </TouchableOpacity>
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: COLORS.SECONDARY,
     paddingBottom: 20,
-    paddingTop: 30
+    paddingTop: 40
   },
   icon:{
     fontSize: 30,

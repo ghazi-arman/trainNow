@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import * as Font from 'expo-font';
 import { StyleSheet, Text, View, KeyboardAvoidingView, ScrollView, Alert } from 'react-native';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { ClientAccountForm } from '../forms/ClientAccountForm';
