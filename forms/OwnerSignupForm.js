@@ -6,7 +6,8 @@ import { Icons } from 'react-native-fontawesome';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import TextField from '../components/TextField';
-var stripe = require('stripe-client')('pk_test_6sgeMvomvrZFucRqYhi6TSbO');
+import { STRIPE_KEY } from 'react-native-dotenv';
+const stripe = require('stripe-client')(STRIPE_KEY);
 
 export class OwnerSignupForm extends Component {
 	

@@ -6,7 +6,8 @@ import { AppLoading } from 'expo';
 import bugsnag from '@bugsnag/expo';
 import { loadGym, loadUser } from '../components/Functions';
 import  TextField from '../components/TextField';
-var stripe = require('stripe-client')('pk_test_6sgeMvomvrZFucRqYhi6TSbO');
+import { STRIPE_KEY } from 'react-native-dotenv';
+const stripe = require('stripe-client')(STRIPE_KEY);
 
 export class OwnerCardModal extends Component {
 	

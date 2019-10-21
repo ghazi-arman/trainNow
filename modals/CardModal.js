@@ -7,7 +7,8 @@ import  TextField from '../components/TextField';
 import bugsnag from '@bugsnag/expo';
 import { loadUser } from '../components/Functions';
 import Colors from '../components/Colors';
-var stripe = require('stripe-client')('pk_test_6sgeMvomvrZFucRqYhi6TSbO');
+import { STRIPE_KEY } from 'react-native-dotenv';
+const stripe = require('stripe-client')(STRIPE_KEY);
 
 export class CardModal extends Component {
 	constructor(props) {
