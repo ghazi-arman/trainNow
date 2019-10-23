@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Alert, Platform, Linking } from 'react-native';
 import { AppLoading } from 'expo';
 import MapView from 'react-native-maps';
 import firebase from 'firebase';
@@ -64,6 +64,14 @@ export class SessionPage extends Component {
 		}
 	}
 
+	openMaps = () => {
+		if (Platform.OS === 'ios') {
+      Linking.openURL(`https://maps.apple.com/?ll=${this.state.session.location.latitude},${this.state.session.location.longitude}`);
+    } else {
+      Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${this.state.session.location.latitude},${this.state.session.location.longitude}`);
+    }
+	}
+
 	goToMap = () => Actions.reset('MapPage');
 
 	render() {
@@ -73,36 +81,48 @@ export class SessionPage extends Component {
 
 		var displayDate = dateToString(this.state.session.start);
 
-		var map, button, time, minutes, remaining, ready, ownReady, ownEnd;
+		var map, button, mapButton, time, minutes, remaining, ready, ownReady, ownEnd;
 		var user = firebase.auth().currentUser;
+
 		if(this.state.session.trainee == user.uid){
 			description = <Text style={styles.bookDetails}>{this.state.session.trainerName} is training you!</Text>;
 		}else{
 			description = <Text style={styles.bookDetails}>You are training {this.state.session.traineeName}!</Text>;
 		}
+		mapButton = (
+			<TouchableOpacity
+			style={styles.buttonContainer}
+			onPress={this.openMaps}
+			>
+				<Text style={styles.buttonText}> Open in Maps </Text>
+			</TouchableOpacity>
+		);
+
+		map = ( 
+			<MapView
+				pitchEnabled = {false}
+				rotateEnabled = {false}
+				scrollEnabled = {false}
+				zoomEnabled = {false}
+				style={styles.mapContainer}
+				region={this.state.mapRegion}
+				showsUserLocation={true}
+			>
+				<MapView.Marker
+						ref={this.state.session.trainer}
+						key={this.state.session.trainer}
+						coordinate={this.state.session.location}
+				/>
+			</MapView>
+		);
+
 		if(!this.state.session.met){
 			time = <Text style={styles.bookDetails}>{displayDate} </Text>;
 			length = <Text style={styles.bookDetails}>{this.state.session.duration} min</Text>;
-			map = ( 
-				<MapView
-					pitchEnabled = {false}
-					rotateEnabled = {false}
-					scrollEnabled = {false}
-					zoomEnabled = {false}
-					style={styles.mapContainer}
-					region={this.state.mapRegion}
-					showsUserLocation={true}
-				>
-					<MapView.Marker
-							ref={this.state.session.trainer}
-							key={this.state.session.trainer}
-							coordinate={this.state.session.location}
-					/>
-				</MapView>);
 			button = (
 				<TouchableOpacity 
 					style={styles.buttonContainer}
-					onPressIn={this.startSession}>
+					onPress={this.startSession}>
 					<Text style={styles.buttonText}> Start Session </Text>
 				</TouchableOpacity>
 			);
@@ -141,7 +161,6 @@ export class SessionPage extends Component {
 						>End Session</Text>
 				</TouchableOpacity>
 			);
-			map = null;
 
 			//Gives info about whether trainer/trainee is ready or en route
 			if(this.state.session.traineeEnd && user.uid === this.state.session.trainer){
@@ -174,6 +193,7 @@ export class SessionPage extends Component {
 					{map}
 					<View style={styles.buttonContain}>
 						{button}
+						{mapButton}
 						{ownReady}
 						{ownEnd}
 					</View>
@@ -213,23 +233,25 @@ const styles = StyleSheet.create({
 		width: '100%',
 		flexDirection: 'row',
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'flex-end'
 	},
 	formContainer: {
-		flex: 6,
+		flex: 8,
 		width: '95%',
 		flexDirection: 'column',
 		justifyContent: 'center',
 		alignItems: 'center'
 	},
 	mapContainer: {
-		width: '90%',
-		height: '35%'
+		width: '95%',
+		flex: 10,
 	},
 	buttonContain: {
 		width: '50%',
-		height: '20%',
-		marginTop: 10,
+		flex: 8,
+		flexDirection: 'column',
+		justifyContent: 'space-evenly',
+		alignItems: 'center'
 	},
 	infoContainer: {
 		height: '35%',
