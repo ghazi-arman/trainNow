@@ -50,7 +50,7 @@ export class SchedulerModal extends Component {
 					</Text>
 				</View>
 				<View style={styles.formContainer}>
-					<ScrollView contentContainerStyle={styles.center}>
+					<ScrollView contentContainerStyle={styles.center} showsVerticalScrollIndicator={false}>
 						<View style={styles.inputRow}>
 							<Text style={styles.formLabel}>Start Time</Text>
 							<View style={styles.datePickerHolder}>
