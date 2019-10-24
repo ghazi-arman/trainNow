@@ -60,7 +60,7 @@ export class PaymentPage extends Component {
 	}
 
 	deleteCard = async(stripeId, cardId) => {
-		if (defaultCard) {
+		if (this.state.cards.length === 1) {
 			Alert.alert('You cannot delete your default card.');
 			return;
 		}
@@ -182,7 +182,7 @@ export class PaymentPage extends Component {
 					);
 				}
 				deleteButton = (
-					<TouchableOpacity style={styles.deleteButton} onPress={() => this.deleteCard(this.state.user.stripeId, currCard.id, defaultCard)}>
+					<TouchableOpacity style={styles.deleteButton} onPress={() => this.deleteCard(this.state.user.stripeId, currCard.id)}>
 	    				<Text style={{fontSize: 15}}><FontAwesome>{Icons.remove}</FontAwesome></Text>
 	    			</TouchableOpacity>
 				);
