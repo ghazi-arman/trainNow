@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Alert, Platform, Linking } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Alert, Platform, Linking, Image } from 'react-native';
 import MapView from 'react-native-maps';
 import firebase from 'firebase';
 import bugsnag from '@bugsnag/expo';
@@ -76,7 +76,7 @@ export class SessionPage extends Component {
 
 	render() {
 		if (!this.state.session || !this.state.userRegion) {
-      return <Image source={loading} style={styles.loading} />;
+      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
 		}
 
 		var displayDate = dateToString(this.state.session.start);
@@ -283,5 +283,12 @@ const styles = StyleSheet.create({
 	loading: {
     width: '100%',
     resizeMode: 'contain'
+	},
+	loadingContainer: {
+    height: '100%',
+    width: '100%',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center'
   }
 });

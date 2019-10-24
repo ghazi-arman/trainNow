@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, KeyboardAvoidingView, ScrollView, TouchableOpacity, Alert, TextInput } from 'react-native';
+import { StyleSheet, Text, View, KeyboardAvoidingView, ScrollView, TouchableOpacity, Alert, TextInput, Image } from 'react-native';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import Modal from 'react-native-modal';
 import { Actions } from 'react-native-router-flux';
@@ -85,7 +85,7 @@ export class OwnerHistoryPage extends Component {
 
 	render() {
 		if(!this.state.sessions){
-      return <Image source={loading} style={styles.loading} />;
+      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
 		}
 		return (
 			<View style = {styles.container}>
@@ -225,5 +225,12 @@ const styles = StyleSheet.create({
 	loading: {
     width: '100%',
     resizeMode: 'contain'
+	},
+	loadingContainer: {
+    height: '100%',
+    width: '100%',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center'
   }
 });

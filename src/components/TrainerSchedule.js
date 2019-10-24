@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, Image } from 'react-native';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import COLORS from './Colors';
 import { dateToString, loadAcceptedSchedule, dateforAgenda, loadAvailableSchedule, loadOtherTrainer } from './Functions';
@@ -53,7 +53,7 @@ export class TrainerSchedule extends Component {
 
 	render(){
 		if(!this.state.trainer || !this.state.sessions){
-      return <Image source={loading} style={styles.loading} />;
+      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
 		}else{
 			let events = this.renderAgendaEvents();
 			return(
@@ -143,5 +143,12 @@ const styles = StyleSheet.create({
 	loading: {
     width: '100%',
     resizeMode: 'contain'
+	},
+	loadingContainer: {
+    height: '100%',
+    width: '100%',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center'
   }
 })

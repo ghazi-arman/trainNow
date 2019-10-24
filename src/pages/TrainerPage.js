@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import Modal from 'react-native-modal';
@@ -151,7 +151,7 @@ export class TrainerPage extends Component {
 
 	render() {
 		if (!this.state.user || !this.state.clientRequests || !this.state.recentTrainers) {
-      return <Image source={loading} style={styles.loading} />;
+      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
 		}
 		if(this.state.currentTab == 'requests'){
 			var navBar = (
@@ -330,5 +330,12 @@ const styles = StyleSheet.create({
 	loading: {
     width: '100%',
     resizeMode: 'contain'
+	},
+	loadingContainer: {
+    height: '100%',
+    width: '100%',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center'
   }
 });

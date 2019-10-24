@@ -356,7 +356,7 @@ export class SignupForm extends Component {
 
   render() {
     if(!this.state.gymLoaded || this.state.pressed) {
-      return <Image source={loading} style={styles.loading} />;
+      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
     }
 
     let image = this.state.image;
@@ -578,6 +578,13 @@ const styles = StyleSheet.create({
   loading: {
     width: '100%',
     resizeMode: 'contain'
+  },
+  loadingContainer: {
+    height: '100%',
+    width: '100%',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   inputRow: {
     width: '100%',

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, KeyboardAvoidingView, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, Text, KeyboardAvoidingView, TouchableOpacity, Alert, Image, View } from 'react-native';
 import firebase from 'firebase';
 import { Icons } from 'react-native-fontawesome';
 import bugsnag from '@bugsnag/expo';
@@ -93,7 +93,7 @@ export class OwnerCardModal extends Component {
 
 	render(){
 		if (!this.state.gym || !this.state.user) {
-      return <Image source={loading} style={styles.loading} />;
+      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
 		}
 		return(
 			<KeyboardAvoidingView behavior="padding" style={styles.formContainer}>
@@ -173,5 +173,12 @@ const styles = StyleSheet.create({
 	loading: {
     width: '100%',
     resizeMode: 'contain'
+	},
+	loadingContainer: {
+    height: '100%',
+    width: '100%',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center'
   }
 })

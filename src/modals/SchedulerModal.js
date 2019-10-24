@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, DatePickerIOS, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, DatePickerIOS, TouchableOpacity, Alert, ScrollView, Image } from 'react-native';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import firebase from 'firebase';
 import bugsnag from '@bugsnag/expo';
@@ -39,7 +39,7 @@ export class SchedulerModal extends Component {
 
 	render(){
 		if(!this.state.user){
-      return <Image source={loading} style={styles.loading} />;
+      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
 		}
 		return(
 			<View style={styles.modal}>
@@ -174,5 +174,12 @@ const styles = StyleSheet.create({
 	loading: {
     width: '100%',
     resizeMode: 'contain'
+	},
+	loadingContainer: {
+    height: '100%',
+    width: '100%',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center'
   }
 })

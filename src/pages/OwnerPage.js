@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
 import firebase from 'firebase';
 import Modal from 'react-native-modal';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
@@ -233,7 +233,7 @@ export class OwnerPage extends Component {
 
 	render() {
 		if (!this.state.user || !this.state.gym || !this.state.cards || this.state.balance === undefined) {
-      return <Image source={loading} style={styles.loading} />;
+      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
 		}
 		if (this.state.currentTab === 'pending') {
 			var navBar = (
@@ -470,5 +470,12 @@ const styles = StyleSheet.create({
 	loading: {
     width: '100%',
     resizeMode: 'contain'
+	},
+	loadingContainer: {
+    height: '100%',
+    width: '100%',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center'
   }
 });

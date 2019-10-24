@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Alert, Image } from 'react-native';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import firebase from 'firebase';
 import { Actions } from 'react-native-router-flux';
@@ -38,7 +38,7 @@ export class ManagedSideMenu extends Component {
 
 	render(){
     if(!this.state.user){
-      return <Image source={loading} style={styles.loading} />;
+      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
     }
     let clientLink, active;
     if(this.state.user.trainer){
@@ -126,5 +126,12 @@ const styles = StyleSheet.create({
   loading: {
     width: '100%',
     resizeMode: 'contain'
-  }
+  },
+  loadingContainer: {
+    height: '100%',
+    width: '100%',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
 });

@@ -121,7 +121,7 @@ export class ClientAccountForm extends Component {
 
   render() {
     if (!this.state.user || !this.state.imageUploaded || this.state.pressed) {
-      return <Image source={loading} style={styles.loading} />;
+      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
     }
 
     return (
@@ -169,6 +169,13 @@ const styles = StyleSheet.create({
   loading: {
     width: '100%',
     resizeMode: 'contain'
+  },
+  loadingContainer: {
+    height: '100%',
+    width: '100%',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   imageContainer: {
     flexDirection: 'column',

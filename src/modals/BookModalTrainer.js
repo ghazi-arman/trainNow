@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Alert, DatePickerIOS, Picker } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Alert, DatePickerIOS, Picker, Image } from 'react-native';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import bugsnag from '@bugsnag/expo';
@@ -97,7 +97,7 @@ export class BookModalTrainer extends Component {
 
 	render() {
 		if (!this.state.trainee || !this.state.trainer || !this.state.gym) {
-      return <Image source={loading} style={styles.loading} />;
+      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
 		}
 		return (
 			<View style={styles.modal}>
@@ -227,5 +227,12 @@ const styles = StyleSheet.create({
 	loading: {
     width: '100%',
     resizeMode: 'contain'
+	},
+	loadingContainer: {
+    height: '100%',
+    width: '100%',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center'
   }
 })
