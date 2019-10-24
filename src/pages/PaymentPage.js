@@ -65,8 +65,8 @@ export class PaymentPage extends Component {
 			return;
 		}
 		Alert.alert(
-			'Are you sure you want to delete this card?', 
-			'',
+			'Delete Card', 
+			'Are you sure you want to delete this card?',
 			[
 				{text: 'No'},
 				{text: 'Yes', onPress: async () => {
