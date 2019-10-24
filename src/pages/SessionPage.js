@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Alert, Platform, Linking } from 'react-native';
-import { AppLoading } from 'expo';
 import MapView from 'react-native-maps';
 import firebase from 'firebase';
 import bugsnag from '@bugsnag/expo';
@@ -8,6 +7,7 @@ import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { Actions } from 'react-native-router-flux';
 import COLORS from '../components/Colors';
 import { getLocation, loadSession, dateToString, startSession } from '../components/Functions';
+const loading = require('../images/loading.gif');
 
 export class SessionPage extends Component {
 
@@ -76,7 +76,7 @@ export class SessionPage extends Component {
 
 	render() {
 		if (!this.state.session || !this.state.userRegion) {
-			return <AppLoading />
+      return <Image source={loading} style={styles.loading} />;
 		}
 
 		var displayDate = dateToString(this.state.session.start);
@@ -279,5 +279,9 @@ const styles = StyleSheet.create({
 		left: 20,
 		fontSize: 35, 
 		color: COLORS.SECONDARY, 
-	}
+	},
+	loading: {
+    width: '100%',
+    resizeMode: 'contain'
+  }
 });

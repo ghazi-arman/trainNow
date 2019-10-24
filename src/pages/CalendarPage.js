@@ -3,13 +3,13 @@ import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert } from 'rea
 import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
-import { AppLoading } from 'expo';
 import Modal from 'react-native-modal';
 import bugsnag from '@bugsnag/expo';
 import { dateToString, timeOverlapCheck, loadUser, loadAcceptedSessions, loadPendingSessions, loadAcceptedSchedule, createSession, sendMessage, cancelPendingSession, cancelAcceptedSession, markSessionsAsRead } from '../components/Functions';
 import COLORS from '../components/Colors';
 import { SchedulerModal } from '../modals/SchedulerModal';
 import { TrainerSchedule } from '../components/TrainerSchedule';
+const loading = require('../images/loading.gif');
 
 export class CalendarPage extends Component {
 
@@ -307,7 +307,7 @@ export class CalendarPage extends Component {
 
 	render() {
 		if (!this.state.acceptSessions || !this.state.user || !this.state.pendingSessions) {
-			return <AppLoading />;
+      return <Image source={loading} style={styles.loading} />;
 		}
 		let active, schedule, scheduler;
 		if (this.state.user.trainer) {
@@ -534,5 +534,9 @@ const styles = StyleSheet.create({
 		paddingBottom: 5,
 		fontWeight: '700',
 		color: COLORS.SECONDARY,
-	}
+	},
+	loading: {
+    width: '100%',
+    resizeMode: 'contain'
+  }
 })

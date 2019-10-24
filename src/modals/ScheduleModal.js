@@ -2,11 +2,11 @@ import React, { Component } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import firebase from 'firebase';
-import { AppLoading } from 'expo';
 import { Agenda } from 'react-native-calendars';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import { dateToString, loadUser, loadAcceptedSchedule, dateforAgenda, loadAvailableSchedule, loadOtherTrainer } from '../components/Functions';
+const loading = require('../images/loading.gif');
 
 export class ScheduleModal extends Component {
 	
@@ -62,26 +62,28 @@ export class ScheduleModal extends Component {
 
 	render(){
 		if(!this.state.trainer || !this.state.user || !this.state.sessions){
-			return <AppLoading />
+      return <Image source={loading} style={styles.loading} />;
 		}
 		const events = this.renderAgendaEvents();
 		return(
 			<View style={styles.modal}>
 				<View style={styles.nameContainer}>
+					<Text style={styles.backButton} onPress={this.props.hideandOpen}>
+							<FontAwesome>{Icons.arrowLeft}</FontAwesome>
+					</Text>
 					<Text style={styles.trainerName}> {this.state.trainer.name} </Text>
 				</View>
-				<Text style={styles.backButton} onPress={this.props.hideandOpen}>
-						<FontAwesome>{Icons.arrowLeft}</FontAwesome>
-				</Text>
-				<Agenda 
-					style={styles.calendar}
-					minDate={this.state.date}
-					maxDate={new Date(this.state.date.getTime() + 86400000 * 14)}
-					items={events}
-					renderItem={this.renderAgendaItem}
-					renderEmptyDate={() => {return (<View />);}}
-					rowHasChanged={(r1, r2) => {return r1.text !== r2.text}}
-				/>
+				<View style={styles.calendarContainer}>
+					<Agenda 
+						style={styles.calendar}
+						minDate={this.state.date}
+						maxDate={new Date(this.state.date.getTime() + 86400000 * 14)}
+						items={events}
+						renderItem={this.renderAgendaItem}
+						renderEmptyDate={() => {return (<View />);}}
+						rowHasChanged={(r1, r2) => {return r1.text !== r2.text}}
+					/>
+				</View>
 			</View>
 		);
 	}
@@ -96,31 +98,35 @@ const styles = StyleSheet.create({
 		backgroundColor: COLORS.WHITE,
 		borderRadius: 10,
 	},
-	trainerName: {
-		fontSize: 30,
-		color: COLORS.WHITE,
-		fontWeight: '500'
+  trainerName: {
+    fontSize: 30,
+    color: COLORS.WHITE,
+    fontWeight: '500',
+    textAlign: 'center'
+  },
+  nameContainer: {
+    flex: 1,
+    width: '100%',
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    backgroundColor: COLORS.PRIMARY,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  backButton: {
+    position: 'absolute',
+    left: 10,
+    fontSize: 35,
+    color: COLORS.SECONDARY,
 	},
-	nameContainer: {
-	  height: '12%',
-		width: '100%',
-		borderTopLeftRadius: 10,
-		borderTopRightRadius: 10,
-		backgroundColor: COLORS.PRIMARY,
-		flexDirection: 'column',
-		justifyContent: 'center',
-		alignItems: 'center'
-	},
-	backButton: {
-		position: 'absolute',
-		top: 25,
-		left: 20,
-		fontSize: 35, 
-		color: COLORS.SECONDARY, 
+	calendarContainer: {
+		flex: 6,
+		width: '100%'
 	},
 	calendar: {
+		height: '100%',
 		width: '100%',
-		height: '100%'
 	},
 	agendaItem: {
 		height: 100,
@@ -140,5 +146,9 @@ const styles = StyleSheet.create({
 	agendaItemText: {
 		color: COLORS.PRIMARY,
 		fontSize: 15,
-	}
+	},
+	loading: {
+    width: '100%',
+    resizeMode: 'contain'
+  }
 })

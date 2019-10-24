@@ -2,10 +2,10 @@ import React, { Component } from 'react';
 import { StyleSheet, Text, View, DatePickerIOS, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import firebase from 'firebase';
-import { AppLoading } from 'expo';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
-import { loadUser, addAvailableSession } from '../components/Functions'; 
+import { loadUser, addAvailableSession } from '../components/Functions';
+const loading = require('../images/loading.gif');
 
 export class SchedulerModal extends Component {
 	
@@ -39,7 +39,7 @@ export class SchedulerModal extends Component {
 
 	render(){
 		if(!this.state.user){
-			return <AppLoading />
+      return <Image source={loading} style={styles.loading} />;
 		}
 		return(
 			<View style={styles.modal}>
@@ -171,4 +171,8 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		borderColor: COLORS.PRIMARY,
 	},
+	loading: {
+    width: '100%',
+    resizeMode: 'contain'
+  }
 })

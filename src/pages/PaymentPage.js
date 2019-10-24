@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, KeyboardAvoidingView, TouchableOpacity, Alert } from 'react-native';
-import { AppLoading } from 'expo';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import Modal from 'react-native-modal';
@@ -9,6 +8,7 @@ import bugsnag from '@bugsnag/expo';
 import { CardModal } from '../modals/CardModal';
 import COLORS from '../components/Colors';
 import { loadUser, loadTrainerCards, loadCards, getCardIcon, deleteCard, setDefaultCard, loadBalance, deleteTrainerCard, setDefaultTrainerCard } from '../components/Functions';
+const loading = require('../images/loading.gif');
 
 export class PaymentPage extends Component {
 
@@ -202,7 +202,7 @@ export class PaymentPage extends Component {
 
 	render() {
 		if (!this.state.user || !this.state.cards) {
-			return <AppLoading />
+      return <Image source={loading} style={styles.loading} />;
 		}
 		let balanceDiv, payoutText, balanceFormatted;
 		if (this.state.user.trainer) {
@@ -333,5 +333,9 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		width: 30,
 		height: 30
-	}
+	},
+	loading: {
+    width: '100%',
+    resizeMode: 'contain'
+  }
 });

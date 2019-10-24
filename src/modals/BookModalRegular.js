@@ -1,11 +1,11 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Alert, DatePickerIOS, Picker } from 'react-native';
 import firebase from 'firebase';
-import { AppLoading } from 'expo';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import { dateToString, timeOverlapCheck, loadUser, loadGym, loadAcceptedSchedule, loadPendingSchedule, createPendingSession, sendMessage, loadOtherTrainer } from '../components/Functions';
+const loading = require('../images/loading.gif');
 
 export class BookModalRegular extends Component {
 	constructor(props) {
@@ -101,7 +101,7 @@ export class BookModalRegular extends Component {
 
 	render() {
 		if (!this.state.trainer || !this.state.user || !this.state.gym) {
-			return <AppLoading />
+      return <Image source={loading} style={styles.loading} />;
 		}
 		return (
 			<View style={styles.modal}>
@@ -227,5 +227,9 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		color: COLORS.WHITE,
 		fontWeight: '700'
-	}
+	},
+	loading: {
+    width: '100%',
+    resizeMode: 'contain'
+  }
 })

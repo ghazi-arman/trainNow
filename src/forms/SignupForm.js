@@ -3,7 +3,6 @@ import { StyleSheet, Text, View, TouchableOpacity, Alert, Switch, Image, Picker,
 import { Actions } from 'react-native-router-flux';
 import * as Permissions from 'expo-permissions';
 import * as ImagePicker from 'expo-image-picker';
-import { AppLoading } from 'expo';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import bugsnag from '@bugsnag/expo';
@@ -12,6 +11,7 @@ import TextField from '../components/TextField';
 import { STRIPE_KEY } from 'react-native-dotenv';
 const stripe = require('stripe-client')(STRIPE_KEY);
 const defaultProfilePic = require('../images/profile.png');
+const loading = require('../images/loading.gif');
 
 export class SignupForm extends Component {
 
@@ -95,7 +95,7 @@ export class SignupForm extends Component {
     if (this.state.pressed) {
       return;
     }
-    this.state.pressed = true;
+    this.setState({ pressed: true});
     let firstName = this.state.name.split(" ")[0];
     let lastName = this.state.name.split(" ")[1];
 
@@ -113,7 +113,7 @@ export class SignupForm extends Component {
           // Create token from social security number
           var token = await stripe.createToken(ssn);
         } catch (error) {
-          this.state.pressed = false;
+          this.setState({ pressed: false });
           this.bugsnagClient.notify(error);
           Alert.alert('Invalid Social Security Number entered. Please check your info and try again!');
           return;
@@ -149,7 +149,7 @@ export class SignupForm extends Component {
             throw new Error('Stripe Error');
           }
         } catch (error) {
-          this.state.pressed = false;
+          this.state.setState({ pressed: false });
           this.bugsnagClient.notify(error);
           Alert.alert('There was an error creating your stripe Account. Please review your information and try again!');
           return;
@@ -212,7 +212,7 @@ export class SignupForm extends Component {
         }
 
       } catch(error) {
-        this.state.pressed = false;
+        this.setState({ pressed: false });
         this.bugsnagClient.notify(error);
         Alert.alert("There was an error creating your account. Please review your info and try again.");
         return;
@@ -237,7 +237,7 @@ export class SignupForm extends Component {
         Actions.reset("MapPage");
 
       } catch(error) {
-        this.state.pressed = false;
+        this.setState({ pressed: false });
         this.bugsnagClient.notify(error);
         Alert.alert("There was an error creating your account. Please try again.");
       }
@@ -355,9 +355,10 @@ export class SignupForm extends Component {
   }
 
   render() {
-    if(!this.state.gymLoaded) {
-      return <AppLoading />;
+    if(!this.state.gymLoaded || this.state.pressed) {
+      return <Image source={loading} style={styles.loading} />;
     }
+
     let image = this.state.image;
     let page1 = page2 = page3 = page4 = null;
     let submitButton = agreement = null;
@@ -573,6 +574,10 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'space-around',
     alignItems: 'center',
+  },
+  loading: {
+    width: '100%',
+    resizeMode: 'contain'
   },
   inputRow: {
     width: '100%',

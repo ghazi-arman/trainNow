@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, TouchableWithoutFeedback, Image, Alert } from 'react-native';
 import firebase from 'firebase';
-import { AppLoading } from 'expo';
 import MapView from 'react-native-maps';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import bugsnag from '@bugsnag/expo';
@@ -9,6 +8,7 @@ import COLORS from '../components/Colors';
 import { loadGym, renderStars } from '../components/Functions';
 const markerImg = require('../images/marker.png');
 const profileImg = require('../images/profile.png');
+const loading = require('../images/loading.gif');
 
 export class GymModal extends Component {
 	
@@ -162,7 +162,7 @@ export class GymModal extends Component {
 
 	render(){
 		if (!this.state.gym) {
-			return <AppLoading />;
+      return <Image source={loading} style={styles.loading} />;
 		}
 		return(
 			<View style={styles.modal}>
@@ -338,5 +338,9 @@ const styles = StyleSheet.create({
 	icon: {
 		color: COLORS.SECONDARY,
 		fontSize: 15,
-	}
+	},
+	loading: {
+    width: '100%',
+    resizeMode: 'contain'
+  }
 });

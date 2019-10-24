@@ -1,12 +1,12 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
-import { AppLoading } from 'expo';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { Actions } from 'react-native-router-flux';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import { loadSession, loadUser, rateSession, dateToString, chargeCard } from '../components/Functions';
+const loading = require('../images/loading.gif');
 
 export class RatingPage extends Component {
 
@@ -89,7 +89,7 @@ export class RatingPage extends Component {
 
 	render() {
 		if (!this.state.session || !this.state.user) {
-			return <AppLoading />
+      return <Image source={loading} style={styles.loading} />;
 		}
 		const userId = firebase.auth().currentUser.uid;
 		const displayDate = dateToString(this.state.session.end);
@@ -182,7 +182,11 @@ const styles = StyleSheet.create({
 		fontWeight: '700'
 	},
 	icon: {
-  		color: COLORS.SECONDARY,
+  	color: COLORS.SECONDARY,
 		fontSize: 35,
-  	}
+	},
+	loading: {
+    width: '100%',
+    resizeMode: 'contain'
+  }
 });

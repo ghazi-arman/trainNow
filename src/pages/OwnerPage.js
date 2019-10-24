@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { AppLoading } from 'expo';
 import firebase from 'firebase';
 import Modal from 'react-native-modal';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
@@ -9,6 +8,7 @@ import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import { OwnerCardModal } from '../modals/OwnerCardModal';
 import { loadUser, loadGym, loadTrainerCards, loadBalance, deleteTrainerCard, getCardIcon, setDefaultTrainerCard } from '../components/Functions';
+const loading = require('../images/loading.gif');
 
 export class OwnerPage extends Component {
 
@@ -233,7 +233,7 @@ export class OwnerPage extends Component {
 
 	render() {
 		if (!this.state.user || !this.state.gym || !this.state.cards || this.state.balance === undefined) {
-			return <AppLoading />
+      return <Image source={loading} style={styles.loading} />;
 		}
 		if (this.state.currentTab === 'pending') {
 			var navBar = (
@@ -467,4 +467,8 @@ const styles = StyleSheet.create({
 	icon: {
 		fontSize: 15
 	},
+	loading: {
+    width: '100%',
+    resizeMode: 'contain'
+  }
 });

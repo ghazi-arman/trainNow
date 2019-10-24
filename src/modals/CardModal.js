@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, KeyboardAvoidingView, TouchableOpacity, Alert } from 'react-native';
 import firebase from 'firebase';
-import { AppLoading } from 'expo';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import  TextField from '../components/TextField';
 import bugsnag from '@bugsnag/expo';
@@ -9,6 +8,7 @@ import { loadUser } from '../components/Functions';
 import Colors from '../components/Colors';
 import { STRIPE_KEY } from 'react-native-dotenv';
 const stripe = require('stripe-client')(STRIPE_KEY);
+const loading = require('../images/loading.gif');
 
 export class CardModal extends Component {
 	constructor(props) {
@@ -157,7 +157,7 @@ export class CardModal extends Component {
 
 	render() {
 		if (!this.state.user) {
-			return <AppLoading />
+      return <Image source={loading} style={styles.loading} />;
 		}
 		return (
 			<KeyboardAvoidingView behavior="padding" style={styles.formContainer}>
@@ -244,5 +244,9 @@ const styles = StyleSheet.create({
 		color: Colors.PRIMARY,
 		fontSize: 30,
 		fontWeight: '700'
-	}
+	},
+	loading: {
+    width: '100%',
+    resizeMode: 'contain'
+  }
 })

@@ -1,13 +1,12 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, KeyboardAvoidingView, ScrollView, TouchableOpacity, Alert, TextInput } from 'react-native';
-import { AppLoading } from 'expo';
-import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import Modal from 'react-native-modal';
 import { Actions } from 'react-native-router-flux';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import { loadSessions, dateToString, renderStars, reportSession } from './../components/Functions';
+const loading = require('../images/loading.gif');
 
 export class OwnerHistoryPage extends Component {
 
@@ -86,7 +85,7 @@ export class OwnerHistoryPage extends Component {
 
 	render() {
 		if(!this.state.sessions){
-			return <AppLoading />;
+      return <Image source={loading} style={styles.loading} />;
 		}
 		return (
 			<View style = {styles.container}>
@@ -222,5 +221,9 @@ const styles = StyleSheet.create({
 		left: 20,
 		fontSize: 35, 
 		color: COLORS.SECONDARY, 
-	}
+	},
+	loading: {
+    width: '100%',
+    resizeMode: 'contain'
+  }
 });

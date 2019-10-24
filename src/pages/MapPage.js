@@ -1,6 +1,5 @@
 import React, {Component} from 'react';
 import { Image, StyleSheet, Text, View, Alert, TouchableOpacity } from 'react-native';
-import { AppLoading } from 'expo';
 import * as Permissions from 'expo-permissions';
 import MapView from 'react-native-maps';
 import firebase from 'firebase';
@@ -17,6 +16,7 @@ import { ScheduleModal } from '../modals/ScheduleModal';
 import COLORS from '../components/Colors';
 import { loadUser, getLocation, loadGyms, goToPendingRating, loadCurrentSession, checkForUnreadSessions } from '../components/Functions';
 const markerImg = require('../images/marker.png');
+const loading = require('../images/loading.gif');
 
 export class MapPage extends Component {
 
@@ -130,7 +130,7 @@ export class MapPage extends Component {
 
   render() {
     if(!this.state.mapRegion || !this.state.gyms || !this.state.user) {
-      return <AppLoading />;
+      return <Image source={loading} style={styles.loading} />;
     }
 
     if (this.state.unread && !this.state.modalPresent) {
@@ -248,5 +248,9 @@ const styles = StyleSheet.create({
     marginLeft: 20,
     fontSize: 50, 
     color: COLORS.PRIMARY, 
+  },
+  loading: {
+    width: '100%',
+    resizeMode: 'contain'
   }
 });

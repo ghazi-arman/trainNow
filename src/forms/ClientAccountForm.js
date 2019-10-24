@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Alert, Image } from 'react-native';
-import { AppLoading } from 'expo';
 import firebase from 'firebase';
 import * as Permissions from 'expo-permissions';
 import * as ImagePicker from 'expo-image-picker';
@@ -9,13 +8,15 @@ import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import TextField from '../components/TextField';
 import { loadUser } from '../components/Functions';
+const loading = require('../images/loading.gif');
 
 export class ClientAccountForm extends Component {
 
   constructor(props) {
     super(props);
     this.state = {
-      change: false
+      change: false,
+      pressed: false
     };
     this.bugsnagClient = bugsnag();
   }
@@ -89,6 +90,11 @@ export class ClientAccountForm extends Component {
       return;
     }
 
+    if(this.state.pressed) {
+      return;
+    }
+    this.setState({ pressed: true });
+
     try {
       // Update info in users table
       let user = firebase.auth().currentUser;
@@ -101,20 +107,21 @@ export class ClientAccountForm extends Component {
         this.uploadImage(this.state.imageToUpload, user.uid);
       }
       
-      this.setState({ change: false })
+      this.setState({ change: false, pressed: false });
       Alert.alert("Updated");
     } catch(error) {
       this.bugsnagClient.metaData = {
         user: this.state.user
       }
       this.bugsnagClient.notify(error);
+      this.setState({ pressed: false });
       Alert.alert('There was an error updating your account info. Please try again.');
     }
   }
 
   render() {
-    if (!this.state.user || !this.state.imageUploaded) {
-      return <AppLoading />;
+    if (!this.state.user || !this.state.imageUploaded || this.state.pressed) {
+      return <Image source={loading} style={styles.loading} />;
     }
 
     return (
@@ -158,6 +165,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: COLORS.WHITE,
     fontWeight: '700'
+  },
+  loading: {
+    width: '100%',
+    resizeMode: 'contain'
   },
   imageContainer: {
     flexDirection: 'column',

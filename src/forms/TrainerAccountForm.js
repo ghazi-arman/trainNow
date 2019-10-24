@@ -3,12 +3,12 @@ import { StyleSheet, Text, View, TouchableOpacity, Alert, Switch, Image } from '
 import firebase from 'firebase';
 import * as Permissions from 'expo-permissions';
 import * as ImagePicker from 'expo-image-picker';
-import { AppLoading } from 'expo';
 import { Icons } from 'react-native-fontawesome';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import TextField from '../components/TextField';
 import { loadUser } from '../components/Functions';
+const loading = require('../images/loading.gif');
 
 export class TrainerAccountForm extends Component {
 
@@ -157,7 +157,7 @@ export class TrainerAccountForm extends Component {
 
   render() {
     if (!this.state.trainer || !this.state.imageUploaded) {
-      return <AppLoading />;
+      return <Image source={loading} style={styles.loading} />;
     }
     
     return (
@@ -253,5 +253,9 @@ const styles = StyleSheet.create({
     height: 200,
     borderWidth: 1,
     borderColor: COLORS.PRIMARY,
+  },
+  loading: {
+    width: '100%',
+    resizeMode: 'contain'
   },
 });

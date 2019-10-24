@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { AppLoading } from 'expo';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import Modal from 'react-native-modal';
@@ -8,7 +7,8 @@ import { Actions } from 'react-native-router-flux';
 import bugsnag from '@bugsnag/expo';
 import { BookModalRegular } from '../modals/BookModalRegular';
 import COLORS from '../components/Colors';
-import { loadUser, loadRecentTrainers, loadClientRequests, dateToString, acceptClientRequest, sendTrainerRequest, denyClientRequest } from '../components/Functions';
+import { loadUser, loadRecentTrainers, loadClientRequests, acceptClientRequest, sendTrainerRequest, denyClientRequest } from '../components/Functions';
+const loading = require('../images/loading.gif');
 
 export class TrainerPage extends Component {
 
@@ -90,7 +90,7 @@ export class TrainerPage extends Component {
 					<TouchableOpacity style={styles.denyButton} onPress={() => this.denyRequest(request.key, request.trainer)}> 
 						<Text><FontAwesome>{Icons.close}</FontAwesome> Deny</Text>
 					</TouchableOpacity>
-					<TouchableOpacity style={styles.requestButton} onPress={() => this.acceptRequest(request.key, request.trainer, request.trainerName, request.gym)}> 
+					<TouchableOpacity style={styles.acceptButton} onPress={() => this.acceptRequest(request.key, request.trainer, request.trainerName, request.gym)}> 
 						<Text><FontAwesome>{Icons.check}</FontAwesome> Accept</Text>
 					</TouchableOpacity>
 				</View>
@@ -106,7 +106,7 @@ export class TrainerPage extends Component {
 			const trainer = this.state.user.trainers[key];
 			return(
 				<View key={trainer.trainer} style={styles.traineeRow}>
-					<Text style={{width: 120}}>{trainer.trainerName}</Text>
+					<Text style={{width: '50%', textAlign: 'center'}}>{trainer.trainerName}</Text>
 					<TouchableOpacity style={styles.requestButton} onPress={() => this.bookSession(trainer.trainer, trainer.gym)}> 
 						<Text><FontAwesome>{Icons.calendar}</FontAwesome> Book Session</Text>
 					</TouchableOpacity>
@@ -138,7 +138,7 @@ export class TrainerPage extends Component {
 			}
 			return(
 				<View key={trainer.key} style={styles.traineeRow}>
-					<Text style={{width: '60%', textAlign: 'center'}}>{trainer.name}</Text>
+					<Text style={{width: '50%', textAlign: 'center'}}>{trainer.name}</Text>
 					{button}
 				</View>
 			);
@@ -151,7 +151,7 @@ export class TrainerPage extends Component {
 
 	render() {
 		if (!this.state.user || !this.state.clientRequests || !this.state.recentTrainers) {
-			return <AppLoading />
+      return <Image source={loading} style={styles.loading} />;
 		}
 		if(this.state.currentTab == 'requests'){
 			var navBar = (
@@ -305,7 +305,15 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		justifyContent: 'center',
 		alignItems: 'center',
-		width: 100,
+		width: 120,
+		height: 40,
+	},
+	acceptButton: {
+		backgroundColor: COLORS.SECONDARY,
+		flexDirection: 'column',
+		justifyContent: 'center',
+		alignItems: 'center',
+		width: 80,
 		height: 40,
 	},
 	denyButton: {
@@ -313,10 +321,14 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		justifyContent: 'center',
 		alignItems: 'center',
-		width: 100,
+		width: 80,
 		height: 40,
 	},
 	icon: {
 		fontSize: 15
 	},
+	loading: {
+    width: '100%',
+    resizeMode: 'contain'
+  }
 });

@@ -2,12 +2,12 @@ import React, { Component } from 'react';
 import { StyleSheet, Text, KeyboardAvoidingView, TouchableOpacity, Alert } from 'react-native';
 import firebase from 'firebase';
 import { Icons } from 'react-native-fontawesome';
-import { AppLoading } from 'expo';
 import bugsnag from '@bugsnag/expo';
 import { loadGym, loadUser } from '../components/Functions';
 import  TextField from '../components/TextField';
 import { STRIPE_KEY } from 'react-native-dotenv';
 const stripe = require('stripe-client')(STRIPE_KEY);
+const loading = require('../images/loading.gif');
 
 export class OwnerCardModal extends Component {
 	
@@ -93,7 +93,7 @@ export class OwnerCardModal extends Component {
 
 	render(){
 		if (!this.state.gym || !this.state.user) {
-			return <AppLoading />
+      return <Image source={loading} style={styles.loading} />;
 		}
 		return(
 			<KeyboardAvoidingView behavior="padding" style={styles.formContainer}>
@@ -169,5 +169,9 @@ const styles = StyleSheet.create({
 		marginTop: 5,
 		marginBottom: 10,
 		textDecorationLine: 'underline'
-	}
+	},
+	loading: {
+    width: '100%',
+    resizeMode: 'contain'
+  }
 })

@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { AppLoading } from 'expo';
 import firebase from 'firebase';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import Modal from 'react-native-modal';
@@ -9,6 +8,7 @@ import bugsnag from '@bugsnag/expo';
 import { BookModalTrainer } from '../modals/BookModalTrainer';
 import COLORS from '../components/Colors';
 import { loadRecentClients, loadUser, sendClientRequest, dateToString, loadTrainerRequests, acceptTrainerRequest, denyTrainerRequest } from '../components/Functions';
+const loading = require('../images/loading.gif');
 
 export class ClientPage extends Component {
 
@@ -155,7 +155,7 @@ export class ClientPage extends Component {
 
 	render() {
 		if (!this.state.user || !this.state.trainerRequests || !this.state.recentClients) {
-			return <AppLoading />
+      return <Image source={loading} style={styles.loading} />;
 		}
 		if(this.state.currentTab == 'requests'){
 			var navBar = (
@@ -323,4 +323,8 @@ const styles = StyleSheet.create({
 	icon: {
 		fontSize: 15
 	},
+	loading: {
+    width: '100%',
+    resizeMode: 'contain'
+  }
 });

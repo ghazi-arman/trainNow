@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
-import { AppLoading } from 'expo';
 import COLORS from './Colors';
-import { dateToString, loadUser, loadAcceptedSchedule, dateforAgenda, loadAvailableSchedule, loadOtherTrainer } from './Functions';
+import { dateToString, loadAcceptedSchedule, dateforAgenda, loadAvailableSchedule, loadOtherTrainer } from './Functions';
 import { Agenda } from 'react-native-calendars';
+const loading = require('../images/loading.gif');
 
 export class TrainerSchedule extends Component {
 	
@@ -53,7 +53,7 @@ export class TrainerSchedule extends Component {
 
 	render(){
 		if(!this.state.trainer || !this.state.sessions){
-			return <AppLoading />
+      return <Image source={loading} style={styles.loading} />;
 		}else{
 			let events = this.renderAgendaEvents();
 			return(
@@ -139,5 +139,9 @@ const styles = StyleSheet.create({
 	agendaItemText: {
 		color: COLORS.PRIMARY,
 		fontSize: 15,
-	}
+	},
+	loading: {
+    width: '100%',
+    resizeMode: 'contain'
+  }
 })
