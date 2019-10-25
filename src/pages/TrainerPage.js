@@ -16,7 +16,8 @@ export class TrainerPage extends Component {
 		super(props);
 		this.state = {
 			currentTab: 'recent',
-			bookModal: false
+			bookModal: false,
+			pressed: false
 		}
 		this.bugsnagClient = bugsnag();
 	}
@@ -38,13 +39,18 @@ export class TrainerPage extends Component {
 	}
 
 	sendTrainerRequest = async (trainerKey, traineeName, gymKey) => {
+		if (this.state.pressed) {
+			return;
+		}
 		try {
+			this.state.pressed = true;
 			const userId = firebase.auth().currentUser.uid;
 			await sendTrainerRequest(trainerKey, traineeName, userId, gymKey);
 			Alert.alert(`Request was sent to the trainer.`);
 			const user = await loadUser(userId);
-			this.setState({ user });
+			this.setState({ user, pressed: false });
 		} catch(error) {
+			this.state.pressed = false;
 			this.bugsnagClient.notify(error);
 			Alert.alert('There was an error sending the request.');
 		}
@@ -86,12 +92,12 @@ export class TrainerPage extends Component {
 		return this.state.clientRequests.map((request) => {
 			return(
 				<View key={request.trainer} style={styles.traineeRow}>
-					<Text style={{width: 120}}>{request.trainerName}</Text>
+					<Text style={styles.nameText}>{request.trainerName}</Text>
 					<TouchableOpacity style={styles.denyButton} onPress={() => this.denyRequest(request.key, request.trainer)}> 
-						<Text><FontAwesome>{Icons.close}</FontAwesome> Deny</Text>
+						<Text style={styles.buttonText}><FontAwesome>{Icons.close}</FontAwesome> Deny</Text>
 					</TouchableOpacity>
 					<TouchableOpacity style={styles.acceptButton} onPress={() => this.acceptRequest(request.key, request.trainer, request.trainerName, request.gym)}> 
-						<Text><FontAwesome>{Icons.check}</FontAwesome> Accept</Text>
+						<Text style={styles.buttonText}><FontAwesome>{Icons.check}</FontAwesome> Accept</Text>
 					</TouchableOpacity>
 				</View>
 			);
@@ -106,9 +112,9 @@ export class TrainerPage extends Component {
 			const trainer = this.state.user.trainers[key];
 			return(
 				<View key={trainer.trainer} style={styles.traineeRow}>
-					<Text style={{width: '50%', textAlign: 'center'}}>{trainer.trainerName}</Text>
+					<Text style={styles.nameText}>{trainer.trainerName}</Text>
 					<TouchableOpacity style={styles.requestButton} onPress={() => this.bookSession(trainer.trainer, trainer.gym)}> 
-						<Text><FontAwesome>{Icons.calendar}</FontAwesome> Book Session</Text>
+						<Text style={styles.buttonText}><FontAwesome>{Icons.calendar}</FontAwesome> Book </Text>
 					</TouchableOpacity>
 				</View>
 			);
@@ -126,19 +132,19 @@ export class TrainerPage extends Component {
 			if(this.state.user.requests && this.state.user.requests[trainer.key]){
 				button = (
 					<TouchableOpacity style={styles.requestButton} disabled={true}> 
-						<Text><FontAwesome>{Icons.hourglass}</FontAwesome> Pending</Text>
+						<Text style={styles.buttonText}><FontAwesome>{Icons.hourglass}</FontAwesome> Pending</Text>
 					</TouchableOpacity>
 				);
 			}else{
 				button = (
 					<TouchableOpacity style={styles.requestButton} onPress={() => this.sendTrainerRequest(trainer.key, this.state.user.name, trainer.gym)}> 
-						<Text><FontAwesome>{Icons.userPlus}</FontAwesome> Add Trainer</Text>
+						<Text style={styles.buttonText}><FontAwesome>{Icons.userPlus}</FontAwesome> Add </Text>
 					</TouchableOpacity>
 				);
 			}
 			return(
 				<View key={trainer.key} style={styles.traineeRow}>
-					<Text style={{width: '50%', textAlign: 'center'}}>{trainer.name}</Text>
+					<Text style={styles.nameText}>{trainer.name}</Text>
 					{button}
 				</View>
 			);
@@ -157,13 +163,13 @@ export class TrainerPage extends Component {
 			var navBar = (
 				<View style={styles.navigationBar}>
 					<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({currentTab: 'requests'})}>
-						<Text style={styles.activeText}>Trainer Requests</Text>
+						<Text style={styles.activeText}>Requests</Text>
 					</TouchableOpacity>
 					<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'recent'})}>
-						<Text style={styles.navText}>Recent Trainers</Text>
+						<Text style={styles.navText}>Recent</Text>
 					</TouchableOpacity>
 					<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'trainers'})}>
-						<Text style={styles.navText}>Your Trainers</Text>
+						<Text style={styles.navText}>Trainers</Text>
 					</TouchableOpacity>
 				</View>
 			);
@@ -176,13 +182,13 @@ export class TrainerPage extends Component {
 			var navBar = (
 				<View style={styles.navigationBar}>
 					<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'requests'})}>
-						<Text style={styles.navText}>Trainer Requests</Text>
+						<Text style={styles.navText}>Requests</Text>
 					</TouchableOpacity>
 					<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({currentTab: 'recent'})}>
-						<Text style={styles.activeText}>Recent Trainers</Text>
+						<Text style={styles.activeText}>Recent</Text>
 					</TouchableOpacity>
 					<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'trainers'})}>
-						<Text style={styles.navText}>Your Trainers</Text>
+						<Text style={styles.navText}>Trainers</Text>
 					</TouchableOpacity>
 				</View>
 			);
@@ -195,13 +201,13 @@ export class TrainerPage extends Component {
 			var navBar = (
 				<View style={styles.navigationBar}>
 					<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'requests'})}>
-						<Text style={styles.navText}>Trainer Requests</Text>
+						<Text style={styles.navText}>Requests</Text>
 					</TouchableOpacity>
 					<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'recent'})}>
-						<Text style={styles.navText}>Recent Trainers</Text>
+						<Text style={styles.navText}>Recent</Text>
 					</TouchableOpacity>
 					<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({currentTab: 'trainers'})}>
-						<Text style={styles.activeText}>Your Trainers</Text>
+						<Text style={styles.activeText}>Trainers</Text>
 					</TouchableOpacity>
 				</View>
 			);
@@ -261,23 +267,27 @@ const styles = StyleSheet.create({
 	},
 	activeTab: {
 		width: '33%',
+		paddingVertical: 20,
 		backgroundColor: COLORS.PRIMARY,
 		borderWidth: 1,
 		borderColor: COLORS.SECONDARY
 	},
 	inactiveTab: {
 		width: '33%',
+		paddingVertical: 20,
 		backgroundColor: COLORS.WHITE,
 		borderWidth: 1, 
 		borderColor: COLORS.SECONDARY
 	},
 	navText: {
-		fontSize: 25,
+		fontSize: 23,
+		fontWeight: '600',
 		color: COLORS.PRIMARY,
 		textAlign: 'center'
 	},
 	activeText: {
-		fontSize: 25,
+		fontSize: 23,
+		fontWeight: '600',
 		color: COLORS.WHITE,
 		textAlign: 'center'
 	},
@@ -296,12 +306,13 @@ const styles = StyleSheet.create({
 		paddingBottom: 5
 	},
 	buttonText: {
-		fontSize: 30,
+		fontSize: 18,
 		color: COLORS.WHITE,
 		textAlign: 'center'
 	},
 	requestButton: {
-		backgroundColor: COLORS.SECONDARY,
+		borderRadius: 5,
+		backgroundColor: COLORS.PRIMARY,
 		flexDirection: 'column',
 		justifyContent: 'center',
 		alignItems: 'center',
@@ -309,6 +320,7 @@ const styles = StyleSheet.create({
 		height: 40,
 	},
 	acceptButton: {
+		borderRadius: 5,
 		backgroundColor: COLORS.SECONDARY,
 		flexDirection: 'column',
 		justifyContent: 'center',
@@ -317,6 +329,7 @@ const styles = StyleSheet.create({
 		height: 40,
 	},
 	denyButton: {
+		borderRadius: 5,
 		backgroundColor: COLORS.RED,
 		flexDirection: 'column',
 		justifyContent: 'center',
@@ -337,5 +350,12 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center'
-  }
+	},
+	nameText: {
+		fontSize: 18,
+		fontWeight: '500',
+		width: '50%',
+		textAlign: 'center',
+		color: COLORS.PRIMARY
+	}
 });

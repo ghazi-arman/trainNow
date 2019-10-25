@@ -16,7 +16,8 @@ export class ClientPage extends Component {
 		super(props);
 		this.state = {
 			bookModal: false,
-			currentTab: 'recent'
+			currentTab: 'recent',
+			pressed: false
 		}
 		this.bugsnagClient = bugsnag();
 	}
@@ -38,13 +39,18 @@ export class ClientPage extends Component {
 	}
 
 	sendClientRequest = async (clientKey) => {
+		if (this.state.pressed) {
+			return;
+		}
 		try {
+			this.state.pressed = true;
 			const userId = firebase.auth().currentUser.uid;
 			await sendClientRequest(clientKey, userId, this.state.user.name, this.state.user.gym);
 			Alert.alert(`Request was sent to the client.`);
 			const user = await loadUser(firebase.auth().currentUser.uid);
-			this.setState({ user });
+			this.setState({ user, pressed: false });
 		} catch(error) {
+			this.state.pressed = false;
 			this.bugsnagClient.notify(error);
 			Alert.alert('There was an error sending the client a request.');
 		}
@@ -85,12 +91,12 @@ export class ClientPage extends Component {
 		return this.state.trainerRequests.map((request) => {
 			return(
 				<View key={request.trainee} style={styles.traineeRow}>
-					<Text style={{width:120}}>{request.traineeName}</Text>
+					<Text style={styles.nameText}>{request.traineeName}</Text>
 					<TouchableOpacity style={styles.denyButton} onPress={() => this.denyRequest(request.key, request.trainee)}> 
-						<Text><FontAwesome>{Icons.close}</FontAwesome> Deny</Text>
+						<Text style={styles.buttonText}><FontAwesome>{Icons.close}</FontAwesome></Text>
 					</TouchableOpacity>
-					<TouchableOpacity style={styles.requestButton} onPress={() => this.acceptRequest(request.key, request.trainee, request.traineeName)}> 
-						<Text><FontAwesome>{Icons.check}</FontAwesome> Accept</Text>
+					<TouchableOpacity style={styles.acceptButton} onPress={() => this.acceptRequest(request.key, request.trainee, request.traineeName)}> 
+						<Text style={styles.buttonText}><FontAwesome>{Icons.check}</FontAwesome></Text>
 					</TouchableOpacity>
 				</View>
 			);
@@ -105,9 +111,9 @@ export class ClientPage extends Component {
 			const client = this.state.user.clients[key];
 			return(
 				<View key={client.trainee} style={styles.traineeRow}>
-					<Text style={{width:120}}>{client.traineeName}</Text>
+					<Text style={styles.nameText}>{client.traineeName}</Text>
 					<TouchableOpacity style={styles.requestButton} onPress={() => this.bookSession(client.trainee, this.state.user.gym)}> 
-						<Text><FontAwesome>{Icons.calendar}</FontAwesome> Book Session</Text>
+						<Text style={styles.buttonText}><FontAwesome>{Icons.calendar}</FontAwesome> Book</Text>
 					</TouchableOpacity>
 				</View>
 			);
@@ -126,19 +132,19 @@ export class ClientPage extends Component {
 			if(this.state.user.requests && this.state.user.requests[trainee.key]){
 				button = (
 					<TouchableOpacity style={styles.requestButton} disabled> 
-						<Text><FontAwesome>{Icons.hourglass}</FontAwesome> Pending</Text>
+						<Text style={styles.buttonText}><FontAwesome>{Icons.hourglass}</FontAwesome> Pending</Text>
 					</TouchableOpacity>
 				);
 			}else{
 				button = (
 					<TouchableOpacity style={styles.requestButton} onPress={() => this.sendClientRequest(trainee.key)}>
-						<Text><FontAwesome>{Icons.userPlus}</FontAwesome> Add Client</Text>
+						<Text style={styles.buttonText}><FontAwesome>{Icons.userPlus}</FontAwesome> Add </Text>
 					</TouchableOpacity>
 				);
 			}
 			return(
 				<View key={trainee.key} style={styles.traineeRow}>
-					<Text style={{width: '60%', textAlign: 'center'}}>{trainee.name}</Text>
+					<Text style={styles.nameText}>{trainee.name}</Text>
 					{button}
 				</View>
 			);
@@ -161,13 +167,13 @@ export class ClientPage extends Component {
 			var navBar = (
 				<View style={styles.navigationBar}>
 					<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({currentTab: 'requests'})}>
-						<Text style={styles.activeText}>Client Requests</Text>
+						<Text style={styles.activeText}>Requests</Text>
 					</TouchableOpacity>
 					<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'recent'})}>
-						<Text style={styles.navText}>Recent Trainees</Text>
+						<Text style={styles.navText}>Recent</Text>
 					</TouchableOpacity>
 					<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'clients'})}>
-						<Text style={styles.navText}>Your Trainees</Text>
+						<Text style={styles.navText}>Clients</Text>
 					</TouchableOpacity>
 				</View>
 			);
@@ -180,13 +186,13 @@ export class ClientPage extends Component {
 			var navBar = (
 				<View style={styles.navigationBar}>
 					<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'requests'})}>
-						<Text style={styles.navText}>Trainee Requests</Text>
+						<Text style={styles.navText}>Requests</Text>
 					</TouchableOpacity>
 					<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({currentTab: 'recent'})}>
-						<Text style={styles.activeText}>Recent Trainees</Text>
+						<Text style={styles.activeText}>Recent</Text>
 					</TouchableOpacity>
 					<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'clients'})}>
-						<Text style={styles.navText}>Your Trainees</Text>
+						<Text style={styles.navText}>Clients</Text>
 					</TouchableOpacity>
 				</View>
 			);
@@ -199,13 +205,13 @@ export class ClientPage extends Component {
 			var navBar = (
 				<View style={styles.navigationBar}>
 					<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'requests'})}>
-						<Text style={styles.navText}>Trainee Requests</Text>
+						<Text style={styles.navText}>Requests</Text>
 					</TouchableOpacity>
 					<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({currentTab: 'recent'})}>
-						<Text style={styles.navText}>Recent Trainees</Text>
+						<Text style={styles.navText}>Recent</Text>
 					</TouchableOpacity>
 					<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({currentTab: 'clients'})}>
-						<Text style={styles.activeText}>Your Trainees</Text>
+						<Text style={styles.activeText}>Clients</Text>
 					</TouchableOpacity>
 				</View>
 			);
@@ -265,23 +271,27 @@ const styles = StyleSheet.create({
 	},
 	activeTab: {
 		width: '33%',
+		paddingVertical: 20,
 		backgroundColor: COLORS.PRIMARY,
 		borderWidth: 1,
 		borderColor: COLORS.SECONDARY
 	},
 	inactiveTab: {
 		width: '33%',
+		paddingVertical: 20,
 		backgroundColor: COLORS.WHITE,
 		borderWidth: 1, 
 		borderColor: COLORS.SECONDARY
 	},
 	navText: {
-		fontSize: 25,
+		fontSize: 23,
+		fontWeight: '600',
 		color: COLORS.PRIMARY,
 		textAlign: 'center'
 	},
 	activeText: {
-		fontSize: 25,
+		fontSize: 23,
+		fontWeight: '600',
 		color: COLORS.WHITE,
 		textAlign: 'center'
 	},
@@ -300,12 +310,13 @@ const styles = StyleSheet.create({
 		paddingBottom: 5
 	},
 	buttonText: {
-		fontSize: 30,
+		fontSize: 18,
 		color: COLORS.WHITE,
 		textAlign: 'center'
 	},
 	requestButton: {
-		backgroundColor: COLORS.SECONDARY,
+		borderRadius: 5,
+		backgroundColor: COLORS.PRIMARY,
 		flexDirection: 'column',
 		justifyContent: 'center',
 		alignItems: 'center',
@@ -313,11 +324,21 @@ const styles = StyleSheet.create({
 		height: 40,
 	},
 	denyButton: {
+		borderRadius: 5,
 		backgroundColor: COLORS.RED,
 		flexDirection: 'column',
 		justifyContent: 'center',
 		alignItems: 'center',
-		width: 100,
+		width: 40,
+		height: 40,
+	},
+	acceptButton: {
+		borderRadius: 5,
+		backgroundColor: COLORS.SECONDARY,
+		flexDirection: 'column',
+		justifyContent: 'center',
+		alignItems: 'center',
+		width: 40,
 		height: 40,
 	},
 	icon: {
@@ -333,5 +354,12 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center'
-  }
+	},
+	nameText: {
+		fontSize: 18,
+		fontWeight: '500',
+		width: '50%',
+		textAlign: 'center',
+		color: COLORS.PRIMARY
+	}
 });
