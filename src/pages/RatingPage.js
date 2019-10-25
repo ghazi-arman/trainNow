@@ -51,7 +51,7 @@ export class RatingPage extends Component {
 				chargeCard(this.state.session.traineeStripe, this.state.session.trainerStripe, total, total - payout, this.state.session);
 			}
 
-			await rateSession(this.state.session, this.state.rating, this.state.user.trainer);
+			await rateSession(this.state.session.key, this.state.rating, this.state.user.trainer);
 		} catch(error) {
 			this.state.submitted = false;
 			this.bugsnagClient.notify(error);
@@ -172,6 +172,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 	},	
 	buttonContainer: {
+		borderRadius: 5,
 		backgroundColor: COLORS.SECONDARY,
 		paddingVertical: 15,
 		width: '100%'

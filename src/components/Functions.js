@@ -823,8 +823,9 @@ export async function loadSession(sessionKey) {
   return sessionToReturn;
 }
 
-export async function rateSession(session, rating, isTrainer){
+export async function rateSession(sessionKey, rating, isTrainer){
   try {
+    const session = await loadSession(sessionKey);
     const userId = firebase.auth().currentUser.uid;
     const otherUserKey = (isTrainer ? session.trainee : session.trainer);
     const otherUser = await loadOtherUser(otherUserKey);
