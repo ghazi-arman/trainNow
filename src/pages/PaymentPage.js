@@ -51,12 +51,13 @@ export class PaymentPage extends Component {
 
 	hideCardModalOnAdd = async() => {
 		let cards;
-		if (this.state.user.trainer) {
-			cards = await loadTrainerCards(this.state.user.stripeId);
+		const user = await loadUser(firebase.auth().currentUser.uid);
+		if (user.trainer) {
+			cards = await loadTrainerCards(user.stripeId);
 		}else{
-			cards = await loadCards(this.state.user.stripeId);
+			cards = await loadCards(user.stripeId);
 		}
-		this.setState({ cardModal: false, cards });
+		this.setState({ cardModal: false, cards, user });
 	}
 
 	deleteCard = async(stripeId, cardId) => {

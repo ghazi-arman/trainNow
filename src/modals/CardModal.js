@@ -156,7 +156,7 @@ export class CardModal extends Component {
 	}
 
 	render() {
-		if (!this.state.user) {
+		if (!this.state.user || this.state.pressed) {
       return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
 		}
 		return (
