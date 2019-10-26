@@ -20,8 +20,7 @@ export default class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      fontLoaded: false,
-      firebaseLoaded: false
+      loaded: false
     };
   }
   
@@ -40,14 +39,11 @@ export default class App extends Component {
       FontAwesome: require('./fonts/font-awesome-4.7.0/fonts/FontAwesome.otf')
     });
 
-    this.setState({
-      fontLoaded: true,
-      firebaseLoaded:true
-    });
+    this.setState({ loaded: true });
   }
   
   render() {
-    if (!this.state.fontLoaded || !this.state.firebaseLoaded) {
+    if (!this.state.loaded) {
       return <AppLoading />;
     }
     return <Routes />;

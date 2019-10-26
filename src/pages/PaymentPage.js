@@ -184,7 +184,7 @@ export class PaymentPage extends Component {
 				}
 				deleteButton = (
 					<TouchableOpacity style={styles.deleteButton} onPress={() => this.deleteCard(this.state.user.stripeId, currCard.id)}>
-	    				<Text style={{fontSize: 15}}><FontAwesome>{Icons.remove}</FontAwesome></Text>
+	    				<Text style={{fontSize: 15, color: COLORS.WHITE}}><FontAwesome>{Icons.remove}</FontAwesome></Text>
 	    			</TouchableOpacity>
 				);
 			}
@@ -313,6 +313,7 @@ const styles = StyleSheet.create({
 		fontSize: 15
 	},
 	greenIcon: {
+		marginTop: 10,
 		height: 30,
 		width: 30,
 		fontSize: 20,

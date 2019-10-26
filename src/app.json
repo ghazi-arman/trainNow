@@ -8,7 +8,7 @@
     },
     "version": "1.6.0",
     "slug": "trainNow",
-    "sdkVersion": "33.0.0",
+    "sdkVersion": "34.0.0",
     "packagerOpts": {
       "nonPersistent": "--nonPersistent"
     },
