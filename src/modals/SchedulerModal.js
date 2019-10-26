@@ -131,8 +131,8 @@ const styles = StyleSheet.create({
 	},
 	closeButton: {
 		position: 'absolute',
-		top: 5,
-		right: 5,
+		top: 0,
+		right: 0,
 		fontSize: 35,
 		color: COLORS.RED,
 	},
