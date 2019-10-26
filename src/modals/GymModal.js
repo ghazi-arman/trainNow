@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
 		fontWeight: '500'
 	},
 	nameContainer: {
-		height: '15%',
+		height: '18%',
 		width: '100%',
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
