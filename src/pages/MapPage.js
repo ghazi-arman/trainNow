@@ -148,11 +148,9 @@ export class MapPage extends Component {
     let alertBox, menu;
     if (this.state.currentSession) {
       alertBox = (
-        <View style={styles.alertBox}>
-          <TouchableOpacity onPress = {() => Actions.SessionPage({session: this.state.currentSession})}>
-            <Text style={styles.alertText}>Enter Current Session!</Text>
-          </TouchableOpacity>
-        </View>
+        <Text style={styles.sessionText} onPress={() => Actions.SessionPage({session: this.state.currentSession})}>
+          Enter Session!
+        </Text>
       );
     }
 
@@ -171,7 +169,6 @@ export class MapPage extends Component {
         tapToClose={true}
         onClose={() => this.setState({menuOpen: false})}>
         <View style={styles.container}>
-          {alertBox}
           <MapView
             ref = {(mapView) => { _map = mapView; }}
             style={styles.map}
@@ -185,6 +182,7 @@ export class MapPage extends Component {
             <Text style={styles.menuIcon} onPress={this.toggleMenu}>
               <FontAwesome>{Icons.bars}</FontAwesome>
             </Text>
+            {alertBox}
             {this.state.gyms.map(marker => (
               <MapView.Marker
                 ref={marker => (this.marker = marker)}
@@ -230,24 +228,19 @@ const styles = StyleSheet.create({
     height: '100%',
     width: '100%'
   },
-  alertBox: {
-    height: 80,
-    width: '100%',
-    backgroundColor: COLORS.PRIMARY,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    paddingTop: 40
-  },
-  alertText: {
-    fontSize: 20,
-    color: COLORS.WHITE,
-    fontWeight: '600',
-  },
   menuIcon: {
-    marginTop: 45,
+    position: 'absolute',
+    marginTop: 30,
     marginLeft: 20,
     fontSize: 50, 
     color: COLORS.PRIMARY, 
+  },
+  sessionText: {
+    textAlign: 'center',
+    fontSize: 20,
+    fontWeight: '800',
+    color: COLORS.SECONDARY,
+    marginTop: 35
   },
   loading: {
     width: '100%',

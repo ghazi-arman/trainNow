@@ -69,7 +69,7 @@ export class SideMenu extends Component {
       <View style={styles.container}>
         <View style={styles.nameContainer}>
           <Text style={{fontSize: 25, color: COLORS.WHITE}}>{this.state.user.name}</Text>
-          <Text style={{fontSize: 20, color: COLORS.WHITE}}>Rating: {this.state.user.rating}</Text>
+          <Text style={{fontSize: 20, color: COLORS.WHITE}}>{this.state.user.rating}</Text>
           {active}
         </View>
         <TouchableOpacity onPress={() => Actions.MapPage()}>
