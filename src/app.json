@@ -40,6 +40,10 @@
           "config": {}
         }
       ]
-    }
+    },
+    "platforms": [
+      "android",
+      "ios"
+    ]
   }
 }
