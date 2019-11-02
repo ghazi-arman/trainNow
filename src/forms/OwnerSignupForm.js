@@ -6,7 +6,7 @@ import { Icons } from 'react-native-fontawesome';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import TextField from '../components/TextField';
-import { STRIPE_KEY } from 'react-native-dotenv';
+import { STRIPE_KEY, FB_URL } from 'react-native-dotenv';
 const stripe = require('stripe-client')(STRIPE_KEY);
 
 export class OwnerSignupForm extends Component {
@@ -74,7 +74,7 @@ export class OwnerSignupForm extends Component {
 
     try {
 			// Call firebase cloud function to create stripe account for owner
-			const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/createOwner/', {
+			const res = await fetch(`${FB_URL}/stripe/createOwner/`, {
 				method: 'POST',
 				body: JSON.stringify({
 					line1: this.state.address,

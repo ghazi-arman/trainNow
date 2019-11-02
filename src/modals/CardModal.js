@@ -6,7 +6,7 @@ import  TextField from '../components/TextField';
 import bugsnag from '@bugsnag/expo';
 import { loadUser } from '../components/Functions';
 import Colors from '../components/Colors';
-import { STRIPE_KEY } from 'react-native-dotenv';
+import { STRIPE_KEY, FB_URL } from 'react-native-dotenv';
 const stripe = require('stripe-client')(STRIPE_KEY);
 const loading = require('../images/loading.gif');
 
@@ -63,7 +63,7 @@ export class CardModal extends Component {
 		const idToken = await firebase.auth().currentUser.getIdToken(true);
 		if (!this.state.user.stripeId) {
 			try {
-				const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/createCustomer/', {
+				const res = await fetch(`${FB_URL}/stripe/createCustomer/`, {
 					method: 'POST',
 					headers: {
 						Authorization: idToken
@@ -94,7 +94,7 @@ export class CardModal extends Component {
 		} else {
 			if (this.state.user.trainer) {
 				try {
-					const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/addTrainerCard/', {
+					const res = await fetch(`${FB_URL}/stripe/addTrainerCard/`, {
 						method: 'POST',
 						headers: {
 							Authorization: idToken
@@ -124,7 +124,7 @@ export class CardModal extends Component {
 			} else {
 				try {
 					const idToken = await firebase.auth().currentUser.getIdToken(true);
-					const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/addCard/', {
+					const res = await fetch(`${FB_URL}/stripe/addCard/`, {
 						method: 'POST',
 						headers: {
 							Authorization: idToken

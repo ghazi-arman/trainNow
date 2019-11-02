@@ -5,6 +5,7 @@ import { Alert } from 'react-native';
 import * as Location from 'expo-location';
 import geolib from 'geolib';
 import { Actions } from 'react-native-router-flux';
+import { FB_URL } from 'react-native-dotenv';
 
 // Convert date to yyyy-mm-dd format for Agenda events
 export function dateforAgenda(date){
@@ -290,7 +291,7 @@ export async function cancelAcceptedSession(session, sessionKey){
 // Sends text message using twilio
 export async function sendMessage(number, message){
   const idToken = await firebase.auth().currentUser.getIdToken(true);
-  const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/twilio/sendMessage/', {
+  const res = await fetch(`${FB_URL}/twilio/sendMessage/`, {
     method: 'POST',
     headers: {
       Authorization: idToken
@@ -621,7 +622,7 @@ export async function loadTrainerCards(stripeId) {
   }
   try {
     const idToken = await firebase.auth().currentUser.getIdToken(true);
-    const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/listTrainerCards/', {
+    const res = await fetch(`${FB_URL}/stripe/listTrainerCards/`, {
       method: 'POST',
       headers: {
         Authorization: idToken
@@ -649,7 +650,7 @@ export async function loadBalance(stripeId) {
   try {
     const user = firebase.auth().currentUser;
     const idToken = await firebase.auth().currentUser.getIdToken(true);
-    const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/getBalance/', {
+    const res = await fetch(`${FB_URL}/stripe/getBalance/`, {
       method: 'POST',
       headers: {
         Authorization: idToken
@@ -673,7 +674,7 @@ export async function loadBalance(stripeId) {
 export async function deleteTrainerCard(stripeId, cardId) {
   try {
     const idToken = await firebase.auth().currentUser.getIdToken(true);
-    const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/deleteTrainerCard/', {
+    const res = await fetch(`${FB_URL}/stripe/deleteTrainerCard/`, {
       method: 'POST',
       headers: {
         Authorization: idToken
@@ -697,7 +698,7 @@ export async function deleteTrainerCard(stripeId, cardId) {
 export async function deleteCard(stripeId, cardId) {
   try {
     const idToken = await firebase.auth().currentUser.getIdToken(true);
-    const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/deleteCard/', {
+    const res = await fetch(`${FB_URL}/stripe/deleteCard/`, {
       method: 'POST',
       headers:{
         Authorization: idToken
@@ -742,7 +743,7 @@ export async function loadCards(stripeId) {
   }
   try {
     const idToken = await firebase.auth().currentUser.getIdToken(true);
-    const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/listCards/', {
+    const res = await fetch(`${FB_URL}/stripe/listCards/`, {
       method: 'POST',
       headers: {
         Authorization: idToken
@@ -766,7 +767,7 @@ export async function loadCards(stripeId) {
 export async function setDefaultCard(stripeId, cardId) {
   try {
     const idToken = await firebase.auth().currentUser.getIdToken(true);
-    const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/setDefaultCard/', {
+    const res = await fetch(`${FB_URL}/stripe/setDefaultCard/`, {
       method: 'POST',
       headers: {
         Authorization: idToken
@@ -790,7 +791,7 @@ export async function setDefaultCard(stripeId, cardId) {
 export async function setDefaultTrainerCard(stripeId, cardId) {
   try {
     const idToken = await firebase.auth().currentUser.getIdToken(true);
-    const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/setDefaultTrainerCard/', {
+    const res = await fetch(`${FB_URL}/stripe/setDefaultTrainerCard/`, {
       method: 'POST',
       headers: {
         Authorization: idToken
@@ -867,7 +868,7 @@ export async function markSessionsAsRead(pendingSessions, acceptSessions, isTrai
 export async function chargeCard(traineeStripe, trainerStripe, amount, cut, session){
   try{
     const idToken = await firebase.auth().currentUser.getIdToken(true);
-    const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/charge/', {
+    const res = await fetch(`${FB_URL}/stripe/charge/`, {
       method: 'POST',
       headers: {
         Authorization: idToken

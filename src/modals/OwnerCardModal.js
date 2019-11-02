@@ -5,7 +5,7 @@ import { Icons } from 'react-native-fontawesome';
 import bugsnag from '@bugsnag/expo';
 import { loadGym, loadUser } from '../components/Functions';
 import  TextField from '../components/TextField';
-import { STRIPE_KEY } from 'react-native-dotenv';
+import { STRIPE_KEY, FB_URL } from 'react-native-dotenv';
 const stripe = require('stripe-client')(STRIPE_KEY);
 const loading = require('../images/loading.gif');
 
@@ -62,7 +62,7 @@ export class OwnerCardModal extends Component {
 		const user = firebase.auth().currentUser;
 		try {
 			const idToken = await firebase.auth().currentUser.getIdToken(true);
-			const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/addTrainerCard/', {
+			const res = await fetch(`${FB_URL}/stripe/addTrainerCard/`, {
 				method: 'POST',
 				headers: {
 					Authorization: idToken
