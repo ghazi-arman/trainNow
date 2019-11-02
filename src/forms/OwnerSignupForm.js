@@ -341,8 +341,11 @@ export class OwnerSignupForm extends Component {
 						<Text style={styles.link}> Stripe Services Agreement</Text>
 					</TouchableOpacity>
 					<TouchableOpacity onPress={() => Linking.openURL('https://stripe.com/en-US/connect-account/legal')}>
-						<Text style={styles.link}> Stripe Connected Account Agreement.</Text>
+						<Text style={styles.link}> Stripe Connected Account Agreement</Text>
 					</TouchableOpacity>
+					<TouchableOpacity onPress={() => Linking.openURL('http://trainnow.fit/user-agreement-privacy-policy/')}>
+            <Text style={styles.link}> TrainNow User Agreement</Text>
+          </TouchableOpacity>
 				</View>
 			);
 		}
