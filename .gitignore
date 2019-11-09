@@ -1,0 +1,13 @@
+/node_modules/
+/.expo/
+/.expo-shared/
+*.DS_Store
+/ios/
+/android/
+/.idea/
+/.jscpd/
+report.txt
+/.vscode/
+.env
+.env-prod
+.env-test

@@ -6,7 +6,7 @@
       "image": "./images/splash.png",
       "resizeMode": "cover"
     },
-    "version": "1.8.0",
+    "version": "1.9.0",
     "slug": "trainNow",
     "sdkVersion": "34.0.0",
     "packagerOpts": {
@@ -14,7 +14,12 @@
     },
     "ios": {
       "bundleIdentifier": "com.trainNow.app",
-      "icon": "./images/logo-ios.png"
+      "icon": "./images/logo-ios.png",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "This app uses your location to find gyms in your area.",
+        "NSPhotoLibraryUsageDescription": "This app uses your photo to allow you to upload a profile picture.",
+        "NSCameraUsageDescription": "This app uses your camer to allow you to take a profile picture."
+      }
     },
     "android": {
       "package": "com.trainNow.app",
