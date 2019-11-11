@@ -179,9 +179,11 @@ export class MapPage extends Component {
               this.setState({ regionSet: true });
             }}
           >
-            <Text style={styles.menuIcon} onPress={this.toggleMenu}>
-              <FontAwesome>{Icons.bars}</FontAwesome>
-            </Text>
+            <TouchableOpacity style={{width: 60, height: 60}}>
+              <Text style={styles.menuIcon} onPress={this.toggleMenu}>
+                <FontAwesome>{Icons.bars}</FontAwesome>
+              </Text>
+            </TouchableOpacity>
             {alertBox}
             {this.state.gyms.map(marker => (
               <MapView.Marker
