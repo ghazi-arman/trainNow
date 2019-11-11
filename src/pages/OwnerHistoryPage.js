@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, KeyboardAvoidingView, ScrollView, TouchableOpacity, Alert, TextInput, Image } from 'react-native';
-import FontAwesome, { Icons } from 'react-native-fontawesome';
+import { FontAwesome } from '@expo/vector-icons';
 import Modal from 'react-native-modal';
 import { Actions } from 'react-native-router-flux';
 import bugsnag from '@bugsnag/expo';
@@ -90,7 +90,7 @@ export class OwnerHistoryPage extends Component {
 		return (
 			<View style = {styles.container}>
 				<Text style={styles.backButton} onPress={this.goBack}>
-          <FontAwesome>{Icons.arrowLeft}</FontAwesome>
+          <FontAwesome name="arrow-left" size={35} />
         </Text>
 				<Text style={styles.header}>Trainer History</Text>
 				<View style={styles.historyContainer}>		

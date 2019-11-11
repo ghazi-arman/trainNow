@@ -1,5 +1,5 @@
 import firebase from 'firebase';
-import FontAwesome, {Icons} from 'react-native-fontawesome';
+import { FontAwesome } from '@expo/vector-icons';
 import React from 'react';
 import { Alert } from 'react-native';
 import * as Location from 'expo-location';
@@ -353,11 +353,11 @@ export function renderStars(rating){
   var star = [];
   for (let stars = 0; stars < 5; stars++) {
     if (rating >= 1) {
-      star.push(<FontAwesome key={stars}>{Icons.star}</FontAwesome>);
+      star.push(<FontAwesome key={stars} name="star" size={15} />);
     } else if(rating > 0) {
-      star.push(<FontAwesome key={stars}>{Icons.starHalfFull}</FontAwesome>);
+      star.push(<FontAwesome key={stars} name="star-half-full" size={15} />);
     } else {
-      star.push(<FontAwesome key={stars}>{Icons.starO}</FontAwesome>);
+      star.push(<FontAwesome key={stars} name="star-O" size={15} />);
     }
     rating--;
   }
@@ -721,19 +721,19 @@ export async function deleteCard(stripeId, cardId) {
 
 export function getCardIcon(brand) {
   if (brand == 'Visa') {
-    return (<FontAwesome>{Icons.ccVisa}</FontAwesome>);
+    return (<FontAwesome name="cc-visa" size={20} />);
   } else if (brand == 'American Express') {
-    return (<FontAwesome>{Icons.ccAmex}</FontAwesome>);
+    return (<FontAwesome name="cc-amex" size={20} />);
   } else if (brand == 'MasterCard') {
-    return (<FontAwesome>{Icons.ccMastercard}</FontAwesome>);
+    return (<FontAwesome name="cc-mastercard" size={20} />);
   } else if (brand == 'Discover') {
-    return (<FontAwesome>{Icons.ccDiscover}</FontAwesome>);
+    return (<FontAwesome name="cc-Discover" size={20} />);
   } else if (brand == 'JCB') {
-    return (<FontAwesome>{Icons.ccJcb}</FontAwesome>);
+    return (<FontAwesome name="cc-jcb" size={20} />);
   } else if (brand == 'Diners Club') {
-    return (<FontAwesome>{Icons.ccDinersClub}</FontAwesome>);
+    return (<FontAwesome name="cc-diners-club" size={20} />);
   } else {
-    return (<FontAwesome>{Icons.creditCard}</FontAwesome>);
+    return (<FontAwesome name="credit-card" size={20} />);
   }
 }
 

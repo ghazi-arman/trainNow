@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, TouchableOpacity, Alert, Platform, Linking, Ima
 import MapView from 'react-native-maps';
 import firebase from 'firebase';
 import bugsnag from '@bugsnag/expo';
-import FontAwesome, { Icons } from 'react-native-fontawesome';
+import { FontAwesome } from '@expo/vector-icons';
 import { Actions } from 'react-native-router-flux';
 import COLORS from '../components/Colors';
 import { getLocation, loadSession, dateToString, startSession } from '../components/Functions';
@@ -179,7 +179,7 @@ export class SessionPage extends Component {
 			<View style={styles.container}>
 				<View style={styles.nameContainer}>
 					<Text style={styles.backButton} onPress={this.goToMap}>
-						<FontAwesome>{Icons.arrowLeft}</FontAwesome>
+						<FontAwesome name="arrow-left" size={35} />
 					</Text>
 					<Text style={styles.header}>Your Session</Text>
 				</View>

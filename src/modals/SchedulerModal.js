@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, DatePickerIOS, TouchableOpacity, Alert, ScrollView, Image } from 'react-native';
-import FontAwesome, { Icons } from 'react-native-fontawesome';
+import { FontAwesome } from '@expo/vector-icons';
 import firebase from 'firebase';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
@@ -46,7 +46,7 @@ export class SchedulerModal extends Component {
 				<View style={styles.nameContainer}>
 					<Text style={styles.trainerName}>Add Availability</Text>
 					<Text style={styles.closeButton} onPress={this.props.hide}>
-						<FontAwesome>{Icons.close}</FontAwesome>
+						<FontAwesome name="close" size={35} />
 					</Text>
 				</View>
 				<View style={styles.formContainer}>

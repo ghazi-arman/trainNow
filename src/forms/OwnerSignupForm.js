@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Alert, Linking } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
-import { Icons } from 'react-native-fontawesome';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import TextField from '../components/TextField';
@@ -224,34 +223,34 @@ export class OwnerSignupForm extends Component {
 			page1 = (
 			<View>
 				<TextField
-          icon={Icons.user}
+          icon="user"
           placeholder="Name (First and Last Only)"
           onChange={(name) => this.setState({name})}
           value={this.state.name}
         />
 				<TextField
-          icon={Icons.envelope}
+          icon="envelope"
           placeholder="Email"
           keyboard="email-address"
           onChange={(email) => this.setState({email})}
           value={this.state.email}
         />
 				<TextField
-          icon={Icons.lock}
+          icon="lock"
           placeholder="Password"
           secure={true}
           onChange={(password) => this.setState({password})}
           value={this.state.password}
         />
 				<TextField
-          icon={Icons.lock}
+          icon="lock"
           placeholder="Confirm Password"
           secure={true}
           onChange={(confirmPass) => this.setState({confirmPass})}
           value={this.state.confirmPass}
         />
 				<TextField
-          icon={Icons.phone}
+          icon="phone"
           placeholder="Phone Number"
 					keyboard="number-pad"
           onChange={(phone) => this.setState({phone})}
@@ -263,33 +262,33 @@ export class OwnerSignupForm extends Component {
 			page2 = (
 			<View>
 				<TextField
-          icon={Icons.building}
+          icon="building"
           placeholder="Company Name"
           onChange={(companyName) => this.setState({companyName})}
           value={this.state.companyName}
         />
 				<TextField
-          icon={Icons.building}
+          icon="building"
           placeholder="Gym Key"
           onChange={(gymKey) => this.setState({gymKey})}
           value={this.state.gymKey}
         />
 				<TextField
-          icon={Icons.user}
+          icon="user"
 					placeholder="Company Tax ID"
 					keyboard="number-pad"
           onChange={(taxId) => this.setState({taxId})}
           value={this.state.taxId}
         />
 				<TextField
-          icon={Icons.user}
+          icon="user"
 					placeholder="Social Security Number"
 					keyboard="number-pad"
           onChange={(ssn) => this.setState({ssn})}
           value={this.state.ssn}
         />
 				<TextField
-          icon={Icons.calendar}
+          icon="calendar"
 					placeholder="Birth Date (mm/dd/yyyy)"
           onChange={(birthDay) => this.setState({birthDay})}
           value={this.state.birthDay}
@@ -301,25 +300,25 @@ export class OwnerSignupForm extends Component {
 			var page3 = (
 			<View>
 				<TextField
-          icon={Icons.envelope}
+          icon="envelope"
           placeholder="Address"
           onChange={(address) => this.setState({address})}
           value={this.state.address}
         />
 				<TextField
-          icon={Icons.map}
+          icon="map"
           placeholder="City"
           onChange={(city) => this.setState({city})}
           value={this.state.city}
         />
 				<TextField
-          icon={Icons.mapMarker}
+          icon="map-marker"
           placeholder="Zip Code"
           onChange={(zip) => this.setState({zip})}
           value={this.state.zip}
         />
 				<TextField
-          icon={Icons.map}
+          icon="map"
           placeholder="State (Abbreviation)"
           onChange={(state) => this.setState({state})}
           value={this.state.state}

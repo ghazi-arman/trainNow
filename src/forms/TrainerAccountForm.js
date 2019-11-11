@@ -3,7 +3,6 @@ import { StyleSheet, Text, View, TouchableOpacity, Alert, Switch, Image } from '
 import firebase from 'firebase';
 import * as Permissions from 'expo-permissions';
 import * as ImagePicker from 'expo-image-picker';
-import { Icons } from 'react-native-fontawesome';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import TextField from '../components/TextField';
@@ -176,26 +175,26 @@ export class TrainerAccountForm extends Component {
           <Image source={{ uri: this.state.image }} style={styles.imageHolder} />
         </View>
         <TextField
-          icon={Icons.user}
+          icon="user"
           placeholder="Name"
           onChange={(name) => this.setState({ name, change: true })}
           value={this.state.name}
         />
         <TextField
-          icon={Icons.dollar}
+          icon="dollar"
           placeholder="Rate"
           onChange={(rate) => this.setState({ rate, change: true })}
           value={this.state.rate}
           keyboard="number-pad"
         />
         <TextField
-          icon={Icons.vcard}
+          icon="v-card"
           placeholder="Certifications"
           onChange={(cert) => this.setState({ cert, change: true })}
           value={this.state.cert}
         />
         <TextField
-          icon={Icons.info}
+          icon="info"
           placeholder="Bio"
           onChange={(bio) => this.setState({ bio, change: true })}
           value={this.state.bio}

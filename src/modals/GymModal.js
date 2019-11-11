@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, TouchableWithoutFeedback, Image, Alert } from 'react-native';
 import firebase from 'firebase';
 import MapView from 'react-native-maps';
-import FontAwesome, { Icons } from 'react-native-fontawesome';
+import { FontAwesome } from '@expo/vector-icons';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import { loadGym, renderStars } from '../components/Functions';
@@ -170,7 +170,7 @@ export class GymModal extends Component {
 					<Text style={styles.gymName}>{this.state.gym.name}</Text>
 					<Text style={styles.hourDetails}>{this.state.gym.hours}</Text>
 					<Text style={styles.closeButton} onPress={this.props.hide}>
-						<FontAwesome>{Icons.close}</FontAwesome>
+						<FontAwesome name="close" size={35} />
 					</Text>
 				</View>
 				<View style={styles.mapContainer}>

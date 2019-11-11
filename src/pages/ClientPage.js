@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
 import firebase from 'firebase';
-import FontAwesome, { Icons } from 'react-native-fontawesome';
+import { FontAwesome } from '@expo/vector-icons';
 import Modal from 'react-native-modal';
 import { Actions } from 'react-native-router-flux';
 import bugsnag from '@bugsnag/expo';
@@ -93,10 +93,10 @@ export class ClientPage extends Component {
 				<View key={request.trainee} style={styles.traineeRow}>
 					<Text style={styles.nameText}>{request.traineeName}</Text>
 					<TouchableOpacity style={styles.denyButton} onPress={() => this.denyRequest(request.key, request.trainee)}> 
-						<Text style={styles.buttonText}><FontAwesome>{Icons.close}</FontAwesome></Text>
+						<Text style={styles.buttonText}><FontAwesome name="close" size={18} /></Text>
 					</TouchableOpacity>
 					<TouchableOpacity style={styles.acceptButton} onPress={() => this.acceptRequest(request.key, request.trainee, request.traineeName)}> 
-						<Text style={styles.buttonText}><FontAwesome>{Icons.check}</FontAwesome></Text>
+						<Text style={styles.buttonText}><FontAwesome name="check" size={18} /></Text>
 					</TouchableOpacity>
 				</View>
 			);
@@ -113,7 +113,7 @@ export class ClientPage extends Component {
 				<View key={client.trainee} style={styles.traineeRow}>
 					<Text style={styles.nameText}>{client.traineeName}</Text>
 					<TouchableOpacity style={styles.requestButton} onPress={() => this.bookSession(client.trainee, this.state.user.gym)}> 
-						<Text style={styles.buttonText}><FontAwesome>{Icons.calendar}</FontAwesome> Book</Text>
+						<Text style={styles.buttonText}><FontAwesome name="calendar" size={18} /> Book</Text>
 					</TouchableOpacity>
 				</View>
 			);
@@ -132,13 +132,13 @@ export class ClientPage extends Component {
 			if(this.state.user.requests && this.state.user.requests[trainee.key]){
 				button = (
 					<TouchableOpacity style={styles.requestButton} disabled> 
-						<Text style={styles.buttonText}><FontAwesome>{Icons.hourglass}</FontAwesome> Pending</Text>
+						<Text style={styles.buttonText}><FontAwesome name="hourglass" size={18} /> Pending</Text>
 					</TouchableOpacity>
 				);
 			}else{
 				button = (
 					<TouchableOpacity style={styles.requestButton} onPress={() => this.sendClientRequest(trainee.key)}>
-						<Text style={styles.buttonText}><FontAwesome>{Icons.userPlus}</FontAwesome> Add </Text>
+						<Text style={styles.buttonText}><FontAwesome name="user-plus" size={18} /> Add </Text>
 					</TouchableOpacity>
 				);
 			}
@@ -225,7 +225,7 @@ export class ClientPage extends Component {
 			<View style = {styles.container}>
 				<View style={styles.nameContainer}>
 					<Text style={styles.backButton} onPress={this.goToMap}>
-						<FontAwesome>{Icons.arrowLeft}</FontAwesome>
+						<FontAwesome name="arrow-left" size={35} />
 					</Text>
 					<Text style={styles.title}>Trainers</Text>
 				</View>

@@ -4,7 +4,7 @@ import { Actions } from 'react-native-router-flux';
 import * as Permissions from 'expo-permissions';
 import * as ImagePicker from 'expo-image-picker';
 import firebase from 'firebase';
-import FontAwesome, { Icons } from 'react-native-fontawesome';
+import { FontAwesome } from '@expo/vector-icons';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import TextField from '../components/TextField';
@@ -380,34 +380,34 @@ export class SignupForm extends Component {
       page1 = (
         <View style={styles.container}>
           <TextField 
-            icon={Icons.user}
+            icon="user"
             placeholder="Name (First and Last)"
             onChange={(name) => this.setState({ name })}
             value={this.state.name}
           />
           <TextField 
-            icon={Icons.envelope}
+            icon="envelope"
             placeholder="Email"
             keyboard="email-address"
             onChange={(email) => this.setState({ email })}
             value={this.state.email}
           />
           <TextField 
-            icon={Icons.lock}
+            icon="lock"
             placeholder="Password"
             secure={true}
             onChange={(password) => this.setState({ password })}
             value={this.state.password}
           />
           <TextField 
-            icon={Icons.lock}
+            icon="lock"
             placeholder="Confirm Password"
             secure={true}
             onChange={(confirmPass) => this.setState({ confirmPass })}
             value={this.state.confirmPass}
           />
           <TextField 
-            icon={Icons.phone}
+            icon="phone"
             placeholder="Phone Number"
             keyboard="number-pad"
             onChange={(phone) => this.setState({ phone })}
@@ -430,7 +430,7 @@ export class SignupForm extends Component {
         <View style={styles.container}>
           <View style={styles.inputRow}>
             <Text style={styles.icon}>
-              <FontAwesome>{Icons.building}</FontAwesome>
+              <FontAwesome name="building" size={30} />
             </Text>
             <Picker
               style={styles.picker}
@@ -444,34 +444,34 @@ export class SignupForm extends Component {
             </Picker>
           </View>
           <TextField 
-            icon={Icons.dollar}
+            icon="dollar"
             placeholder="Rate ($ hourly)"
             keyboard="number-pad"
             onChange={(rate) => this.setState({ rate })}
             value={this.state.rate}
           />
           <TextField 
-            icon={Icons.info}
+            icon="info"
             multiline={true}
             placeholder="Enter your bio here (specialities, schedule, experience, etc.)"
             onChange={(bio) => this.setState({ bio })}
             value={this.state.bio}
           />
           <TextField 
-            icon={Icons.vcard}
+            icon="v-card"
             placeholder="Certifications"
             onChange={(cert) => this.setState({ cert })}
             value={this.state.cert}
           />
           <TextField 
-            icon={Icons.user}
+            icon="user"
             placeholder="SSN (For Stripe Account)"
             keyboard="number-pad"
             onChange={(ssn) => this.setState({ ssn })}
             value={this.state.ssn}
           />
           <TextField 
-            icon={Icons.user}
+            icon="user"
             placeholder="Birth Date (mm/dd/yyyy)"
             onChange={(birthDay) => this.setState({ birthDay })}
             value={this.state.birthDay}
@@ -482,26 +482,26 @@ export class SignupForm extends Component {
       page3 = (
         <View>
           <TextField 
-            icon={Icons.envelope}
+            icon="envelope"
             placeholder="Address"
             onChange={(address) => this.setState({ address })}
             value={this.state.address}
           />
           <TextField 
-            icon={Icons.map}
+            icon="map"
             placeholder="City"
             onChange={(city) => this.setState({ city })}
             value={this.state.city}
           />
           <TextField 
-            icon={Icons.mapMarker}
+            icon="map-marker"
             placeholder="Zip Code"
             keyboard="number-pad"
             onChange={(zip) => this.setState({ zip })}
             value={this.state.zip}
           />
           <TextField 
-            icon={Icons.map}
+            icon="map"
             placeholder="State (Abbreviation eg. CA)"
             onChange={(state) => this.setState({ state })}
             value={this.state.state}

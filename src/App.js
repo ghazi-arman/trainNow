@@ -36,7 +36,7 @@ export default class App extends Component {
     // Keep screen in portrait mode and load font for Icons
     ScreenOrientation.lockAsync(ScreenOrientation.Orientation.PORTRAIT_UP);
     await Font.loadAsync({
-      FontAwesome: require('./fonts/font-awesome-4.7.0/fonts/FontAwesome.otf')
+      FontAwesome5FreeSolid: require('./fonts/fontawesome-5.9.0/fonts/FontAwesome5FreeSolid.otf')
     });
 
     this.setState({ loaded: true });

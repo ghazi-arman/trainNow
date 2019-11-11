@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, KeyboardAvoidingView, TouchableOpacity, Alert, Image } from 'react-native';
 import firebase from 'firebase';
-import FontAwesome, { Icons } from 'react-native-fontawesome';
+import { FontAwesome } from '@expo/vector-icons';
 import Modal from 'react-native-modal';
 import { Actions } from 'react-native-router-flux';
 import bugsnag from '@bugsnag/expo';
@@ -158,34 +158,34 @@ export class PaymentPage extends Component {
 			let defaultCard = false;
 			if (this.state.user.trainer) {
 				if (currCard.default_for_currency) {
-					defaultButton = (<FontAwesome style={styles.greenIcon}>{Icons.checkCircle}</FontAwesome>);
+					defaultButton = (<Text style={styles.greenIcon}><FontAwesome name="check-circle" size={20} /></Text>);
 					defaultCard = true;
 				} else {
 					defaultButton = (
 						<TouchableOpacity style={styles.defaultButton} onPress={() => this.setDefaultTrainerCard(this.state.user.stripeId, currCard.id)}>
-	    					<Text style={{fontSize: 15, color: COLORS.WHITE}}><FontAwesome>{Icons.check}</FontAwesome></Text>
-	    				</TouchableOpacity>
+							<Text style={{color: COLORS.WHITE}}><FontAwesome name="check" size={15} /></Text>
+						</TouchableOpacity>
 					);
 				}
 				deleteButton = (
 					<TouchableOpacity style={styles.deleteButton} onPress={() => this.deleteTrainerCard(this.state.user.stripeId, currCard.id, defaultCard)}>
-	    				<Text style={{fontSize: 15, color: COLORS.WHITE}}><FontAwesome>{Icons.remove}</FontAwesome></Text>
-	    			</TouchableOpacity>
+	    			<Text style={{color: COLORS.WHITE}}><FontAwesome name="remove" size={15} /></Text>
+	    		</TouchableOpacity>
 				);
 			} else {
 				if (index == 0) {
-					defaultButton = (<FontAwesome style={styles.greenIcon}>{Icons.checkCircle}</FontAwesome>);
+					defaultButton = (<Text style={styles.greenIcon}><FontAwesome name="check-circle" size={20} /></Text>);
 				} else {
 					defaultButton = (
 						<TouchableOpacity style={styles.defaultButton} onPress={() => this.setDefaultCard(this.state.user.stripeId, currCard.id)}>
-	    					<Text style={{fontSize: 15, color: COLORS.WHITE}}><FontAwesome>{Icons.check}</FontAwesome></Text>
-	    				</TouchableOpacity>
+	    				<Text style={{color: COLORS.WHITE}}><FontAwesome name="check" size={15} /></Text>
+	    			</TouchableOpacity>
 					);
 				}
 				deleteButton = (
 					<TouchableOpacity style={styles.deleteButton} onPress={() => this.deleteCard(this.state.user.stripeId, currCard.id)}>
-	    				<Text style={{fontSize: 15, color: COLORS.WHITE}}><FontAwesome>{Icons.remove}</FontAwesome></Text>
-	    			</TouchableOpacity>
+	    			<Text style={{color: COLORS.WHITE}}><FontAwesome name="remove" size={15} /></Text>
+	    		</TouchableOpacity>
 				);
 			}
 			index++;
@@ -219,7 +219,7 @@ export class PaymentPage extends Component {
 			<KeyboardAvoidingView behavior="padding" style = {styles.container}>
 				<View style={styles.nameContainer}>
 					<Text style={styles.backButton} onPress={this.goToMap}>
-						<FontAwesome>{Icons.arrowLeft}</FontAwesome>
+						<FontAwesome name="arrow-left" size={35} />
 					</Text>
 					<Text style={styles.title}>Payments</Text>
 				</View>
@@ -228,7 +228,7 @@ export class PaymentPage extends Component {
 					{this.renderCards()}
 				</View>
 				<TouchableOpacity style={styles.button} onPress={() => this.setState({cardModal: true})}>
-					<Text style={styles.buttonText}><FontAwesome>{Icons.creditCard}</FontAwesome> Add Card </Text>
+					<Text style={styles.buttonText}><FontAwesome name="credit-card" size={30} /> Add Card </Text>
 				</TouchableOpacity>
 				{payoutText}
 				<Modal

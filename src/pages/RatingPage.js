@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Alert, Image } from 'react-native';
 import firebase from 'firebase';
-import FontAwesome, { Icons } from 'react-native-fontawesome';
+import { FontAwesome } from '@expo/vector-icons';
 import { Actions } from 'react-native-router-flux';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
@@ -64,10 +64,10 @@ export class RatingPage extends Component {
 	setRating = (key) => this.setState({rating: key});
 
 	renderStar = (number, outline) => {
-		const starToRender = outline ? Icons.starO : Icons.star;
+		const starToRender = outline ? "star-O" : "star";
 		return(
 			<TouchableOpacity key={number} onPress={() => this.setRating(number)}>
-				<Text style={styles.icon}><FontAwesome>{starToRender}</FontAwesome></Text>
+				<Text style={styles.icon}><FontAwesome name={starToRender} size={35} /></Text>
 			</TouchableOpacity>
 		);
 	}

@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert, Image } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
-import FontAwesome, { Icons } from 'react-native-fontawesome';
+import { FontAwesome } from '@expo/vector-icons';
 import Modal from 'react-native-modal';
 import bugsnag from '@bugsnag/expo';
 import { dateToString, timeOverlapCheck, loadUser, loadAcceptedSessions, loadPendingSessions, loadAcceptedSchedule, createSession, sendMessage, cancelPendingSession, cancelAcceptedSession, markSessionsAsRead } from '../components/Functions';
@@ -378,7 +378,7 @@ export class CalendarPage extends Component {
 			<View style={styles.container}>
 				<View style={styles.headerContainer}>
 					<Text style={styles.backButton} onPress={() => Actions.reset('MapPage')}>
-						<FontAwesome>{Icons.arrowLeft}</FontAwesome>
+						<FontAwesome name="arrow-left" size={35} />
 					</Text>
 					<Text style={styles.title}>Calendar</Text>
 				</View>

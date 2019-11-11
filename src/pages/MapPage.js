@@ -5,7 +5,7 @@ import MapView from 'react-native-maps';
 import firebase from 'firebase';
 import Modal from 'react-native-modal';
 import { Actions } from 'react-native-router-flux';
-import FontAwesome, { Icons } from 'react-native-fontawesome';
+import { FontAwesome } from '@expo/vector-icons';
 import Drawer from 'react-native-drawer';
 import bugsnag from '@bugsnag/expo';
 import { SideMenu } from '../components/SideMenu';
@@ -181,7 +181,7 @@ export class MapPage extends Component {
           >
             <TouchableOpacity style={{width: 60, height: 60}}>
               <Text style={styles.menuIcon} onPress={this.toggleMenu}>
-                <FontAwesome>{Icons.bars}</FontAwesome>
+                <FontAwesome name="bars" size={50} />
               </Text>
             </TouchableOpacity>
             {alertBox}
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '800',
     color: COLORS.SECONDARY,
-    marginTop: 35
+    marginTop: 10
   },
   loading: {
     width: '100%',

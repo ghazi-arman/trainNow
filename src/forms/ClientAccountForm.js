@@ -3,7 +3,6 @@ import { StyleSheet, Text, View, TouchableOpacity, Alert, Image } from 'react-na
 import firebase from 'firebase';
 import * as Permissions from 'expo-permissions';
 import * as ImagePicker from 'expo-image-picker';
-import { Icons } from 'react-native-fontawesome';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import TextField from '../components/TextField';
@@ -130,7 +129,7 @@ export class ClientAccountForm extends Component {
           <Image source={{ uri: this.state.image }} style={styles.imageHolder} />
         </View>
         <TextField
-          icon={Icons.user}
+          icon="user"
           placeholder="Name"
           onChange={(name) => this.setState({ name, change: true })}
           value={this.state.name}

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, KeyboardAvoidingView, ScrollView, TouchableOpacity, Alert, TextInput, Image } from 'react-native';
 import firebase from 'firebase';
-import FontAwesome, { Icons } from 'react-native-fontawesome';
+import { FontAwesome } from '@expo/vector-icons';
 import Modal from 'react-native-modal';
 import { Actions } from 'react-native-router-flux';
 import bugsnag from '@bugsnag/expo';
@@ -90,7 +90,7 @@ export class HistoryPage extends Component {
 			<View style = {styles.container}>
 				<View style={styles.nameContainer}>
 					<Text style={styles.backButton} onPress={this.goToMap}>
-						<FontAwesome>{Icons.arrowLeft}</FontAwesome>
+						<FontAwesome name="arrow-left" size={35} />
 					</Text>
 					<Text style={styles.header}>Trainer History</Text>
 				</View>
@@ -105,7 +105,7 @@ export class HistoryPage extends Component {
 				>
 					<KeyboardAvoidingView behavior="padding" style={styles.reportModal}>
 						<Text style={styles.closeButton} onPress={this.hideReportModal}>
-							<FontAwesome>{Icons.close}</FontAwesome>
+							<FontAwesome name="close" size={35} />
 						</Text>
 						<Text style={styles.header}>Report Session</Text>
 						<TextInput 

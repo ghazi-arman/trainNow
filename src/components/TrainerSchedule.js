@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, Image } from 'react-native';
-import FontAwesome, { Icons } from 'react-native-fontawesome';
+import { FontAwesome } from '@expo/vector-icons';
 import COLORS from './Colors';
 import { dateToString, loadAcceptedSchedule, dateforAgenda, loadAvailableSchedule, loadOtherTrainer } from './Functions';
 import { Agenda } from 'react-native-calendars';
@@ -61,7 +61,7 @@ export class TrainerSchedule extends Component {
 					<View style={styles.nameContainer}>
 						<Text style={styles.trainerName}>Schedule</Text>
 						<Text style={styles.closeButton} onPress={this.props.hideandOpen}>
-							<FontAwesome>{Icons.close}</FontAwesome>
+							<FontAwesome name="close" size={35} />
 						</Text>
 					</View>
 					<View style={styles.calendarContainer}>

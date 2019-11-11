@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, Image } from 'react-native';
-import FontAwesome, { Icons } from 'react-native-fontawesome';
+import { FontAwesome } from '@expo/vector-icons';
 import firebase from 'firebase';
 import { Agenda } from 'react-native-calendars';
 import bugsnag from '@bugsnag/expo';
@@ -69,7 +69,7 @@ export class ScheduleModal extends Component {
 			<View style={styles.modal}>
 				<View style={styles.nameContainer}>
 					<Text style={styles.backButton} onPress={this.props.hideandOpen}>
-							<FontAwesome>{Icons.arrowLeft}</FontAwesome>
+						<FontAwesome name="arrow-left" size={35} />
 					</Text>
 					<Text style={styles.trainerName}> {this.state.trainer.name} </Text>
 				</View>

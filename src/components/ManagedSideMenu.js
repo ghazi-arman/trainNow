@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Alert, Image } from 'react-native';
-import FontAwesome, { Icons } from 'react-native-fontawesome';
+import { FontAwesome } from '@expo/vector-icons';
 import firebase from 'firebase';
 import { Actions } from 'react-native-router-flux';
 import COLORS from './Colors';
@@ -45,7 +45,7 @@ export class ManagedSideMenu extends Component {
       clientLink = (
         <TouchableOpacity onPress={() => Actions.ClientPage()}>
           <Text style={styles.icon}>
-              <FontAwesome>{Icons.users}</FontAwesome> <Text style={styles.menuLink}> Clients</Text>
+              <FontAwesome name="users" size={30} /><Text style={styles.menuLink}> Clients</Text>
           </Text>
         </TouchableOpacity>
       );
@@ -58,7 +58,7 @@ export class ManagedSideMenu extends Component {
       clientLink = (
         <TouchableOpacity onPress={() => Actions.TrainerPage()}>
           <Text style={styles.icon}>
-              <FontAwesome>{Icons.users}</FontAwesome> <Text style={styles.menuLink}> Trainers</Text>
+              <FontAwesome name="users" size={30} /><Text style={styles.menuLink}> Trainers</Text>
           </Text>
         </TouchableOpacity>
       );
@@ -72,23 +72,23 @@ export class ManagedSideMenu extends Component {
         </View>
         <TouchableOpacity onPress={() => Actions.MapPage()}>
           <Text style={styles.icon}>
-              <FontAwesome>{Icons.compass}</FontAwesome> <Text style={styles.menuLink}> Map</Text>
+              <FontAwesome name="compass" size={30} /><Text style={styles.menuLink}> Map</Text>
           </Text>
         </TouchableOpacity>
         <TouchableOpacity>
           <Text style={styles.icon} onPress={() => Actions.SettingsPage({trainer: true})}>
-              <FontAwesome>{Icons.gear}</FontAwesome> <Text style={styles.menuLink}> Settings</Text>
+              <FontAwesome name="gear" size={30} /><Text style={styles.menuLink}> Settings</Text>
           </Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => Actions.CalendarPage()}>
           <Text style={styles.icon}>
-              <FontAwesome>{Icons.calendar}</FontAwesome> <Text style={styles.menuLink}> Calendar</Text>
+              <FontAwesome name="calendar" size={30} /><Text style={styles.menuLink}> Calendar</Text>
           </Text>
         </TouchableOpacity>
         {clientLink}
         <TouchableOpacity onPress={this.logout}>
           <Text style={styles.icon}>
-            <FontAwesome>{Icons.powerOff}</FontAwesome> <Text style={styles.menuLink}> Sign Out</Text>
+            <FontAwesome name="power-off" size={30} /><Text style={styles.menuLink}> Sign Out</Text>
           </Text>
         </TouchableOpacity>
       </View>
