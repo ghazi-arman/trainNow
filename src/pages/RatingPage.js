@@ -64,7 +64,7 @@ export class RatingPage extends Component {
 	setRating = (key) => this.setState({rating: key});
 
 	renderStar = (number, outline) => {
-		const starToRender = outline ? "star-O" : "star";
+		const starToRender = outline ? "star-o" : "star";
 		return(
 			<TouchableOpacity key={number} onPress={() => this.setRating(number)}>
 				<Text style={styles.icon}><FontAwesome name={starToRender} size={35} /></Text>

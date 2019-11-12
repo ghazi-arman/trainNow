@@ -179,24 +179,23 @@ export class MapPage extends Component {
               this.setState({ regionSet: true });
             }}
           >
-            <TouchableOpacity style={{width: 60, height: 60}}>
-              <Text style={styles.menuIcon} onPress={this.toggleMenu}>
-                <FontAwesome name="bars" size={50} />
-              </Text>
-            </TouchableOpacity>
-            {alertBox}
-            {this.state.gyms.map(marker => (
-              <MapView.Marker
-                ref={marker => (this.marker = marker)}
-                key={marker.key}
-                coordinate={marker.location}
-                onPress={() => this.showModal('gym', marker)}
-              >
-                <Image source={markerImg} style={{width: 50, height: 50}} />
-              </MapView.Marker>
-            ))}
+          {this.state.gyms.map(marker => (
+            <MapView.Marker
+              ref={marker => (this.marker = marker)}
+              key={marker.key}
+              coordinate={marker.location}
+              onPress={() => this.showModal('gym', marker)}
+            >
+              <Image source={markerImg} style={{width: 50, height: 50}} />
+            </MapView.Marker>
+          ))}
           </MapView>
-
+          <TouchableOpacity style={styles.menuButton}>
+            <Text style={styles.menuIcon} onPress={this.toggleMenu}>
+              <FontAwesome name="bars" size={50} />
+            </Text>
+          </TouchableOpacity>
+          {alertBox}
           <Modal isVisible={this.state.gymModal}
           onBackdropPress={this.hidegymModal}>
             <GymModal gymKey={this.state.selectedGym.key} setTrainer={this.setTrainer} viewSchedule={this.viewSchedule} hide={this.hidegymModal} />
@@ -230,19 +229,23 @@ const styles = StyleSheet.create({
     height: '100%',
     width: '100%'
   },
-  menuIcon: {
+  menuButton: {
     position: 'absolute',
-    marginTop: 30,
-    marginLeft: 20,
-    fontSize: 50, 
+    top: 30,
+    left: 20,
+    width: 60,
+    height: 60,  
+  },
+  menuIcon: {
     color: COLORS.PRIMARY, 
   },
   sessionText: {
+    position: 'absolute',
     textAlign: 'center',
     fontSize: 20,
     fontWeight: '800',
     color: COLORS.SECONDARY,
-    marginTop: 10
+    top: 20
   },
   loading: {
     width: '100%',

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Alert, DatePickerIOS, Picker, Image } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Alert, DatePickerIOS, DatePickerAndroid, TimePickerAndroid, Picker, Image, Platform } from 'react-native';
 import firebase from 'firebase';
 import { FontAwesome } from '@expo/vector-icons';
 import bugsnag from '@bugsnag/expo';
@@ -99,9 +99,69 @@ export class BookModalRegular extends Component {
     );
 	}
 
+	openDatePicker = async() => {
+    try {
+      const {action, year, month, day} = await DatePickerAndroid.open({
+				date: new Date(),
+				minDate: new Date()
+      });
+      if (action !== DatePickerAndroid.dismissedAction) {
+        this.setState({ bookDate: new Date(year, month, day)});
+      }
+    } catch (error) {
+      this.bugsnagClient.notify(error);
+    }
+  }
+
+  openTimePicker = async() => {
+    try {
+      const {action, hour, minute} = await TimePickerAndroid.open({
+        hour: 0,
+        minute: 0,
+        is24Hour: false,
+      });
+      if (action !== TimePickerAndroid.dismissedAction) {
+        const date = this.state.bookDate;
+        this.setState({ bookDate: date.setHours(hour, minute)});
+      }
+    } catch ({code, message}) {
+      console.warn('Cannot open time picker', message);
+    }
+  }
+
 	render() {
 		if (!this.state.trainer || !this.state.user || !this.state.gym) {
       return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
+		}
+		let picker, timePicker;
+		if(Platform.OS === 'ios') {
+			picker = (
+				<DatePickerIOS
+					mode='datetime'
+					itemStyle={{ color: COLORS.PRIMARY }}
+					textColor={COLORS.PRIMARY}
+					style={styles.datepicker}
+					minuteInterval={5}
+					minimumDate={new Date()}
+					date={this.state.bookDate}
+					onDateChange={(bookDate) => this.setState({ bookDate: bookDate })}
+				/>
+			);
+		} else {
+			picker = (
+				<TouchableOpacity style={styles.bookButton} onPressIn={() => this.openDatePicker()}>
+          <Text style={styles.buttonText}>
+            Choose Date
+          </Text>
+        </TouchableOpacity>
+      );
+      timePicker = (
+        <TouchableOpacity style={[styles.bookButton, {marginTop: 20}]} onPressIn={() => this.openTimePicker()}>
+          <Text style={styles.buttonText}>
+            Choose Time
+          </Text>
+        </TouchableOpacity>
+      );
 		}
 		return (
 			<View style={styles.modal}>
@@ -113,19 +173,9 @@ export class BookModalRegular extends Component {
 				</View>
 				<View style={styles.formContainer}>
 					<View style={styles.inputRow}>
-					<Text style={styles.formLabel}>Session Duration</Text>
-						<View style={styles.datePickerHolder}>
-							<DatePickerIOS
-								mode='datetime'
-								itemStyle={{ color: COLORS.PRIMARY }}
-								textColor={COLORS.PRIMARY}
-								style={styles.datepicker}
-								minuteInterval={5}
-								minimumDate={new Date(new Date().getTime())}
-								date={this.state.bookDate}
-								onDateChange={(bookDate) => this.setState({ bookDate: bookDate })}
-							/>
-						</View>
+						<Text style={styles.formLabel}>Session Time</Text>
+						{picker}
+						{timePicker}
 					</View>
 					<View style={styles.inputRow}>
 						<Text style={styles.formLabel}>Session Duration</Text>
@@ -196,12 +246,9 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		width: '95%',
 	},
-	datePickerHolder: {
-		height: 200,
-		width: '100%',
-	},
 	datepicker: {
 		height: 200,
+		width: '100%',
 		borderWidth: 1,
 		borderColor: COLORS.PRIMARY,
 	},

@@ -6,6 +6,7 @@ import * as Location from 'expo-location';
 import geolib from 'geolib';
 import { Actions } from 'react-native-router-flux';
 import { FB_URL } from 'react-native-dotenv';
+import * as Permissions from 'expo-permissions';
 
 // Convert date to yyyy-mm-dd format for Agenda events
 export function dateforAgenda(date){
@@ -357,7 +358,7 @@ export function renderStars(rating){
     } else if(rating > 0) {
       star.push(<FontAwesome key={stars} name="star-half-full" size={15} />);
     } else {
-      star.push(<FontAwesome key={stars} name="star-O" size={15} />);
+      star.push(<FontAwesome key={stars} name="star-o" size={15} />);
     }
     rating--;
   }
@@ -516,7 +517,8 @@ export async function loadSessions(userKey) {
 }
 
 export async function getLocation() {
-  const location = await Location.getCurrentPositionAsync({});
+  await Permissions.askAsync(Permissions.LOCATION);
+  const location = await Location.getCurrentPositionAsync({ enableHighAccuracy: true });
   return {
     latitude:  Number(JSON.stringify(location.coords.latitude)),
     longitude: Number(JSON.stringify(location.coords.longitude)),
