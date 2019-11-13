@@ -517,7 +517,6 @@ export async function loadSessions(userKey) {
 }
 
 export async function getLocation() {
-  await Permissions.askAsync(Permissions.LOCATION);
   const location = await Location.getCurrentPositionAsync({ enableHighAccuracy: true });
   return {
     latitude:  Number(JSON.stringify(location.coords.latitude)),
