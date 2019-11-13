@@ -188,7 +188,7 @@ export class TrainerAccountForm extends Component {
           keyboard="number-pad"
         />
         <TextField
-          icon="v-card"
+          icon="vcard"
           placeholder="Certifications"
           onChange={(cert) => this.setState({ cert, change: true })}
           value={this.state.cert}

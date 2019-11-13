@@ -304,7 +304,7 @@ export class SignupForm extends Component {
       }
 
     } else if (this.state.page === 2) {
-      if (this.state.gym === undefined) {
+      if (this.state.gym === undefined || this.state.gym === 'none') {
         Alert.alert("Please select a gym!");
         return;
       }
@@ -316,13 +316,13 @@ export class SignupForm extends Component {
         Alert.alert("Please fill out your bio!");
         return;
       }
+      if (!this.state.rate || this.state.rate.replace(/\D/g,'') < 25) {
+        Alert.alert("Please enter your rate (has to be $25+)!");
+        return;
+      }
       if (this.state.gyms[this.state.gym].type == 'owner') {
         this.setState({ page: 4 });
       } else {
-        if (!this.state.rate || this.state.rate.replace(/\D/g,'') < 25) {
-          Alert.alert("Please enter your rate (has to be $25+)!");
-          return;
-        }
         if (!this.state.ssn || this.state.ssn.replace(/\D/g,'').length < 9) {
           Alert.alert("Please enter a valid Social Security Number!");
           return;
@@ -458,7 +458,7 @@ export class SignupForm extends Component {
             value={this.state.bio}
           />
           <TextField 
-            icon="v-card"
+            icon="vcard"
             placeholder="Certifications"
             onChange={(cert) => this.setState({ cert })}
             value={this.state.cert}
