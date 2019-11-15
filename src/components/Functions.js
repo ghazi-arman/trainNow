@@ -1,7 +1,7 @@
 import firebase from 'firebase';
 import { FontAwesome } from '@expo/vector-icons';
 import React from 'react';
-import { Alert } from 'react-native';
+import { Alert, Platform } from 'react-native';
 import * as Location from 'expo-location';
 import geolib from 'geolib';
 import { Actions } from 'react-native-router-flux';
@@ -517,7 +517,12 @@ export async function loadSessions(userKey) {
 }
 
 export async function getLocation() {
-  const location = await Location.getCurrentPositionAsync();
+  let location;
+  if (Platform.OS === 'ios') {
+    location = await Location.getCurrentPositionAsync();
+  } else {
+    location = await Location.getCurrentPositionAsync({ enableHighAccuracy: true });
+  }
   return {
     latitude:  Number(JSON.stringify(location.coords.latitude)),
     longitude: Number(JSON.stringify(location.coords.longitude)),

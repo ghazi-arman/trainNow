@@ -123,6 +123,7 @@ export class BookModal extends Component {
         minDate: new Date()
       });
       if (action !== DatePickerAndroid.dismissedAction) {
+        console.log(new Date(year, month, day));
         this.setState({ bookDate: new Date(year, month, day)});
       }
     } catch (error) {
@@ -133,13 +134,12 @@ export class BookModal extends Component {
   openTimePicker = async() => {
     try {
       const {action, hour, minute} = await TimePickerAndroid.open({
-        hour: 0,
-        minute: 0,
         is24Hour: false,
       });
       if (action !== TimePickerAndroid.dismissedAction) {
-        const date = this.state.bookDate;
-        this.setState({ bookDate: date.setHours(hour, minute)});
+        const date = new Date(this.state.bookDate.setHours(hour, minute));
+        console.log(date);
+        this.setState({ bookDate: date });
       }
     } catch ({code, message}) {
       console.warn('Cannot open time picker', message);
