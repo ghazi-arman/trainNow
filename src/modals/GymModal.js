@@ -1,14 +1,14 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, TouchableWithoutFeedback, Image, Alert } from 'react-native';
 import firebase from 'firebase';
-import { AppLoading } from 'expo';
 import MapView from 'react-native-maps';
-import FontAwesome, { Icons } from 'react-native-fontawesome';
+import { FontAwesome } from '@expo/vector-icons';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import { loadGym, renderStars } from '../components/Functions';
 const markerImg = require('../images/marker.png');
 const profileImg = require('../images/profile.png');
+const loading = require('../images/loading.gif');
 
 export class GymModal extends Component {
 	
@@ -162,7 +162,7 @@ export class GymModal extends Component {
 
 	render(){
 		if (!this.state.gym) {
-			return <AppLoading />;
+      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
 		}
 		return(
 			<View style={styles.modal}>
@@ -170,7 +170,7 @@ export class GymModal extends Component {
 					<Text style={styles.gymName}>{this.state.gym.name}</Text>
 					<Text style={styles.hourDetails}>{this.state.gym.hours}</Text>
 					<Text style={styles.closeButton} onPress={this.props.hide}>
-						<FontAwesome>{Icons.close}</FontAwesome>
+						<FontAwesome name="close" size={35} />
 					</Text>
 				</View>
 				<View style={styles.mapContainer}>
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
 		fontWeight: '500'
 	},
 	nameContainer: {
-		height: '15%',
+		height: '18%',
 		width: '100%',
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
@@ -299,8 +299,8 @@ const styles = StyleSheet.create({
 	},
 	closeButton: {
 		position: 'absolute',
-		top: 5,
-		right: 5,
+		top: 0,
+		right: 0,
 		fontSize: 35,
 		color: COLORS.RED,
 	},
@@ -338,5 +338,16 @@ const styles = StyleSheet.create({
 	icon: {
 		color: COLORS.SECONDARY,
 		fontSize: 15,
-	}
+	},
+	loading: {
+    width: '100%',
+    resizeMode: 'contain'
+	},
+	loadingContainer: {
+    height: '100%',
+    width: '100%',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center'
+  }
 });

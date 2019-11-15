@@ -3,12 +3,11 @@ import { StyleSheet, Text, View, TouchableOpacity, Alert, Switch, Image } from '
 import firebase from 'firebase';
 import * as Permissions from 'expo-permissions';
 import * as ImagePicker from 'expo-image-picker';
-import { AppLoading } from 'expo';
-import { Icons } from 'react-native-fontawesome';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import TextField from '../components/TextField';
 import { loadUser } from '../components/Functions';
+const loading = require('../images/loading.gif');
 
 export class TrainerAccountForm extends Component {
 
@@ -157,7 +156,7 @@ export class TrainerAccountForm extends Component {
 
   render() {
     if (!this.state.trainer || !this.state.imageUploaded) {
-      return <AppLoading />;
+      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
     }
     
     return (
@@ -176,26 +175,26 @@ export class TrainerAccountForm extends Component {
           <Image source={{ uri: this.state.image }} style={styles.imageHolder} />
         </View>
         <TextField
-          icon={Icons.user}
+          icon="user"
           placeholder="Name"
           onChange={(name) => this.setState({ name, change: true })}
           value={this.state.name}
         />
         <TextField
-          icon={Icons.dollar}
+          icon="dollar"
           placeholder="Rate"
           onChange={(rate) => this.setState({ rate, change: true })}
           value={this.state.rate}
           keyboard="number-pad"
         />
         <TextField
-          icon={Icons.vcard}
+          icon="vcard"
           placeholder="Certifications"
           onChange={(cert) => this.setState({ cert, change: true })}
           value={this.state.cert}
         />
         <TextField
-          icon={Icons.info}
+          icon="info"
           placeholder="Bio"
           onChange={(bio) => this.setState({ bio, change: true })}
           value={this.state.bio}
@@ -254,4 +253,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.PRIMARY,
   },
+  loading: {
+    width: '100%',
+    resizeMode: 'contain'
+  },
+  loadingContainer: {
+    height: '100%',
+    width: '100%',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center'
+  }
 });

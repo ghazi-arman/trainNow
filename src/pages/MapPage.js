@@ -1,12 +1,11 @@
 import React, {Component} from 'react';
 import { Image, StyleSheet, Text, View, Alert, TouchableOpacity } from 'react-native';
-import { AppLoading } from 'expo';
 import * as Permissions from 'expo-permissions';
 import MapView from 'react-native-maps';
 import firebase from 'firebase';
 import Modal from 'react-native-modal';
 import { Actions } from 'react-native-router-flux';
-import FontAwesome, { Icons } from 'react-native-fontawesome';
+import { FontAwesome } from '@expo/vector-icons';
 import Drawer from 'react-native-drawer';
 import bugsnag from '@bugsnag/expo';
 import { SideMenu } from '../components/SideMenu';
@@ -17,6 +16,7 @@ import { ScheduleModal } from '../modals/ScheduleModal';
 import COLORS from '../components/Colors';
 import { loadUser, getLocation, loadGyms, goToPendingRating, loadCurrentSession, checkForUnreadSessions } from '../components/Functions';
 const markerImg = require('../images/marker.png');
+const loading = require('../images/loading.gif');
 
 export class MapPage extends Component {
 
@@ -130,7 +130,7 @@ export class MapPage extends Component {
 
   render() {
     if(!this.state.mapRegion || !this.state.gyms || !this.state.user) {
-      return <AppLoading />;
+      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
     }
 
     if (this.state.unread && !this.state.modalPresent) {
@@ -148,11 +148,9 @@ export class MapPage extends Component {
     let alertBox, menu;
     if (this.state.currentSession) {
       alertBox = (
-        <View style={styles.alertBox}>
-          <TouchableOpacity onPress = {() => Actions.SessionPage({session: this.state.currentSession})}>
-            <Text style={styles.alertText}>Enter Current Session!</Text>
-          </TouchableOpacity>
-        </View>
+        <Text style={styles.sessionText} onPress={() => Actions.SessionPage({session: this.state.currentSession})}>
+          Enter Session!
+        </Text>
       );
     }
 
@@ -171,7 +169,6 @@ export class MapPage extends Component {
         tapToClose={true}
         onClose={() => this.setState({menuOpen: false})}>
         <View style={styles.container}>
-          {alertBox}
           <MapView
             ref = {(mapView) => { _map = mapView; }}
             style={styles.map}
@@ -182,21 +179,23 @@ export class MapPage extends Component {
               this.setState({ regionSet: true });
             }}
           >
-            <Text style={styles.menuIcon} onPress={this.toggleMenu}>
-              <FontAwesome>{Icons.bars}</FontAwesome>
-            </Text>
-            {this.state.gyms.map(marker => (
-              <MapView.Marker
-                ref={marker => (this.marker = marker)}
-                key={marker.key}
-                coordinate={marker.location}
-                onPress={() => this.showModal('gym', marker)}
-              >
-                <Image source={markerImg} style={{width: 50, height: 50}} />
-              </MapView.Marker>
-            ))}
+          {this.state.gyms.map(marker => (
+            <MapView.Marker
+              ref={marker => (this.marker = marker)}
+              key={marker.key}
+              coordinate={marker.location}
+              onPress={() => this.showModal('gym', marker)}
+            >
+              <Image source={markerImg} style={{width: 50, height: 50}} />
+            </MapView.Marker>
+          ))}
           </MapView>
-
+          <TouchableOpacity style={styles.menuButton}>
+            <Text style={styles.menuIcon} onPress={this.toggleMenu}>
+              <FontAwesome name="bars" size={50} />
+            </Text>
+          </TouchableOpacity>
+          {alertBox}
           <Modal isVisible={this.state.gymModal}
           onBackdropPress={this.hidegymModal}>
             <GymModal gymKey={this.state.selectedGym.key} setTrainer={this.setTrainer} viewSchedule={this.viewSchedule} hide={this.hidegymModal} />
@@ -230,23 +229,33 @@ const styles = StyleSheet.create({
     height: '100%',
     width: '100%'
   },
-  alertBox: {
-    height: 80,
-    width: '100%',
-    backgroundColor: COLORS.PRIMARY,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    paddingTop: 40
-  },
-  alertText: {
-    fontSize: 20,
-    color: COLORS.WHITE,
-    fontWeight: '600',
+  menuButton: {
+    position: 'absolute',
+    top: 30,
+    left: 20,
+    width: 60,
+    height: 60,  
   },
   menuIcon: {
-    marginTop: 45,
-    marginLeft: 20,
-    fontSize: 50, 
     color: COLORS.PRIMARY, 
+  },
+  sessionText: {
+    position: 'absolute',
+    textAlign: 'center',
+    fontSize: 20,
+    fontWeight: '800',
+    color: COLORS.SECONDARY,
+    top: 20
+  },
+  loading: {
+    width: '100%',
+    resizeMode: 'contain'
+  },
+  loadingContainer: {
+    height: '100%',
+    width: '100%',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center'
   }
 });

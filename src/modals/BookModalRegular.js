@@ -1,11 +1,11 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Alert, DatePickerIOS, Picker } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Alert, DatePickerIOS, DatePickerAndroid, TimePickerAndroid, Picker, Image, Platform } from 'react-native';
 import firebase from 'firebase';
-import { AppLoading } from 'expo';
-import FontAwesome, { Icons } from 'react-native-fontawesome';
+import { FontAwesome } from '@expo/vector-icons';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import { dateToString, timeOverlapCheck, loadUser, loadGym, loadAcceptedSchedule, loadPendingSchedule, createPendingSession, sendMessage, loadOtherTrainer } from '../components/Functions';
+const loading = require('../images/loading.gif');
 
 export class BookModalRegular extends Component {
 	constructor(props) {
@@ -99,33 +99,83 @@ export class BookModalRegular extends Component {
     );
 	}
 
+	openDatePicker = async() => {
+    try {
+      const {action, year, month, day} = await DatePickerAndroid.open({
+				date: new Date(),
+				minDate: new Date()
+      });
+      if (action !== DatePickerAndroid.dismissedAction) {
+        this.setState({ bookDate: new Date(year, month, day)});
+      }
+    } catch (error) {
+      this.bugsnagClient.notify(error);
+    }
+  }
+
+  openTimePicker = async() => {
+    try {
+      const {action, hour, minute} = await TimePickerAndroid.open({
+        hour: 0,
+        minute: 0,
+        is24Hour: false,
+      });
+      if (action !== TimePickerAndroid.dismissedAction) {
+        const date = this.state.bookDate;
+        this.setState({ bookDate: date.setHours(hour, minute)});
+      }
+    } catch ({code, message}) {
+      console.warn('Cannot open time picker', message);
+    }
+  }
+
 	render() {
 		if (!this.state.trainer || !this.state.user || !this.state.gym) {
-			return <AppLoading />
+      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
+		}
+		let picker, timePicker;
+		if(Platform.OS === 'ios') {
+			picker = (
+				<DatePickerIOS
+					mode='datetime'
+					itemStyle={{ color: COLORS.PRIMARY }}
+					textColor={COLORS.PRIMARY}
+					style={styles.datepicker}
+					minuteInterval={5}
+					minimumDate={new Date()}
+					date={this.state.bookDate}
+					onDateChange={(bookDate) => this.setState({ bookDate: bookDate })}
+				/>
+			);
+		} else {
+			picker = (
+				<TouchableOpacity style={styles.bookButton} onPressIn={() => this.openDatePicker()}>
+          <Text style={styles.buttonText}>
+            Choose Date
+          </Text>
+        </TouchableOpacity>
+      );
+      timePicker = (
+        <TouchableOpacity style={[styles.bookButton, {marginTop: 20}]} onPressIn={() => this.openTimePicker()}>
+          <Text style={styles.buttonText}>
+            Choose Time
+          </Text>
+        </TouchableOpacity>
+      );
 		}
 		return (
 			<View style={styles.modal}>
 				<View style={styles.nameContainer}>
 					<Text style={styles.trainerName}>{this.state.trainer.name}</Text>
 					<Text style={styles.closeButton} onPress={this.props.hide}>
-						<FontAwesome>{Icons.close}</FontAwesome>
+						<FontAwesome name="close" size={35} />
 					</Text>
 				</View>
 				<View style={styles.formContainer}>
 					<View style={styles.inputRow}>
-					<Text style={styles.formLabel}>Session Duration</Text>
-						<View style={styles.datePickerHolder}>
-							<DatePickerIOS
-								mode='datetime'
-								itemStyle={{ color: COLORS.PRIMARY }}
-								textColor={COLORS.PRIMARY}
-								style={styles.datepicker}
-								minuteInterval={5}
-								minimumDate={new Date(new Date().getTime())}
-								date={this.state.bookDate}
-								onDateChange={(bookDate) => this.setState({ bookDate: bookDate })}
-							/>
-						</View>
+						<Text style={styles.formLabel}>Session Time</Text>
+						{picker}
+						{timePicker}
 					</View>
 					<View style={styles.inputRow}>
 						<Text style={styles.formLabel}>Session Duration</Text>
@@ -177,8 +227,8 @@ const styles = StyleSheet.create({
 	},
 	closeButton: {
 		position: 'absolute',
-		top: 5,
-		right: 5,
+		top: 0,
+		right: 0,
 		fontSize: 35,
 		color: COLORS.RED,
 	},
@@ -196,12 +246,9 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		width: '95%',
 	},
-	datePickerHolder: {
-		height: 200,
-		width: '100%',
-	},
 	datepicker: {
 		height: 200,
+		width: '100%',
 		borderWidth: 1,
 		borderColor: COLORS.PRIMARY,
 	},
@@ -227,5 +274,16 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		color: COLORS.WHITE,
 		fontWeight: '700'
-	}
+	},
+	loading: {
+    width: '100%',
+    resizeMode: 'contain'
+	},
+	loadingContainer: {
+    height: '100%',
+    width: '100%',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center'
+  }
 })

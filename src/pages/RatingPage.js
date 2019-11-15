@@ -1,12 +1,12 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
-import { AppLoading } from 'expo';
+import { StyleSheet, Text, View, TouchableOpacity, Alert, Image } from 'react-native';
 import firebase from 'firebase';
-import FontAwesome, { Icons } from 'react-native-fontawesome';
+import { FontAwesome } from '@expo/vector-icons';
 import { Actions } from 'react-native-router-flux';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import { loadSession, loadUser, rateSession, dateToString, chargeCard } from '../components/Functions';
+const loading = require('../images/loading.gif');
 
 export class RatingPage extends Component {
 
@@ -51,7 +51,7 @@ export class RatingPage extends Component {
 				chargeCard(this.state.session.traineeStripe, this.state.session.trainerStripe, total, total - payout, this.state.session);
 			}
 
-			await rateSession(this.state.session, this.state.rating, this.state.user.trainer);
+			await rateSession(this.state.session.key, this.state.rating, this.state.user.trainer);
 		} catch(error) {
 			this.state.submitted = false;
 			this.bugsnagClient.notify(error);
@@ -64,10 +64,10 @@ export class RatingPage extends Component {
 	setRating = (key) => this.setState({rating: key});
 
 	renderStar = (number, outline) => {
-		const starToRender = outline ? Icons.starO : Icons.star;
+		const starToRender = outline ? "star-o" : "star";
 		return(
 			<TouchableOpacity key={number} onPress={() => this.setRating(number)}>
-				<Text style={styles.icon}><FontAwesome>{starToRender}</FontAwesome></Text>
+				<Text style={styles.icon}><FontAwesome name={starToRender} size={35} /></Text>
 			</TouchableOpacity>
 		);
 	}
@@ -89,7 +89,7 @@ export class RatingPage extends Component {
 
 	render() {
 		if (!this.state.session || !this.state.user) {
-			return <AppLoading />
+      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
 		}
 		const userId = firebase.auth().currentUser.uid;
 		const displayDate = dateToString(this.state.session.end);
@@ -172,6 +172,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 	},	
 	buttonContainer: {
+		borderRadius: 5,
 		backgroundColor: COLORS.SECONDARY,
 		paddingVertical: 15,
 		width: '100%'
@@ -182,7 +183,18 @@ const styles = StyleSheet.create({
 		fontWeight: '700'
 	},
 	icon: {
-  		color: COLORS.SECONDARY,
+  	color: COLORS.SECONDARY,
 		fontSize: 35,
-  	}
+	},
+	loading: {
+    width: '100%',
+    resizeMode: 'contain'
+	},
+	loadingContainer: {
+    height: '100%',
+    width: '100%',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center'
+  }
 });

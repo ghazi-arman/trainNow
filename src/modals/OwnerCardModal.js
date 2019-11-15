@@ -1,13 +1,12 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, KeyboardAvoidingView, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, Text, KeyboardAvoidingView, TouchableOpacity, Alert, Image, View } from 'react-native';
 import firebase from 'firebase';
-import { Icons } from 'react-native-fontawesome';
-import { AppLoading } from 'expo';
 import bugsnag from '@bugsnag/expo';
 import { loadGym, loadUser } from '../components/Functions';
 import  TextField from '../components/TextField';
-import { STRIPE_KEY } from 'react-native-dotenv';
+import { STRIPE_KEY, FB_URL } from 'react-native-dotenv';
 const stripe = require('stripe-client')(STRIPE_KEY);
+const loading = require('../images/loading.gif');
 
 export class OwnerCardModal extends Component {
 	
@@ -62,7 +61,7 @@ export class OwnerCardModal extends Component {
 		const user = firebase.auth().currentUser;
 		try {
 			const idToken = await firebase.auth().currentUser.getIdToken(true);
-			const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/addTrainerCard/', {
+			const res = await fetch(`${FB_URL}/stripe/addTrainerCard/`, {
 				method: 'POST',
 				headers: {
 					Authorization: idToken
@@ -93,40 +92,40 @@ export class OwnerCardModal extends Component {
 
 	render(){
 		if (!this.state.gym || !this.state.user) {
-			return <AppLoading />
+      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
 		}
 		return(
 			<KeyboardAvoidingView behavior="padding" style={styles.formContainer}>
 				<Text style={styles.title}>Add Card</Text>
 				<TextField
-					icon={Icons.user}
+					icon="user"
 					placeholder="Name"
 					onChange={(name) => this.setState({ name })}
 					value={this.state.name}
 				/>
 				<TextField
-					icon={Icons.creditCard}
+					icon="credit-card"
 					placeholder="Card Number"
 					keyboard="number-pad"
 					onChange={(number) => this.setState({ number })}
 					value={this.state.number}
 				/>
 				<TextField
-					icon={Icons.calendar}
+					icon="calendar"
 					placeholder="Expiration Month (mm)"
 				  keyboard="number-pad"
 					onChange={(expMonth) => this.setState({ expMonth })}
 					value={this.state.expMonth}
 				/>
 				<TextField
-					icon={Icons.calendar}
+					icon="calendar"
 					placeholder="Expiration Year (yy)"
 					keyboard="number-pad"
 					onChange={(expYear) => this.setState({ expYear })}
 					value={this.state.expYear}
 				/>
 				<TextField
-					icon={Icons.lock}
+					icon="lock"
 					placeholder="CVC Code"
 					onChange={(cvc) => this.setState({ cvc })}
 					value={this.state.cvc}
@@ -169,5 +168,16 @@ const styles = StyleSheet.create({
 		marginTop: 5,
 		marginBottom: 10,
 		textDecorationLine: 'underline'
-	}
+	},
+	loading: {
+    width: '100%',
+    resizeMode: 'contain'
+	},
+	loadingContainer: {
+    height: '100%',
+    width: '100%',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center'
+  }
 })

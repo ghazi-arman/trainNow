@@ -1,10 +1,12 @@
 import firebase from 'firebase';
-import FontAwesome, {Icons} from 'react-native-fontawesome';
+import { FontAwesome } from '@expo/vector-icons';
 import React from 'react';
 import { Alert } from 'react-native';
 import * as Location from 'expo-location';
 import geolib from 'geolib';
 import { Actions } from 'react-native-router-flux';
+import { FB_URL } from 'react-native-dotenv';
+import * as Permissions from 'expo-permissions';
 
 // Convert date to yyyy-mm-dd format for Agenda events
 export function dateforAgenda(date){
@@ -290,7 +292,7 @@ export async function cancelAcceptedSession(session, sessionKey){
 // Sends text message using twilio
 export async function sendMessage(number, message){
   const idToken = await firebase.auth().currentUser.getIdToken(true);
-  const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/twilio/sendMessage/', {
+  const res = await fetch(`${FB_URL}/twilio/sendMessage/`, {
     method: 'POST',
     headers: {
       Authorization: idToken
@@ -352,11 +354,11 @@ export function renderStars(rating){
   var star = [];
   for (let stars = 0; stars < 5; stars++) {
     if (rating >= 1) {
-      star.push(<FontAwesome key={stars}>{Icons.star}</FontAwesome>);
+      star.push(<FontAwesome key={stars} name="star" size={15} />);
     } else if(rating > 0) {
-      star.push(<FontAwesome key={stars}>{Icons.starHalfFull}</FontAwesome>);
+      star.push(<FontAwesome key={stars} name="star-half-full" size={15} />);
     } else {
-      star.push(<FontAwesome key={stars}>{Icons.starO}</FontAwesome>);
+      star.push(<FontAwesome key={stars} name="star-o" size={15} />);
     }
     rating--;
   }
@@ -515,7 +517,7 @@ export async function loadSessions(userKey) {
 }
 
 export async function getLocation() {
-  const location = await Location.getCurrentPositionAsync({});
+  const location = await Location.getCurrentPositionAsync();
   return {
     latitude:  Number(JSON.stringify(location.coords.latitude)),
     longitude: Number(JSON.stringify(location.coords.longitude)),
@@ -621,7 +623,7 @@ export async function loadTrainerCards(stripeId) {
   }
   try {
     const idToken = await firebase.auth().currentUser.getIdToken(true);
-    const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/listTrainerCards/', {
+    const res = await fetch(`${FB_URL}/stripe/listTrainerCards/`, {
       method: 'POST',
       headers: {
         Authorization: idToken
@@ -649,7 +651,7 @@ export async function loadBalance(stripeId) {
   try {
     const user = firebase.auth().currentUser;
     const idToken = await firebase.auth().currentUser.getIdToken(true);
-    const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/getBalance/', {
+    const res = await fetch(`${FB_URL}/stripe/getBalance/`, {
       method: 'POST',
       headers: {
         Authorization: idToken
@@ -673,7 +675,7 @@ export async function loadBalance(stripeId) {
 export async function deleteTrainerCard(stripeId, cardId) {
   try {
     const idToken = await firebase.auth().currentUser.getIdToken(true);
-    const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/deleteTrainerCard/', {
+    const res = await fetch(`${FB_URL}/stripe/deleteTrainerCard/`, {
       method: 'POST',
       headers: {
         Authorization: idToken
@@ -697,7 +699,7 @@ export async function deleteTrainerCard(stripeId, cardId) {
 export async function deleteCard(stripeId, cardId) {
   try {
     const idToken = await firebase.auth().currentUser.getIdToken(true);
-    const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/deleteCard/', {
+    const res = await fetch(`${FB_URL}/stripe/deleteCard/`, {
       method: 'POST',
       headers:{
         Authorization: idToken
@@ -720,19 +722,19 @@ export async function deleteCard(stripeId, cardId) {
 
 export function getCardIcon(brand) {
   if (brand == 'Visa') {
-    return (<FontAwesome>{Icons.ccVisa}</FontAwesome>);
+    return (<FontAwesome name="cc-visa" size={20} />);
   } else if (brand == 'American Express') {
-    return (<FontAwesome>{Icons.ccAmex}</FontAwesome>);
+    return (<FontAwesome name="cc-amex" size={20} />);
   } else if (brand == 'MasterCard') {
-    return (<FontAwesome>{Icons.ccMastercard}</FontAwesome>);
+    return (<FontAwesome name="cc-mastercard" size={20} />);
   } else if (brand == 'Discover') {
-    return (<FontAwesome>{Icons.ccDiscover}</FontAwesome>);
+    return (<FontAwesome name="cc-Discover" size={20} />);
   } else if (brand == 'JCB') {
-    return (<FontAwesome>{Icons.ccJcb}</FontAwesome>);
+    return (<FontAwesome name="cc-jcb" size={20} />);
   } else if (brand == 'Diners Club') {
-    return (<FontAwesome>{Icons.ccDinersClub}</FontAwesome>);
+    return (<FontAwesome name="cc-diners-club" size={20} />);
   } else {
-    return (<FontAwesome>{Icons.creditCard}</FontAwesome>);
+    return (<FontAwesome name="credit-card" size={20} />);
   }
 }
 
@@ -742,7 +744,7 @@ export async function loadCards(stripeId) {
   }
   try {
     const idToken = await firebase.auth().currentUser.getIdToken(true);
-    const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/listCards/', {
+    const res = await fetch(`${FB_URL}/stripe/listCards/`, {
       method: 'POST',
       headers: {
         Authorization: idToken
@@ -766,7 +768,7 @@ export async function loadCards(stripeId) {
 export async function setDefaultCard(stripeId, cardId) {
   try {
     const idToken = await firebase.auth().currentUser.getIdToken(true);
-    const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/setDefaultCard/', {
+    const res = await fetch(`${FB_URL}/stripe/setDefaultCard/`, {
       method: 'POST',
       headers: {
         Authorization: idToken
@@ -790,7 +792,7 @@ export async function setDefaultCard(stripeId, cardId) {
 export async function setDefaultTrainerCard(stripeId, cardId) {
   try {
     const idToken = await firebase.auth().currentUser.getIdToken(true);
-    const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/setDefaultTrainerCard/', {
+    const res = await fetch(`${FB_URL}/stripe/setDefaultTrainerCard/`, {
       method: 'POST',
       headers: {
         Authorization: idToken
@@ -823,8 +825,9 @@ export async function loadSession(sessionKey) {
   return sessionToReturn;
 }
 
-export async function rateSession(session, rating, isTrainer){
+export async function rateSession(sessionKey, rating, isTrainer){
   try {
+    const session = await loadSession(sessionKey);
     const userId = firebase.auth().currentUser.uid;
     const otherUserKey = (isTrainer ? session.trainee : session.trainer);
     const otherUser = await loadOtherUser(otherUserKey);
@@ -866,7 +869,7 @@ export async function markSessionsAsRead(pendingSessions, acceptSessions, isTrai
 export async function chargeCard(traineeStripe, trainerStripe, amount, cut, session){
   try{
     const idToken = await firebase.auth().currentUser.getIdToken(true);
-    const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/charge/', {
+    const res = await fetch(`${FB_URL}/stripe/charge/`, {
       method: 'POST',
       headers: {
         Authorization: idToken

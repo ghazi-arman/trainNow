@@ -1,14 +1,14 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { AppLoading } from 'expo';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
 import firebase from 'firebase';
 import Modal from 'react-native-modal';
-import FontAwesome, { Icons } from 'react-native-fontawesome';
+import { FontAwesome } from '@expo/vector-icons';
 import { Actions } from 'react-native-router-flux';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import { OwnerCardModal } from '../modals/OwnerCardModal';
 import { loadUser, loadGym, loadTrainerCards, loadBalance, deleteTrainerCard, getCardIcon, setDefaultTrainerCard } from '../components/Functions';
+const loading = require('../images/loading.gif');
 
 export class OwnerPage extends Component {
 
@@ -121,10 +121,10 @@ export class OwnerPage extends Component {
 				<View key={trainer.name} style={styles.traineeRow}>
 					<Text style={{ width: 120 }}>{trainer.name}</Text>
 					<TouchableOpacity style={styles.denyButton} onPress={() => this.denyTrainer(key)}>
-						<Text style={styles.buttonText}><FontAwesome>{Icons.close}</FontAwesome></Text>
+						<Text style={styles.buttonText}><FontAwesome name="close" size={18} /></Text>
 					</TouchableOpacity>
 					<TouchableOpacity style={styles.acceptButton} onPress={() => this.acceptTrainer(key)}>
-						<Text style={styles.buttonText}><FontAwesome>{Icons.check}</FontAwesome></Text>
+						<Text style={styles.buttonText}><FontAwesome name="check" size={18} /></Text>
 					</TouchableOpacity>
 				</View>
 			);
@@ -141,10 +141,10 @@ export class OwnerPage extends Component {
 				<View key={trainer.name} style={styles.traineeRow}>
 					<Text style={{ width: 120 }}>{trainer.name}</Text>
 					<TouchableOpacity style={styles.denyButton} onPress={() => this.deleteTrainer(key)}>
-						<Text style={styles.buttonText}><FontAwesome>{Icons.close}</FontAwesome></Text>
+						<Text style={styles.buttonText}><FontAwesome name="close" size={18} /></Text>
 					</TouchableOpacity>
 					<TouchableOpacity style={styles.requestButton} onPress={() => Actions.OwnerHistoryPage({ userKey: key })}>
-						<Text style={styles.buttonText}><FontAwesome>{Icons.calendar}</FontAwesome> History</Text>
+						<Text style={styles.buttonText}><FontAwesome name="calendar" size={18} /> History</Text>
 					</TouchableOpacity>
 				</View>
 			);
@@ -208,12 +208,12 @@ export class OwnerPage extends Component {
 			let defaultButton;
 			let defaultCard = false;
 			if (currCard.default_for_currency) {
-				defaultButton = (<FontAwesome style={styles.greenIcon}>{Icons.checkCircle}</FontAwesome>);
+				defaultButton = (<Text style={styles.greenIcon}><FontAwesome name="check-circle" size={20} /></Text>);
 				defaultCard = true;
 			} else {
 				defaultButton = (
 					<TouchableOpacity style={styles.defaultButton} onPress={() => this.setDefaultTrainerCard(this.state.user.stripeId, currCard.id)}>
-							<Text style={{fontSize: 15, color: COLORS.WHITE}}><FontAwesome>{Icons.check}</FontAwesome></Text>
+							<Text style={{color: COLORS.WHITE}}><FontAwesome name="check" size={15} /></Text>
 						</TouchableOpacity>
 				);
 			}
@@ -224,7 +224,7 @@ export class OwnerPage extends Component {
 					{defaultButton}
 					<Text>{currCard.exp_month.toString()} / {currCard.exp_year.toString().substring(2, 4)}</Text>
 					<TouchableOpacity style={styles.deleteButton} onPress={() => this.deleteTrainerCard(this.state.user.stripeId, currCard.id, defaultCard)}>
-						<Text style={{ fontSize: 15, color: COLORS.WHITE }}><FontAwesome>{Icons.remove}</FontAwesome></Text>
+						<Text style={{color: COLORS.WHITE}}><FontAwesome name="remove" size={15} /></Text>
 					</TouchableOpacity>
 				</View>
 			);
@@ -233,7 +233,7 @@ export class OwnerPage extends Component {
 
 	render() {
 		if (!this.state.user || !this.state.gym || !this.state.cards || this.state.balance === undefined) {
-			return <AppLoading />
+      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
 		}
 		if (this.state.currentTab === 'pending') {
 			var navBar = (
@@ -280,7 +280,7 @@ export class OwnerPage extends Component {
 		return (
 			<View style={styles.container}>
 				<Text style={styles.backButton} onPress={this.logout}>
-					<FontAwesome>{Icons.powerOff}</FontAwesome>
+					<FontAwesome name="power-off" size={35} />
 				</Text>
 				<Text style={styles.title}>Trainers</Text>
 				{navBar}
@@ -290,7 +290,7 @@ export class OwnerPage extends Component {
 					{this.renderCards()}
 				</View>
 				<TouchableOpacity style={styles.button} onPress={() => this.setState({ cardModal: true })}>
-					<Text style={styles.activeText}><FontAwesome>{Icons.creditCard}</FontAwesome> Add Card </Text>
+					<Text style={styles.activeText}><FontAwesome name="credit-card" size={25} /> Add Card </Text>
 				</TouchableOpacity>
 				<Text style={{ fontSize: 20, textAlign: 'center', color: COLORS.PRIMARY, marginTop: 10 }}>Funds will be transfered daily</Text>
 				<Modal
@@ -467,4 +467,15 @@ const styles = StyleSheet.create({
 	icon: {
 		fontSize: 15
 	},
+	loading: {
+    width: '100%',
+    resizeMode: 'contain'
+	},
+	loadingContainer: {
+    height: '100%',
+    width: '100%',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center'
+  }
 });

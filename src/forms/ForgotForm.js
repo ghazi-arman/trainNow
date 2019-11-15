@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
 import firebase from 'firebase';
-import { Icons } from 'react-native-fontawesome';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import TextField from '../components/TextField';
@@ -39,7 +38,7 @@ export class ForgotForm extends Component {
 		return (
 			<View>
 				<TextField
-					icon={Icons.user}
+					icon="user"
 					placeholder="Email"
 					keyboard="email-address"
 					onChange={(email) => this.setState({email})}

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, KeyboardAvoidingView, ScrollView, Alert } from 'react-native';
-import FontAwesome, { Icons } from 'react-native-fontawesome';
+import { FontAwesome } from '@expo/vector-icons';
 import { ClientAccountForm } from '../forms/ClientAccountForm';
 import { TrainerAccountForm } from '../forms/TrainerAccountForm';
 import { Actions } from 'react-native-router-flux';
@@ -41,7 +41,7 @@ export class SettingsPage extends Component {
       <View style={styles.container}>
         <View style={styles.nameContainer}>
           <Text style={styles.backButton} onPress={this.goToMap}>
-            <FontAwesome>{Icons.arrowLeft}</FontAwesome>
+            <FontAwesome name="arrow-left" size={35} />
           </Text>
           <Text style={styles.title}>Settings</Text>
         </View>

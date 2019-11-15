@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import FontAwesome, { Icons } from 'react-native-fontawesome';
-import { AppLoading } from 'expo';
+import { StyleSheet, Text, View, Image } from 'react-native';
+import { FontAwesome } from '@expo/vector-icons';
 import COLORS from './Colors';
-import { dateToString, loadUser, loadAcceptedSchedule, dateforAgenda, loadAvailableSchedule, loadOtherTrainer } from './Functions';
+import { dateToString, loadAcceptedSchedule, dateforAgenda, loadAvailableSchedule, loadOtherTrainer } from './Functions';
 import { Agenda } from 'react-native-calendars';
+const loading = require('../images/loading.gif');
 
 export class TrainerSchedule extends Component {
 	
@@ -53,7 +53,7 @@ export class TrainerSchedule extends Component {
 
 	render(){
 		if(!this.state.trainer || !this.state.sessions){
-			return <AppLoading />
+      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
 		}else{
 			let events = this.renderAgendaEvents();
 			return(
@@ -61,7 +61,7 @@ export class TrainerSchedule extends Component {
 					<View style={styles.nameContainer}>
 						<Text style={styles.trainerName}>Schedule</Text>
 						<Text style={styles.closeButton} onPress={this.props.hideandOpen}>
-							<FontAwesome>{Icons.close}</FontAwesome>
+							<FontAwesome name="close" size={35} />
 						</Text>
 					</View>
 					<View style={styles.calendarContainer}>
@@ -108,8 +108,8 @@ const styles = StyleSheet.create({
 	},
 	closeButton: {
 		position: 'absolute',
-		top: 5,
-		right: 5,
+		top: 0,
+		right: 0,
 		fontSize: 35,
 		color: COLORS.RED,
 	},
@@ -139,5 +139,16 @@ const styles = StyleSheet.create({
 	agendaItemText: {
 		color: COLORS.PRIMARY,
 		fontSize: 15,
-	}
+	},
+	loading: {
+    width: '100%',
+    resizeMode: 'contain'
+	},
+	loadingContainer: {
+    height: '100%',
+    width: '100%',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center'
+  }
 })

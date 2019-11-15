@@ -2,11 +2,10 @@ import React, { Component } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Alert, Linking } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
-import { Icons } from 'react-native-fontawesome';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import TextField from '../components/TextField';
-import { STRIPE_KEY } from 'react-native-dotenv';
+import { STRIPE_KEY, FB_URL } from 'react-native-dotenv';
 const stripe = require('stripe-client')(STRIPE_KEY);
 
 export class OwnerSignupForm extends Component {
@@ -74,7 +73,7 @@ export class OwnerSignupForm extends Component {
 
     try {
 			// Call firebase cloud function to create stripe account for owner
-			const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/createOwner/', {
+			const res = await fetch(`${FB_URL}/stripe/createOwner/`, {
 				method: 'POST',
 				body: JSON.stringify({
 					line1: this.state.address,
@@ -224,34 +223,34 @@ export class OwnerSignupForm extends Component {
 			page1 = (
 			<View>
 				<TextField
-          icon={Icons.user}
+          icon="user"
           placeholder="Name (First and Last Only)"
           onChange={(name) => this.setState({name})}
           value={this.state.name}
         />
 				<TextField
-          icon={Icons.envelope}
+          icon="envelope"
           placeholder="Email"
           keyboard="email-address"
           onChange={(email) => this.setState({email})}
           value={this.state.email}
         />
 				<TextField
-          icon={Icons.lock}
+          icon="lock"
           placeholder="Password"
           secure={true}
           onChange={(password) => this.setState({password})}
           value={this.state.password}
         />
 				<TextField
-          icon={Icons.lock}
+          icon="lock"
           placeholder="Confirm Password"
           secure={true}
           onChange={(confirmPass) => this.setState({confirmPass})}
           value={this.state.confirmPass}
         />
 				<TextField
-          icon={Icons.phone}
+          icon="phone"
           placeholder="Phone Number"
 					keyboard="number-pad"
           onChange={(phone) => this.setState({phone})}
@@ -263,33 +262,33 @@ export class OwnerSignupForm extends Component {
 			page2 = (
 			<View>
 				<TextField
-          icon={Icons.building}
+          icon="building"
           placeholder="Company Name"
           onChange={(companyName) => this.setState({companyName})}
           value={this.state.companyName}
         />
 				<TextField
-          icon={Icons.building}
+          icon="building"
           placeholder="Gym Key"
           onChange={(gymKey) => this.setState({gymKey})}
           value={this.state.gymKey}
         />
 				<TextField
-          icon={Icons.user}
+          icon="user"
 					placeholder="Company Tax ID"
 					keyboard="number-pad"
           onChange={(taxId) => this.setState({taxId})}
           value={this.state.taxId}
         />
 				<TextField
-          icon={Icons.user}
+          icon="user"
 					placeholder="Social Security Number"
 					keyboard="number-pad"
           onChange={(ssn) => this.setState({ssn})}
           value={this.state.ssn}
         />
 				<TextField
-          icon={Icons.calendar}
+          icon="calendar"
 					placeholder="Birth Date (mm/dd/yyyy)"
           onChange={(birthDay) => this.setState({birthDay})}
           value={this.state.birthDay}
@@ -301,25 +300,25 @@ export class OwnerSignupForm extends Component {
 			var page3 = (
 			<View>
 				<TextField
-          icon={Icons.envelope}
+          icon="envelope"
           placeholder="Address"
           onChange={(address) => this.setState({address})}
           value={this.state.address}
         />
 				<TextField
-          icon={Icons.map}
+          icon="map"
           placeholder="City"
           onChange={(city) => this.setState({city})}
           value={this.state.city}
         />
 				<TextField
-          icon={Icons.mapMarker}
+          icon="map-marker"
           placeholder="Zip Code"
           onChange={(zip) => this.setState({zip})}
           value={this.state.zip}
         />
 				<TextField
-          icon={Icons.map}
+          icon="map"
           placeholder="State (Abbreviation)"
           onChange={(state) => this.setState({state})}
           value={this.state.state}
@@ -341,8 +340,11 @@ export class OwnerSignupForm extends Component {
 						<Text style={styles.link}> Stripe Services Agreement</Text>
 					</TouchableOpacity>
 					<TouchableOpacity onPress={() => Linking.openURL('https://stripe.com/en-US/connect-account/legal')}>
-						<Text style={styles.link}> Stripe Connected Account Agreement.</Text>
+						<Text style={styles.link}> Stripe Connected Account Agreement</Text>
 					</TouchableOpacity>
+					<TouchableOpacity onPress={() => Linking.openURL('http://trainnow.fit/user-agreement-privacy-policy/')}>
+            <Text style={styles.link}> TrainNow User Agreement</Text>
+          </TouchableOpacity>
 				</View>
 			);
 		}

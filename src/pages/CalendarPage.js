@@ -1,15 +1,15 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert, Image } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
-import FontAwesome, { Icons } from 'react-native-fontawesome';
-import { AppLoading } from 'expo';
+import { FontAwesome } from '@expo/vector-icons';
 import Modal from 'react-native-modal';
 import bugsnag from '@bugsnag/expo';
 import { dateToString, timeOverlapCheck, loadUser, loadAcceptedSessions, loadPendingSessions, loadAcceptedSchedule, createSession, sendMessage, cancelPendingSession, cancelAcceptedSession, markSessionsAsRead } from '../components/Functions';
 import COLORS from '../components/Colors';
 import { SchedulerModal } from '../modals/SchedulerModal';
 import { TrainerSchedule } from '../components/TrainerSchedule';
+const loading = require('../images/loading.gif');
 
 export class CalendarPage extends Component {
 
@@ -307,7 +307,7 @@ export class CalendarPage extends Component {
 
 	render() {
 		if (!this.state.acceptSessions || !this.state.user || !this.state.pendingSessions) {
-			return <AppLoading />;
+      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
 		}
 		let active, schedule, scheduler;
 		if (this.state.user.trainer) {
@@ -378,7 +378,7 @@ export class CalendarPage extends Component {
 			<View style={styles.container}>
 				<View style={styles.headerContainer}>
 					<Text style={styles.backButton} onPress={() => Actions.reset('MapPage')}>
-						<FontAwesome>{Icons.arrowLeft}</FontAwesome>
+						<FontAwesome name="arrow-left" size={35} />
 					</Text>
 					<Text style={styles.title}>Calendar</Text>
 				</View>
@@ -534,5 +534,16 @@ const styles = StyleSheet.create({
 		paddingBottom: 5,
 		fontWeight: '700',
 		color: COLORS.SECONDARY,
-	}
+	},
+	loading: {
+    width: '100%',
+    resizeMode: 'contain'
+	},
+	loadingContainer: {
+    height: '100%',
+    width: '100%',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center'
+  }
 })

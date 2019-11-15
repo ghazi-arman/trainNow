@@ -3,15 +3,15 @@ import { StyleSheet, Text, View, TouchableOpacity, Alert, Switch, Image, Picker,
 import { Actions } from 'react-native-router-flux';
 import * as Permissions from 'expo-permissions';
 import * as ImagePicker from 'expo-image-picker';
-import { AppLoading } from 'expo';
 import firebase from 'firebase';
-import FontAwesome, { Icons } from 'react-native-fontawesome';
+import { FontAwesome } from '@expo/vector-icons';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import TextField from '../components/TextField';
-import { STRIPE_KEY } from 'react-native-dotenv';
+import { STRIPE_KEY, FB_URL } from 'react-native-dotenv';
 const stripe = require('stripe-client')(STRIPE_KEY);
 const defaultProfilePic = require('../images/profile.png');
+const loading = require('../images/loading.gif');
 
 export class SignupForm extends Component {
 
@@ -95,7 +95,7 @@ export class SignupForm extends Component {
     if (this.state.pressed) {
       return;
     }
-    this.state.pressed = true;
+    this.setState({ pressed: true});
     let firstName = this.state.name.split(" ")[0];
     let lastName = this.state.name.split(" ")[1];
 
@@ -113,7 +113,7 @@ export class SignupForm extends Component {
           // Create token from social security number
           var token = await stripe.createToken(ssn);
         } catch (error) {
-          this.state.pressed = false;
+          this.setState({ pressed: false });
           this.bugsnagClient.notify(error);
           Alert.alert('Invalid Social Security Number entered. Please check your info and try again!');
           return;
@@ -124,7 +124,7 @@ export class SignupForm extends Component {
 
         try {
           // Call firebase cloud function to create stripe account
-          const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/createTrainer/',
+          const res = await fetch(`${FB_URL}/stripe/createTrainer/`,
           {
             method: 'POST',
             body: JSON.stringify({
@@ -149,7 +149,7 @@ export class SignupForm extends Component {
             throw new Error('Stripe Error');
           }
         } catch (error) {
-          this.state.pressed = false;
+          this.state.setState({ pressed: false });
           this.bugsnagClient.notify(error);
           Alert.alert('There was an error creating your stripe Account. Please review your information and try again!');
           return;
@@ -212,7 +212,7 @@ export class SignupForm extends Component {
         }
 
       } catch(error) {
-        this.state.pressed = false;
+        this.setState({ pressed: false });
         this.bugsnagClient.notify(error);
         Alert.alert("There was an error creating your account. Please review your info and try again.");
         return;
@@ -237,7 +237,7 @@ export class SignupForm extends Component {
         Actions.reset("MapPage");
 
       } catch(error) {
-        this.state.pressed = false;
+        this.setState({ pressed: false });
         this.bugsnagClient.notify(error);
         Alert.alert("There was an error creating your account. Please try again.");
       }
@@ -304,7 +304,7 @@ export class SignupForm extends Component {
       }
 
     } else if (this.state.page === 2) {
-      if (this.state.gym === undefined) {
+      if (this.state.gym === undefined || this.state.gym === 'none') {
         Alert.alert("Please select a gym!");
         return;
       }
@@ -316,13 +316,13 @@ export class SignupForm extends Component {
         Alert.alert("Please fill out your bio!");
         return;
       }
+      if (!this.state.rate || this.state.rate.replace(/\D/g,'') < 25) {
+        Alert.alert("Please enter your rate (has to be $25+)!");
+        return;
+      }
       if (this.state.gyms[this.state.gym].type == 'owner') {
         this.setState({ page: 4 });
       } else {
-        if (!this.state.rate || this.state.rate.replace(/\D/g,'') < 25) {
-          Alert.alert("Please enter your rate (has to be $25+)!");
-          return;
-        }
         if (!this.state.ssn || this.state.ssn.replace(/\D/g,'').length < 9) {
           Alert.alert("Please enter a valid Social Security Number!");
           return;
@@ -355,9 +355,10 @@ export class SignupForm extends Component {
   }
 
   render() {
-    if(!this.state.gymLoaded) {
-      return <AppLoading />;
+    if(!this.state.gymLoaded || this.state.pressed) {
+      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
     }
+
     let image = this.state.image;
     let page1 = page2 = page3 = page4 = null;
     let submitButton = agreement = null;
@@ -379,34 +380,34 @@ export class SignupForm extends Component {
       page1 = (
         <View style={styles.container}>
           <TextField 
-            icon={Icons.user}
+            icon="user"
             placeholder="Name (First and Last)"
             onChange={(name) => this.setState({ name })}
             value={this.state.name}
           />
           <TextField 
-            icon={Icons.envelope}
+            icon="envelope"
             placeholder="Email"
             keyboard="email-address"
             onChange={(email) => this.setState({ email })}
             value={this.state.email}
           />
           <TextField 
-            icon={Icons.lock}
+            icon="lock"
             placeholder="Password"
             secure={true}
             onChange={(password) => this.setState({ password })}
             value={this.state.password}
           />
           <TextField 
-            icon={Icons.lock}
+            icon="lock"
             placeholder="Confirm Password"
             secure={true}
             onChange={(confirmPass) => this.setState({ confirmPass })}
             value={this.state.confirmPass}
           />
           <TextField 
-            icon={Icons.phone}
+            icon="phone"
             placeholder="Phone Number"
             keyboard="number-pad"
             onChange={(phone) => this.setState({ phone })}
@@ -429,7 +430,7 @@ export class SignupForm extends Component {
         <View style={styles.container}>
           <View style={styles.inputRow}>
             <Text style={styles.icon}>
-              <FontAwesome>{Icons.building}</FontAwesome>
+              <FontAwesome name="building" size={30} />
             </Text>
             <Picker
               style={styles.picker}
@@ -443,34 +444,34 @@ export class SignupForm extends Component {
             </Picker>
           </View>
           <TextField 
-            icon={Icons.dollar}
+            icon="dollar"
             placeholder="Rate ($ hourly)"
             keyboard="number-pad"
             onChange={(rate) => this.setState({ rate })}
             value={this.state.rate}
           />
           <TextField 
-            icon={Icons.info}
+            icon="info"
             multiline={true}
             placeholder="Enter your bio here (specialities, schedule, experience, etc.)"
             onChange={(bio) => this.setState({ bio })}
             value={this.state.bio}
           />
           <TextField 
-            icon={Icons.vcard}
+            icon="vcard"
             placeholder="Certifications"
             onChange={(cert) => this.setState({ cert })}
             value={this.state.cert}
           />
           <TextField 
-            icon={Icons.user}
+            icon="user"
             placeholder="SSN (For Stripe Account)"
             keyboard="number-pad"
             onChange={(ssn) => this.setState({ ssn })}
             value={this.state.ssn}
           />
           <TextField 
-            icon={Icons.user}
+            icon="user"
             placeholder="Birth Date (mm/dd/yyyy)"
             onChange={(birthDay) => this.setState({ birthDay })}
             value={this.state.birthDay}
@@ -481,26 +482,26 @@ export class SignupForm extends Component {
       page3 = (
         <View>
           <TextField 
-            icon={Icons.envelope}
+            icon="envelope"
             placeholder="Address"
             onChange={(address) => this.setState({ address })}
             value={this.state.address}
           />
           <TextField 
-            icon={Icons.map}
+            icon="map"
             placeholder="City"
             onChange={(city) => this.setState({ city })}
             value={this.state.city}
           />
           <TextField 
-            icon={Icons.mapMarker}
+            icon="map-marker"
             placeholder="Zip Code"
             keyboard="number-pad"
             onChange={(zip) => this.setState({ zip })}
             value={this.state.zip}
           />
           <TextField 
-            icon={Icons.map}
+            icon="map"
             placeholder="State (Abbreviation eg. CA)"
             onChange={(state) => this.setState({ state })}
             value={this.state.state}
@@ -538,7 +539,10 @@ export class SignupForm extends Component {
             <Text style={styles.link}> Stripe Services Agreement</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => Linking.openURL('https://stripe.com/en-US/connect-account/legal')}>
-            <Text style={styles.link}> Stripe Connected Account Agreement.</Text>
+            <Text style={styles.link}> Stripe Connected Account Agreement</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => Linking.openURL('http://trainnow.fit/user-agreement-privacy-policy/')}>
+            <Text style={styles.link}> TrainNow User Agreement</Text>
           </TouchableOpacity>
         </View>
       );
@@ -573,6 +577,17 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'space-around',
     alignItems: 'center',
+  },
+  loading: {
+    width: '100%',
+    resizeMode: 'contain'
+  },
+  loadingContainer: {
+    height: '100%',
+    width: '100%',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   inputRow: {
     width: '100%',

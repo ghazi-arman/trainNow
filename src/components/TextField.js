@@ -1,13 +1,13 @@
-import React, { Component } from 'react';
+import React from 'react';
 import {TextInput, Text, View, StyleSheet} from 'react-native';
-import FontAwesome, { Icons } from 'react-native-fontawesome';
+import { FontAwesome } from '@expo/vector-icons';
 import COLORS from './Colors';
 
 const TextField = (props) => {
   return (
     <View style={props.rowStyle}>
       <Text style={props.iconStyle}>
-        <FontAwesome>{props.icon}</FontAwesome>
+        <FontAwesome name={props.icon} size={30}/>
       </Text>
       <TextInput
         placeholder={props.placeholder}

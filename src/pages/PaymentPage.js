@@ -1,14 +1,14 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, KeyboardAvoidingView, TouchableOpacity, Alert } from 'react-native';
-import { AppLoading } from 'expo';
+import { StyleSheet, Text, View, KeyboardAvoidingView, TouchableOpacity, Alert, Image } from 'react-native';
 import firebase from 'firebase';
-import FontAwesome, { Icons } from 'react-native-fontawesome';
+import { FontAwesome } from '@expo/vector-icons';
 import Modal from 'react-native-modal';
 import { Actions } from 'react-native-router-flux';
 import bugsnag from '@bugsnag/expo';
 import { CardModal } from '../modals/CardModal';
 import COLORS from '../components/Colors';
 import { loadUser, loadTrainerCards, loadCards, getCardIcon, deleteCard, setDefaultCard, loadBalance, deleteTrainerCard, setDefaultTrainerCard } from '../components/Functions';
+const loading = require('../images/loading.gif');
 
 export class PaymentPage extends Component {
 
@@ -51,22 +51,23 @@ export class PaymentPage extends Component {
 
 	hideCardModalOnAdd = async() => {
 		let cards;
-		if (this.state.user.trainer) {
-			cards = await loadTrainerCards(this.state.user.stripeId);
+		const user = await loadUser(firebase.auth().currentUser.uid);
+		if (user.trainer) {
+			cards = await loadTrainerCards(user.stripeId);
 		}else{
-			cards = await loadCards(this.state.user.stripeId);
+			cards = await loadCards(user.stripeId);
 		}
-		this.setState({ cardModal: false, cards });
+		this.setState({ cardModal: false, cards, user });
 	}
 
 	deleteCard = async(stripeId, cardId) => {
-		if (defaultCard) {
+		if (this.state.cards.length === 1) {
 			Alert.alert('You cannot delete your default card.');
 			return;
 		}
 		Alert.alert(
-			'Are you sure you want to delete this card?', 
-			'',
+			'Delete Card', 
+			'Are you sure you want to delete this card?',
 			[
 				{text: 'No'},
 				{text: 'Yes', onPress: async () => {
@@ -157,34 +158,34 @@ export class PaymentPage extends Component {
 			let defaultCard = false;
 			if (this.state.user.trainer) {
 				if (currCard.default_for_currency) {
-					defaultButton = (<FontAwesome style={styles.greenIcon}>{Icons.checkCircle}</FontAwesome>);
+					defaultButton = (<Text style={styles.greenIcon}><FontAwesome name="check-circle" size={20} /></Text>);
 					defaultCard = true;
 				} else {
 					defaultButton = (
 						<TouchableOpacity style={styles.defaultButton} onPress={() => this.setDefaultTrainerCard(this.state.user.stripeId, currCard.id)}>
-	    					<Text style={{fontSize: 15, color: COLORS.WHITE}}><FontAwesome>{Icons.check}</FontAwesome></Text>
-	    				</TouchableOpacity>
+							<Text style={{color: COLORS.WHITE}}><FontAwesome name="check" size={15} /></Text>
+						</TouchableOpacity>
 					);
 				}
 				deleteButton = (
 					<TouchableOpacity style={styles.deleteButton} onPress={() => this.deleteTrainerCard(this.state.user.stripeId, currCard.id, defaultCard)}>
-	    				<Text style={{fontSize: 15, color: COLORS.WHITE}}><FontAwesome>{Icons.remove}</FontAwesome></Text>
-	    			</TouchableOpacity>
+	    			<Text style={{color: COLORS.WHITE}}><FontAwesome name="remove" size={15} /></Text>
+	    		</TouchableOpacity>
 				);
 			} else {
 				if (index == 0) {
-					defaultButton = (<FontAwesome style={styles.greenIcon}>{Icons.checkCircle}</FontAwesome>);
+					defaultButton = (<Text style={styles.greenIcon}><FontAwesome name="check-circle" size={20} /></Text>);
 				} else {
 					defaultButton = (
 						<TouchableOpacity style={styles.defaultButton} onPress={() => this.setDefaultCard(this.state.user.stripeId, currCard.id)}>
-	    					<Text style={{fontSize: 15, color: COLORS.WHITE}}><FontAwesome>{Icons.check}</FontAwesome></Text>
-	    				</TouchableOpacity>
+	    				<Text style={{color: COLORS.WHITE}}><FontAwesome name="check" size={15} /></Text>
+	    			</TouchableOpacity>
 					);
 				}
 				deleteButton = (
-					<TouchableOpacity style={styles.deleteButton} onPress={() => this.deleteCard(this.state.user.stripeId, currCard.id, defaultCard)}>
-	    				<Text style={{fontSize: 15}}><FontAwesome>{Icons.remove}</FontAwesome></Text>
-	    			</TouchableOpacity>
+					<TouchableOpacity style={styles.deleteButton} onPress={() => this.deleteCard(this.state.user.stripeId, currCard.id)}>
+	    			<Text style={{color: COLORS.WHITE}}><FontAwesome name="remove" size={15} /></Text>
+	    		</TouchableOpacity>
 				);
 			}
 			index++;
@@ -202,7 +203,7 @@ export class PaymentPage extends Component {
 
 	render() {
 		if (!this.state.user || !this.state.cards) {
-			return <AppLoading />
+      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
 		}
 		let balanceDiv, payoutText, balanceFormatted;
 		if (this.state.user.trainer) {
@@ -218,7 +219,7 @@ export class PaymentPage extends Component {
 			<KeyboardAvoidingView behavior="padding" style = {styles.container}>
 				<View style={styles.nameContainer}>
 					<Text style={styles.backButton} onPress={this.goToMap}>
-						<FontAwesome>{Icons.arrowLeft}</FontAwesome>
+						<FontAwesome name="arrow-left" size={35} />
 					</Text>
 					<Text style={styles.title}>Payments</Text>
 				</View>
@@ -227,7 +228,7 @@ export class PaymentPage extends Component {
 					{this.renderCards()}
 				</View>
 				<TouchableOpacity style={styles.button} onPress={() => this.setState({cardModal: true})}>
-					<Text style={styles.buttonText}><FontAwesome>{Icons.creditCard}</FontAwesome> Add Card </Text>
+					<Text style={styles.buttonText}><FontAwesome name="credit-card" size={30} /> Add Card </Text>
 				</TouchableOpacity>
 				{payoutText}
 				<Modal
@@ -312,6 +313,7 @@ const styles = StyleSheet.create({
 		fontSize: 15
 	},
 	greenIcon: {
+		marginTop: 10,
 		height: 30,
 		width: 30,
 		fontSize: 20,
@@ -333,5 +335,16 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		width: 30,
 		height: 30
-	}
+	},
+	loading: {
+    width: '100%',
+    resizeMode: 'contain'
+	},
+	loadingContainer: {
+    height: '100%',
+    width: '100%',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center'
+  }
 });

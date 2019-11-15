@@ -1,14 +1,14 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, KeyboardAvoidingView, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, Text, KeyboardAvoidingView, TouchableOpacity, Alert, Image, View } from 'react-native';
 import firebase from 'firebase';
-import { AppLoading } from 'expo';
-import FontAwesome, { Icons } from 'react-native-fontawesome';
+import { FontAwesome } from '@expo/vector-icons';
 import  TextField from '../components/TextField';
 import bugsnag from '@bugsnag/expo';
 import { loadUser } from '../components/Functions';
 import Colors from '../components/Colors';
-import { STRIPE_KEY } from 'react-native-dotenv';
+import { STRIPE_KEY, FB_URL } from 'react-native-dotenv';
 const stripe = require('stripe-client')(STRIPE_KEY);
+const loading = require('../images/loading.gif');
 
 export class CardModal extends Component {
 	constructor(props) {
@@ -63,7 +63,7 @@ export class CardModal extends Component {
 		const idToken = await firebase.auth().currentUser.getIdToken(true);
 		if (!this.state.user.stripeId) {
 			try {
-				const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/createCustomer/', {
+				const res = await fetch(`${FB_URL}/stripe/createCustomer/`, {
 					method: 'POST',
 					headers: {
 						Authorization: idToken
@@ -94,7 +94,7 @@ export class CardModal extends Component {
 		} else {
 			if (this.state.user.trainer) {
 				try {
-					const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/addTrainerCard/', {
+					const res = await fetch(`${FB_URL}/stripe/addTrainerCard/`, {
 						method: 'POST',
 						headers: {
 							Authorization: idToken
@@ -124,7 +124,7 @@ export class CardModal extends Component {
 			} else {
 				try {
 					const idToken = await firebase.auth().currentUser.getIdToken(true);
-					const res = await fetch('https://us-central1-trainnow-53f19.cloudfunctions.net/fb/stripe/addCard/', {
+					const res = await fetch(`${FB_URL}/stripe/addCard/`, {
 						method: 'POST',
 						headers: {
 							Authorization: idToken
@@ -156,44 +156,44 @@ export class CardModal extends Component {
 	}
 
 	render() {
-		if (!this.state.user) {
-			return <AppLoading />
+		if (!this.state.user || this.state.pressed) {
+      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
 		}
 		return (
 			<KeyboardAvoidingView behavior="padding" style={styles.formContainer}>
 				<Text style={styles.closeButton} onPress={this.props.hide}>
-					<FontAwesome>{Icons.close}</FontAwesome>
+					<FontAwesome name="close" size={35} />
 				</Text>
 				<Text style={styles.title}>Add Card</Text>
 				<TextField
-					icon={Icons.user}
+					icon="user"
 					placeholder="Name"
 					onChange={(name) => this.setState({ name })}
 					value={this.state.name}
 				/>
 				<TextField
-					icon={Icons.creditCard}
+					icon="credit-card"
 					placeholder="Card Number"
 					keyboard="number-pad"
 					onChange={(number) => this.setState({ number })}
 					value={this.state.number}
 				/>
 				<TextField
-					icon={Icons.calendar}
+					icon="calendar"
 					placeholder="Expiration Month (mm)"
 					keyboard="number-pad"
 					onChange={(expMonth) => this.setState({ expMonth })}
 					value={this.state.expMonth}
 				/>
 				<TextField
-					icon={Icons.calendar}
+					icon="calendar"
 					placeholder="Expiration Year (yy)"
 					keyboard="number-pad"
 					onChange={(expYear) => this.setState({ expYear })}
 					value={this.state.expYear}
 				/>
 				<TextField
-					icon={Icons.calendar}
+					icon="lock"
 					placeholder="CVC Code"
 					keyboard="number-pad"
 					onChange={(cvc) => this.setState({ cvc })}
@@ -235,8 +235,8 @@ const styles = StyleSheet.create({
 	},
 	closeButton: {
 		position: 'absolute',
-		top: 5,
-		right: 5,
+		top: 0,
+		right: 0,
 		fontSize: 35,
 		color: Colors.RED,
 	},
@@ -244,5 +244,16 @@ const styles = StyleSheet.create({
 		color: Colors.PRIMARY,
 		fontSize: 30,
 		fontWeight: '700'
-	}
+	},
+	loading: {
+    width: '100%',
+    resizeMode: 'contain'
+	},
+	loadingContainer: {
+    height: '100%',
+    width: '100%',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center'
+  }
 })
