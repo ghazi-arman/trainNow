@@ -36,7 +36,7 @@ export class OwnerPage extends Component {
 
 	deleteTrainerCard = async(stripeId, cardId, defaultCard) => {
 		if (defaultCard) {
-			Alert.alert("You cannot delete your default card.");
+			Alert.alert("You cannot delete your default card. Email use to remove your account.");
 			return;
 		}
 		Alert.alert(

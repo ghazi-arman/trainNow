@@ -696,7 +696,7 @@ export async function deleteTrainerCard(stripeId, cardId) {
   }
 }
 
-export async function deleteCard(stripeId, cardId) {
+export async function deleteCard(stripeId, cardId, lastCard) {
   try {
     const idToken = await firebase.auth().currentUser.getIdToken(true);
     const res = await fetch(`${FB_URL}/stripe/deleteCard/`, {
@@ -714,6 +714,9 @@ export async function deleteCard(stripeId, cardId) {
     data.body = JSON.parse(data.body);
     if (data.body.message !== "Success") {
       throw new Error('Stripe Error');
+    }
+    if (lastCard) {
+      await firebase.database().ref(`/users/${firebase.auth().currentUser.uid}`).update({ cardAdded: false });
     }
   } catch(error) {
     throw error;

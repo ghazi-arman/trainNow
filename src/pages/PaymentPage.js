@@ -61,10 +61,6 @@ export class PaymentPage extends Component {
 	}
 
 	deleteCard = async(stripeId, cardId) => {
-		if (this.state.cards.length === 1) {
-			Alert.alert('You cannot delete your default card.');
-			return;
-		}
 		Alert.alert(
 			'Delete Card', 
 			'Are you sure you want to delete this card?',
@@ -72,7 +68,8 @@ export class PaymentPage extends Component {
 				{text: 'No'},
 				{text: 'Yes', onPress: async () => {
 					try {
-						await deleteCard(stripeId, cardId);
+						const lastCard = this.state.cards.length === 1 ? true : false;
+						await deleteCard(stripeId, cardId, lastCard);
 						const cards = await loadCards(stripeId);
 						this.setState({ cards });
 					} catch(error) {
@@ -86,7 +83,7 @@ export class PaymentPage extends Component {
 
 	async deleteTrainerCard(stripeId, cardId, defaultCard){
 		if (defaultCard) {
-			Alert.alert('You cannot delete your default card.');
+			Alert.alert('You cannot delete your default card. Email us to remove your account.');
 			return;
 		}
 		Alert.alert(
