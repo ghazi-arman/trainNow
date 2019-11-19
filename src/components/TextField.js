@@ -22,6 +22,7 @@ const TextField = (props) => {
         autoCapitalize={props.autoCapitalize}
         keyboardType={props.keyboard}
         onSubmitEditing={props.onSubmitEditing}
+        editable={props.editable}
       />
     </View>
   );
@@ -63,5 +64,6 @@ TextField.defaultProps = {
   keyboard: "default",
   returnKeyType: "done",
   multiline: false,
-  autoCapitalize: "none"
+  autoCapitalize: "none",
+  editable: true
 }

@@ -316,13 +316,13 @@ export class SignupForm extends Component {
         Alert.alert("Please fill out your bio!");
         return;
       }
-      if (!this.state.rate || this.state.rate.replace(/\D/g,'') < 25) {
-        Alert.alert("Please enter your rate (has to be $25+)!");
-        return;
-      }
       if (this.state.gyms[this.state.gym].type == 'owner') {
         this.setState({ page: 4 });
       } else {
+        if (!this.state.rate || this.state.rate.replace(/\D/g,'') < 25) {
+          Alert.alert("Please enter your rate (has to be $25+)!");
+          return;
+        }
         if (!this.state.ssn || this.state.ssn.replace(/\D/g,'').length < 9) {
           Alert.alert("Please enter a valid Social Security Number!");
           return;
@@ -426,6 +426,11 @@ export class SignupForm extends Component {
         </View>
       );
     } else if (this.state.page == 2) {
+      let rateFieldEditable;
+      if (this.state.gym !== undefined && this.state.gym !== 'none') {
+        rateFieldEditable = (this.state.gyms[this.state.gym].type === 'independent') ?  true : false;
+        this.state.rate = 50;
+      }
       page2 = (
         <View style={styles.container}>
           <View style={styles.inputRow}>
@@ -448,6 +453,7 @@ export class SignupForm extends Component {
             placeholder="Rate ($ hourly)"
             keyboard="number-pad"
             onChange={(rate) => this.setState({ rate })}
+            editable={rateFieldEditable}
             value={this.state.rate}
           />
           <TextField 

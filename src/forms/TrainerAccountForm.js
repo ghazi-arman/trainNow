@@ -158,6 +158,19 @@ export class TrainerAccountForm extends Component {
     if (!this.state.trainer || !this.state.imageUploaded) {
       return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
     }
+
+    let rateField = null;
+    if(this.state.trainer.type === 'independent') {
+      rateField = (
+        <TextField
+          icon="dollar"
+          placeholder="Rate"
+          onChange={(rate) => this.setState({ rate, change: true })}
+          value={this.state.rate}
+          keyboard="number-pad"
+          />
+      );
+    }
     
     return (
       <View style={styles.container}>
@@ -180,13 +193,7 @@ export class TrainerAccountForm extends Component {
           onChange={(name) => this.setState({ name, change: true })}
           value={this.state.name}
         />
-        <TextField
-          icon="dollar"
-          placeholder="Rate"
-          onChange={(rate) => this.setState({ rate, change: true })}
-          value={this.state.rate}
-          keyboard="number-pad"
-        />
+        {rateField}
         <TextField
           icon="vcard"
           placeholder="Certifications"

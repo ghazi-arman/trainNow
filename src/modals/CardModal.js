@@ -5,7 +5,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import  TextField from '../components/TextField';
 import bugsnag from '@bugsnag/expo';
 import { loadUser } from '../components/Functions';
-import Colors from '../components/Colors';
+import COLORS from '../components/Colors';
 import { STRIPE_KEY, FB_URL } from 'react-native-dotenv';
 const stripe = require('stripe-client')(STRIPE_KEY);
 const loading = require('../images/loading.gif');
@@ -215,13 +215,13 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		justifyContent: 'space-around',
 		alignItems: 'center',
-		backgroundColor: Colors.WHITE,
+		backgroundColor: COLORS.WHITE,
 		borderRadius: 10,
 		padding: 20
 	},
 	submitButton: {
 		borderRadius: 5,
-		backgroundColor: Colors.SECONDARY,
+		backgroundColor: COLORS.SECONDARY,
 		paddingVertical: 15,
 		width: 150,
 		flexDirection: 'column',
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
 	buttonText: {
 		fontSize: 20,
 		textAlign: 'center',
-		color: Colors.WHITE,
+		color: COLORS.WHITE,
 		fontWeight: '700'
 	},
 	closeButton: {
@@ -238,10 +238,10 @@ const styles = StyleSheet.create({
 		top: 0,
 		right: 0,
 		fontSize: 35,
-		color: Colors.RED,
+		color: COLORS.RED,
 	},
 	title: {
-		color: Colors.PRIMARY,
+		color: COLORS.PRIMARY,
 		fontSize: 30,
 		fontWeight: '700'
 	},

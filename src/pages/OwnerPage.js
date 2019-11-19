@@ -1,11 +1,12 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, Image, KeyboardAvoidingView } from 'react-native';
 import firebase from 'firebase';
 import Modal from 'react-native-modal';
 import { FontAwesome } from '@expo/vector-icons';
 import { Actions } from 'react-native-router-flux';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
+import  TextField from '../components/TextField';
 import { OwnerCardModal } from '../modals/OwnerCardModal';
 import { loadUser, loadGym, loadTrainerCards, loadBalance, deleteTrainerCard, getCardIcon, setDefaultTrainerCard } from '../components/Functions';
 const loading = require('../images/loading.gif');
@@ -15,7 +16,8 @@ export class OwnerPage extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			cardModal: false
+			cardModal: false,
+			rateModal: false
 		}
 		this.bugsnagClient = bugsnag();
 	}
@@ -104,7 +106,7 @@ export class OwnerPage extends Component {
 			delete this.state.gym.pendingtrainers[trainerKey];
 			const gym = await loadGym(this.props.gym);
 			this.setState({ gym });
-			Alert.alert('Trainer added to gym.');
+			Alert.alert('Trainer added to gym. Please set the trainer rate immediately as it defaults to 50.');
 		} catch(error) {
 			this.bugsnagClient.notify(error);
 			Alert.alert('There was an error when accepting that trainer.');
@@ -117,9 +119,10 @@ export class OwnerPage extends Component {
 		}
 		return Object.keys(this.state.gym.pendingtrainers).map((key) => {
 			const trainer = this.state.gym.pendingtrainers[key];
+			trainer.key = key;
 			return (
 				<View key={trainer.name} style={styles.traineeRow}>
-					<Text style={{ width: 120 }}>{trainer.name}</Text>
+					<Text style={styles.nameText}>{trainer.name}</Text>
 					<TouchableOpacity style={styles.denyButton} onPress={() => this.denyTrainer(key)}>
 						<Text style={styles.buttonText}><FontAwesome name="close" size={18} /></Text>
 					</TouchableOpacity>
@@ -137,14 +140,18 @@ export class OwnerPage extends Component {
 		}
 		return Object.keys(this.state.gym.trainers).map((key) => {
 			const trainer = this.state.gym.trainers[key];
+			trainer.key = key;
 			return (
 				<View key={trainer.name} style={styles.traineeRow}>
-					<Text style={{ width: 120 }}>{trainer.name}</Text>
+					<Text style={styles.nameText}>{trainer.name} - ${trainer.rate}</Text>
 					<TouchableOpacity style={styles.denyButton} onPress={() => this.deleteTrainer(key)}>
 						<Text style={styles.buttonText}><FontAwesome name="close" size={18} /></Text>
 					</TouchableOpacity>
-					<TouchableOpacity style={styles.requestButton} onPress={() => Actions.OwnerHistoryPage({ userKey: key })}>
-						<Text style={styles.buttonText}><FontAwesome name="calendar" size={18} /> History</Text>
+					<TouchableOpacity style={styles.acceptButton} onPress={() => this.setState({ selectedTrainer: trainer, rateModal: true})}>
+						<Text style={styles.buttonText}><FontAwesome name="dollar" size={18} /></Text>
+					</TouchableOpacity>
+					<TouchableOpacity style={styles.historyButton} onPress={() => Actions.OwnerHistoryPage({ userKey: key })}>
+						<Text style={styles.buttonText}><FontAwesome name="calendar" size={18} /></Text>
 					</TouchableOpacity>
 				</View>
 			);
@@ -191,6 +198,8 @@ export class OwnerPage extends Component {
 		);
 	}
 
+	hideRateModal = () => this.setState({ rateModal: false, selectedTrainer: null });
+
 	hideCardModal = () => this.setState({ cardModal: false });
 
 	hideCardModalOnAdd = async() => {
@@ -229,6 +238,19 @@ export class OwnerPage extends Component {
 				</View>
 			);
 		});
+	}
+
+	updateRate = async() => {
+		try {
+			await firebase.database().ref(`/users/${this.state.selectedTrainer.key}/`).update({ rate: this.state.rate });
+			await firebase.database().ref(`/gyms/${this.props.gym}/trainers/${this.state.selectedTrainer.key}`).update({ rate: this.state.rate });
+			const gym = await loadGym(this.props.gym);
+			this.setState({ gym });
+			Alert.alert('Rate updated.');
+		} catch(error) {
+			this.bugsnagClient.notify(error);
+			Alert.alert(`There was an error updating the trainer's rate.`);
+		}
 	}
 
 	render() {
@@ -277,6 +299,7 @@ export class OwnerPage extends Component {
 		} else {
 			var balanceFormatted = (parseInt(this.state.balance) / 100).toFixed(2);
 		}
+		const trainerName = this.state.selectedTrainer ? this.state.selectedTrainer.name : 'None';
 		return (
 			<View style={styles.container}>
 				<Text style={styles.backButton} onPress={this.logout}>
@@ -297,6 +320,27 @@ export class OwnerPage extends Component {
 					isVisible={this.state.cardModal}
 					onBackdropPress={this.hideCardModal}>
 					<OwnerCardModal hide={this.hideCardModalOnAdd} gym={this.props.gym} />
+				</Modal>
+				<Modal 
+					isVisible={this.state.rateModal}
+					onBackdropPress={this.hideRateModal}
+				>
+					<KeyboardAvoidingView behavior="padding" style={styles.cardModal}>
+						<Text style={styles.closeButton} onPress={this.hideRateModal}>
+							<FontAwesome name="close" size={35} />
+						</Text>
+						<Text style={styles.header}>{trainerName}</Text>
+						<TextField
+							icon="dollar"
+							placeholder="Rate"
+							keyboard="number-pad"
+							onChange={(rate) => this.setState({ rate })}
+							value={this.state.rate}
+						/>
+						<TouchableOpacity style={styles.submitButton} onPress={() => this.updateRate()}>
+							<Text style={styles.buttonText}>Update Rate</Text>
+						</TouchableOpacity>
+					</KeyboardAvoidingView>
 				</Modal>
 			</View>
 		);
@@ -438,17 +482,16 @@ const styles = StyleSheet.create({
 		color: COLORS.WHITE,
 		textAlign: 'center'
 	},
-	requestButton: {
-		backgroundColor: COLORS.PRIMARY,
+	denyButton: {
+		backgroundColor: COLORS.RED,
 		flexDirection: 'column',
 		justifyContent: 'center',
 		alignItems: 'center',
-		width: 80,
+		width: 40,
 		height: 40,
-		marginLeft: 10
 	},
-	denyButton: {
-		backgroundColor: COLORS.RED,
+	historyButton: {
+		backgroundColor: COLORS.PRIMARY,
 		flexDirection: 'column',
 		justifyContent: 'center',
 		alignItems: 'center',
@@ -462,7 +505,6 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		width: 40,
 		height: 40,
-		marginLeft: 10
 	},
 	icon: {
 		fontSize: 15
@@ -477,5 +519,42 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center'
-  }
+	},
+	nameText: {
+		fontSize: 18,
+		fontWeight: '500',
+		width: '50%',
+		textAlign: 'center',
+		color: COLORS.PRIMARY
+	},
+	closeButton: {
+		position: 'absolute',
+		top: 0,
+		right: 0,
+		fontSize: 35,
+		color: COLORS.RED,
+	},
+	cardModal: {
+		flex: 0.4,
+		flexDirection: 'column',
+		justifyContent: 'space-around',
+		alignItems: 'center',
+		backgroundColor: COLORS.WHITE,
+		borderRadius: 10,
+		padding: 20
+	},
+	submitButton: {
+		borderRadius: 5,
+		backgroundColor: COLORS.SECONDARY,
+		paddingVertical: 15,
+		width: 150,
+		flexDirection: 'column',
+		justifyContent: 'center'
+	},
+	header: {
+		textAlign: 'center',
+		fontSize: 30,
+		fontWeight: '700',
+		color: COLORS.PRIMARY,
+	},
 });
