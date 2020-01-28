@@ -123,7 +123,6 @@ export class BookModal extends Component {
         minDate: new Date()
       });
       if (action !== DatePickerAndroid.dismissedAction) {
-        console.log(new Date(year, month, day));
         this.setState({ bookDate: new Date(year, month, day)});
       }
     } catch (error) {
@@ -138,7 +137,6 @@ export class BookModal extends Component {
       });
       if (action !== TimePickerAndroid.dismissedAction) {
         const date = new Date(this.state.bookDate.setHours(hour, minute));
-        console.log(date);
         this.setState({ bookDate: date });
       }
     } catch ({code, message}) {
@@ -152,7 +150,6 @@ export class BookModal extends Component {
     }
     let picker, timePicker;
     if(Platform.OS === 'ios') {
-      console.log('true');
 			picker = (
 				<DatePickerIOS
 					mode='datetime'

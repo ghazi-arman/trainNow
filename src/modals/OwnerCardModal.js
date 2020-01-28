@@ -68,7 +68,7 @@ export class OwnerCardModal extends Component {
 				},
 				body: JSON.stringify({
 					token: card,
-					id: this.state.user.stripeId,
+					stripeId: this.state.user.stripeId,
 					user: user.uid
 				})
 			})

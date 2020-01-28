@@ -634,7 +634,7 @@ export async function loadTrainerCards(stripeId) {
         Authorization: idToken
       },
       body: JSON.stringify({
-        id: stripeId,
+        stripeId,
         user: firebase.auth().currentUser.uid
       }),
     });
@@ -662,7 +662,7 @@ export async function loadBalance(stripeId) {
         Authorization: idToken
       },
       body: JSON.stringify({
-        id: stripeId,
+        stripeId,
         user: user.uid
       }),
     });
@@ -686,8 +686,8 @@ export async function deleteTrainerCard(stripeId, cardId) {
         Authorization: idToken
       },
       body: JSON.stringify({
-        stripeId: stripeId,
-        cardId: cardId,
+        stripeId,
+        cardId,
         user: firebase.auth().currentUser.uid
       }),
     });
@@ -710,8 +710,8 @@ export async function deleteCard(stripeId, cardId, lastCard) {
         Authorization: idToken
       },
       body: JSON.stringify({
-        stripeId: stripeId,
-        cardId: cardId,
+        stripeId,
+        cardId,
         user: firebase.auth().currentUser.uid
       }),
     });
@@ -758,7 +758,7 @@ export async function loadCards(stripeId) {
         Authorization: idToken
       },
       body: JSON.stringify({
-        id: stripeId,
+        stripeId,
         user: firebase.auth().currentUser.uid
       }),
     });
@@ -782,8 +782,8 @@ export async function setDefaultCard(stripeId, cardId) {
         Authorization: idToken
       },
       body: JSON.stringify({
-        id: stripeId,
-        card: cardId,
+        stripeId,
+        cardId,
         user: firebase.auth().currentUser.uid
       }),
     });
@@ -806,8 +806,8 @@ export async function setDefaultTrainerCard(stripeId, cardId) {
         Authorization: idToken
       },
       body: JSON.stringify({
-        id: stripeId,
-        card: cardId,
+        stripeId,
+        cardId,
         user: firebase.auth().currentUser.uid
       }),
     });
@@ -884,10 +884,10 @@ export async function chargeCard(traineeStripe, trainerStripe, amount, cut, sess
       },
       body: JSON.stringify({
         charge: {
-          amount: amount,
-          cut: cut,
-          traineeId: traineeStripe,
-          trainerId: trainerStripe,
+          amount,
+          cut,
+          traineeStripe,
+          trainerStripe,
           currency: 'USD',
         },
       }),

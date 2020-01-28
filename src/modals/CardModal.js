@@ -101,7 +101,7 @@ export class CardModal extends Component {
 						},
 						body: JSON.stringify({
 							token: card,
-							id: this.state.user.stripeId,
+							stripeId: this.state.user.stripeId,
 							user: user.uid
 						})
 					})
@@ -131,7 +131,7 @@ export class CardModal extends Component {
 						},
 						body: JSON.stringify({
 							token: card,
-							id: this.state.user.stripeId,
+							stripeId: this.state.user.stripeId,
 							user: user.uid
 						}),
 					});
