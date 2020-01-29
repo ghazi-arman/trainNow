@@ -66,10 +66,18 @@ export class SessionPage extends Component {
 
 	openMaps = () => {
 		if (Platform.OS === 'ios') {
-      Linking.openURL(`https://maps.apple.com/?ll=${this.state.session.location.latitude},${this.state.session.location.longitude}`);
+			Linking.openURL(`https://maps.apple.com/?ll=${this.state.session.location.latitude},${this.state.session.location.longitude}`);
     } else {
       Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${this.state.session.location.latitude},${this.state.session.location.longitude}`);
     }
+	}
+
+	sendMessage = () => {
+		if (this.state.session.trainer == firebase.auth().currentUser.uid) {
+			Linking.openURL(`sms:${this.state.session.traineePhone}`);
+		} else {
+			Linking.openURL(`sms:${this.state.session.trainerPhone}`);
+		}
 	}
 
 	goToMap = () => Actions.reset('MapPage');
@@ -97,6 +105,14 @@ export class SessionPage extends Component {
 				<Text style={styles.buttonText}> Open in Maps </Text>
 			</TouchableOpacity>
 		);
+		textButton = (
+			<TouchableOpacity
+			style={styles.buttonContainer}
+			onPress={this.sendMessage}
+			>
+				<Text style={styles.buttonText}> Send Message </Text>
+			</TouchableOpacity>
+		)
 
 		map = ( 
 			<MapView
@@ -194,6 +210,7 @@ export class SessionPage extends Component {
 					<View style={styles.buttonContain}>
 						{button}
 						{mapButton}
+						{textButton}
 						{ownReady}
 						{ownEnd}
 					</View>
