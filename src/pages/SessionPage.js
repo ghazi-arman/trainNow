@@ -52,14 +52,14 @@ export class SessionPage extends Component {
 				sessionRef.update({trainerEnd: true, end: new Date()});
 				Actions.RatingPage({session: this.state.session.key});
 			}else{
-				sessionRef.update({trainerEnd: true});
+				sessionRef.update({trainerEnd: true, read: true});
 			}
 		}else{
 			if(this.state.session.trainerEnd){
 				sessionRef.update({traineeEnd: true, end: new Date()});
 				Actions.RatingPage({session: this.state.session.key});
 			}else{
-				sessionRef.update({traineeEnd: true});
+				sessionRef.update({traineeEnd: true, read: true});
 			}
 		}
 	}

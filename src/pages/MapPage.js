@@ -14,7 +14,7 @@ import { GymModal } from '../modals/GymModal';
 import { BookModal } from '../modals/BookModal';
 import { ScheduleModal } from '../modals/ScheduleModal';
 import COLORS from '../components/Colors';
-import { loadUser, getLocation, loadGyms, goToPendingRating, loadCurrentSession, checkForUnreadSessions } from '../components/Functions';
+import { loadUser, getLocation, loadGyms, goToPendingRating, loadCurrentSession, checkForUnreadSessions, markSessionsAsRead, loadPendingSessions, loadAcceptedSessions } from '../components/Functions';
 const markerImg = require('../images/marker.png');
 const loading = require('../images/loading.gif');
 
@@ -51,7 +51,10 @@ export class MapPage extends Component {
         const gyms = await loadGyms();
         const currentSession = await loadCurrentSession(user.trainer, firebase.auth().currentUser.uid);
         const unread = await checkForUnreadSessions(user.trainer, firebase.auth().currentUser.uid);
-        this.setState({gyms, user, currentSession, unread });
+        const userType = (user.trainer ? 'trainer' : 'trainee')
+				const pendingSessions = await loadPendingSessions(firebase.auth().currentUser.uid, userType);
+				const acceptSessions = await loadAcceptedSessions(firebase.auth().currentUser.uid, userType);
+        this.setState({gyms, user, currentSession, unread, pendingSessions, acceptSessions });
       } catch(error) {
         this.bugsnagClient.notify(error);
         Alert.alert('There was an error loading the map.');
@@ -138,7 +141,7 @@ export class MapPage extends Component {
         `Hello ${this.state.user.name}`,
         'You have a new session!',
         [
-          {text: 'Close'},
+          {text: 'Close', onPress: () => markSessionsAsRead(this.state.pendingSessions, this.state.acceptSessions, this.state.user.trainer)},
           {text: 'View', onPress: () => Actions.CalendarPage()}
         ]
       );
@@ -234,7 +237,7 @@ const styles = StyleSheet.create({
     top: 30,
     left: 20,
     width: 60,
-    height: 60,  
+    height: 60,
   },
   menuIcon: {
     color: COLORS.PRIMARY, 
@@ -245,7 +248,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '800',
     color: COLORS.SECONDARY,
-    top: 20
+    top: 30
   },
   loading: {
     width: '100%',
