@@ -33,6 +33,7 @@ export class TrainerAccountForm extends Component {
         bio: trainer.bio,
         gym: trainer.gym,
         active: trainer.active,
+        offset: trainer.offset,
         imageUploaded: true
       });
     } catch(error) {
@@ -45,6 +46,7 @@ export class TrainerAccountForm extends Component {
           bio: trainer.bio,
           gym: trainer.gym,
           active: trainer.active,
+          offset: trainer.offset,
           imageUploaded: true 
         });
         return;
@@ -117,6 +119,11 @@ export class TrainerAccountForm extends Component {
       return;
     }
 
+    if (!this.state.offset || !this.state.offset.length) {
+      Alert.alert("Please enter an offset!");
+      return;
+    }
+
     try {
       const userId = firebase.auth().currentUser.uid;
       // gym table updated
@@ -125,7 +132,8 @@ export class TrainerAccountForm extends Component {
         cert: this.state.cert,
         rate: this.state.rate,
         bio: this.state.bio,
-        active: this.state.active
+        active: this.state.active,
+        offset: this.state.offset
       });
 
       // user table updated
@@ -135,7 +143,8 @@ export class TrainerAccountForm extends Component {
         rate: this.state.rate,
         bio: this.state.bio,
         gym: this.state.gym,
-        active: this.state.active
+        active: this.state.active,
+        offset: this.state.offset
       });
 
       // image upload
@@ -205,6 +214,12 @@ export class TrainerAccountForm extends Component {
           placeholder="Bio"
           onChange={(bio) => this.setState({ bio, change: true })}
           value={this.state.bio}
+        />
+        <TextField
+          icon="clock-o"
+          placeholder="Offset (Minutes away from gym)"
+          onChange={(offset) => this.setState({ offset, change: true })}
+          value={this.state.offset}
         />
         <TouchableOpacity style={styles.buttonContainer} onPressIn={this.pickImage}>
           <Text style={styles.buttonText}> Update Image </Text>

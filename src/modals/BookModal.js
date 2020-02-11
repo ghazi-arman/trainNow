@@ -24,7 +24,7 @@ export class BookModal extends Component {
         // Load trainer and user logged in
         const trainer = await loadOtherTrainer(this.props.trainer.key);
         const user = await loadUser(firebase.auth().currentUser.uid);
-        this.setState({trainer, user});
+        this.setState({ trainer, user, bookDate: new Date(new Date().getTime() + parseInt(trainer.offset) * 60000) });
       } catch(error) {
         this.bugsnagClient.notify(error);
         this.props.hide();
@@ -120,7 +120,7 @@ export class BookModal extends Component {
     try {
       const {action, year, month, day} = await DatePickerAndroid.open({
         date: new Date(),
-        minDate: new Date()
+        minDate: new Date(new Date().getTime() + parseInt(this.state.trainer.offset) * 60000),
       });
       if (action !== DatePickerAndroid.dismissedAction) {
         this.setState({ bookDate: new Date(year, month, day)});
@@ -157,7 +157,7 @@ export class BookModal extends Component {
 					textColor={COLORS.PRIMARY}
 					style={styles.datePicker}
 					minuteInterval={5}
-					minimumDate={new Date()}
+					minimumDate={new Date(new Date().getTime() + parseInt(this.state.trainer.offset) * 60000)}
 					date={this.state.bookDate}
 					onDateChange={(bookDate) => this.setState({ bookDate: bookDate })}
 				/>

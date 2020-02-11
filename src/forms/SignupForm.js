@@ -172,7 +172,8 @@ export class SignupForm extends Component {
           cert: this.state.cert,
           name: this.state.name,
           rate: this.state.rate.replace(/\D/g,''),
-          rating: 0
+          rating: 0,
+          offset: "0",
         });
 
         firebase.database().ref('users').child(user.user.uid).set({
@@ -188,6 +189,7 @@ export class SignupForm extends Component {
           active: false,
           rating: 0,
           sessions: 0,
+          offset: "0",
         });
 
         if (gymType !== 'independent') {

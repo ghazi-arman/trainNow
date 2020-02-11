@@ -125,6 +125,7 @@ export async function loadOtherTrainer(userKey) {
   const sessions = await firebase.database().ref(`/users/${userKey}/sessions`).once('value');
   const trainer = await firebase.database().ref(`/users/${userKey}/trainer`).once('value');
   const type = await firebase.database().ref(`/users/${userKey}/type`).once('value');
+  const offset = await firebase.database().ref(`/users/${userKey}/offset`).once('value');
   return {
     key: userKey,
     active: active.val(),
@@ -140,7 +141,8 @@ export async function loadOtherTrainer(userKey) {
     rating: rating.val(),
     sessions: sessions.val(),
     trainer: trainer.val(),
-    type: type.val()
+    type: type.val(),
+    offset: offset.val() || 0
   };
 }
 
