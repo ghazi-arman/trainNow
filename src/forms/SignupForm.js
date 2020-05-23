@@ -431,7 +431,7 @@ export class SignupForm extends Component {
       let rateFieldEditable;
       if (this.state.gym !== undefined && this.state.gym !== 'none') {
         rateFieldEditable = (this.state.gyms[this.state.gym].type === 'independent') ?  true : false;
-        this.state.rate = 50;
+        this.state.rate = "50";
       }
       page2 = (
         <View style={styles.container}>

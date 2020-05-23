@@ -151,9 +151,9 @@ export class MapPage extends Component {
     let alertBox, menu;
     if (this.state.currentSession) {
       alertBox = (
-        <Text style={styles.sessionText} onPress={() => Actions.SessionPage({session: this.state.currentSession})}>
-          Enter Session!
-        </Text>
+        <TouchableOpacity style={styles.buttonContainer} onPress={() => Actions.SessionPage({session: this.state.currentSession})}>
+					<Text style={styles.buttonText}>Enter Session!</Text>
+				</TouchableOpacity>
       );
     }
 
@@ -242,14 +242,23 @@ const styles = StyleSheet.create({
   menuIcon: {
     color: COLORS.PRIMARY, 
   },
-  sessionText: {
+  buttonContainer: {
     position: 'absolute',
-    textAlign: 'center',
-    fontSize: 20,
-    fontWeight: '800',
-    color: COLORS.SECONDARY,
-    top: 30
-  },
+    top: 30,
+		width: '40%',
+		height: 48,
+    backgroundColor: COLORS.SECONDARY,
+		flexDirection: 'column',
+		justifyContent: 'center',
+		margin: 10,
+		borderRadius: 5
+	},
+	buttonText: {
+		textAlign: 'center',
+		color: COLORS.WHITE,
+    fontWeight: '700',
+    fontSize: 16
+	},
   loading: {
     width: '100%',
     resizeMode: 'contain'
