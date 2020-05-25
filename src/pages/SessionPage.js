@@ -22,9 +22,21 @@ export class SessionPage extends Component {
 			try {
 				const location = await getLocation();
 				const session = await loadSession(this.props.session);
+				const sessionRef = firebase.database().ref(`/trainSessions/${this.props.session}`);
+				// if session has been ended redirect to rating page
 				if (session.end) {
 					clearInterval(this._interval);
 					Actions.RatingPage({session: session.key});
+				}
+				// if both users have ended the session then set end time if not already set
+				if (session.traineeEnd && session.trainerEnd && !session.end) {
+					clearInterval(this._interval);
+					sessionRef.update({end: new Date()});
+					Actions.RatingPage({session: session.key});
+				}
+				// if both users are ready then start session if it has not been started yet
+				if (session.traineeReady && session.trainerReady && !session.met) {
+					sessionRef.update({start: new Date(), met: true});
 				}
 				this.setState({ session, userRegion: location, mapRegion: location });
 			} catch(error) {
@@ -40,23 +52,26 @@ export class SessionPage extends Component {
 	}
 	
 	startSession = () => {
-		startSession(this.state.session, this.state.userRegion);
+		startSession(this.state.session.key, this.state.userRegion);
 	}
 	
-	endSession = () => {
+	endSession = async() => {
 		const user = firebase.auth().currentUser;
 		const sessionRef = firebase.database().ref(`/trainSessions/${this.state.session.key}`);
+		const session = await loadSession(this.state.session.key);
 		
-		if(this.state.session.trainer == user.uid){
-			if(this.state.session.traineeEnd){
+		if(session.trainer == user.uid){
+			if(session.traineeEnd){
 				sessionRef.update({trainerEnd: true, end: new Date()});
+				clearInterval(this._interval);
 				Actions.RatingPage({session: this.state.session.key});
 			}else{
 				sessionRef.update({trainerEnd: true, read: true});
 			}
 		}else{
-			if(this.state.session.trainerEnd){
+			if(session.trainerEnd){
 				sessionRef.update({traineeEnd: true, end: new Date()});
+				clearInterval(this._interval);
 				Actions.RatingPage({session: this.state.session.key});
 			}else{
 				sessionRef.update({traineeEnd: true, read: true});

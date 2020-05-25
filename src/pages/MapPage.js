@@ -42,6 +42,19 @@ export class MapPage extends Component {
       if (status === 'granted') {
         const location = await getLocation();
         this.setState({ userRegion: location, mapRegion: location });
+      } else {
+        Alert.alert(`You must allow this app to access your location before you can proceed. Please change your settings and restart the application.`,
+        "",
+        [
+          {text: 'Ok', onPress: () => {
+            firebase.auth().signOut().then(function() {
+              Actions.reset('LoginPage');
+            }, function(error) {
+              Alert.alert('Sign Out Error', error);
+            });
+          }},
+        ]
+        );
       }
     }
     if (!this.state.gyms || !this.state.user) {

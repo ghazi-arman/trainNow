@@ -5,7 +5,7 @@ import firebase from 'firebase';
 import { FontAwesome } from '@expo/vector-icons';
 import Modal from 'react-native-modal';
 import bugsnag from '@bugsnag/expo';
-import { dateToString, timeOverlapCheck, loadUser, loadAcceptedSessions, loadPendingSessions, loadAcceptedSchedule, createSession, sendMessage, cancelPendingSession, cancelAcceptedSession, markSessionsAsRead } from '../components/Functions';
+import { dateToString, timeOverlapCheck, loadUser, loadAcceptedSessions, loadPendingSessions, loadAcceptedSchedule, createSession, sendMessage, cancelPendingSession, cancelAcceptedSession, markSessionsAsRead, goToPendingRating } from '../components/Functions';
 import COLORS from '../components/Colors';
 import { SchedulerModal } from '../modals/SchedulerModal';
 import { TrainerSchedule } from '../components/TrainerSchedule';
@@ -28,6 +28,7 @@ export class CalendarPage extends Component {
 			try {
 				const userId = firebase.auth().currentUser.uid;
 				const user = await loadUser(userId);
+				await goToPendingRating(user.trainer, firebase.auth().currentUser.uid);
 				const userType = (user.trainer ? 'trainer' : 'trainee')
 				const pendingSessions = await loadPendingSessions(userId, userType);
 				const acceptSessions = await loadAcceptedSessions(userId, userType);

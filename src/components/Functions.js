@@ -906,7 +906,8 @@ export async function chargeCard(traineeStripe, trainerStripe, amount, cut, sess
   }
 }
 
-export async function startSession(session, userRegion){
+export async function startSession(sessionKey, userRegion){
+  const session = await loadSession(sessionKey);
   if(geolib.getDistance(userRegion, session.location) > 300){
     Alert.alert("You must be within 1000 feet to press ready!");
     return;
