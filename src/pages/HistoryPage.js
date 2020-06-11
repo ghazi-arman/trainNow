@@ -7,6 +7,7 @@ import { Actions } from 'react-native-router-flux';
 import bugsnag from '@bugsnag/expo';
 import COLORS from './../components/Colors';
 import { loadSessions, renderStars, reportSession, timeToString } from './../components/Functions';
+import Constants from '../components/Constants';
 const loading = require('../images/loading.gif');
 
 export class HistoryPage extends Component {
@@ -38,7 +39,7 @@ export class HistoryPage extends Component {
 	reportSession = async(session) => {
 		this.hideReportModal();
 		const userId = firebase.auth().currentUser.uid;
-		const reporter = (userId === session.trainee ? session.trainee: session.trainer);
+		const reporter = (userId === session.client ? session.client: session.trainer);
 		reportSession(session, reporter, this.state.report);
 		setTimeout(() => Alert.alert('Session Reported!'), 1000);
 	}
@@ -52,18 +53,32 @@ export class HistoryPage extends Component {
 			const day = (new Date(session.start).getMonth() + 1) + "/" + new Date(session.start).getDate();
 			const minutes = Math.floor(((new Date(session.end) - new Date(session.start))/1000)/60);
 			const rate = (parseInt(minutes) * (parseInt(session.rate) / 60)).toFixed(2);
-			const payout = (parseFloat(rate) - (parseFloat(rate) * .2)).toFixed(2);
+			let payout = (parseFloat(rate) - (parseFloat(rate) * .2)).toFixed(2);
 			let rateView, client, stars;
 
-			if (session.trainee === firebase.auth().currentUser.uid) {
-				rateView = (<View style={styles.sessionRow}><Text style={styles.smallText}>${rate}</Text></View>);
-				client = (<Text style={styles.titleText}>Trained by {session.trainerName}</Text>);
-				stars = renderStars(session.traineeRating);
+			if (session.type === Constants.personalSessionType) {
+				if (session.trainer !== firebase.auth().currentUser.uid) {
+					rateView = (<View style={styles.sessionRow}><Text style={styles.smallText}>${rate}</Text></View>);
+					client = (<Text style={styles.titleText}>Trained by {session.trainerName}</Text>);
+					stars = renderStars(session.clientRating);
+				} else {
+					rateView = (<View style={styles.sessionRow}><Text style={styles.smallText}>${payout}</Text></View>);
+					client = (<Text style={styles.titleText}>You trained {session.clientName}</Text>);
+					stars = renderStars(session.trainerRating);
+				}
 			} else {
-				rateView = (<View style={styles.sessionRow}><Text style={styles.smallText}>${payout}</Text></View>);
-				client = (<Text style={styles.titleText}>You trained {session.traineeName}</Text>);
-				stars = renderStars(session.trainerRating);
+				if (session.trainer !== firebase.auth().currentUser.uid) {
+					rateView = (<View style={styles.sessionRow}><Text style={styles.smallText}>${rate}</Text></View>);
+					client = (<Text style={styles.titleText}>Trained by {session.trainerName}</Text>);
+					stars = renderStars(session.clients[firebase.auth().currentUser.uid].rating);
+				} else {
+					payout = (((parseFloat(rate) - (parseFloat(rate) * .2)) * session.clientCount)).toFixed(2);
+					rateView = (<View style={styles.sessionRow}><Text style={styles.smallText}>${payout}</Text></View>);
+					client = (<Text style={styles.titleText}>You trained {session.clientCount} clients</Text>);
+					stars = renderStars(session.trainerRating);
+				}
 			}
+			
 			return(
 				<View style={styles.sessionContainer} key={session.key}>
 					<View style={styles.sessionRow}>{client}</View>

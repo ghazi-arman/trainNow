@@ -5,7 +5,7 @@ import MapView from 'react-native-maps';
 import { FontAwesome } from '@expo/vector-icons';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
-import { loadGym, renderStars } from '../components/Functions';
+import { loadGym, renderStars, dateToString, joinGroupSession, loadUser } from '../components/Functions';
 const markerImg = require('../images/marker.png');
 const profileImg = require('../images/profile.png');
 const loading = require('../images/loading.gif');
@@ -14,7 +14,9 @@ export class GymModal extends Component {
 	
 	constructor(props) {
 		super(props);
-		this.state = {};
+		this.state = {
+			page: 'trainers'
+		};
 		this.bugsnagClient = bugsnag();
 	}
 
@@ -22,8 +24,9 @@ export class GymModal extends Component {
 		if(!this.state.gym) {
 			try {
 				const gym = await loadGym(this.props.gymKey);
+				const user = await loadUser(firebase.auth().currentUser.uid);
 				this.loadImages(gym);
-				this.setState({ gym })
+				this.setState({ gym, user });
 			} catch(error) {
 				this.bugsnagClient.notify(error);
 				Alert.alert('There was an error loading this gym. Please try again later.');
@@ -49,12 +52,117 @@ export class GymModal extends Component {
 		});
 	}
 
-	//Deselects or selects trainer based on trainer clicked
+	// Deselects or selects trainer based on trainer clicked
 	setTrainer = (trainer) => {
 		if (this.state.trainer == trainer) {
 				return null;
 		}
 		return trainer;
+	}
+
+	// Deselects or selects group session based on session clicked
+	setSession = (session) => {
+		if (this.state.session === session) {
+			return null;
+		}
+		return session;
+	}
+
+	joinGroupSession = async(session) => {
+		try {
+			const userId = firebase.auth().currentUser.uid;
+			if (parseInt(session.clientCount) >= parseInt(session.capacity)) {
+				Alert.alert('This session is already full.');
+				return;
+			}
+
+			if (session.clients && session.clients[userId]) {
+				Alert.alert('You have already joined this session.');
+				return;
+			}
+
+			if (!this.state.user.cardAdded) {
+				Alert.alert('You must have a card entered before you can join a group session.');
+				return;
+			}
+
+			if (userId === session.trainer) {
+				Alert.alert('You cannot join you own group session.');
+				return;
+			}
+
+			if (session.started) {
+				Alert.alert('You cannot join a session after it has started.');
+				return;
+			}
+
+			await joinGroupSession(session, this.state.user, userId);
+			const gym = await loadGym(this.props.gymKey);
+			this.loadImages(gym);
+			this.setState({ gym });
+			Alert.alert('You have successfully joined the session. You can leave this session before it starts on the calendar page.');
+		} catch(error) {
+			Alert.alert('There was an error when trying to join the group session. Please try again later');
+		}
+	}
+
+	//Returns list of group sessions in a view
+	renderSessions = () => {
+		if (!this.state.gym.groupSessions) {
+			return;
+		}
+
+		const sessions = [];
+		Object.keys(this.state.gym.groupSessions).map((key) => {
+			const session = this.state.gym.groupSessions[key];
+			session.key = key;
+			sessions.push(session);
+		});
+		
+		const sessionsList = sessions.map((session) => {
+			const trainerImage = this.state.gym.trainers[session.trainer].uri;
+			if (!trainerImage) {
+				imageHolder = (<View style={styles.imageContainer}><Image source={profileImg} style={styles.imageHolder} /></View>);
+			} else {
+				imageHolder = (<View style={styles.imageContainer}><Image source={{ uri: trainerImage }} style={styles.imageHolder} /></View>);
+			}
+
+			let infoArea;
+			if (this.state.session === session.key) {
+				infoArea = (
+					<View style={styles.infoArea}>
+						<Text style={[styles.info, {fontWeight: '700'}]}>{session.trainerName} - ${session.rate}/hr</Text>
+						<Text style={styles.info}>{session.bio}</Text>
+						<View style={styles.fullButtonRow}>
+							<TouchableOpacity style={styles.fullButtonContainer} onPress={() => this.joinGroupSession(session)}>
+								<Text style={styles.buttonText}>Join Session!</Text>
+							</TouchableOpacity>
+						</View>
+					</View>
+				);
+			} else {
+				infoArea = null;
+			}
+
+			//DOM Element for a trainer in gym modal
+			return(
+				<TouchableWithoutFeedback key={session.key} onPress={() => {this.setState({session: this.setSession(session.key)})}}>
+					<View style={styles.trainerContainer}>
+							<View style={styles.trainerRow}>
+								{imageHolder}
+								<View style={styles.trainerInfoContainer}>
+										<Text style={styles.trainerName}>{session.name}</Text>
+										<Text style={styles.info}>{session.clientCount} / {session.capacity} clients</Text>
+										<Text style={styles.info}>{dateToString(session.start)}</Text>
+										<Text style={styles.info}>{session.duration} min</Text>
+								</View>
+							</View>
+							{infoArea}
+					</View>
+				</TouchableWithoutFeedback>
+			);
+		});
+		return sessionsList;
 	}
 
   //Returns list of trainers with corresponding view
@@ -164,13 +272,24 @@ export class GymModal extends Component {
 		if (!this.state.gym) {
       return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
 		}
+		var content = (this.state.page === 'trainers') ? this.renderTrainers() : this.renderSessions();
+		var trainerButtonStyle = (this.state.page === 'trainers') ? styles.toggledButton : null;
+		var sessionButtonStyle = (this.state.page === 'trainers') ? null : styles.toggledButton;
 		return(
 			<View style={styles.modal}>
 				<View style={styles.nameContainer}>
 					<Text style={styles.gymName}>{this.state.gym.name}</Text>
 					<Text style={styles.hourDetails}>{this.state.gym.hours}</Text>
+					<View style={[styles.buttonRow, {marginTop: 0}]}>
+						<TouchableOpacity style={[styles.menuTab, trainerButtonStyle]} onPress={() => this.setState({ page: 'trainers' })}>
+							<Text style={styles.hourDetails}>Trainers</Text>
+						</TouchableOpacity>
+						<TouchableOpacity style={[styles.menuTab, sessionButtonStyle]} onPress={() => this.setState({ page: 'sessions' })}>
+							<Text style={styles.hourDetails}>Sessions</Text>
+						</TouchableOpacity>
+					</View>
 					<Text style={styles.closeButton} onPress={this.props.hide}>
-						<FontAwesome name="close" size={35} />
+						<FontAwesome name="close" size={25} />
 					</Text>
 				</View>
 				<View style={styles.mapContainer}>
@@ -178,7 +297,7 @@ export class GymModal extends Component {
 				</View>
 				<View style={styles.trainersContainer}>
 					<ScrollView showsVerticalScrollIndicator={false}>
-						{this.renderTrainers()}
+						{content}
 					</ScrollView>
 				</View>
 			</View>
@@ -198,16 +317,18 @@ const styles = StyleSheet.create({
 	gymName: {
 		fontSize: 30,
 		color: COLORS.WHITE,
-		fontWeight: '500'
+		fontWeight: '500',
+		textAlign: 'center'
 	},
 	nameContainer: {
-		height: '18%',
+		height: '25%',
 		width: '100%',
+		paddingTop: 20,
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
 		backgroundColor: COLORS.PRIMARY,
 		flexDirection: 'column',
-		justifyContent: 'center',
+		justifyContent: 'space-between',
 		alignItems: 'center'
 	},
 	mapContainer: {
@@ -219,7 +340,7 @@ const styles = StyleSheet.create({
 		width: '100%'
 	},
 	trainersContainer: {
-		height: '60%',
+		height: '55%',
 		width: '95%',
 		flexDirection: 'row',
 		justifyContent: 'center',
@@ -264,6 +385,11 @@ const styles = StyleSheet.create({
 		width: '100%',
 		flexDirection: 'row', 
 		justifyContent: 'space-between',
+	},
+	fullButtonRow: {
+		width: '100%',
+		flexDirection: 'row', 
+		justifyContent: 'center',
 		marginTop: 10
 	},
   imageContainer: {
@@ -293,6 +419,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 	},
 	trainerName: {
+		textAlign: 'center',
 		fontSize: 22,
 		fontWeight: '600',
 		color: COLORS.PRIMARY
@@ -301,7 +428,7 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		top: 0,
 		right: 0,
-		fontSize: 35,
+		fontSize: 25,
 		color: COLORS.RED,
 	},
 	rate: {
@@ -315,8 +442,31 @@ const styles = StyleSheet.create({
 		fontWeight: '400',
 		marginTop: 5,
 	},
+	toggledButton: {
+		backgroundColor: COLORS.SECONDARY
+	},
+	menuTab: {
+		width: '50%',
+		padding: 5,
+		backgroundColor: COLORS.PRIMARY,
+		borderWidth: 1,
+		borderColor: COLORS.WHITE,
+		flexDirection: 'column',
+		justifyContent: 'center',
+		alignItems: 'center',
+		textAlign: 'center'
+	},
 	buttonContainer: {
 		width: '40%',
+		height: 48,
+		backgroundColor: COLORS.SECONDARY,
+		flexDirection: 'column',
+		justifyContent: 'center',
+		margin: 10,
+		borderRadius: 5
+	},
+	fullButtonContainer: {
+		width: '80%',
 		height: 48,
 		backgroundColor: COLORS.SECONDARY,
 		flexDirection: 'column',

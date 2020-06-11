@@ -7,6 +7,7 @@ import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import TextField from '../components/TextField';
 import { loadUser } from '../components/Functions';
+import Constants from '../components/Constants';
 const loading = require('../images/loading.gif');
 
 export class TrainerAccountForm extends Component {
@@ -28,12 +29,12 @@ export class TrainerAccountForm extends Component {
         image,
         trainer,
         name: trainer.name,
-        rate: trainer.rate,
+        rate: String(trainer.rate),
         cert: trainer.cert,
         bio: trainer.bio,
         gym: trainer.gym,
         active: trainer.active,
-        offset: trainer.offset,
+        offset: String(trainer.offset),
         imageUploaded: true
       });
     } catch(error) {
@@ -41,12 +42,12 @@ export class TrainerAccountForm extends Component {
         this.setState({ 
           trainer,
           name: trainer.name,
-          rate: trainer.rate,
+          rate: String(trainer.rate),
           cert: trainer.cert,
           bio: trainer.bio,
           gym: trainer.gym,
           active: trainer.active,
-          offset: trainer.offset,
+          offset: String(trainer.offset),
           imageUploaded: true 
         });
         return;
@@ -106,8 +107,8 @@ export class TrainerAccountForm extends Component {
       Alert.alert("Please enter a name!");
       return;
     }
-    if (!this.state.rate || !this.state.rate.length) {
-      Alert.alert("Please enter a rate!");
+    if (!this.state.rate || !this.state.rate.length || this.state.rate.replace(/\D/g,'') < 25) {
+      Alert.alert("Please enter a rate over $25!");
       return;
     }
     if (!this.state.cert || !this.state.cert.length) {
@@ -130,21 +131,21 @@ export class TrainerAccountForm extends Component {
       firebase.database().ref(`/gyms/${this.state.gym}/trainers/${userId}`).update({
         name: this.state.name,
         cert: this.state.cert,
-        rate: this.state.rate,
+        rate: parseInt(this.state.rate),
         bio: this.state.bio,
         active: this.state.active,
-        offset: this.state.offset
+        offset: parseInt(this.state.offset)
       });
 
       // user table updated
       firebase.database().ref('users').child(userId).update({
         name: this.state.name,
         cert: this.state.cert,
-        rate: this.state.rate,
+        rate: parseInt(this.state.rate),
         bio: this.state.bio,
         gym: this.state.gym,
         active: this.state.active,
-        offset: this.state.offset
+        offset: parseInt(this.state.offset)
       });
 
       // image upload
@@ -169,7 +170,7 @@ export class TrainerAccountForm extends Component {
     }
 
     let rateField = null;
-    if(this.state.trainer.type === 'independent') {
+    if(this.state.trainer.trainerType === Constants.independentType) {
       rateField = (
         <TextField
           icon="dollar"

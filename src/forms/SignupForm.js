@@ -9,6 +9,7 @@ import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import TextField from '../components/TextField';
 import { STRIPE_KEY, FB_URL } from 'react-native-dotenv';
+import Constants from '../components/Constants';
 const stripe = require('stripe-client')(STRIPE_KEY);
 const defaultProfilePic = require('../images/profile.png');
 const loading = require('../images/loading.gif');
@@ -98,11 +99,13 @@ export class SignupForm extends Component {
     this.setState({ pressed: true});
     let firstName = this.state.name.split(" ")[0];
     let lastName = this.state.name.split(" ")[1];
+    let user = null;
+    let data = null;
 
     if (this.state.trainer) {
       const gymKey = this.state.gyms[this.state.gym].key;
       const gymType = this.state.gyms[this.state.gym].type;
-      if (gymType == 'independent') {
+      if (gymType == Constants.independentType) {
         let ssn = {
           pii: {
             personal_id_number: this.state.ssn.replace(/\D/g,'')
@@ -113,9 +116,9 @@ export class SignupForm extends Component {
           // Create token from social security number
           var token = await stripe.createToken(ssn);
         } catch (error) {
+          Alert.alert('Invalid Social Security Number entered. Please check your info and try again!');
           this.setState({ pressed: false });
           this.bugsnagClient.notify(error);
-          Alert.alert('Invalid Social Security Number entered. Please check your info and try again!');
           return;
         }
         const month = this.state.birthDay.split("/")[0];
@@ -143,22 +146,22 @@ export class SignupForm extends Component {
             }),
           });
           const response = await res.json();
-          var data = JSON.parse(response.body);
+          data = JSON.parse(response.body);
           
           if(data.message !== 'Success') {
             throw new Error('Stripe Error');
           }
         } catch (error) {
-          this.state.setState({ pressed: false });
-          this.bugsnagClient.notify(error);
           Alert.alert('There was an error creating your stripe Account. Please review your information and try again!');
+          this.setState({ pressed: false });
+          this.bugsnagClient.notify(error);
           return;
         }
       }
 
       try {
-        const user = await firebase.auth().createUserWithEmailAndPassword(this.state.email, this.state.password);
-        if (gymType === 'independent'){
+        user = await firebase.auth().createUserWithEmailAndPassword(this.state.email, this.state.password);
+        if (gymType === Constants.independentType){
           var pending = false;
           var gymRef = firebase.database().ref('/gyms/' + gymKey + '/trainers/');
         }else{
@@ -171,59 +174,91 @@ export class SignupForm extends Component {
           bio: this.state.bio,
           cert: this.state.cert,
           name: this.state.name,
-          rate: this.state.rate.replace(/\D/g,''),
+          rate: parseInt(this.state.rate.replace(/\D/g,'')),
           rating: 0,
-          offset: "0",
+          offset: 0,
         });
 
         firebase.database().ref('users').child(user.user.uid).set({
-          trainer: true,
-          type: gymType,
+          type: 'trainer',
+          trainerType: gymType,
           pending: pending,
           name: this.state.name,
           gym: gymKey,
           cert: this.state.cert,
-          rate: this.state.rate.replace(/\D/g,''),
+          rate: parseInt(this.state.rate.replace(/\D/g,'')),
           bio: this.state.bio,
           phone: this.state.phone.replace(/\D/g,''),
           active: false,
           rating: 0,
           sessions: 0,
-          offset: "0",
+          offset: 0,
         });
 
-        if (gymType !== 'independent') {
-          const gymOwnerKey = this.state.gyms[this.state.gym].ownerKey;
+        if (gymType === Constants.managedType) {
+          const gymManagerKey = this.state.gyms[this.state.gym].managerKey;
           firebase.database().ref('users').child(user.user.uid).update({
-            ownerKey: gymOwnerKey
-          })
+            managerKey: gymManagerKey
+          });
         }
           
         if (this.state.image) {
           this.uploadImage(this.state.image, user.user.uid);
         }
 
-        if(gymType == 'independent'){
-          firebase.database().ref('users').child(user.user.uid).update({stripeId: data.trainer.id, cardAdded: false});
+        if(gymType === Constants.independentType){
+          await firebase.database().ref('users').child(user.user.uid).update({stripeId: data.trainer.id, cardAdded: false});
           await firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password);
           Actions.reset('CalendarPage');
-          Alert.alert('You must enter a debit card for payouts before trainees can book a session with you!');
+          Alert.alert('You must enter a debit card for payouts before clients can book a session with you!');
         }else{
           Actions.reset('LoginPage');
           Alert.alert('Your account is now pending approval. Sign in once your gym manager approves your account.');
         }
 
       } catch(error) {
-        this.setState({ pressed: false });
-        this.bugsnagClient.notify(error);
-        Alert.alert("There was an error creating your account. Please review your info and try again.");
-        return;
+        try {
+          if (user.user.uid) {
+            await firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password);
+            if (gymType === Constants.independentType) {
+              const idToken = await firebase.auth().currentUser.getIdToken(true);
+              const res = await fetch(`${FB_URL}/stripe/deleteTrainer/`,
+              {
+                method: 'POST',
+                headers: {
+                  Authorization: idToken
+                },
+                body: JSON.stringify({
+                  stripeId: data.trainer.id
+                })
+              });
+              const response = await res.json();
+              data = JSON.parse(response.body);
+              
+              if(data.message !== 'Success') {
+                throw new Error('Stripe Error');
+              }
+            }
+            firebase.database().ref('users').child(user.user.uid).remove();
+            gymRef.child(user.user.uid).remove();
+            firebase.auth().currentUser.delete()
+          }
+          Alert.alert("There was an error creating your account. Please review your info and try again.");
+          this.setState({ pressed: false });
+          this.bugsnagClient.notify(error);
+          return;
+        } catch (error) {
+          Alert.alert("There was an error creating your account. Please review your info and try again.");
+          this.setState({ pressed: false });
+          this.bugsnagClient.notify(error);
+          return;
+        }
       }
     } else {
       try {
-        const user = await firebase.auth().createUserWithEmailAndPassword(this.state.email, this.state.password);
+        user = await firebase.auth().createUserWithEmailAndPassword(this.state.email, this.state.password);
         firebase.database().ref('users').child(user.user.uid).set({
-          trainer: false,
+          type: 'client',
           name: this.state.name,
           phone: this.state.phone.replace(/\D/g,''),
           rating: 0,
@@ -239,9 +274,22 @@ export class SignupForm extends Component {
         Actions.reset("MapPage");
 
       } catch(error) {
-        this.setState({ pressed: false });
-        this.bugsnagClient.notify(error);
-        Alert.alert("There was an error creating your account. Please try again.");
+        try {
+          if (user.user.uid) {
+            await firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password);
+            firebase.database().ref('users').child(user.user.uid).remove();
+            firebase.auth().currentUser.delete()
+          }
+          Alert.alert("There was an error creating your account. Please review your info and try again.");
+          this.setState({ pressed: false });
+          this.bugsnagClient.notify(error);
+          return;
+        } catch (error) {
+          Alert.alert("There was an error creating your account. Please review your info and try again.");
+          this.setState({ pressed: false });
+          this.bugsnagClient.notify(error);
+          return;
+        }
       }
     }
   }
@@ -253,7 +301,7 @@ export class SignupForm extends Component {
       this.setState({ page: 2 });
     } else {
       if (this.state.trainer) {
-        if (this.state.gyms[this.state.gym].type == 'owner') {
+        if (this.state.gyms[this.state.gym].type === Constants.managedType) {
           this.setState({ page: 2 })
         } else {
           this.setState({ page: 3 });
@@ -318,7 +366,7 @@ export class SignupForm extends Component {
         Alert.alert("Please fill out your bio!");
         return;
       }
-      if (this.state.gyms[this.state.gym].type == 'owner') {
+      if (this.state.gyms[this.state.gym].type == Constants.managedType) {
         this.setState({ page: 4 });
       } else {
         if (!this.state.rate || this.state.rate.replace(/\D/g,'') < 25) {
@@ -430,8 +478,10 @@ export class SignupForm extends Component {
     } else if (this.state.page == 2) {
       let rateFieldEditable;
       if (this.state.gym !== undefined && this.state.gym !== 'none') {
-        rateFieldEditable = (this.state.gyms[this.state.gym].type === 'independent') ?  true : false;
-        this.state.rate = "50";
+        rateFieldEditable = (this.state.gyms[this.state.gym].type === Constants.independentType) ?  true : false;
+        if(!rateFieldEditable) {
+          this.state.rate = "50";
+        }
       }
       page2 = (
         <View style={styles.container}>
@@ -677,5 +727,16 @@ const styles = StyleSheet.create({
     color: COLORS.PRIMARY,
     textAlign: 'center',
     textDecorationLine: 'underline'
+  },
+  loading: {
+    width: '100%',
+    resizeMode: 'contain'
+  },
+  loadingContainer: {
+    height: '100%',
+    width: '100%',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center'
   }
 });

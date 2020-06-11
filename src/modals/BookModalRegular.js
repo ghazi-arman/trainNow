@@ -4,7 +4,7 @@ import firebase from 'firebase';
 import { FontAwesome } from '@expo/vector-icons';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
-import { dateToString, timeOverlapCheck, loadUser, loadGym, loadAcceptedSchedule, loadPendingSchedule, createPendingSession, sendMessage, loadOtherTrainer } from '../components/Functions';
+import { dateToString, timeOverlapCheck, loadUser, loadGym, loadAcceptedSchedule, loadPendingSchedule, createPendingSession, sendMessage, loadTrainer } from '../components/Functions';
 const loading = require('../images/loading.gif');
 
 export class BookModalRegular extends Component {
@@ -20,7 +20,7 @@ export class BookModalRegular extends Component {
 	async componentDidMount() {
 		if(!this.state.trainer || !this.state.user || !this.state.gym){
 			try {
-				let trainer = await loadOtherTrainer(this.props.trainer);
+				let trainer = await loadTrainer(this.props.trainer);
 				let user = await loadUser(firebase.auth().currentUser.uid);
 				let gym = await loadGym(this.props.gym);
 				this.setState({ user, trainer, gym, bookDate: new Date(new Date().getTime() + parseInt(trainer.offset) * 60000) });
@@ -46,8 +46,8 @@ export class BookModalRegular extends Component {
 		// Pulls schedules for trainers and conflicts to check for overlaps
     const trainerSchedule = await loadAcceptedSchedule(this.props.trainer);
     const pendingSchedule = await loadPendingSchedule(user.uid);
-    let traineeSchedule = await loadAcceptedSchedule(user.uid);
-    traineeSchedule = traineeSchedule.concat(pendingSchedule);
+    let clientSchedule = await loadAcceptedSchedule(user.uid);
+    clientSchedule = clientSchedule.concat(pendingSchedule);
 		const endTime = new Date(new Date(this.state.bookDate).getTime() + (60000 * this.state.bookDuration));
 		let timeConflict = false;
 
@@ -59,7 +59,7 @@ export class BookModalRegular extends Component {
 			}
 		});
 
-		traineeSchedule.forEach((currSession) => {
+		clientSchedule.forEach((currSession) => {
 			if(timeOverlapCheck(currSession.start, currSession.end, this.state.bookDate, endTime)){
 				Alert.alert('You already have a pending session or session during this time.');
 				timeConflict = true;
@@ -72,8 +72,8 @@ export class BookModalRegular extends Component {
 		// create session in pending table
     const price = (parseInt(this.state.trainer.rate) * (parseInt(this.state.bookDuration) / 60)).toFixed(2);
     let trainer = this.state.trainer;
-    let trainee = this.state.user;
-    trainee.uid = firebase.auth().currentUser.uid;
+    let client = this.state.user;
+    client.key = firebase.auth().currentUser.uid;
     trainer.key = this.props.trainer;
     Alert.alert(
       `Book Session`,
@@ -82,7 +82,7 @@ export class BookModalRegular extends Component {
         { text: 'No' },
         {
           text: 'Yes', onPress: async () => {
-            createPendingSession(trainee, trainer, this.state.gym, this.state.bookDate, this.state.bookDuration, 'trainee', true);
+            createPendingSession(client, trainer, this.state.gym, this.state.bookDate, this.state.bookDuration, 'client', true);
             try {
               const message = `${this.state.user.name} has requested a session at ${dateToString(this.state.bookDate)} for ${this.state.bookDuration} mins.`;
               sendMessage(this.state.trainer.phone, message);

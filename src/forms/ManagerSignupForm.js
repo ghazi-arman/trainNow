@@ -1,14 +1,16 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Alert, Linking } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Alert, Linking, Image } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
+import Constants from '../components/Constants';
 import TextField from '../components/TextField';
 import { STRIPE_KEY, FB_URL } from 'react-native-dotenv';
 const stripe = require('stripe-client')(STRIPE_KEY);
+const loading = require('../images/loading.gif');
 
-export class OwnerSignupForm extends Component {
+export class ManagerSignupForm extends Component {
 	
 	constructor(props) {
 		super(props);
@@ -43,7 +45,7 @@ export class OwnerSignupForm extends Component {
 			return;
 		}
 		
-		this.state.pressed = true;
+		this.setState({ pressed: true });
 		const firstName = this.state.name.split(" ")[0];
 		const lastName = this.state.name.split(" ")[1];
 		const month = this.state.birthDay.split("/")[0];
@@ -65,15 +67,15 @@ export class OwnerSignupForm extends Component {
 			var taxToken = await stripe.createToken(taxId);
 			var ssnToken = await stripe.createToken(ssn);
 		}catch(error){
-			this.state.pressed = false;
+			this.setState({ pressed: false });
 			this.bugsnagClient.notify(error);
 			Alert.alert('Invalid tax id or social security. Please verify information.');
 			return;
 		}
 
     try {
-			// Call firebase cloud function to create stripe account for owner
-			const res = await fetch(`${FB_URL}/stripe/createOwner/`, {
+			// Call firebase cloud function to create stripe account for manager
+			const res = await fetch(`${FB_URL}/stripe/createManager/`, {
 				method: 'POST',
 				body: JSON.stringify({
 					line1: this.state.address,
@@ -86,7 +88,7 @@ export class OwnerSignupForm extends Component {
 					lastName: lastName,
 					ssnToken: ssnToken.id,	
 					taxToken: taxToken.id,
-					company: this.state.company,
+					company: this.state.companyName,
 					day: day,
 					month: month,
 					year: year
@@ -98,7 +100,7 @@ export class OwnerSignupForm extends Component {
 			var data = JSON.parse(response.body);
 
 			if (data.message !== 'Success') {
-				this.state.pressed = false;
+				this.setState({ pressed: false });
 				this.bugsnagClient.leaveBreadcrumb(data);
 				Alert.alert('There was an error creating your stripe Account. Please review your information and try again!');
 				return;
@@ -107,7 +109,7 @@ export class OwnerSignupForm extends Component {
 				// Create firebase account for user
 				const user = await firebase.auth().createUserWithEmailAndPassword(this.state.email, this.state.password);
 				firebase.database().ref('users').child(user.user.uid).set({
-					owner: true,
+					type: Constants.managerType,
 					name: this.state.name,
 					gym: this.state.gymKey,
 					phone: this.state.phone,
@@ -117,14 +119,14 @@ export class OwnerSignupForm extends Component {
 				});
 
 				await firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password);
-				Alert.alert('You must enter a debit card for payouts before trainees can book a sessions at your gym!');
+				Alert.alert('You must enter a debit card for payouts before clients can book a sessions at your gym!');
 				Actions.reset('LoginPage');
 				return;
 			} catch(error) {
 				throw new Error(error);
 			}
 		} catch(error) {
-			this.state.pressed = false;
+			this.setState({ pressed: false });
 			this.bugsnagClient.notify(error);
 			Alert.alert('There was an error creating your Account. Please try again!');
 			return;
@@ -203,6 +205,10 @@ export class OwnerSignupForm extends Component {
 	}
 
 	render() {
+		if (this.state.pressed) {
+      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
+		}
+		
 		let page1 = page2 = page3 = page4 = null;
 		let submitButton = agreement = null;
 
@@ -405,5 +411,16 @@ const styles = StyleSheet.create({
 		color: COLORS.PRIMARY,		
 		textAlign: 'center',
 		textDecorationLine: 'underline'
-	}
+	},
+	loading: {
+    width: '100%',
+    resizeMode: 'contain'
+  },
+  loadingContainer: {
+    height: '100%',
+    width: '100%',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center'
+  }
 });

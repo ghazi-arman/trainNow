@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Alert, Image } from 'react-native';
 import firebase from 'firebase';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import TextField from '../components/TextField';
+const loading = require('../images/loading.gif');
 
 export class ForgotForm extends Component {
 	
@@ -15,15 +16,15 @@ export class ForgotForm extends Component {
 
 	submit = async() => {
 		// Prevents multiple form submissions
-		if (this.state.submitted) {
+		if (this.state.pressed) {
 			return;
 		}
-		this.state.submitted = true;
+    this.setState({ pressed: true });
 
 		try {
 			await firebase.auth().sendPasswordResetEmail(this.state.email);
 			Alert.alert("A password reset email has been sent!");
-			this.state.submitted = false;
+			this.setState({ pressed: false });
 		} catch(error) {
 			if (error.code === "auth/user-not-found") {
 				Alert.alert("There is no account associated with this email");
@@ -35,6 +36,10 @@ export class ForgotForm extends Component {
 	}
 
 	render() {
+		if (this.state.pressed) {
+      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
+		}
+		
 		return (
 			<View>
 				<TextField

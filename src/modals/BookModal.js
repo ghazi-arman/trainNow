@@ -3,8 +3,9 @@ import { StyleSheet, Text, View, TouchableOpacity, Alert, DatePickerIOS, DatePic
 import firebase from 'firebase';
 import { FontAwesome } from '@expo/vector-icons';
 import bugsnag from '@bugsnag/expo';
-import { dateToString, timeOverlapCheck, loadPendingSchedule, sendMessage, loadUser, createPendingSession, loadAcceptedSchedule, loadOtherTrainer } from '../components/Functions';
+import { dateToString, timeOverlapCheck, loadPendingSchedule, sendMessage, loadUser, createPendingSession, loadAcceptedSchedule, loadTrainer } from '../components/Functions';
 import COLORS from '../components/Colors';
+import Constants from '../components/Constants';
 const loading = require('../images/loading.gif');
 
 export class BookModal extends Component {
@@ -13,7 +14,6 @@ export class BookModal extends Component {
     this.state = {
       bookDate: new Date(),
       bookDuration: '60',
-      submitted: false
     };
     this.bugsnagClient = bugsnag();
   }
@@ -22,7 +22,7 @@ export class BookModal extends Component {
     if(!this.state.trainer || !this.state.user){
       try {
         // Load trainer and user logged in
-        const trainer = await loadOtherTrainer(this.props.trainer.key);
+        const trainer = await loadTrainer(this.props.trainer.key);
         const user = await loadUser(firebase.auth().currentUser.uid);
         this.setState({ trainer, user, bookDate: new Date(new Date().getTime() + parseInt(trainer.offset) * 60000) });
       } catch(error) {
@@ -35,7 +35,7 @@ export class BookModal extends Component {
 
   bookTrainer = async() => {
     // Prevent multiple form submits
-    if (this.state.submitted) {
+    if (this.state.pressed) {
       return;
     }
     // Checks stripe account creation for both trainer and client
@@ -43,23 +43,23 @@ export class BookModal extends Component {
       Alert.alert('You must have a card on file to book a session.');
       return;
     }
-    if (!this.state.trainer.cardAdded && !this.state.trainer.type == 'managed') {
+    if (!this.state.trainer.cardAdded && this.state.trainer.trainerType === Constants.independentType) {
       Alert.alert('This trainer has not added a payment method yet.');
       return;
     }
     // checks if client is using trainer account and if trainer is active
-    if (this.state.user.trainer) {
+    if (this.state.user.type === Constants.trainerType) {
       Alert.alert('Sign into a non-trainer account to book sessions.');
       return;
     }
-    this.state.submitted = true;
+    this.setState({ pressed: true });
 
     // Pulls schedules for trainers and conflicts to check for overlaps
     let user = firebase.auth().currentUser;    
     const trainerSchedule = await loadAcceptedSchedule(this.props.trainer.key);
     const pendingSchedule = await loadPendingSchedule(user.uid);
-    let traineeSchedule = await loadAcceptedSchedule(user.uid);
-    traineeSchedule = traineeSchedule.concat(pendingSchedule);
+    let clientSchedule = await loadAcceptedSchedule(user.uid);
+    clientSchedule = clientSchedule.concat(pendingSchedule);
     const endTime = new Date(new Date(this.state.bookDate).getTime() + (60000 * this.state.bookDuration));
     let timeConflict = false;
 
@@ -70,7 +70,7 @@ export class BookModal extends Component {
 			}
 		});
 
-		traineeSchedule.forEach((currSession) => {
+		clientSchedule.forEach((currSession) => {
 			if(timeOverlapCheck(currSession.start, currSession.end, this.state.bookDate, endTime)){
         Alert.alert('You already have a pending session or session during this time.');
         timeConflict = true;
@@ -78,15 +78,15 @@ export class BookModal extends Component {
     });
 
     if (timeConflict) {
-      this.state.submitted = false;
+      this.setState({ pressed: false });
       return;
     }
     
     // create session in pending table
     const price = (parseInt(this.state.trainer.rate) * (parseInt(this.state.bookDuration) / 60)).toFixed(2);
     let trainer = this.state.trainer;
-    let trainee = this.state.user;
-    trainee.uid = firebase.auth().currentUser.uid;
+    let client = this.state.user;
+    client.key = firebase.auth().currentUser.uid;
     trainer.key = this.props.trainer.key;
     Alert.alert(
       `Book Session`,
@@ -94,12 +94,12 @@ export class BookModal extends Component {
       [
         { 
           text: 'No', onPress: () => {
-            this.state.submitted = false;
+            this.setState({ pressed: false });
           } 
         },
         {
           text: 'Yes', onPress: async () => {
-            createPendingSession(trainee, trainer, this.props.gym, this.state.bookDate, this.state.bookDuration, 'trainee', false);
+            createPendingSession(client, trainer, this.props.gym, this.state.bookDate, this.state.bookDuration, 'client', false);
             try {
               const message = `${this.state.user.name} has requested a session at ${dateToString(this.state.bookDate)} for ${this.state.bookDuration} mins.`;
               sendMessage(this.state.trainer.phone, message);
@@ -145,7 +145,7 @@ export class BookModal extends Component {
   }
 
   render() {
-    if (!this.state.trainer || !this.state.user) {
+    if (!this.state.trainer || !this.state.user || this.state.pressed) {
       return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
     }
     let picker, timePicker;

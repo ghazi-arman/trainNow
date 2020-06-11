@@ -5,10 +5,28 @@ import firebase from 'firebase';
 import { FontAwesome } from '@expo/vector-icons';
 import Modal from 'react-native-modal';
 import bugsnag from '@bugsnag/expo';
-import { dateToString, timeOverlapCheck, loadUser, loadAcceptedSessions, loadPendingSessions, loadAcceptedSchedule, createSession, sendMessage, cancelPendingSession, cancelAcceptedSession, markSessionsAsRead, goToPendingRating } from '../components/Functions';
+import { 
+	dateToString,
+	timeOverlapCheck,
+	loadUser,
+	loadUpcomingSessions,
+	loadPendingSessions,
+	loadAcceptedSchedule,
+	createSession,
+	sendMessage,
+	cancelPendingSession,
+	cancelUpcomingSession,
+	markSessionsAsRead,
+	goToPendingRating,
+	loadGroupSessions,
+	cancelGroupSession,
+	leaveGroupSession
+} from '../components/Functions';
 import COLORS from '../components/Colors';
 import { SchedulerModal } from '../modals/SchedulerModal';
 import { TrainerSchedule } from '../components/TrainerSchedule';
+import { GroupSessionModal } from '../modals/GroupSessionModal';
+import Constants from '../components/Constants';
 const loading = require('../images/loading.gif');
 
 export class CalendarPage extends Component {
@@ -17,6 +35,7 @@ export class CalendarPage extends Component {
 		super(props);
 		this.state = {
 			scheduleModal: false,
+			groupSessionModal: false,
 			trainerSchedule: false,
 			currentTab: 'pending',
 		}
@@ -24,16 +43,16 @@ export class CalendarPage extends Component {
 	}
 
 	async componentDidMount() {
-		if (!this.state.user || !this.state.pendingSessions || !this.state.acceptSessions) {
+		if (!this.state.user || !this.state.pendingSessions || !this.state.upcomingSessions) {
 			try {
 				const userId = firebase.auth().currentUser.uid;
 				const user = await loadUser(userId);
-				await goToPendingRating(user.trainer, firebase.auth().currentUser.uid);
-				const userType = (user.trainer ? 'trainer' : 'trainee')
-				const pendingSessions = await loadPendingSessions(userId, userType);
-				const acceptSessions = await loadAcceptedSessions(userId, userType);
-				await markSessionsAsRead(pendingSessions, acceptSessions, user.trainer);
-				this.setState({ user, pendingSessions, acceptSessions });
+				await goToPendingRating(user.type, firebase.auth().currentUser.uid);
+				const pendingSessions = await loadPendingSessions(userId, user.type);
+				const upcomingSessions = await loadUpcomingSessions(userId, user.type);
+				const groupSessions = await loadGroupSessions(userId, user.type);
+				await markSessionsAsRead(pendingSessions, upcomingSessions, user.type);
+				this.setState({ user, pendingSessions, upcomingSessions, groupSessions });
 			} catch(error) {
 				this.bugsnagClient.notify(error);
 				Alert.alert('There was as an error loading the schedule page.');
@@ -45,7 +64,7 @@ export class CalendarPage extends Component {
 	acceptSession = async(session) => {
 		// Pulls schedules for trainers and conflicts to check for overlaps
 		let trainerSchedule = await loadAcceptedSchedule(session.trainer);
-		let traineeSchedule = await loadAcceptedSchedule(session.trainee);
+		let clientSchedule = await loadAcceptedSchedule(session.client);
 		let endTime = new Date(new Date(session.start).getTime() + (60000 * session.duration));
 		let timeConflict = false;
 
@@ -57,7 +76,7 @@ export class CalendarPage extends Component {
 			}
 		});
 
-		traineeSchedule.forEach(function(currSession){
+		clientSchedule.forEach(function(currSession){
 			if(timeOverlapCheck(currSession.start, currSession.end, session.start, endTime)){
 				Alert.alert('The client is already booked during this time.');
 				timeConflict = true;
@@ -69,7 +88,7 @@ export class CalendarPage extends Component {
 			return;
 		}
 
-		if(this.state.user.trainer && this.state.user.type === 'owner'){
+		if(this.state.user.type === Constants.trainerType && this.state.user.trainerType === Constants.managedType){
 			session.managed = true;
 		}else{
 			session.managed = false;
@@ -85,20 +104,20 @@ export class CalendarPage extends Component {
 						try {
 							await createSession(session, session.key, session.start, endTime);
 							this.state.pendingSessions.splice(this.state.pendingSessions.indexOf(session), 1);
-							this.state.acceptSessions.push(session);
+							this.state.upcomingSessions.push(session);
 							this.forceUpdate();
 						} catch(error) {
 							this.bugsnagClient.notify(error);
 							Alert.alert('There was an error when accepting the session. Please try again later.');
 						}
 
-						// sends appropriate text message to trainer or trainee who requested session
+						// sends appropriate text message to trainer or client who requested session
 						let phoneNumber, message;
 						if (session.sentBy === 'trainer') {
 							phoneNumber = session.trainerPhone;
-							message = session.traineeName + " has accepted your session at " + dateToString(session.start) + " for " + session.duration + " mins";
+							message = session.clientName + " has accepted your session at " + dateToString(session.start) + " for " + session.duration + " mins";
 						} else {
-							phoneNumber = session.traineePhone;
+							phoneNumber = session.clientPhone;
 							message = session.trainerName + " has accepted your session at " + dateToString(session.start) + " for " + session.duration + " mins";
 						}
 						try {
@@ -134,11 +153,11 @@ export class CalendarPage extends Component {
 
 						// send appropriate text message to requested user
 						let phoneNumber, message;
-						if (session.sentBy === 'trainee') {
+						if (session.sentBy === Constants.clientType) {
 							phoneNumber = session.trainerPhone;
-							message = session.traineeName + " has cancelled the requested session at " + dateToString(session.start) + " for " + session.duration + " mins";
+							message = session.clientName + " has cancelled the requested session at " + dateToString(session.start) + " for " + session.duration + " mins";
 						} else {
-							phoneNumber = session.traineePhone;
+							phoneNumber = session.clientPhone;
 							message = session.trainerName + " has cancelled the requested session at " + dateToString(session.start) + " for " + session.duration + " mins";
 						}
 						try {
@@ -153,8 +172,8 @@ export class CalendarPage extends Component {
 		);
 	}
 
-	//Cancel accept session as trainee
-	cancelAccepted = async(session) => {
+	//Cancel upcoming session as a client
+	cancelUpcomingSession = async(session) => {
 		if (new Date(session.start) <= new Date()) {
 			Alert.alert("You cannot cancel a session after it has started!");
 			return;
@@ -168,8 +187,8 @@ export class CalendarPage extends Component {
 					text: 'Yes', onPress: async () => {
 						// cancels accepted session
 						try {
-							await cancelAcceptedSession(session, session.key);
-							this.state.acceptSessions.splice(this.state.acceptSessions.indexOf(session), 1);
+							await cancelUpcomingSession(session);
+							this.state.upcomingSessions.splice(this.state.upcomingSessions.indexOf(session), 1);
 							this.forceUpdate();
 						} catch(error) {
 							this.bugsnagClient.notify(error);
@@ -179,12 +198,12 @@ export class CalendarPage extends Component {
 						
 						// send appropriate text message
 						let phoneNumber, message;
-						if (this.state.user.trainer) {
-							phoneNumber = session.traineePhone;
+						if (this.state.user.type === Constants.trainerType) {
+							phoneNumber = session.clientPhone;
 							message = session.trainerName + " has cancelled your session at " + dateToString(session.start) + " for " + session.duration + " mins";
 						} else {
 							phoneNumber = session.trainerPhone;
-							message = session.traineeName + " has cancelled your session at " + dateToString(session.start) + " for " + session.duration + " mins";
+							message = session.clientName + " has cancelled your session at " + dateToString(session.start) + " for " + session.duration + " mins";
 						}
 						try {
 							await sendMessage(phoneNumber, message);
@@ -198,19 +217,54 @@ export class CalendarPage extends Component {
 		);
 	}
 
-	renderAccept = () => {
+	cancelGroupSession = async(session) => {
+		// if (new Date(session.start) <= new Date()) {
+		// 	Alert.alert("You cannot cancel a session after it has started!");
+		// 	return;
+		// }
+		Alert.alert(
+			'Cancel Session',
+			'Are you sure you want to cancel this session?',
+			[
+				{ text: 'No' },
+				{
+					text: 'Yes', onPress: async () => {
+						// cancels accepted session
+						try {
+							if(this.state.user.type === Constants.trainerType) {
+								await cancelGroupSession(session, session.key);
+								this.state.groupSessions.splice(this.state.groupSessions.indexOf(session), 1);
+								this.forceUpdate();
+							} else {
+							await leaveGroupSession(session, session.key);
+							this.state.groupSessions.splice(this.state.groupSessions.indexOf(session), 1);
+							this.forceUpdate();
+						}
+						} catch(error) {
+							this.bugsnagClient.notify(error);
+							Alert.alert('There was an error cancelling this session. Please try again later');
+							return;
+						}
+					}
+				}
+			]
+		);
+	}
+
+	renderUpcomingSessions = () => {
 		var userKey = firebase.auth().currentUser.uid;
-		if (!this.state.acceptSessions.length) {
+		if (!this.state.upcomingSessions.length && !this.state.groupSessions.length) {
 			return (<Text style={styles.navText}>None</Text>);
 		}
-		return this.state.acceptSessions.map((session) => {
+		
+		const upcomingSessions = this.state.upcomingSessions.map((session) => {
 
 			const displayDate = dateToString(session.start);
 			let name;
-			if (session.trainee === userKey) {
+			if (session.client === userKey) {
 				name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.trainerName}</Text></View>);
 			} else {
-				name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.traineeName}</Text></View>);
+				name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.clientName}</Text></View>);
 			}
 			return (
 				<View style={{ flexDirection: 'column', justifyContent: 'flex-start', width: '100%' }} key={session.key}>
@@ -220,19 +274,62 @@ export class CalendarPage extends Component {
 						<View style={styles.timeView}><Text style={styles.trainerInfo}>{displayDate}</Text></View>
 					</View>
 					<View style={{ flexDirection: 'row', justifyContent: 'space-around', height: 50 }}>
-						<TouchableOpacity style={styles.denyContainer} onPressIn={() => this.cancelAccepted(session)}>
+						<TouchableOpacity style={styles.denyContainer} onPress={() => this.cancelUpcomingSession(session)}>
 							<Text style={styles.buttonText}> Cancel </Text>
 						</TouchableOpacity>
-						<TouchableOpacity style={styles.buttonContainer} onPressIn={() => Actions.SessionPage({ session: session.key })}>
+						<TouchableOpacity style={styles.buttonContainer} onPress={() => Actions.SessionPage({ session: session.key })}>
 							<Text style={styles.buttonText}> Enter </Text>
 						</TouchableOpacity>
 					</View>
 				</View>
 			);
 		});
+
+		const groupSessions =  this.state.groupSessions.map((session) => {
+			const displayDate = dateToString(session.start);
+			let cancelButtonText = 'Leave'
+			let editButton = null;
+			if (this.state.user.type === Constants.trainerType) {
+				editButton = (
+					<TouchableOpacity style={styles.buttonContainer} onPress={() => this.setState({ selectedGroupSessionKey: session.key, groupSessionModal: true })}>
+						<Text style={styles.buttonText}> Edit </Text>
+					</TouchableOpacity>
+				);
+				cancelButtonText = 'Delete'
+			}
+			return (
+				<View style={{ flexDirection: 'column', justifyContent: 'flex-start', width: '100%' }} key={session.key}>
+					<View style={{ flexDirection: 'row', justifyContent: 'space-around', height: 40 }}>
+						<View style={styles.trainerView}>
+							<Text style={styles.trainerInfo}>{session.name}</Text>
+						</View>
+						<View style={styles.rateView}><Text style={styles.trainerInfo}>{session.duration} min</Text></View>
+						<View style={styles.timeView}><Text style={styles.trainerInfo}>{displayDate}</Text></View>
+					</View>
+					<View style={{ flexDirection: 'row', justifyContent: 'center', height: 40, marginBottom: 10 }}>
+						<View style={{width: '100%', height: 40}}>
+							<Text style={styles.trainerInfo}>{session.clientCount} / {session.capacity} clients joined</Text>
+						</View>
+					</View>
+					<View style={{ flexDirection: 'row', justifyContent: 'space-around', height: 50 }}>
+						<TouchableOpacity style={styles.denyContainer} onPress={() => this.cancelGroupSession(session)}>
+							<Text style={styles.buttonText}>{cancelButtonText}</Text>
+						</TouchableOpacity>
+						{editButton}
+					</View>
+					<View style={{ flexDirection: 'row', justifyContent: 'space-around', height: 50, marginBottom: 20 }}>
+						<TouchableOpacity style={[styles.scheduleButton, {backgroundColor: COLORS.PRIMARY}]} onPress={() => Actions.GroupSessionPage({session: session.key})}>
+							<Text style={styles.buttonText}>Enter Session</Text>
+						</TouchableOpacity>
+					</View>
+				</View>
+			);
+		});
+
+		return upcomingSessions.concat(groupSessions);
 	}
 
-	renderPending = () => {
+	renderPendingSessions = () => {
 		const userKey = firebase.auth().currentUser.uid;
 		if (!this.state.pendingSessions.length) {
 			return (<Text style={styles.navText}>None</Text>);
@@ -241,32 +338,32 @@ export class CalendarPage extends Component {
 		return this.state.pendingSessions.map((session) => {
 			const displayDate = dateToString(session.start);
 			let button, button2, name;
-			if ((session.trainee === userKey && session.sentBy == 'trainee') || (session.trainer == userKey && session.sentBy == 'trainer')) {
+			if ((session.client === userKey && session.sentBy == Constants.clientType) || (session.trainer == userKey && session.sentBy == Constants.trainerType)) {
 				button = (
-					<TouchableOpacity style={styles.denyContainer} onPressIn={() => this.cancelSession(session)}>
+					<TouchableOpacity style={styles.denyContainer} onPress={() => this.cancelSession(session)}>
 						<Text style={styles.buttonText}> Cancel </Text>
 					</TouchableOpacity>
 				);
-				if (session.trainee == userKey) {
+				if (session.client == userKey) {
 					name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.trainerName}</Text></View>);
 				} else {
-					name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.traineeName}</Text></View>);
+					name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.clientName}</Text></View>);
 				}
 			} else {
 				button = (
-					<TouchableOpacity style={styles.buttonContainer} onPressIn={() => this.acceptSession(session)}>
+					<TouchableOpacity style={styles.buttonContainer} onPress={() => this.acceptSession(session)}>
 						<Text style={styles.buttonText}> Accept </Text>
 					</TouchableOpacity>
 				);
 				button2 = (
-					<TouchableOpacity style={styles.denyContainer} onPressIn={() => this.cancelSession(session)}>
+					<TouchableOpacity style={styles.denyContainer} onPress={() => this.cancelSession(session)}>
 						<Text style={styles.buttonText}> Reject </Text>
 					</TouchableOpacity>
 				);
-				if (session.trainee === userKey) {
+				if (session.client === userKey) {
 					name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.trainerName}</Text></View>);
 				} else {
-					name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.traineeName}</Text></View>);
+					name = (<View style={styles.trainerView}><Text style={styles.trainerInfo}>{session.clientName}</Text></View>);
 				}
 			}
 			return (
@@ -295,103 +392,120 @@ export class CalendarPage extends Component {
 		
 	}
 
-	hideandConfirm = () => {
-		this.hidescheduleModal();
+	hideScheduleModalAndConfirm = () => {
+		this.hideScheduleModal();
 		setTimeout(() => Alert.alert('Availability Added.'), 700);
 	}
- 
-	hidescheduleModal = () => {
-		this.setState({ scheduleModal: false });
-	}
 
-	hidetrainerSchedule = () => this.setState({ trainerSchedule: false })
+	hideGroupSessionModalAndConfirm = async() => {
+		this.hideGroupSessionModal();
+		const groupSessions = await loadGroupSessions(firebase.auth().currentUser.uid, Constants.trainerType);
+		this.setState({ groupSessions, selectedGroupSessionKey: null });
+		setTimeout(() => Alert.alert('Group Session Created or Updated.'), 700);
+	}
+ 
+	hideScheduleModal = () => this.setState({ scheduleModal: false });
+
+	hidetrainerSchedule = () => this.setState({ trainerSchedule: false });
+
+	hideGroupSessionModal = () => this.setState({ groupSessionModal: false });
 
 	render() {
-		if (!this.state.acceptSessions || !this.state.user || !this.state.pendingSessions) {
+		if (!this.state.upcomingSessions || !this.state.user || !this.state.pendingSessions) {
       return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
 		}
-		let active, schedule, scheduler;
-		if (this.state.user.trainer) {
+		let activeStatus, viewScheduleButton, addScheduleButton, groupSessionButton;
+		if (this.state.user.type == Constants.trainerType) {
 			if (this.state.user.active) {
-				active = (<Text style={styles.statusText}>Active</Text>);
+				activeStatus = (<Text style={styles.statusText}>Currently Active</Text>);
 			} else {
-				active = (
+				activeStatus = (
 					<TouchableOpacity style={styles.activeButton} onPress={() => this.goActive()}>
 						<Text style={styles.buttonText}>Go Active</Text>
 					</TouchableOpacity>
 				);
 			}
-			scheduler = (
+			viewScheduleButton = (
 				<TouchableOpacity style={styles.scheduleButton} onPress={() => this.setState({ scheduleModal: true })}>
 					<Text style={styles.buttonText}>Set Schedule</Text>
 				</TouchableOpacity>
 			);
-			schedule = (
+			addScheduleButton = (
 				<TouchableOpacity style={styles.scheduleButton} onPress={() => this.setState({ trainerSchedule: true })}>
 					<Text style={styles.buttonText}>View Schedule</Text>
 				</TouchableOpacity>
 			);
-		}
-		if (this.state.currentTab == 'pending') {
-			var navBar = (
-				<View style={styles.navigationBar}>
-					<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({ currentTab: 'pending' })}>
-						<Text style={styles.activeText}>Awaiting Responses</Text>
-					</TouchableOpacity>
-					<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({ currentTab: 'accepted' })}>
-						<Text style={styles.navText}>Upcoming Sessions</Text>
-					</TouchableOpacity>
-				</View>
-			);
-			var content = (
-				<View style={styles.sessionContainer}>
-					<ScrollView contentContainerStyle={styles.center} showsVerticalScrollIndicator={false}>
-						{this.renderPending()}
-						{active}
-						{schedule}
-						{scheduler}
-					</ScrollView>
-				</View>
-			);
-		} else {
-			var navBar = (
-				<View style={styles.navigationBar}>
-					<TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({ currentTab: 'pending' })}>
-						<Text style={styles.navText}>Awaiting Responses</Text>
-					</TouchableOpacity>
-					<TouchableOpacity style={styles.activeTab} onPress={() => this.setState({ currentTab: 'accepted' })}>
-						<Text style={styles.activeText}>Upcoming Sessions</Text>
-					</TouchableOpacity>
-				</View>
-			);
-			var content = (
-				<View style={styles.sessionContainer}>
-					<ScrollView contentContainerStyle={styles.center} showsVerticalScrollIndicator={false}>
-						{this.renderAccept()}
-						{active}
-						{schedule}
-						{scheduler}
-					</ScrollView>
-				</View>
+			groupSessionButton = (
+				<TouchableOpacity style={styles.scheduleButton} onPress={() => this.setState({ groupSessionModal: true })}>
+					<Text style={styles.buttonText}>Create Group Session</Text>
+				</TouchableOpacity>
 			);
 		}
+		var sessionHolder = this.state.currentTab === 'pending' ? this.renderPendingSessions() : this.renderUpcomingSessions()
+		var content = (
+			<View style={styles.sessionContainer}>
+				<ScrollView contentContainerStyle={styles.center} showsVerticalScrollIndicator={false}>
+					{sessionHolder}
+					{activeStatus}
+					{viewScheduleButton}
+					{addScheduleButton}
+					{groupSessionButton}
+				</ScrollView>
+			</View>
+		);
+		let pendingTabStyle = this.state.currentTab === 'pending' ? styles.activeTab : styles.inactiveTab;
+		let upcomingTabStyle = this.state.currentTab === 'accepted' ? styles.activeTab : styles.inactiveTab;
+		let pendingTabText = this.state.currentTab === 'pending' ? styles.activeText : styles.navText;
+		let upcomingTabText = this.state.currentTab === 'accepted' ? styles.activeText : styles.navText;
+		var navBar = (
+			<View style={styles.navigationBar}>
+				<TouchableOpacity style={pendingTabStyle} onPress={() => this.setState({ currentTab: 'pending' })}>
+					<Text style={pendingTabText}>Awaiting Responses</Text>
+				</TouchableOpacity>
+				<TouchableOpacity style={upcomingTabStyle} onPress={() => this.setState({ currentTab: 'accepted' })}>
+					<Text style={upcomingTabText}>Upcoming Sessions</Text>
+				</TouchableOpacity>
+			</View>
+		);
 		return (
 			<View style={styles.container}>
 				<View style={styles.headerContainer}>
 					<Text style={styles.backButton} onPress={() => Actions.reset('MapPage')}>
 						<FontAwesome name="arrow-left" size={35} />
 					</Text>
-					<Text style={styles.title}>Calendar</Text>
+					<Text style={styles.title}> Calendar </Text>
 				</View>
 				{navBar}
 				{content}
-				<Modal isVisible={this.state.scheduleModal}
-				onBackdropPress={this.hidescheduleModal}>
-					<SchedulerModal trainerKey={firebase.auth().currentUser.uid} hide={this.hidescheduleModal} hideandConfirm={this.hideandConfirm} />
+				<Modal
+					isVisible={this.state.scheduleModal}
+					onBackdropPress={this.hideScheduleModal}
+				>
+					<SchedulerModal 
+						trainerKey={firebase.auth().currentUser.uid} 
+						hide={this.hideScheduleModal} 
+						hideandConfirm={this.hideScheduleModalAndConfirm} 
+				/>
 				</Modal>
-				<Modal isVisible={this.state.trainerSchedule}
-				onBackdropPress={this.hidetrainerSchedule}>
-					<TrainerSchedule trainerKey={firebase.auth().currentUser.uid} hideandOpen={this.hidetrainerSchedule} />
+				<Modal
+					isVisible={this.state.trainerSchedule}
+					onBackdropPress={this.hideTrainerSchedule}
+				>
+					<TrainerSchedule 
+						trainerKey={firebase.auth().currentUser.uid} 
+						hideandOpen={this.hidetrainerSchedule} 
+					/>
+				</Modal>
+				<Modal 
+					isVisible={this.state.groupSessionModal}
+					onBackdropPress={this.hideGroupSessionModal}
+				>
+					<GroupSessionModal
+						trainerKey={firebase.auth().currentUser.uid} 
+						hide={this.hideGroupSessionModal}
+						hideAndConfirm={this.hideGroupSessionModalAndConfirm}
+						sessionKey={this.state.selectedGroupSessionKey}
+					/>
 				</Modal>
 			</View>
 		);
@@ -469,9 +583,9 @@ const styles = StyleSheet.create({
 		height: 50
 	},
 	trainerInfo: {
-		paddingVertical: 15,
+		paddingVertical: 18,
 		textAlign: 'center',
-		fontSize: 15,
+		fontSize: 18,
 		fontWeight: '700',
 		color: COLORS.PRIMARY,
 	},

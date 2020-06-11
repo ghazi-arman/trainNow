@@ -7,6 +7,7 @@ import bugsnag from '@bugsnag/expo';
 import { loadUser } from '../components/Functions';
 import COLORS from '../components/Colors';
 import { STRIPE_KEY, FB_URL } from 'react-native-dotenv';
+import Constants from '../components/Constants';
 const stripe = require('stripe-client')(STRIPE_KEY);
 const loading = require('../images/loading.gif');
 
@@ -35,7 +36,7 @@ export class CardModal extends Component {
 		if (this.state.pressed) {
 			return;
 		}
-		this.state.pressed = true;
+		this.setState({ pressed: true });
 
 		const information = {
 			card: {
@@ -53,7 +54,7 @@ export class CardModal extends Component {
 		try {
 			card = await stripe.createToken(information);
 		} catch(error) {
-			this.state.pressed = false;
+			this.setState({ pressed: false });
 			this.bugsnagClient.notify(error);
 			Alert.alert('There was an error creating a token for the card. Please check your information and try again.');
 			return;
@@ -86,13 +87,13 @@ export class CardModal extends Component {
 				});
 				this.props.hide();
 			} catch (error) {
-				this.state.pressed = false;
+				this.setState({ pressed: false });
 				this.bugsnagClient.notify(error);
 				Alert.alert('There was an error adding the card. Please try again.');
 				return;
 			}
 		} else {
-			if (this.state.user.trainer) {
+			if (this.state.user.type === Constants.trainerType) {
 				try {
 					const res = await fetch(`${FB_URL}/stripe/addTrainerCard/`, {
 						method: 'POST',
@@ -116,7 +117,7 @@ export class CardModal extends Component {
 					});
 					this.props.hide();
 				} catch (error) {
-					this.state.pressed = false;
+					this.setState({ pressed: false });
 					this.bugsnagClient.notify(error);
 					Alert.alert('There was an error adding the card. Please check the info and make sure it is a debit card before trying again.');
 					return;
@@ -146,7 +147,7 @@ export class CardModal extends Component {
 					});
 					this.props.hide();
 				} catch (error) {
-					this.state.pressed = false;
+					this.setState({ pressed: false });
 					this.bugsnagClient.notify(error);
 					Alert.alert('There was an error adding the card. Please try again.');
 				}

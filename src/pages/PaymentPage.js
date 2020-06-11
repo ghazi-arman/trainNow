@@ -8,6 +8,7 @@ import bugsnag from '@bugsnag/expo';
 import { CardModal } from '../modals/CardModal';
 import COLORS from '../components/Colors';
 import { loadUser, loadTrainerCards, loadCards, getCardIcon, deleteCard, setDefaultCard, loadBalance, deleteTrainerCard, setDefaultTrainerCard } from '../components/Functions';
+import Constants from '../components/Constants';
 const loading = require('../images/loading.gif');
 
 export class PaymentPage extends Component {
@@ -24,13 +25,13 @@ export class PaymentPage extends Component {
 		if (!this.state.cards || !this.state.balance || !this.state.user) {
 			try {
 				const user = await loadUser(firebase.auth().currentUser.uid);
-				if (user.type === 'owner') {
+				if (user.trainerType === Constants.managedType) {
 					Alert.alert('You do not have access to this page.');
 					Actions.reset('MapPage');
 					return;
 				}
 				let balance, cards;
-				if (user.trainer) {
+				if (user.type === Constants.trainerType) {
 					balance = await loadBalance(user.stripeId);
 					cards = await loadTrainerCards(user.stripeId);
 				} else {
@@ -52,7 +53,7 @@ export class PaymentPage extends Component {
 	hideCardModalOnAdd = async() => {
 		let cards;
 		const user = await loadUser(firebase.auth().currentUser.uid);
-		if (user.trainer) {
+		if (user.type === Constants.trainerType) {
 			cards = await loadTrainerCards(user.stripeId);
 		}else{
 			cards = await loadCards(user.stripeId);
@@ -69,6 +70,10 @@ export class PaymentPage extends Component {
 				{text: 'Yes', onPress: async () => {
 					try {
 						const lastCard = this.state.cards.length === 1 ? true : false;
+						if (lastCard) {
+							Alert.alert('You can only remove your default card by deleting your account.');
+							return;
+						}
 						await deleteCard(stripeId, cardId, lastCard);
 						const cards = await loadCards(stripeId);
 						this.setState({ cards });
@@ -153,7 +158,7 @@ export class PaymentPage extends Component {
 		return this.state.cards.map((currCard) => {
 			let deleteButton, defaultButton;
 			let defaultCard = false;
-			if (this.state.user.trainer) {
+			if (this.state.user.type === Constants.trainerType) {
 				if (currCard.default_for_currency) {
 					defaultButton = (<Text style={styles.greenIcon}><FontAwesome name="check-circle" size={20} /></Text>);
 					defaultCard = true;
@@ -203,7 +208,7 @@ export class PaymentPage extends Component {
       return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
 		}
 		let balanceDiv, payoutText, balanceFormatted;
-		if (this.state.user.trainer) {
+		if (this.state.user.type === Constants.trainerType) {
 			if(this.state.balance == 0){
 				balanceFormatted = "0.00"
 			}else{

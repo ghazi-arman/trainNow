@@ -43,22 +43,22 @@ export class ClientPage extends Component {
 			return;
 		}
 		try {
-			this.state.pressed = true;
+			this.setState({ pressed: true });
 			const userId = firebase.auth().currentUser.uid;
 			await sendClientRequest(clientKey, userId, this.state.user.name, this.state.user.gym);
 			Alert.alert(`Request was sent to the client.`);
 			const user = await loadUser(firebase.auth().currentUser.uid);
 			this.setState({ user, pressed: false });
 		} catch(error) {
-			this.state.pressed = false;
+			this.setState({ pressed: false });
 			this.bugsnagClient.notify(error);
 			Alert.alert('There was an error sending the client a request.');
 		}
 	}
 
-	denyRequest = async(requestKey, traineeKey) => {
+	denyRequest = async(requestKey, clientKey) => {
 		try {
-			await denyTrainerRequest(requestKey, traineeKey, firebase.auth().currentUser.uid);
+			await denyTrainerRequest(requestKey, clientKey, firebase.auth().currentUser.uid);
 			const trainerRequests = loadTrainerRequests(firebase.auth().currentUser.uid);
 			this.setState({ trainerRequests });
 		} catch(error) {
@@ -67,10 +67,10 @@ export class ClientPage extends Component {
 		}
 	}
 
-	acceptRequest = async(requestKey, traineeKey, traineeName) => {
+	acceptRequest = async(requestKey, clientKey, clientName) => {
 		try {
 			const userId = firebase.auth().currentUser.uid;
-			await acceptTrainerRequest(requestKey, userId, this.state.user.name, traineeKey, traineeName, this.state.user.gym);
+			await acceptTrainerRequest(requestKey, userId, this.state.user.name, clientKey, clientName, this.state.user.gym);
 			const trainerRequests = await loadTrainerRequests(firebase.auth().currentUser.uid);
 			const user = await loadUser(firebase.auth().currentUser.uid);
 			this.setState({ trainerRequests, user });
@@ -90,12 +90,12 @@ export class ClientPage extends Component {
 		}
 		return this.state.trainerRequests.map((request) => {
 			return(
-				<View key={request.trainee} style={styles.traineeRow}>
-					<Text style={styles.nameText}>{request.traineeName}</Text>
-					<TouchableOpacity style={styles.denyButton} onPress={() => this.denyRequest(request.key, request.trainee)}> 
+				<View key={request.client} style={styles.clientRow}>
+					<Text style={styles.nameText}>{request.clientName}</Text>
+					<TouchableOpacity style={styles.denyButton} onPress={() => this.denyRequest(request.key, request.client)}> 
 						<Text style={styles.buttonText}><FontAwesome name="close" size={18} /></Text>
 					</TouchableOpacity>
-					<TouchableOpacity style={styles.acceptButton} onPress={() => this.acceptRequest(request.key, request.trainee, request.traineeName)}> 
+					<TouchableOpacity style={styles.acceptButton} onPress={() => this.acceptRequest(request.key, request.client, request.clientName)}> 
 						<Text style={styles.buttonText}><FontAwesome name="check" size={18} /></Text>
 					</TouchableOpacity>
 				</View>
@@ -110,9 +110,9 @@ export class ClientPage extends Component {
 		return Object.keys(this.state.user.clients).map((key) => {
 			const client = this.state.user.clients[key];
 			return(
-				<View key={client.trainee} style={styles.traineeRow}>
-					<Text style={styles.nameText}>{client.traineeName}</Text>
-					<TouchableOpacity style={styles.requestButton} onPress={() => this.bookSession(client.trainee, this.state.user.gym)}> 
+				<View key={client.client} style={styles.clientRow}>
+					<Text style={styles.nameText}>{client.clientName}</Text>
+					<TouchableOpacity style={styles.requestButton} onPress={() => this.bookSession(client.client, this.state.user.gym)}> 
 						<Text style={styles.buttonText}><FontAwesome name="calendar" size={18} /> Book</Text>
 					</TouchableOpacity>
 				</View>
@@ -121,15 +121,15 @@ export class ClientPage extends Component {
 	}
 
 	renderRecent = () => {
-		return this.state.recentClients.map((trainee) => {
+		return this.state.recentClients.map((client) => {
 			// if this client currently has requested the trainer or is already a regular client
-			if (Array.isArray(this.state.trainerRequests) && this.state.trainerRequests.filter(request => (request.trainee == trainee.key)).length > 0 ||
-				(this.state.user.clients && this.state.user.clients[trainee.key])) {
+			if (Array.isArray(this.state.trainerRequests) && this.state.trainerRequests.filter(request => (request.client == client.key)).length > 0 ||
+				(this.state.user.clients && this.state.user.clients[client.key])) {
 				return;
 			}
 
 			let button;
-			if(this.state.user.requests && this.state.user.requests[trainee.key]){
+			if(this.state.user.requests && this.state.user.requests[client.key]){
 				button = (
 					<TouchableOpacity style={styles.requestButton} disabled> 
 						<Text style={styles.buttonText}><FontAwesome name="hourglass" size={18} /> Pending</Text>
@@ -137,14 +137,14 @@ export class ClientPage extends Component {
 				);
 			}else{
 				button = (
-					<TouchableOpacity style={styles.requestButton} onPress={() => this.sendClientRequest(trainee.key)}>
+					<TouchableOpacity style={styles.requestButton} onPress={() => this.sendClientRequest(client.key)}>
 						<Text style={styles.buttonText}><FontAwesome name="user-plus" size={18} /> Add </Text>
 					</TouchableOpacity>
 				);
 			}
 			return(
-				<View key={trainee.key} style={styles.traineeRow}>
-					<Text style={styles.nameText}>{trainee.name}</Text>
+				<View key={client.key} style={styles.clientRow}>
+					<Text style={styles.nameText}>{client.name}</Text>
 					{button}
 				</View>
 			);
@@ -160,7 +160,7 @@ export class ClientPage extends Component {
 	}
 
 	render() {
-		if (!this.state.user || !this.state.trainerRequests || !this.state.recentClients) {
+		if (!this.state.user || !this.state.trainerRequests || !this.state.recentClients || this.state.pressed) {
       return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
 		}
 		if(this.state.currentTab == 'requests'){
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
 		color: COLORS.WHITE,
 		textAlign: 'center'
 	},
-	traineeRow: {
+	clientRow: {
 		flexDirection: 'row',
 		justifyContent: 'space-around',
 		alignItems: 'center',

@@ -5,7 +5,7 @@ import firebase from 'firebase';
 import { Agenda } from 'react-native-calendars';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
-import { dateToString, loadUser, loadAcceptedSchedule, dateforAgenda, loadAvailableSchedule, loadOtherTrainer } from '../components/Functions';
+import { dateToString, loadUser, loadAcceptedSchedule, dateforAgenda, loadAvailableSchedule, loadTrainer } from '../components/Functions';
 const loading = require('../images/loading.gif');
 
 export class ScheduleModal extends Component {
@@ -23,7 +23,7 @@ export class ScheduleModal extends Component {
 		if(!this.state.trainer || !this.state.sessions || !this.state.user){
 			try {
 				var user = await loadUser(firebase.auth().currentUser.uid)
-				var trainer = await loadOtherTrainer(this.props.trainer.key);
+				var trainer = await loadTrainer(this.props.trainer.key);
 				var sessions = await loadAcceptedSchedule(this.props.trainer.key);
 				var availability = await loadAvailableSchedule(this.props.trainer.key);
 				sessions = sessions.concat(availability);

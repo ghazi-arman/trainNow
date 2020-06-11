@@ -1,30 +1,30 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Alert, Image } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
+import Constants from '../components/Constants';
 import TextField from '../components/TextField';
+const loading = require('../images/loading.gif');
 
 export class LoginForm extends Component {
 
   constructor(props) {
     super(props);
-    this.state = {
-      submitted: false
-    };
+    this.state = {};
     this.bugsnagClient = bugsnag();
   }
 
   login = async() => {
     // Prevents multiple form
-    if(this.state.submitted){
+    if(this.state.pressed){
       return;
     }
 
-    // Go to owner sign up page 
-    if (this.state.email && this.state.email.toLowerCase() == 'owner signup') {
-      Actions.OwnerSignupPage();
+    // Go to manager sign up page 
+    if (this.state.email && this.state.email.toLowerCase() == 'manager signup') {
+      Actions.ManagerSignupPage();
       return;
     }
 
@@ -38,7 +38,7 @@ export class LoginForm extends Component {
       return;
     }
     
-    this.state.submitted = true;
+    this.setState({ pressed: true });
     try {
       // Validate username and password combo through firebase
       const userCredentials = await firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password);
@@ -47,27 +47,27 @@ export class LoginForm extends Component {
 
       // Checks status of current user and routes appropriately
       if (user.deleted) {
-        this.state.submitted = false;
+        this.setState({ pressed: false });
         Alert.alert('Your account has been deleted. Please contact your gym manager.');
         return;
       }
-      if (user.owner && !user.pending) {
-        Actions.OwnerPage({ gym: user.gym });
-        return;
-      }
-      if (user.owner && user.pending) {
-        this.state.submitted = false;
+      if (user.pending) {
+        this.setState({ pressed: false });
         Alert.alert('Your account is pending');
         return;
       }
-      if (user.trainer) {
+      if (user.type === Constants.managerType && !user.pending) {
+        Actions.ManagerPage({ gym: user.gym });
+        return;
+      }
+      if (user.type === Constants.trainerType) {
         Actions.reset('CalendarPage');
         return;
       }
 
       Actions.reset('MapPage');
     } catch(error) {
-      this.state.submitted = false;
+      this.setState({ pressed: false });
       if (error.code === "auth/invalid-email") {
 				Alert.alert("Please enter a valid email.");
 				return;
@@ -89,6 +89,10 @@ export class LoginForm extends Component {
   }
 
   render() {
+		if (this.state.pressed) {
+      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
+    }
+
     return (
       <View>
         <TextField
@@ -126,5 +130,16 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: COLORS.WHITE,
     fontWeight: '700'
+  },
+  loading: {
+    width: '100%',
+    resizeMode: 'contain'
+  },
+  loadingContainer: {
+    height: '100%',
+    width: '100%',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center'
   }
 });

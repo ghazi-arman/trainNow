@@ -5,11 +5,11 @@ import { FontAwesome } from '@expo/vector-icons';
 import { Actions } from 'react-native-router-flux';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
-import { loadSession, loadUser, rateSession, dateToString, chargeCard } from '../components/Functions';
+import { loadGroupSession, loadUser, rateGroupSession, dateToString, chargeCard } from '../components/Functions';
 import Constants from '../components/Constants';
 const loading = require('../images/loading.gif');
 
-export class RatingPage extends Component {
+export class GroupSessionRatingPage extends Component {
 
 	constructor(props) {
 		super(props);
@@ -20,9 +20,8 @@ export class RatingPage extends Component {
 	async componentDidMount() {
 		const userId = firebase.auth().currentUser.uid;
 		const user = await loadUser(userId);
-		const session = await loadSession(this.props.session);
-		const ratingField = `${user.type}Rating`;
-		if(session[user.type] === userId && session[ratingField]){
+    const session = await loadGroupSession(this.props.session);
+		if(user.type === Constants.clientType && session.clients[userId].rating){
 			Actions.reset('MapPage');
 			return;
 		}
@@ -42,16 +41,15 @@ export class RatingPage extends Component {
 		}
     this.setState({ pressed: true });
 		try {
-			if (this.state.user.type === Constants.clientType) {
-				var duration = new Date(this.state.session.end) - new Date(this.state.session.start);
-				var minutes = Math.floor((duration/1000)/60);
-				const total = ((parseInt(minutes) * (parseInt(this.state.session.rate) / 60)) * 100).toFixed(0);
-				const percentage = this.state.session.regular ? 0.1 : 0.25;
-				const payout = parseInt(total) - parseInt(total * percentage);
-				await chargeCard(this.state.user.stripeId, this.state.session.trainerStripe, total, total - payout, this.state.session);
-			}
-
-			await rateSession(this.state.session.key, this.state.rating, this.state.user.type);
+      if (this.state.session.trainer !== firebase.auth().currentUser.uid) {
+        var duration = new Date(this.state.session.end) - new Date(this.state.session.start);
+        var minutes = Math.floor((duration/1000)/60);
+        const total = ((parseInt(minutes) * (parseInt(this.state.session.rate) / 60)) * 100).toFixed(0);
+        const percentage = this.state.session.regular ? 0.1 : 0.25;
+        const payout = parseInt(total) - parseInt(total * percentage);
+        await chargeCard(this.state.user.stripeId, this.state.session.trainerStripe, total, total - payout, this.state.session);
+      }
+      await rateGroupSession(this.state.session.key, this.state.rating, this.state.user.type);
 		} catch(error) {
 			this.setState({ pressed: false });
 			this.bugsnagClient.notify(error);
@@ -99,15 +97,24 @@ export class RatingPage extends Component {
 		const percentage = this.state.session.regular ? 0.1 : 0.25;
 		const payout = (parseInt(total) - parseInt(total * percentage)).toFixed(2);
 
-		let cost = null;
+    let cost = null;
+    let stars = null;
+    let button = null;
 		if (this.state.session.trainer === userId) {
 			if (this.state.session.trainerType === Constants.independentType) {
-				cost = <Text style={styles.bookDetails}>Total Earned: ${payout}</Text>
+				cost = <Text style={styles.bookDetails}>Total Earned: ${(payout * parseInt(this.state.session.clientCount)).toFixed(2)}</Text>
 			}
 		} else {
-			cost = <Text style={styles.bookDetails}>Total Cost: ${total}</Text>;
-		}
-		const stars = this.renderStars(this.state.rating);
+      cost = <Text style={styles.bookDetails}>Total Cost: ${total}</Text>;
+    }
+    stars = this.renderStars(this.state.rating);
+    button = (
+      <View style={styles.buttonContain}>
+        <TouchableOpacity style={styles.buttonContainer} onPressIn={this.rateSession}>
+          <Text style={styles.buttonText}>Rate Session</Text>
+        </TouchableOpacity>
+      </View>
+    );
 		return (
 			<View style = {styles.container}>	
 				<View style={styles.formContainer}>
@@ -120,11 +127,7 @@ export class RatingPage extends Component {
 							{stars}
 						</View>
 					</View>
-					<View style={styles.buttonContain}>
-						<TouchableOpacity style={styles.buttonContainer} onPressIn={this.rateSession}>
-							<Text style={styles.buttonText}>Rate Session</Text>
-						</TouchableOpacity>
-					</View>
+          {button}
 				</View>
 			</View>	
 		);

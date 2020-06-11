@@ -4,6 +4,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import firebase from 'firebase';
 import { Actions } from 'react-native-router-flux';
 import COLORS from './Colors';
+import Constants from './Constants';
 import { loadUser } from './Functions';
 const loading = require('../images/loading.gif');
 
@@ -42,7 +43,7 @@ export class SideMenu extends Component {
       return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
     }
     let clientLink, active;
-    if(this.state.user.trainer){
+    if(this.state.user.type === Constants.trainerType){
       clientLink = (
         <TouchableOpacity onPress={() => Actions.ClientPage()}>
           <Text style={styles.icon}>
@@ -78,7 +79,7 @@ export class SideMenu extends Component {
           </Text>
         </TouchableOpacity>
         <TouchableOpacity>
-          <Text style={styles.icon} onPress={() => Actions.SettingsPage({trainer: this.state.user.trainer})}>
+          <Text style={styles.icon} onPress={() => Actions.SettingsPage({userType: this.state.user.type})}>
               <FontAwesome name="gear" size={30} /><Text style={styles.menuLink}> Settings</Text>
           </Text>
         </TouchableOpacity>

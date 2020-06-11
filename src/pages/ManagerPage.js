@@ -7,11 +7,11 @@ import { Actions } from 'react-native-router-flux';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import  TextField from '../components/TextField';
-import { OwnerCardModal } from '../modals/OwnerCardModal';
+import { ManagerCardModal } from '../modals/ManagerCardModal';
 import { loadUser, loadGym, loadTrainerCards, loadBalance, deleteTrainerCard, getCardIcon, setDefaultTrainerCard } from '../components/Functions';
 const loading = require('../images/loading.gif');
 
-export class OwnerPage extends Component {
+export class ManagerPage extends Component {
 
 	constructor(props) {
 		super(props);
@@ -121,7 +121,7 @@ export class OwnerPage extends Component {
 			const trainer = this.state.gym.pendingtrainers[key];
 			trainer.key = key;
 			return (
-				<View key={trainer.name} style={styles.traineeRow}>
+				<View key={trainer.name} style={styles.clientRow}>
 					<Text style={styles.nameText}>{trainer.name}</Text>
 					<TouchableOpacity style={styles.denyButton} onPress={() => this.denyTrainer(key)}>
 						<Text style={styles.buttonText}><FontAwesome name="close" size={18} /></Text>
@@ -142,7 +142,7 @@ export class OwnerPage extends Component {
 			const trainer = this.state.gym.trainers[key];
 			trainer.key = key;
 			return (
-				<View key={trainer.name} style={styles.traineeRow}>
+				<View key={trainer.name} style={styles.clientRow}>
 					<Text style={styles.nameText}>{trainer.name} - ${trainer.rate}</Text>
 					<TouchableOpacity style={styles.denyButton} onPress={() => this.deleteTrainer(key)}>
 						<Text style={styles.buttonText}><FontAwesome name="close" size={18} /></Text>
@@ -150,7 +150,7 @@ export class OwnerPage extends Component {
 					<TouchableOpacity style={styles.acceptButton} onPress={() => this.setState({ selectedTrainer: trainer, rateModal: true})}>
 						<Text style={styles.buttonText}><FontAwesome name="dollar" size={18} /></Text>
 					</TouchableOpacity>
-					<TouchableOpacity style={styles.historyButton} onPress={() => Actions.OwnerHistoryPage({ userKey: key })}>
+					<TouchableOpacity style={styles.historyButton} onPress={() => Actions.ManagerHistoryPage({ userKey: key })}>
 						<Text style={styles.buttonText}><FontAwesome name="calendar" size={18} /></Text>
 					</TouchableOpacity>
 				</View>
@@ -242,8 +242,12 @@ export class OwnerPage extends Component {
 
 	updateRate = async() => {
 		try {
-			await firebase.database().ref(`/users/${this.state.selectedTrainer.key}/`).update({ rate: this.state.rate });
-			await firebase.database().ref(`/gyms/${this.props.gym}/trainers/${this.state.selectedTrainer.key}`).update({ rate: this.state.rate });
+			if (!this.state.rate || this.state.rate.replace(/\D/g,'') < 25) {
+				Alert.alert("Please enter your rate (has to be $25+)!");
+				return;
+			}
+			await firebase.database().ref(`/users/${this.state.selectedTrainer.key}/`).update({ rate: parseInt(this.state.rate) });
+			await firebase.database().ref(`/gyms/${this.props.gym}/trainers/${this.state.selectedTrainer.key}`).update({ rate: parseInt(this.state.rate) });
 			const gym = await loadGym(this.props.gym);
 			this.setState({ gym });
 			Alert.alert('Rate updated.');
@@ -319,7 +323,7 @@ export class OwnerPage extends Component {
 				<Modal
 					isVisible={this.state.cardModal}
 					onBackdropPress={this.hideCardModal}>
-					<OwnerCardModal hide={this.hideCardModalOnAdd} gym={this.props.gym} />
+					<ManagerCardModal hide={this.hideCardModalOnAdd} gym={this.props.gym} />
 				</Modal>
 				<Modal 
 					isVisible={this.state.rateModal}
@@ -327,7 +331,7 @@ export class OwnerPage extends Component {
 				>
 					<KeyboardAvoidingView behavior="padding" style={styles.cardModal}>
 						<Text style={styles.closeButton} onPress={this.hideRateModal}>
-							<FontAwesome name="close" size={35} />
+							<FontAwesome name="close" size={25} />
 						</Text>
 						<Text style={styles.header}>{trainerName}</Text>
 						<TextField
@@ -430,7 +434,7 @@ const styles = StyleSheet.create({
 		color: COLORS.WHITE,
 		textAlign: 'center'
 	},
-	traineeRow: {
+	clientRow: {
 		flexDirection: 'row',
 		justifyContent: 'space-between',
 		alignItems: 'center',
@@ -487,24 +491,24 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		justifyContent: 'center',
 		alignItems: 'center',
-		width: 40,
-		height: 40,
+		width: 30,
+		height: 30,
 	},
 	historyButton: {
 		backgroundColor: COLORS.PRIMARY,
 		flexDirection: 'column',
 		justifyContent: 'center',
 		alignItems: 'center',
-		width: 40,
-		height: 40,
+		width: 30,
+		height: 30,
 	},
 	acceptButton: {
 		backgroundColor: COLORS.GREEN,
 		flexDirection: 'column',
 		justifyContent: 'center',
 		alignItems: 'center',
-		width: 40,
-		height: 40,
+		width: 30,
+		height: 30,
 	},
 	icon: {
 		fontSize: 15
@@ -531,7 +535,7 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		top: 0,
 		right: 0,
-		fontSize: 35,
+		fontSize: 25,
 		color: COLORS.RED,
 	},
 	cardModal: {

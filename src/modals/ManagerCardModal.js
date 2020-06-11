@@ -8,7 +8,7 @@ import { STRIPE_KEY, FB_URL } from 'react-native-dotenv';
 const stripe = require('stripe-client')(STRIPE_KEY);
 const loading = require('../images/loading.gif');
 
-export class OwnerCardModal extends Component {
+export class ManagerCardModal extends Component {
 	
 	constructor(props) {
 		super(props);
@@ -34,7 +34,7 @@ export class OwnerCardModal extends Component {
 		if(this.state.pressed){
 			return;
 		}
-		this.state.pressed = true;
+		this.setState({ pressed: true });
 
 		const information = {
 			card: {
@@ -52,7 +52,7 @@ export class OwnerCardModal extends Component {
 		try {
 			card = await stripe.createToken(information);
 		} catch(error) {
-			this.state.pressed = false;
+			this.setState({ pressed: false });
 			this.bugsnagClient.notify(error);
 			Alert.alert('There was an error creating a token for the card. Please check your information and try again.');
 			return;
@@ -83,7 +83,7 @@ export class OwnerCardModal extends Component {
 			});
 			this.props.hide();
 		} catch(error){
-			this.state.pressed = false;
+			this.setState({ pressed: false });
 			this.bugsnagClient.notify(error);
 			Alert.alert('There was an error adding the card. Please check the info and make sure it is a debit card before trying again.');
 			return;
@@ -91,7 +91,7 @@ export class OwnerCardModal extends Component {
 	}
 
 	render(){
-		if (!this.state.gym || !this.state.user) {
+		if (!this.state.gym || !this.state.user || this.state.pressed) {
       return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
 		}
 		return(
@@ -140,7 +140,7 @@ export class OwnerCardModal extends Component {
 
 const styles = StyleSheet.create({
 	formContainer: {
-		flex: 0.6,
+		flex: 0.85,
 		flexDirection: 'column',
 		justifyContent: 'center',
 		alignItems: 'center',

@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { StyleSheet, Text, View, Image } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import COLORS from './Colors';
-import { dateToString, loadAcceptedSchedule, dateforAgenda, loadAvailableSchedule, loadOtherTrainer } from './Functions';
+import { dateToString, loadAcceptedSchedule, dateforAgenda, loadAvailableSchedule, loadTrainer } from './Functions';
 import { Agenda } from 'react-native-calendars';
 const loading = require('../images/loading.gif');
 
@@ -18,7 +18,7 @@ export class TrainerSchedule extends Component {
 	async componentDidMount(){
 		// load trainer and user info and trainer sessions
 		if(!this.state.trainer || !this.state.sessions){
-			var trainer = await loadOtherTrainer(this.props.trainerKey);
+			var trainer = await loadTrainer(this.props.trainerKey);
 			var sessions = await loadAcceptedSchedule(this.props.trainerKey);
 			var availability = await loadAvailableSchedule(this.props.trainerKey);
 			sessions = sessions.concat(availability);

@@ -14,7 +14,8 @@ import { GymModal } from '../modals/GymModal';
 import { BookModal } from '../modals/BookModal';
 import { ScheduleModal } from '../modals/ScheduleModal';
 import COLORS from '../components/Colors';
-import { loadUser, getLocation, loadGyms, goToPendingRating, loadCurrentSession, checkForUnreadSessions, markSessionsAsRead, loadPendingSessions, loadAcceptedSessions } from '../components/Functions';
+import { loadUser, getLocation, loadGyms, goToPendingRating, loadCurrentSession, checkForUnreadSessions, markSessionsAsRead, loadPendingSessions, loadUpcomingSessions, loadCurrentGroupSession } from '../components/Functions';
+import Constants from '../components/Constants';
 const markerImg = require('../images/marker.png');
 const loading = require('../images/loading.gif');
 
@@ -59,15 +60,16 @@ export class MapPage extends Component {
     }
     if (!this.state.gyms || !this.state.user) {
       try {
-        const user = await loadUser(firebase.auth().currentUser.uid);
-        await goToPendingRating(user.trainer, firebase.auth().currentUser.uid);
+        const userId = firebase.auth().currentUser.uid;
+        const user = await loadUser(userId);
+        await goToPendingRating(user.type, userId);
         const gyms = await loadGyms();
-        const currentSession = await loadCurrentSession(user.trainer, firebase.auth().currentUser.uid);
-        const unread = await checkForUnreadSessions(user.trainer, firebase.auth().currentUser.uid);
-        const userType = (user.trainer ? 'trainer' : 'trainee')
-				const pendingSessions = await loadPendingSessions(firebase.auth().currentUser.uid, userType);
-				const acceptSessions = await loadAcceptedSessions(firebase.auth().currentUser.uid, userType);
-        this.setState({gyms, user, currentSession, unread, pendingSessions, acceptSessions });
+        const currentSession = await loadCurrentSession(user.type, userId);
+        const currentGroupSession = await loadCurrentGroupSession(user.type, userId);
+        const unread = await checkForUnreadSessions(user.type, userId);
+				const pendingSessions = await loadPendingSessions(userId, user.type);
+				const acceptSessions = await loadUpcomingSessions(userId, user.type);
+        this.setState({gyms, user, currentSession, unread, pendingSessions, acceptSessions, currentGroupSession });
       } catch(error) {
         this.bugsnagClient.notify(error);
         Alert.alert('There was an error loading the map.');
@@ -154,7 +156,7 @@ export class MapPage extends Component {
         `Hello ${this.state.user.name}`,
         'You have a new session!',
         [
-          {text: 'Close', onPress: () => markSessionsAsRead(this.state.pendingSessions, this.state.acceptSessions, this.state.user.trainer)},
+          {text: 'Close', onPress: () => markSessionsAsRead(this.state.pendingSessions, this.state.acceptSessions, this.state.user.type)},
           {text: 'View', onPress: () => Actions.CalendarPage()}
         ]
       );
@@ -168,9 +170,15 @@ export class MapPage extends Component {
 					<Text style={styles.buttonText}>Enter Session!</Text>
 				</TouchableOpacity>
       );
+    } else if(this.state.currentGroupSession) {
+      alertBox = (
+        <TouchableOpacity style={styles.buttonContainer} onPress={() => Actions.GroupSessionPage({session: this.state.currentGroupSession})}>
+					<Text style={styles.buttonText}>Enter Session!</Text>
+				</TouchableOpacity>
+      );
     }
 
-    if (this.state.user.type != 'owner') {
+    if (this.state.user.trainerType !== Constants.managedType) {
       menu = <SideMenu />;
     } else {
       menu = <ManagedSideMenu />;

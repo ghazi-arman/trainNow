@@ -1,11 +1,11 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, Image, KeyboardAvoidingView, TouchableOpacity } from 'react-native';
-import { OwnerSignupForm } from '../forms/OwnerSignupForm';
+import { ManagerSignupForm } from '../forms/ManagerSignupForm';
 import { Actions } from 'react-native-router-flux';
 import COLORS from '../components/Colors';
 const logo = require('../images/logo.png');
 
-export class OwnerSignupPage extends Component {
+export class ManagerSignupPage extends Component {
 	goback = () => Actions.LoginPage();
 	
 	render() {
@@ -15,7 +15,7 @@ export class OwnerSignupPage extends Component {
 					<Image style={styles.logo} source={logo} />
 				</View>
 				<KeyboardAvoidingView style={styles.formContainer} behavior='padding'>
-					<OwnerSignupForm />
+					<ManagerSignupForm />
 				</KeyboardAvoidingView>
 				<View style={styles.linkContainer}>
 					<View style={styles.textContain}>

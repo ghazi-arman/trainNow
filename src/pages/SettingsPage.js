@@ -5,6 +5,7 @@ import { ClientAccountForm } from '../forms/ClientAccountForm';
 import { TrainerAccountForm } from '../forms/TrainerAccountForm';
 import { Actions } from 'react-native-router-flux';
 import COLORS from '../components/Colors';
+import Constants from '../components/Constants';
 
 export class SettingsPage extends Component {
 
@@ -32,7 +33,7 @@ export class SettingsPage extends Component {
 
   render() {
     let accountForm;
-    if (this.props.trainer) {
+    if (this.props.userType === Constants.trainerType) {
       accountForm = <TrainerAccountForm ref={(form) => { this.form = form }}/>
     } else {
       accountForm = <ClientAccountForm ref={(form) => { this.form = form }}/>

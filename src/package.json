@@ -3,6 +3,16 @@
     "version": "2.0.0",
     "private": true,
     "main": "./node_modules/expo/AppEntry.js",
+    "scripts": {
+        "lint": "eslint . --ext .js",
+        "test": "jest"
+    },
+    "jest": {
+        "preset": "jest-expo",
+        "transformIgnorePatterns": [
+            "node_modules/(?!(jest-)?react-native|react-clone-referenced-element|@react-native-community|expo(nent)?|@expo(nent)?/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|@sentry/.*)"
+        ]
+    },
     "dependencies": {
         "@bugsnag/expo": "^6.4.0",
         "expo": "^34.0.3",
@@ -22,7 +32,14 @@
         "stripe-client": "^1.1.5"
     },
     "devDependencies": {
+        "eslint": "^6.8.0",
+        "eslint-config-airbnb": "^18.1.0",
+        "eslint-plugin-import": "^2.20.2",
+        "eslint-plugin-jsx-a11y": "^6.2.3",
+        "eslint-plugin-react": "^7.20.0",
+        "eslint-plugin-react-hooks": "^2.5.1",
         "metro-react-native-babel-preset": "^0.56.0",
-        "react-native-dotenv": "^0.2.0"
+        "react-native-dotenv": "^0.2.0",
+        "react-test-renderer": "^16.13.1"
     }
 }

@@ -4,7 +4,7 @@ import firebase from 'firebase';
 import { FontAwesome } from '@expo/vector-icons';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
-import { dateToString, timeOverlapCheck, loadUser, loadGym, loadAcceptedSchedule, loadPendingSchedule, createPendingSession, sendMessage, loadOtherUser } from '../components/Functions';
+import { dateToString, timeOverlapCheck, loadUser, loadGym, loadAcceptedSchedule, loadPendingSchedule, createPendingSession, sendMessage, loadClient } from '../components/Functions';
 const loading = require('../images/loading.gif');
 
 export class BookModalTrainer extends Component {
@@ -18,12 +18,12 @@ export class BookModalTrainer extends Component {
 	}
 
 	async componentDidMount() {
-		if(!this.state.trainer || !this.state.trainee || !this.state.gym){
+		if(!this.state.trainer || !this.state.client || !this.state.gym){
 			try {
-				var trainee = await loadOtherUser(this.props.client);
+				var client = await loadClient(this.props.client);
 				var gym = await loadGym(this.props.gym);
 				var trainer = await loadUser(firebase.auth().currentUser.uid);
-				this.setState({ trainee, gym, trainer, bookDate: new Date(new Date().getTime() + parseInt(trainer.offset) * 60000) });
+				this.setState({ client, gym, trainer, bookDate: new Date(new Date().getTime() + parseInt(trainer.offset) * 60000) });
 			} catch(error) {
 				this.bugsnagClient.notify(error);
 				Alert.alert('There was an error loading this client. Please try again later.');
@@ -33,7 +33,7 @@ export class BookModalTrainer extends Component {
 	}
 
 	bookClient = async() => {
-		if (!this.state.trainee.cardAdded) {
+		if (!this.state.client.cardAdded) {
 			Alert.alert('This client no longer has a card on file.');
 			return;
 		}
@@ -42,7 +42,7 @@ export class BookModalTrainer extends Component {
 		const user = firebase.auth().currentUser;    
 		let trainerSchedule = await loadAcceptedSchedule(user.uid);
 		const pendingSchedule = await loadPendingSchedule(user.uid);
-		const traineeSchedule = await loadAcceptedSchedule(this.props.client);
+		const clientSchedule = await loadAcceptedSchedule(this.props.client);
 		trainerSchedule = trainerSchedule.concat(pendingSchedule);
 		const endTime = new Date(new Date(this.state.bookDate).getTime() + (60000 * this.state.bookDuration));
 		let timeConflict = false;
@@ -55,7 +55,7 @@ export class BookModalTrainer extends Component {
 			}
 		});
 
-		traineeSchedule.forEach((currSession) => {
+		clientSchedule.forEach((currSession) => {
 			if(timeOverlapCheck(currSession.start, currSession.end, this.state.bookDate, endTime)){
 				Alert.alert('The client has a pending session or session during this time.');
 				timeConflict = true;
@@ -68,8 +68,8 @@ export class BookModalTrainer extends Component {
 		// create session in pending table
     const price = (parseInt(this.state.trainer.rate) * (parseInt(this.state.bookDuration) / 60)).toFixed(2);
     let trainer = this.state.trainer;
-    let trainee = this.state.trainee;
-    trainee.uid = this.props.client;
+    let client = this.state.client;
+    client.key = this.props.client;
     trainer.key = user.uid;
     Alert.alert(
       `Book Session`,
@@ -78,9 +78,9 @@ export class BookModalTrainer extends Component {
         { text: 'No' },
         {
           text: 'Yes', onPress: async () => {
-            createPendingSession(trainee, trainer, this.state.gym, this.state.bookDate, this.state.bookDuration, 'trainer', true);
+            createPendingSession(client, trainer, this.state.gym, this.state.bookDate, this.state.bookDuration, 'trainer', true);
             try {
-              const message = `${this.state.trainee.name} has requested a session at ${dateToString(this.state.bookDate)} for ${this.state.bookDuration} mins.`;
+              const message = `${this.state.client.name} has requested a session at ${dateToString(this.state.bookDate)} for ${this.state.bookDuration} mins.`;
               sendMessage(this.state.trainer.phone, message);
             } catch (error) {
 							this.bugsnagClient.notify(error);
@@ -126,7 +126,7 @@ export class BookModalTrainer extends Component {
   }
 
 	render() {
-		if (!this.state.trainee || !this.state.trainer || !this.state.gym) {
+		if (!this.state.client || !this.state.trainer || !this.state.gym) {
       return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
 		}
 		let picker, timePicker;
@@ -162,7 +162,7 @@ export class BookModalTrainer extends Component {
 		return (
 			<View style={styles.modal}>
 				<View style={styles.nameContainer}>
-					<Text style={styles.trainerName}>{this.state.trainee.name}</Text>
+					<Text style={styles.trainerName}>{this.state.client.name}</Text>
 					<Text style={styles.closeButton} onPress={this.props.hide}>
 						<FontAwesome name="close" size={35} />
 					</Text>

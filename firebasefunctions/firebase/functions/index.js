@@ -40,8 +40,8 @@ function addGym(req, res) {
         type: body.type
     }
     
-    if(body.type === 'owner'){
-        gym.ownerKey = body.ownerKey;
+    if(body.type === 'manager'){
+        gym.managerKey = body.managerKey;
     }
 
     admin.database().ref('gyms').push(gym).then(result => {
@@ -60,7 +60,7 @@ function charge(req, res) {
         let uid = decodedToken.uid;
         let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
         userStripe = userStripe.val();
-        if(body.charge.traineeStripe !== userStripe) {
+        if(body.charge.clientStripe !== userStripe) {
             isValid = false;
         }
     }).catch(error => isValid = false);
@@ -71,7 +71,7 @@ function charge(req, res) {
     }
 
     //Create token and charge
-    stripe.tokens.create({ customer: body.charge.traineeStripe}, {stripe_account: body.charge.trainerStripe }).then(token => {
+    stripe.tokens.create({ customer: body.charge.clientStripe}, {stripe_account: body.charge.trainerStripe }).then(token => {
         return Promise.all([token.id,
             stripe.charges.create({
                 amount: body.charge.amount,
@@ -158,7 +158,7 @@ function createTrainer(req, res) {
                 city: body.city,
                 postal_code: body.zip,
                 state: body.state,
-                country: bodycountry,
+                country: 'US',
             }
         },
         tos_acceptance: {
@@ -178,7 +178,41 @@ function createTrainer(req, res) {
     });
 }
 
-function createOwner(req, res) {
+function deleteTrainer(req, res) {
+    const body = JSON.parse(req.body);
+    const idToken = req.headers.authorization;
+    let isValid = true;
+
+    admin.auth().verifyIdToken(idToken).then(async decodedToken => {
+        let uid = decodedToken.uid;
+        userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
+        userStripe = userStripe.val();
+        if(userStripe !== body.stripeId) {
+            isValid = false;
+        }
+    }).catch(error => isValid = false);
+
+    if(!isValid){
+        send(res, 401, 'Unauthorized User');
+        return;
+    }
+
+    stripe.accounts.del(body.stripeId).then(response => {
+        send(res, 200, {
+            message: 'Success',
+            response
+        });
+        return;
+    }).catch(err => {
+        console.log(err);
+        send(res, 500, { error: err.message });
+        return;
+    });
+}
+
+
+
+function createManager(req, res) {
     const body = JSON.parse(req.body);
     stripe.accounts.create({ 
         type: 'custom',
@@ -199,7 +233,7 @@ function createOwner(req, res) {
                 city: body.city,
                 postal_code: body.zip,
                 state: body.state,
-                country: body.country,
+                country: 'US',
             }
         },
         tos_acceptance: {
@@ -600,7 +634,8 @@ app.post('/stripe/deleteTrainerCard', (req, res) => deleteTrainerCard(req, res))
 app.post('/stripe/listCards', (req, res) => listCards(req, res));
 app.post('/stripe/listTrainerCards', (req, res) => listTrainerCards(req, res));
 app.post('/stripe/createTrainer', (req, res) => createTrainer(req, res));
-app.post('/stripe/createOwner', (req, res) => createOwner(req, res));
+app.post('/stripe/deleteTrainer', (req, res) => deleteTrainer(req, res));
+app.post('/stripe/createManager', (req, res) => createManager(req, res));
 app.post('/stripe/getBalance', (req, res) => getBalance(req, res));
 app.post('/twilio/sendMessage', (req, res) => sendMessage(req, res));
 

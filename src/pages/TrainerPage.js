@@ -38,19 +38,19 @@ export class TrainerPage extends Component {
 		}
 	}
 
-	sendTrainerRequest = async (trainerKey, traineeName, gymKey) => {
+	sendTrainerRequest = async (trainerKey, clientName, gymKey) => {
 		if (this.state.pressed) {
 			return;
 		}
 		try {
-			this.state.pressed = true;
+			this.setState({ pressed: true });
 			const userId = firebase.auth().currentUser.uid;
-			await sendTrainerRequest(trainerKey, traineeName, userId, gymKey);
+			await sendTrainerRequest(trainerKey, clientName, userId, gymKey);
 			Alert.alert(`Request was sent to the trainer.`);
 			const user = await loadUser(userId);
 			this.setState({ user, pressed: false });
 		} catch(error) {
-			this.state.pressed = false;
+			this.setState({ pressed: false });
 			this.bugsnagClient.notify(error);
 			Alert.alert('There was an error sending the request.');
 		}
@@ -91,7 +91,7 @@ export class TrainerPage extends Component {
 	renderRequests = () => {
 		return this.state.clientRequests.map((request) => {
 			return(
-				<View key={request.trainer} style={styles.traineeRow}>
+				<View key={request.trainer} style={styles.clientRow}>
 					<Text style={styles.nameText}>{request.trainerName}</Text>
 					<TouchableOpacity style={styles.denyButton} onPress={() => this.denyRequest(request.key, request.trainer)}> 
 						<Text style={styles.buttonText}><FontAwesome name="close" size={18} /> Deny</Text>
@@ -111,7 +111,7 @@ export class TrainerPage extends Component {
 		return Object.keys(this.state.user.trainers).map((key) => {
 			const trainer = this.state.user.trainers[key];
 			return(
-				<View key={trainer.trainer} style={styles.traineeRow}>
+				<View key={trainer.trainer} style={styles.clientRow}>
 					<Text style={styles.nameText}>{trainer.trainerName}</Text>
 					<TouchableOpacity style={styles.requestButton} onPress={() => this.bookSession(trainer.trainer, trainer.gym)}> 
 						<Text style={styles.buttonText}><FontAwesome name="calendar" size={18} /> Book </Text>
@@ -143,7 +143,7 @@ export class TrainerPage extends Component {
 				);
 			}
 			return(
-				<View key={trainer.key} style={styles.traineeRow}>
+				<View key={trainer.key} style={styles.clientRow}>
 					<Text style={styles.nameText}>{trainer.name}</Text>
 					{button}
 				</View>
@@ -156,7 +156,7 @@ export class TrainerPage extends Component {
 	}
 
 	render() {
-		if (!this.state.user || !this.state.clientRequests || !this.state.recentTrainers) {
+		if (!this.state.user || !this.state.clientRequests || !this.state.recentTrainers || this.state.pressed) {
       return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
 		}
 		if(this.state.currentTab == 'requests'){
@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
 		color: COLORS.WHITE,
 		textAlign: 'center'
 	},
-  traineeRow: {
+  clientRow: {
 		flexDirection: 'row',
 		justifyContent: 'space-around',
 		alignItems: 'center',
