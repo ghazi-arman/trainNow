@@ -209,10 +209,10 @@ export class PaymentPage extends Component {
 		}
 		let balanceDiv, payoutText, balanceFormatted;
 		if (this.state.user.type === Constants.trainerType) {
-			if(this.state.balance == 0){
+			if(this.state.balance === 0){
 				balanceFormatted = "0.00"
 			}else{
-				balanceFormatted = (parseInt(this.state.balance) / 100).toFixed(2);
+				balanceFormatted = (this.state.balance / 100).toFixed(2);
 			}
 			balanceDiv = (<Text style={styles.balanceText}>${balanceFormatted}</Text>);
 			payoutText = (<Text style={{fontSize: 20, textAlign: 'center', color: COLORS.PRIMARY, marginTop: 10}}>Funds will be transfered daily</Text>);

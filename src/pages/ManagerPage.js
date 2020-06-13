@@ -301,7 +301,7 @@ export class ManagerPage extends Component {
 		if (this.state.balance == 0) {
 			var balanceFormatted = "0.00"
 		} else {
-			var balanceFormatted = (parseInt(this.state.balance) / 100).toFixed(2);
+			var balanceFormatted = (this.state.balance / 100).toFixed(2);
 		}
 		const trainerName = this.state.selectedTrainer ? this.state.selectedTrainer.name : 'None';
 		return (
@@ -331,7 +331,7 @@ export class ManagerPage extends Component {
 				>
 					<KeyboardAvoidingView behavior="padding" style={styles.cardModal}>
 						<Text style={styles.closeButton} onPress={this.hideRateModal}>
-							<FontAwesome name="close" size={25} />
+							<FontAwesome name="close" size={35} />
 						</Text>
 						<Text style={styles.header}>{trainerName}</Text>
 						<TextField
@@ -535,7 +535,7 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		top: 0,
 		right: 0,
-		fontSize: 25,
+		fontSize: 35,
 		color: COLORS.RED,
 	},
 	cardModal: {

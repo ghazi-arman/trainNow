@@ -110,7 +110,7 @@ export class ClientPage extends Component {
 		return Object.keys(this.state.user.clients).map((key) => {
 			const client = this.state.user.clients[key];
 			return(
-				<View key={client.client} style={styles.clientRow}>
+				<View key={key} style={styles.clientRow}>
 					<Text style={styles.nameText}>{client.clientName}</Text>
 					<TouchableOpacity style={styles.requestButton} onPress={() => this.bookSession(client.client, this.state.user.gym)}> 
 						<Text style={styles.buttonText}><FontAwesome name="calendar" size={18} /> Book</Text>

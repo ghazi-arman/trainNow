@@ -49,8 +49,9 @@ export class ManagerHistoryPage extends Component {
 			const endDate = dateToString(session.end);
 			const day = (new Date(session.start).getMonth() + 1) + " / " + new Date(session.start).getDate();
 			const minutes = Math.floor(((new Date(session.end) - new Date(session.start))/1000)/60);
-			const rate = (parseInt(minutes) * (parseInt(session.rate) / 60)).toFixed(2);
-			let payout = (parseFloat(rate) - (parseFloat(rate) * .2)).toFixed(2);
+			const rate = (minutes * (session.rate / 60)).toFixed(2);
+			const percentage = this.state.session.regular ? Constants.regularClientPercentage : Constants.newClientPercentage;
+			let payout = (rate - rate * percentage).toFixed(2);
 			
 			let rateView, client, stars;
 			if (session.type === Constants.personalSessionType) {
@@ -69,7 +70,7 @@ export class ManagerHistoryPage extends Component {
 					client = (<Text style={styles.titleText}>Trained by {session.trainerName}</Text>);
 					stars = renderStars(session.clients[firebase.auth().currentUser.uid].rating);
 				} else {
-					payout = (((parseFloat(rate) - (parseFloat(rate) * .2)) * session.clientCount)).toFixed(2);
+					payout = ((rate - rate * Constants.newClientPercentage) * session.clientCount).toFixed(2);
 					rateView = (<View style={styles.sessionRow}><Text style={styles.smallText}>${payout}</Text></View>);
 					client = (<Text style={styles.titleText}>You trained {session.clientCount} clients</Text>);
 					stars = renderStars(session.trainerRating);

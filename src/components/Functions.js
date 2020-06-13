@@ -451,7 +451,7 @@ export async function loadRecentClients(trainerKey) {
   await firebase.database().ref(`pastSessions/${trainerKey}`).once('value', function(data) {
     data.forEach(function(sessionValue) {
       const session = sessionValue.val().session;
-      if(!clientMap.includes(session.client)){
+      if(session.client && !clientMap.includes(session.client)){
         clients.push({
           name: session.clientName,
           key: session.client,
@@ -624,7 +624,7 @@ export async function goToPendingRating(userType, userKey){
       if (userSchedule) {
         Object.keys(userSchedule).map(async (key) => {
           const session = (await firebase.database().ref(`/groupSessions/${key}`).once('value')).val();
-          if (session.end && !session.clients[userKey].rating) {
+          if (session && session.end && !session.clients[userKey].rating) {
             Actions.GroupSessionRatingPage({session: key});
             return;
           }
@@ -937,11 +937,11 @@ export async function rateSession(sessionKey, rating, userType){
     const otherUserKey = userType === Constants.trainerType ? session.client : session.trainer;
     const otherUser = await loadClient(otherUserKey);
     const ratingField = `${userType}Rating`;
-    const newRating = parseFloat((((parseFloat(otherUser.rating) * parseInt(otherUser.sessions)) + parseInt(rating)) / (parseInt(otherUser.sessions) + 1)).toFixed(2));
+    const newRating = (((otherUser.rating * otherUser.sessions) + rating) / (otherUser.sessions + 1)).toFixed(2);
     if (userType === Constants.clientType) {
       firebase.database().ref(`/gyms/${session.gymKey}/trainers/${session.trainer}`).update({ rating: newRating });
     }
-    await firebase.database().ref(`/users/${otherUserKey}`).update({ rating: newRating, sessions: (parseInt(otherUser.sessions) + 1)});
+    await firebase.database().ref(`/users/${otherUserKey}`).update({ rating: newRating, sessions: (otherUser.sessions + 1)});
     await firebase.database().ref(`/users/${userId}/schedule/${session.key}`).remove();
     session[ratingField] = rating;
     await firebase.database().ref(`/pastSessions/${userId}/${session.key}`).set({ session });
@@ -963,9 +963,9 @@ export async function rateGroupSession(sessionKey, rating, userType){
     let session = await loadGroupSession(sessionKey);
     if (userType === Constants.clientType) {
       const trainer = await loadClient(session.trainer);
-      const newRating = parseFloat((((parseFloat(trainer.rating) * parseInt(trainer.sessions)) + parseInt(rating)) / (parseInt(trainer.sessions) + 1)).toFixed(2));
+      const newRating = (((trainer.rating * trainer.sessions) + rating) / (trainer.sessions + 1)).toFixed(2);
       firebase.database().ref(`/gyms/${session.gymKey}/trainers/${session.trainer}`).update({ rating: newRating });
-      await firebase.database().ref(`/users/${session.trainer}`).update({ rating: newRating, sessions: (parseInt(trainer.sessions) + 1)});
+      await firebase.database().ref(`/users/${session.trainer}`).update({ rating: newRating, sessions: (trainer.sessions + 1)});
       await firebase.database().ref(`/users/${userId}/schedule/${sessionKey}`).remove();
       await firebase.database().ref(`/groupSessions/${sessionKey}/clients/${userId}`).update({ rating });
     } else {

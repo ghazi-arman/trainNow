@@ -5,5 +5,7 @@ export default {
   managedType: 'managed',
   independentType: 'independent',
   groupSessionType: 'group',
-  personalSessionType: 'personal'
+  personalSessionType: 'personal',
+  newClientPercentage: 0.25,
+  regularClientPercentage: 0.1
 }

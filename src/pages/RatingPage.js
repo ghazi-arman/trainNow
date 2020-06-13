@@ -45,9 +45,9 @@ export class RatingPage extends Component {
 			if (this.state.user.type === Constants.clientType) {
 				var duration = new Date(this.state.session.end) - new Date(this.state.session.start);
 				var minutes = Math.floor((duration/1000)/60);
-				const total = ((parseInt(minutes) * (parseInt(this.state.session.rate) / 60)) * 100).toFixed(0);
-				const percentage = this.state.session.regular ? 0.1 : 0.25;
-				const payout = parseInt(total) - parseInt(total * percentage);
+				const total = (minutes * (this.state.session.rate / 60) * 100).toFixed(0);
+				const percentage = this.state.session.regular ? Constants.regularClientPercentage : Constants.newClientPercentage;
+				const payout = total - total * percentage;
 				await chargeCard(this.state.user.stripeId, this.state.session.trainerStripe, total, total - payout, this.state.session);
 			}
 
@@ -95,9 +95,9 @@ export class RatingPage extends Component {
 		const displayDate = dateToString(this.state.session.end);
 		const duration = new Date(this.state.session.end) - new Date(this.state.session.start);
 		const minutes = Math.floor((duration/1000)/60);
-		const total = (parseInt(minutes) * (parseInt(this.state.session.rate) / 60)).toFixed(2);
-		const percentage = this.state.session.regular ? 0.1 : 0.25;
-		const payout = (parseInt(total) - parseInt(total * percentage)).toFixed(2);
+		const total = (minutes * (this.state.session.rate / 60)).toFixed(2);
+		const percentage = this.state.session.regular ? Constants.regularClientPercentage : Constants.newClientPercentage;
+		const payout = (total - total * percentage).toFixed(2);
 
 		let cost = null;
 		if (this.state.session.trainer === userId) {

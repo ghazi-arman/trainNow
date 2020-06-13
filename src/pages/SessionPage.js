@@ -179,7 +179,7 @@ export class SessionPage extends Component {
 		}else{
 			pendingDate = new Date(this.state.session.start);
 			displayDate = dateToString(this.state.session.start);
-			remaining = ((pendingDate.getTime() + (parseInt(this.state.session.duration) * 1000 * 60)) - new Date().getTime());
+			remaining = ((pendingDate.getTime() + (this.state.session.duration * 1000 * 60)) - new Date().getTime());
 			minutes = Math.max(Math.floor((remaining/1000)/60), 0);
 			time = <Text style={styles.bookDetails}>{displayDate}</Text>;
 			length = <Text style={styles.bookDetails}>You have {minutes} min left</Text>;

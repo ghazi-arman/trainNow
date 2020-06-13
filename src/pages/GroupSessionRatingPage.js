@@ -44,9 +44,8 @@ export class GroupSessionRatingPage extends Component {
       if (this.state.session.trainer !== firebase.auth().currentUser.uid) {
         var duration = new Date(this.state.session.end) - new Date(this.state.session.start);
         var minutes = Math.floor((duration/1000)/60);
-        const total = ((parseInt(minutes) * (parseInt(this.state.session.rate) / 60)) * 100).toFixed(0);
-        const percentage = this.state.session.regular ? 0.1 : 0.25;
-        const payout = parseInt(total) - parseInt(total * percentage);
+        const total = (minutes * (this.state.session.rate / 60) * 100).toFixed(0);
+        const payout = total - (total * Constants.newClientPercentage);
         await chargeCard(this.state.user.stripeId, this.state.session.trainerStripe, total, total - payout, this.state.session);
       }
       await rateGroupSession(this.state.session.key, this.state.rating, this.state.user.type);
@@ -93,16 +92,15 @@ export class GroupSessionRatingPage extends Component {
 		const displayDate = dateToString(this.state.session.end);
 		const duration = new Date(this.state.session.end) - new Date(this.state.session.start);
 		const minutes = Math.floor((duration/1000)/60);
-		const total = (parseInt(minutes) * (parseInt(this.state.session.rate) / 60)).toFixed(2);
-		const percentage = this.state.session.regular ? 0.1 : 0.25;
-		const payout = (parseInt(total) - parseInt(total * percentage)).toFixed(2);
+		const total = (minutes * (this.state.session.rate / 60)).toFixed(2);
+		const payout = (total - total * Constants.newClientPercentage).toFixed(2);
 
     let cost = null;
     let stars = null;
     let button = null;
 		if (this.state.session.trainer === userId) {
 			if (this.state.session.trainerType === Constants.independentType) {
-				cost = <Text style={styles.bookDetails}>Total Earned: ${(payout * parseInt(this.state.session.clientCount)).toFixed(2)}</Text>
+				cost = <Text style={styles.bookDetails}>Total Earned: ${(payout * this.state.session.clientCount).toFixed(2)}</Text>
 			}
 		} else {
       cost = <Text style={styles.bookDetails}>Total Cost: ${total}</Text>;

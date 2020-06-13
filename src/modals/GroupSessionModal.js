@@ -208,7 +208,7 @@ export class GroupSessionModal extends Component {
 				<View style={styles.nameContainer}>
 					<Text style={styles.trainerName}>Create Group Session</Text>
 					<Text style={styles.closeButton} onPress={this.props.hide}>
-						<FontAwesome name="close" size={25} />
+						<FontAwesome name="close" size={35} />
 					</Text>
 				</View>
 				<KeyboardAvoidingView behavior="padding" style={styles.formContainer}>
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		top: 0,
 		right: 0,
-		fontSize: 25,
+		fontSize: 35,
 		color: COLORS.RED,
 	},
   bookButton: {

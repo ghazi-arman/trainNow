@@ -71,7 +71,7 @@ export class GymModal extends Component {
 	joinGroupSession = async(session) => {
 		try {
 			const userId = firebase.auth().currentUser.uid;
-			if (parseInt(session.clientCount) >= parseInt(session.capacity)) {
+			if (session.clientCount >= session.capacity) {
 				Alert.alert('This session is already full.');
 				return;
 			}
@@ -180,7 +180,7 @@ export class GymModal extends Component {
 
 		trainers.sort(function(a,b) {
 			if(a.active && b.active){
-				return parseFloat(b.rating) - parseFloat(a.rating);
+				return b.rating - a.rating;
 			}else if(b.active){
 				return 1;
 			}else{
@@ -289,7 +289,7 @@ export class GymModal extends Component {
 						</TouchableOpacity>
 					</View>
 					<Text style={styles.closeButton} onPress={this.props.hide}>
-						<FontAwesome name="close" size={25} />
+						<FontAwesome name="close" size={35} />
 					</Text>
 				</View>
 				<View style={styles.mapContainer}>
@@ -428,7 +428,7 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		top: 0,
 		right: 0,
-		fontSize: 25,
+		fontSize: 35,
 		color: COLORS.RED,
 	},
 	rate: {

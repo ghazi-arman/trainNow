@@ -23,7 +23,7 @@ export class BookModalTrainer extends Component {
 				var client = await loadClient(this.props.client);
 				var gym = await loadGym(this.props.gym);
 				var trainer = await loadUser(firebase.auth().currentUser.uid);
-				this.setState({ client, gym, trainer, bookDate: new Date(new Date().getTime() + parseInt(trainer.offset) * 60000) });
+				this.setState({ client, gym, trainer, bookDate: new Date(new Date().getTime() + trainer.offset * 60000) });
 			} catch(error) {
 				this.bugsnagClient.notify(error);
 				Alert.alert('There was an error loading this client. Please try again later.');
@@ -66,7 +66,7 @@ export class BookModalTrainer extends Component {
 		if(timeConflict) return;
 
 		// create session in pending table
-    const price = (parseInt(this.state.trainer.rate) * (parseInt(this.state.bookDuration) / 60)).toFixed(2);
+    const price = (this.state.trainer.rate * (parseInt(this.state.bookDuration) / 60)).toFixed(2);
     let trainer = this.state.trainer;
     let client = this.state.client;
     client.key = this.props.client;
@@ -99,7 +99,7 @@ export class BookModalTrainer extends Component {
     try {
       const {action, year, month, day} = await DatePickerAndroid.open({
 				date: new Date(),
-				minDate: new Date(new Date().getTime() + parseInt(this.state.trainer.offset) * 60000)
+				minDate: new Date(new Date().getTime() + this.state.trainer.offset * 60000)
       });
       if (action !== DatePickerAndroid.dismissedAction) {
         this.setState({ bookDate: new Date(year, month, day)});
@@ -138,7 +138,7 @@ export class BookModalTrainer extends Component {
 					textColor={COLORS.PRIMARY}
 					style={styles.datepicker}
 					minuteInterval={5}
-					minimumDate={new Date(new Date().getTime() + parseInt(this.state.trainer.offset) * 60000)}
+					minimumDate={new Date(new Date().getTime() + this.state.trainer.offset * 60000)}
 					date={this.state.bookDate}
 					onDateChange={(bookDate) => this.setState({ bookDate: bookDate })}
 				/>
