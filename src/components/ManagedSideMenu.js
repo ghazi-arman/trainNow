@@ -5,7 +5,7 @@ import firebase from 'firebase';
 import { Actions } from 'react-native-router-flux';
 import COLORS from './Colors';
 import Constants from './Constants';
-import { loadUser } from './Functions';
+import { loadUser, renderStars } from './Functions';
 const loading = require('../images/loading.gif');
 
 export class ManagedSideMenu extends Component {
@@ -68,7 +68,7 @@ export class ManagedSideMenu extends Component {
       <View style={styles.container}>
         <View style={styles.nameContainer}>
           <Text style={{fontSize: 25, color: COLORS.WHITE}}>{this.state.user.name}</Text>
-          <Text style={{fontSize: 20, color: COLORS.WHITE}}>{this.state.user.rating}</Text>
+          <Text style={styles.stars}>{renderStars(this.state.user.rating)}</Text>
           {active}
         </View>
         <TouchableOpacity onPress={() => Actions.MapPage()}>
@@ -135,4 +135,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center'
   },
+  stars: {
+		color: COLORS.WHITE,
+		fontSize: 15,
+	}
 });

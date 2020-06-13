@@ -37,6 +37,9 @@ export function dateToString(start) {
     hour = hour - 12;
     abbr = ' PM';
   } else {
+    if (hour === 0) {
+      hour = 12;
+    }
     abbr = ' AM'
   }
 
@@ -59,6 +62,9 @@ export function timeToString(start) {
     hour = hour - 12;
     abbr = ' PM';
   } else {
+    if (hour === 0) {
+      hour = 12;
+    }
     abbr = ' AM'
   }
 
@@ -299,12 +305,14 @@ export async function createSession(session, sessionKey, startTime, endTime){
   // add session to trainer's and client's schedule
   firebase.database().ref(`users/${userId}/schedule/`).child(sessionKey).set({
     start: startTime.toString(),
-    end: endTime.toString()
+    end: endTime.toString(),
+    type: Constants.personalSessionType
   });
 
   firebase.database().ref(`users/${otherUserKey}/schedule/`).child(sessionKey).set({
     start: startTime.toString(),
-    end: endTime.toString()
+    end: endTime.toString(),
+    type: Constants.personalSessionType
   });
 }
 
@@ -394,10 +402,10 @@ export async function createPendingSession(client, trainer, gym, date, duration,
   }).key;
   let end = new Date(new Date(date).getTime() + (60000 * duration))
   const userId = firebase.auth().currentUser.uid;
-  const otherUserKey = (userId === client.key) ? trainer.key: client.key;
   firebase.database().ref(`users/${userId}/pendingschedule/`).child(sessionKey).set({
     start: date.toString(),
-    end: end.toString()
+    end: end.toString(),
+    type: Constants.personalSessionType
   });
 }
 
@@ -548,7 +556,6 @@ export async function sendTrainerRequest(trainerKey, clientName, clientKey, gymK
     gym: gymKey
   });
   await firebase.database().ref(`users/${clientKey}/requests/${trainerKey}`).set(true);
-  await firebase.database().ref(`users/${userId}/requestApprovedUser`).child(otherUserKey).set(true);
 }
 
 export async function sendClientRequest(clientKey, trainerKey, trainerName, gymKey) {
@@ -561,7 +568,6 @@ export async function sendClientRequest(clientKey, trainerKey, trainerName, gymK
     gym: gymKey
   });
   await firebase.database().ref(`users/${trainerKey}/requests/${clientKey}`).set(true);
-  await firebase.database().ref(`users/${userId}/requestApprovedUser`).child(otherUserKey).set(true);
 }
 
 export async function loadSessions(userKey) {
@@ -609,36 +615,31 @@ export async function loadGyms(){
 
 export async function goToPendingRating(userType, userKey){
   try {
+    const userSchedule = (await firebase.database().ref(`/users/${userKey}/schedule`).once('value')).val();
     const ratingField = `${userType}Rating`;
-    await firebase.database().ref('trainSessions').orderByChild(userType).equalTo(userKey).once('value', function(snapshot){
-      snapshot.forEach(function(sessionValue){
-        const session = sessionValue.val();
-        if(session.end && !session[ratingField]){
-          Actions.RatingPage({session: sessionValue.key});
-          return;
+    if (userSchedule) {
+      Object.keys(userSchedule).map(async (key) => {
+        let session = null;
+        if(userSchedule[key].type === Constants.groupSessionType) {
+          session = (await firebase.database().ref(`/groupSessions/${key}`).once('value')).val();
+          if (userType === Constants.trainerType) {
+            if(session && session.end && !session[ratingField]){
+              Actions.GroupSessionRatingPage({session: key});
+              return;
+            }
+          } else {
+            if (session && session.end && !session.clients[userKey].rating) {
+              Actions.GroupSessionRatingPage({session: key});
+              return;
+            }
+          }
+        } else {
+          session = (await firebase.database().ref(`/trainSessions/${key}`).once('value')).val();
+          if (session && session.end && !session[ratingField]) {
+            Actions.RatingPage({session: key});
+            return;
+          }
         }
-      });
-    });
-    if (userType === Constants.clientType) {
-      const userSchedule = (await firebase.database().ref(`/users/${userKey}/schedule`).once('value')).val();
-      if (userSchedule) {
-        Object.keys(userSchedule).map(async (key) => {
-          const session = (await firebase.database().ref(`/groupSessions/${key}`).once('value')).val();
-          if (session && session.end && !session.clients[userKey].rating) {
-            Actions.GroupSessionRatingPage({session: key});
-            return;
-          }
-        });
-      }
-    } else {
-      await firebase.database().ref('groupSessions').orderByChild(Constants.trainerType).equalTo(userKey).once('value', function(snapshot){
-        snapshot.forEach(function(sessionValue){
-          const session = sessionValue.val();
-          if(session.end && !session[ratingField]){
-            Actions.GroupSessionRatingPage({session: sessionValue.key});
-            return;
-          }
-        });
       });
     }
   } catch (error) {
@@ -939,9 +940,9 @@ export async function rateSession(sessionKey, rating, userType){
     const ratingField = `${userType}Rating`;
     const newRating = (((otherUser.rating * otherUser.sessions) + rating) / (otherUser.sessions + 1)).toFixed(2);
     if (userType === Constants.clientType) {
-      firebase.database().ref(`/gyms/${session.gymKey}/trainers/${session.trainer}`).update({ rating: newRating });
+      firebase.database().ref(`/gyms/${session.gymKey}/trainers/${session.trainer}`).update({ rating: parseFloat(newRating) });
     }
-    await firebase.database().ref(`/users/${otherUserKey}`).update({ rating: newRating, sessions: (otherUser.sessions + 1)});
+    await firebase.database().ref(`/users/${otherUserKey}`).update({ rating: parseFloat(newRating), sessions: (otherUser.sessions + 1)});
     await firebase.database().ref(`/users/${userId}/schedule/${session.key}`).remove();
     session[ratingField] = rating;
     await firebase.database().ref(`/pastSessions/${userId}/${session.key}`).set({ session });
@@ -964,8 +965,8 @@ export async function rateGroupSession(sessionKey, rating, userType){
     if (userType === Constants.clientType) {
       const trainer = await loadClient(session.trainer);
       const newRating = (((trainer.rating * trainer.sessions) + rating) / (trainer.sessions + 1)).toFixed(2);
-      firebase.database().ref(`/gyms/${session.gymKey}/trainers/${session.trainer}`).update({ rating: newRating });
-      await firebase.database().ref(`/users/${session.trainer}`).update({ rating: newRating, sessions: (trainer.sessions + 1)});
+      firebase.database().ref(`/gyms/${session.gymKey}/trainers/${session.trainer}`).update({ rating: parseFloat(newRating) });
+      await firebase.database().ref(`/users/${session.trainer}`).update({ rating: parseFloat(newRating), sessions: (trainer.sessions + 1)});
       await firebase.database().ref(`/users/${userId}/schedule/${sessionKey}`).remove();
       await firebase.database().ref(`/groupSessions/${sessionKey}/clients/${userId}`).update({ rating });
     } else {
@@ -1102,7 +1103,8 @@ export async function createGroupSession(trainer, start, duration, name, bio, ca
     let end = new Date(new Date(start).getTime() + (60000 * duration));
     await firebase.database().ref(`users/${userId}/schedule/${sessionKey}`).set({
       start: start.toString(),
-      end: end.toString()
+      end: end.toString(),
+      type: Constants.groupSessionType
     });
   } catch(error) {
     throw error;
@@ -1158,7 +1160,8 @@ export async function joinGroupSession(session, user, userId) {
     let end = new Date(new Date(session.start).getTime() + (60000 * session.duration));
     await firebase.database().ref(`users/${userId}/schedule/${session.key}`).set({
       start: session.start.toString(),
-      end: end.toString()
+      end: end.toString(),
+      type: Constants.groupSessionType
     });
   } catch(error) {
     throw error;

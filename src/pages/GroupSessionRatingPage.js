@@ -48,7 +48,7 @@ export class GroupSessionRatingPage extends Component {
         const payout = total - (total * Constants.newClientPercentage);
         await chargeCard(this.state.user.stripeId, this.state.session.trainerStripe, total, total - payout, this.state.session);
       }
-      await rateGroupSession(this.state.session.key, this.state.rating, this.state.user.type);
+      await rateGroupSession(this.state.session.key, parseInt(this.state.rating), this.state.user.type);
 		} catch(error) {
 			this.setState({ pressed: false });
 			this.bugsnagClient.notify(error);

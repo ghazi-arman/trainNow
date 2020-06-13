@@ -88,6 +88,8 @@ export class BookModal extends Component {
     let client = this.state.user;
     client.key = firebase.auth().currentUser.uid;
     trainer.key = this.props.trainer.key;
+    const trainerIsRegular = (await firebase.database().ref(`/users/${client.key}/trainers/${trainer.key}`).once('value')).val()
+    const regular = trainerIsRegular ? true : false;
     Alert.alert(
       `Book Session`,
       `Request session with ${this.state.trainer.name} for $${price} at ${dateToString(this.state.bookDate)}`,
@@ -99,7 +101,7 @@ export class BookModal extends Component {
         },
         {
           text: 'Yes', onPress: async () => {
-            createPendingSession(client, trainer, this.props.gym, this.state.bookDate, this.state.bookDuration, 'client', false);
+            createPendingSession(client, trainer, this.props.gym, this.state.bookDate, this.state.bookDuration, 'client', regular);
             try {
               const message = `${this.state.user.name} has requested a session at ${dateToString(this.state.bookDate)} for ${this.state.bookDuration} mins.`;
               sendMessage(this.state.trainer.phone, message);
