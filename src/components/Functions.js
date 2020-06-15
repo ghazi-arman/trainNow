@@ -168,7 +168,7 @@ export async function loadAcceptedSchedule(userKey){
 // Loads availability schedule from users table
 export async function loadAvailableSchedule(userKey){
   let sessions = [];
-  await firebase.database().ref('/users/' + userKey + '/availableschedule/').once('value', function (snapshot) {
+  await firebase.database().ref('/users/' + userKey + '/availableSchedule/').once('value', function (snapshot) {
     snapshot.forEach(function (snapshot){
       let session = snapshot.val();
       session.text = 'Open Availability'
@@ -179,7 +179,7 @@ export async function loadAvailableSchedule(userKey){
 }
 
 export async function addAvailableSession(trainerKey, startDate, endDate){
-  firebase.database().ref('users/' + trainerKey + '/availableschedule/').push({
+  firebase.database().ref('users/' + trainerKey + '/availableSchedule/').push({
     start: startDate.toString(),
     end: endDate.toString()
   });
