@@ -20,29 +20,29 @@ import {GroupSessionPage} from './pages/GroupSessionPage';
 import {GroupSessionRatingPage} from './pages/GroupSessionRatingPage';
 
 export class Routes extends Component {
-	render() {
-		return (
-			<Router>
-				<Stack key="root" hideNavBar={true}>
-					<Scene key="LoginPage" component={LoginPage} title="LoginPage" />
-			    	<Scene key="SignupPage" component={SignupPage} title="SignupPage" />
-			    	<Scene key="ForgotPage" component={ForgotPage} title="ForgotPage"  />
-			    	<Scene key="MapPage" component={MapPage} title="MapPage" />
-			    	<Scene key="SettingsPage" component={SettingsPage} title="SettingsPage" />
-			    	<Scene key="SessionPage" component={SessionPage} title="SessionPage" />
-			    	<Scene key="RatingPage" component={RatingPage} title="RatingPage" />
-			    	<Scene key="HistoryPage" component={HistoryPage} title="HistoryPage" />
-			    	<Scene key="CalendarPage" component={CalendarPage} title="CalendarPage" />
-			    	<Scene key="PaymentPage" component={PaymentPage} title="PaymentPage" />
-			    	<Scene key="ClientPage" component={ClientPage} title="ClientPage" />
-			    	<Scene key="TrainerPage" component={TrainerPage} title="TrainerPage" />
-			    	<Scene key="ManagerPage" component={ManagerPage} title="ManagerPage" />
-			    	<Scene key="ManagerSignupPage" component={ManagerSignupPage} title="ManagerSignupPage" />
-			    	<Scene key="ManagerHistoryPage" component={ManagerHistoryPage} title="ManagerHistoryPage" />
-						<Scene key="GroupSessionPage" component={GroupSessionPage} title="GroupSessionPage" />
-						<Scene key="GroupSessionRatingPage" component={GroupSessionRatingPage} title="GroupSessionRatingPage" />
- 			    </Stack>
-			</Router>
-		);
-	}
+  render() {
+    return (
+      <Router>
+        <Stack key="root" hideNavBar={true}>
+          <Scene key="LoginPage" component={LoginPage} title="LoginPage" />
+            <Scene key="SignupPage" component={SignupPage} title="SignupPage" />
+            <Scene key="ForgotPage" component={ForgotPage} title="ForgotPage"  />
+            <Scene key="MapPage" component={MapPage} title="MapPage" />
+            <Scene key="SettingsPage" component={SettingsPage} title="SettingsPage" />
+            <Scene key="SessionPage" component={SessionPage} title="SessionPage" />
+            <Scene key="RatingPage" component={RatingPage} title="RatingPage" />
+            <Scene key="HistoryPage" component={HistoryPage} title="HistoryPage" />
+            <Scene key="CalendarPage" component={CalendarPage} title="CalendarPage" />
+            <Scene key="PaymentPage" component={PaymentPage} title="PaymentPage" />
+            <Scene key="ClientPage" component={ClientPage} title="ClientPage" />
+            <Scene key="TrainerPage" component={TrainerPage} title="TrainerPage" />
+            <Scene key="ManagerPage" component={ManagerPage} title="ManagerPage" />
+            <Scene key="ManagerSignupPage" component={ManagerSignupPage} title="ManagerSignupPage" />
+            <Scene key="ManagerHistoryPage" component={ManagerHistoryPage} title="ManagerHistoryPage" />
+            <Scene key="GroupSessionPage" component={GroupSessionPage} title="GroupSessionPage" />
+            <Scene key="GroupSessionRatingPage" component={GroupSessionRatingPage} title="GroupSessionRatingPage" />
+           </Stack>
+      </Router>
+    );
+  }
 }

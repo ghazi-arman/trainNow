@@ -67,8 +67,8 @@ export class MapPage extends Component {
         const currentSession = await loadCurrentSession(user.type, userId);
         const currentGroupSession = await loadCurrentGroupSession(user.type, userId);
         const unread = await checkForUnreadSessions(user.type, userId);
-				const pendingSessions = await loadPendingSessions(userId, user.type);
-				const acceptSessions = await loadUpcomingSessions(userId, user.type);
+        const pendingSessions = await loadPendingSessions(userId, user.type);
+        const acceptSessions = await loadUpcomingSessions(userId, user.type);
         this.setState({gyms, user, currentSession, unread, pendingSessions, acceptSessions, currentGroupSession });
       } catch(error) {
         this.bugsnagClient.notify(error);
@@ -167,14 +167,14 @@ export class MapPage extends Component {
     if (this.state.currentSession) {
       alertBox = (
         <TouchableOpacity style={styles.buttonContainer} onPress={() => Actions.SessionPage({session: this.state.currentSession})}>
-					<Text style={styles.buttonText}>Enter Session!</Text>
-				</TouchableOpacity>
+          <Text style={styles.buttonText}>Enter Session!</Text>
+        </TouchableOpacity>
       );
     } else if(this.state.currentGroupSession) {
       alertBox = (
         <TouchableOpacity style={styles.buttonContainer} onPress={() => Actions.GroupSessionPage({session: this.state.currentGroupSession})}>
-					<Text style={styles.buttonText}>Enter Session!</Text>
-				</TouchableOpacity>
+          <Text style={styles.buttonText}>Enter Session!</Text>
+        </TouchableOpacity>
       );
     }
 
@@ -266,20 +266,20 @@ const styles = StyleSheet.create({
   buttonContainer: {
     position: 'absolute',
     top: 30,
-		width: '40%',
-		height: 48,
+    width: '40%',
+    height: 48,
     backgroundColor: COLORS.SECONDARY,
-		flexDirection: 'column',
-		justifyContent: 'center',
-		margin: 10,
-		borderRadius: 5
-	},
-	buttonText: {
-		textAlign: 'center',
-		color: COLORS.WHITE,
+    flexDirection: 'column',
+    justifyContent: 'center',
+    margin: 10,
+    borderRadius: 5
+  },
+  buttonText: {
+    textAlign: 'center',
+    color: COLORS.WHITE,
     fontWeight: '700',
     fontSize: 16
-	},
+  },
   loading: {
     width: '100%',
     resizeMode: 'contain'

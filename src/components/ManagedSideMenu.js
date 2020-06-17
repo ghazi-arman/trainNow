@@ -9,16 +9,16 @@ import { loadUser, renderStars } from './Functions';
 const loading = require('../images/loading.gif');
 
 export class ManagedSideMenu extends Component {
-	
-	constructor(props) {
-		super(props);
+  
+  constructor(props) {
+    super(props);
     this.state = {}
-	}
+  }
 
-	async componentDidMount(){
+  async componentDidMount(){
     const user = await loadUser(firebase.auth().currentUser.uid);
     this.setState({ user });
-	}
+  }
 
   logout() {
     Alert.alert(
@@ -37,7 +37,7 @@ export class ManagedSideMenu extends Component {
     );
   }
 
-	render(){
+  render(){
     if(!this.state.user){
       return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
     }
@@ -98,13 +98,13 @@ export class ManagedSideMenu extends Component {
 }
 
 const styles = StyleSheet.create({
-	container: {
+  container: {
     flex: 1,
     flexDirection: 'column',
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
     backgroundColor: COLORS.WHITE
-	},
+  },
   nameContainer: {
     width: '100%',
     flexDirection: 'column',
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   stars: {
-		color: COLORS.WHITE,
-		fontSize: 15,
-	}
+    color: COLORS.WHITE,
+    fontSize: 15,
+  }
 });

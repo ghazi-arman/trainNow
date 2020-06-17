@@ -336,15 +336,15 @@ export class SignupForm extends Component {
         return;
       }
       try {
-				const emailCheck = await firebase.auth().fetchSignInMethodsForEmail(this.state.email);
-				if(emailCheck.length) {
-					Alert.alert("That email is already in use");
-					return;
-				}
-			} catch(error) {
-				this.bugsnagClient.notify(error);
-				Alert.alert("Please enter a valid email");
-				return;
+        const emailCheck = await firebase.auth().fetchSignInMethodsForEmail(this.state.email);
+        if(emailCheck.length) {
+          Alert.alert("That email is already in use");
+          return;
+        }
+      } catch(error) {
+        this.bugsnagClient.notify(error);
+        Alert.alert("Please enter a valid email");
+        return;
       }
 
       if (this.state.trainer) {

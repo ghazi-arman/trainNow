@@ -63,18 +63,18 @@ export class BookModal extends Component {
     const endTime = new Date(new Date(this.state.bookDate).getTime() + (60000 * this.state.bookDuration));
     let timeConflict = false;
 
-		trainerSchedule.forEach((currSession) => {
-			if(timeOverlapCheck(currSession.start, currSession.end, this.state.bookDate, endTime)){
+    trainerSchedule.forEach((currSession) => {
+      if(timeOverlapCheck(currSession.start, currSession.end, this.state.bookDate, endTime)){
         Alert.alert('The Trainer has a session during this time.');
         timeConflict = true;
-			}
-		});
+      }
+    });
 
-		clientSchedule.forEach((currSession) => {
-			if(timeOverlapCheck(currSession.start, currSession.end, this.state.bookDate, endTime)){
+    clientSchedule.forEach((currSession) => {
+      if(timeOverlapCheck(currSession.start, currSession.end, this.state.bookDate, endTime)){
         Alert.alert('You already have a pending session or session during this time.');
         timeConflict = true;
-			}
+      }
     });
 
     if (timeConflict) {
@@ -152,21 +152,21 @@ export class BookModal extends Component {
     }
     let picker, timePicker;
     if(Platform.OS === 'ios') {
-			picker = (
-				<DatePickerIOS
-					mode='datetime'
-					itemStyle={{ color: COLORS.PRIMARY }}
-					textColor={COLORS.PRIMARY}
-					style={styles.datePicker}
-					minuteInterval={5}
-					minimumDate={new Date(new Date().getTime() + this.state.trainer.offset * 60000)}
-					date={this.state.bookDate}
-					onDateChange={(bookDate) => this.setState({ bookDate: bookDate })}
-				/>
-			);
-		} else {
-			picker = (
-				<TouchableOpacity style={styles.bookButton} onPressIn={() => this.openDatePicker()}>
+      picker = (
+        <DatePickerIOS
+          mode='datetime'
+          itemStyle={{ color: COLORS.PRIMARY }}
+          textColor={COLORS.PRIMARY}
+          style={styles.datePicker}
+          minuteInterval={5}
+          minimumDate={new Date(new Date().getTime() + this.state.trainer.offset * 60000)}
+          date={this.state.bookDate}
+          onDateChange={(bookDate) => this.setState({ bookDate: bookDate })}
+        />
+      );
+    } else {
+      picker = (
+        <TouchableOpacity style={styles.bookButton} onPressIn={() => this.openDatePicker()}>
           <Text style={styles.buttonText}>
             Choose Date
           </Text>
@@ -179,7 +179,7 @@ export class BookModal extends Component {
           </Text>
         </TouchableOpacity>
       );
-		}
+    }
     return (
       <View style={styles.modal}>
         <View style={styles.nameContainer}>

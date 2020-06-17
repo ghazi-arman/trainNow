@@ -486,7 +486,7 @@ export async function loadClientRequests(clientKey) {
   } catch(error) {
     throw error;
   }
-	return requests;
+  return requests;
 }
 
 export async function loadTrainerRequests(trainerKey) {

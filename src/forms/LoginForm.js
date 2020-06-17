@@ -69,9 +69,9 @@ export class LoginForm extends Component {
     } catch(error) {
       this.setState({ pressed: false });
       if (error.code === "auth/invalid-email") {
-				Alert.alert("Please enter a valid email.");
-				return;
-			}
+        Alert.alert("Please enter a valid email.");
+        return;
+      }
       this.bugsnagClient.metaData = {
         email: this.state.email
       }
@@ -81,15 +81,15 @@ export class LoginForm extends Component {
         return;
       }
       if (error.code === "auth/user-not-found") {
-				Alert.alert("There is no account associated with this email.");
-				return;
+        Alert.alert("There is no account associated with this email.");
+        return;
       }
       Alert.alert('There was an unexpected problem logging in. Please try again.');
     }
   }
 
   render() {
-		if (this.state.pressed) {
+    if (this.state.pressed) {
       return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
     }
 
