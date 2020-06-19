@@ -394,7 +394,7 @@ export default class CalendarPage extends Component {
             {editButton}
           </View>
           <View style={{
-            flexDirection: 'row', justifyContent: 'space-around', height: 50, marginBottom: 20,
+            flexDirection: 'row', justifyContent: 'space-around', marginBottom: 20,
           }}
           >
             <TouchableOpacity
