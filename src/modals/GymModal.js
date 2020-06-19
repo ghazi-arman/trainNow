@@ -1,6 +1,14 @@
 import React, { Component } from 'react';
 import {
-  StyleSheet, Text, View, TouchableOpacity, ScrollView, TouchableWithoutFeedback, Image, Alert,
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  ScrollView,
+  TouchableWithoutFeedback,
+  Image,
+  Alert,
+  Linking,
 } from 'react-native';
 import firebase from 'firebase';
 import MapView from 'react-native-maps';
@@ -357,19 +365,25 @@ export default class GymModal extends Component {
       <View style={styles.modal}>
         <View style={styles.nameContainer}>
           <Text style={styles.gymName}>{this.state.gym.name}</Text>
-          <Text style={styles.hourDetails}>{this.state.gym.hours}</Text>
+          <Text
+            onPress={() => Linking.openURL(this.state.gym.website)}
+            style={styles.smallText}
+          >
+            Website
+          </Text>
+          <Text style={styles.smallText}>{this.state.gym.hours}</Text>
           <View style={[styles.buttonRow, { marginTop: 0 }]}>
             <TouchableOpacity
               style={[styles.menuTab, trainerButtonStyle]}
               onPress={() => this.setState({ page: 'trainers' })}
             >
-              <Text style={styles.hourDetails}>Trainers</Text>
+              <Text style={styles.smallText}>Trainers</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.menuTab, sessionButtonStyle]}
               onPress={() => this.setState({ page: 'sessions' })}
             >
-              <Text style={styles.hourDetails}>Sessions</Text>
+              <Text style={styles.smallText}>Sessions</Text>
             </TouchableOpacity>
           </View>
           <Text style={styles.closeButton} onPress={this.props.hide}>
@@ -531,7 +545,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: COLORS.WHITE,
   },
-  hourDetails: {
+  smallText: {
     fontSize: 20,
     color: COLORS.WHITE,
     fontWeight: '400',
