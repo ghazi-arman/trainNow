@@ -1,44 +1,80 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, Image, KeyboardAvoidingView } from 'react-native';
+import {
+  StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, Image, KeyboardAvoidingView,
+} from 'react-native';
 import firebase from 'firebase';
 import Modal from 'react-native-modal';
 import { FontAwesome } from '@expo/vector-icons';
 import { Actions } from 'react-native-router-flux';
+import PropTypes from 'prop-types';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
-import  TextField from '../components/TextField';
-import { ManagerCardModal } from '../modals/ManagerCardModal';
-import { loadUser, loadGym, loadTrainerCards, loadBalance, deleteTrainerCard, getCardIcon, setDefaultTrainerCard } from '../components/Functions';
+import TextField from '../components/TextField';
+import ManagerCardModal from '../modals/ManagerCardModal';
+import {
+  loadUser,
+  loadGym,
+  loadTrainerCards,
+  loadBalance,
+  deleteTrainerCard,
+  getCardIcon,
+  setDefaultTrainerCard,
+} from '../components/Functions';
+
 const loading = require('../images/loading.gif');
 
-export class ManagerPage extends Component {
-
+export default class ManagerPage extends Component {
   constructor(props) {
     super(props);
     this.state = {
       cardModal: false,
-      rateModal: false
-    }
+      rateModal: false,
+    };
     this.bugsnagClient = bugsnag();
   }
 
   async componentDidMount() {
     try {
-      let gym = await loadGym(this.props.gym);
-      let user = await loadUser(firebase.auth().currentUser.uid);
-      let cards = await loadTrainerCards(user.stripeId);
-      let balance = await loadBalance(user.stripeId);
-      this.setState({ cards, balance, user, gym });
-    } catch(error) {
+      const gym = await loadGym(this.props.gymKey);
+      const user = await loadUser(firebase.auth().currentUser.uid);
+      const cards = await loadTrainerCards(user.stripeId);
+      const balance = await loadBalance(user.stripeId);
+      this.setState({
+        cards, balance, user, gym,
+      });
+    } catch (error) {
       this.bugsnagClient.notify(error);
       Alert.alert('There was an error loading the dashboard. Try again later');
       this.logout();
     }
   }
 
-  deleteTrainerCard = async(stripeId, cardId, defaultCard) => {
+  async setDefaultTrainerCard(stripeId, cardId) {
+    Alert.alert(
+      'Are you sure you want to make this your default card?',
+      '',
+      [
+        { text: 'No' },
+        {
+          text: 'Yes',
+          onPress: async () => {
+            try {
+              await setDefaultTrainerCard(stripeId, cardId);
+              const cards = await loadTrainerCards(stripeId);
+              this.setState({ cards });
+            } catch (error) {
+              this.bugsnagClient.notify(error);
+              Alert.alert('There was an error. Please try again.');
+            }
+          },
+        },
+      ],
+    );
+  }
+
+  deleteTrainerCard = async (stripeId, cardId, defaultCard) => {
     if (defaultCard) {
-      Alert.alert("You cannot delete your default card. Email use to remove your account.");
+      Alert.alert('You cannot delete your default card. Email use to remove your account.');
       return;
     }
     Alert.alert(
@@ -47,7 +83,8 @@ export class ManagerPage extends Component {
       [
         { text: 'No' },
         {
-          text: 'Yes', onPress: async () => {
+          text: 'Yes',
+          onPress: async () => {
             try {
               await deleteTrainerCard(stripeId, cardId);
               const cards = await loadTrainerCards(stripeId);
@@ -56,58 +93,59 @@ export class ManagerPage extends Component {
               this.bugsnagClient.notify(error);
               Alert.alert('There was an error. Please try again later.');
             }
-          }
-        }
-      ]
+          },
+        },
+      ],
     );
   }
 
-  denyTrainer = async(trainerKey) => {
+  denyTrainer = async (trainerKey) => {
     try {
-      await firebase.database().ref('/gyms/' + this.props.gym + '/pendingtrainers/').child(trainerKey).remove();
+      await firebase.database().ref(`/gyms/${this.props.gymKey}/pendingtrainers/`).child(trainerKey).remove();
       delete this.state.gym.pendingtrainers[trainerKey];
       Alert.alert('Trainer denied');
-    } catch(error) {
+    } catch (error) {
       this.bugsnagClient.notify(error);
       Alert.alert('There was an error when trying to deny that trainer.');
     }
   }
 
-  deleteTrainer = async(trainerKey) => {
+  deleteTrainer = async (trainerKey) => {
     Alert.alert(
       'Remove Trainer',
       'Are you sure you want to remove this trainer?',
       [
         { text: 'No' },
         {
-          text: 'Yes', onPress: async () => {
+          text: 'Yes',
+          onPress: async () => {
             try {
               await firebase.database().ref('users').child(trainerKey).update({ deleted: true });
-              await firebase.database().ref('/gyms/' + this.props.gym + '/trainers/').child(trainerKey).remove();
+              await firebase.database().ref(`/gyms/${this.props.gymKey}/trainers/`).child(trainerKey).remove();
               delete this.state.gym.trainers[trainerKey];
               Alert.alert('Trainer removed from gym.');
-            } catch(error) {
+            } catch (error) {
               this.bugsnagClient.notify(error);
               Alert.alert('There was an error when trying to delete that trainer.');
             }
-          }
-        }
-      ]
+          },
+        },
+      ],
     );
   }
 
-  acceptTrainer = async(trainerKey) => {
+  acceptTrainer = async (trainerKey) => {
     try {
       await firebase.database().ref('users').child(trainerKey).update({ pending: false, stripeId: this.state.user.stripeId });
-      await firebase.database().ref('/gyms/' + this.props.gym + '/pendingtrainers/').child(trainerKey).once("value", (snapshot) => {
-        firebase.database().ref('/gyms/' + this.props.gym + '/trainers/').child(trainerKey).set(snapshot.val());
+      await firebase.database().ref(`/gyms/${this.props.gymKey}/pendingtrainers/`).child(trainerKey).once('value', (snapshot) => {
+        firebase.database().ref(`/gyms/${this.props.gymKey}/trainers/`).child(trainerKey).set(snapshot.val());
       });
-      await firebase.database().ref('/gyms/' + this.props.gym + '/pendingtrainers/').child(trainerKey).remove();
+      await firebase.database().ref(`/gyms/${this.props.gymKey}/pendingtrainers/`).child(trainerKey).remove();
       delete this.state.gym.pendingtrainers[trainerKey];
-      const gym = await loadGym(this.props.gym);
+      const gym = await loadGym(this.props.gymKey);
       this.setState({ gym });
       Alert.alert('Trainer added to gym. Please set the trainer rate immediately as it defaults to 50.');
-    } catch(error) {
+    } catch (error) {
       this.bugsnagClient.notify(error);
       Alert.alert('There was an error when accepting that trainer.');
     }
@@ -143,56 +181,57 @@ export class ManagerPage extends Component {
       trainer.key = key;
       return (
         <View key={trainer.name} style={styles.clientRow}>
-          <Text style={styles.nameText}>{trainer.name} - ${trainer.rate}</Text>
-          <TouchableOpacity style={styles.denyButton} onPress={() => this.deleteTrainer(key)}>
-            <Text style={styles.buttonText}><FontAwesome name="close" size={18} /></Text>
+          <Text style={styles.nameText}>
+            {trainer.name}
+            {' '}
+            - $
+            {trainer.rate}
+          </Text>
+          <TouchableOpacity
+            style={styles.denyButton}
+            onPress={() => this.deleteTrainer(key)}
+          >
+            <Text style={styles.buttonText}>
+              <FontAwesome name="close" size={18} />
+            </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.acceptButton} onPress={() => this.setState({ selectedTrainer: trainer, rateModal: true})}>
-            <Text style={styles.buttonText}><FontAwesome name="dollar" size={18} /></Text>
+          <TouchableOpacity
+            style={styles.acceptButton}
+            onPress={() => this.setState({ selectedTrainer: trainer, rateModal: true })}
+          >
+            <Text style={styles.buttonText}>
+              <FontAwesome name="dollar" size={18} />
+            </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.historyButton} onPress={() => Actions.ManagerHistoryPage({ userKey: key })}>
-            <Text style={styles.buttonText}><FontAwesome name="calendar" size={18} /></Text>
+          <TouchableOpacity
+            style={styles.historyButton}
+            onPress={() => Actions.ManagerHistoryPage({ userKey: key })}
+          >
+            <Text style={styles.buttonText}>
+              <FontAwesome name="calendar" size={18} />
+            </Text>
           </TouchableOpacity>
         </View>
       );
     });
   }
 
-  async setDefaultTrainerCard(stripeId, cardId){
-    Alert.alert(
-      'Are you sure you want to make this your default card?', 
-      '',
-      [
-        {text: 'No'},
-        {text: 'Yes', onPress: async () => {
-          try {
-            await setDefaultTrainerCard(stripeId, cardId);
-            const cards = await loadTrainerCards(stripeId);
-            this.setState({ cards });
-          }catch(error) {
-            this.bugsnagClient.notify(error);
-            Alert.alert('There was an error. Please try again.');
-          }
-        }}
-      ]
-    );
-  }
-
   logout = () => {
     Alert.alert(
-      "Log Out",
-      "Are you sure you wish to log out?",
+      'Log Out',
+      'Are you sure you wish to log out?',
       [
         { text: 'No' },
         {
-          text: 'Yes', onPress: () => {
+          text: 'Yes',
+          onPress: () => {
             firebase.auth().signOut().then(() => {
               Actions.reset('LoginPage');
             }, (error) => {
               this.bugsnagClient.notify(error);
               Actions.reset('LoginPage');
             });
-          }
+          },
         },
       ],
     );
@@ -202,77 +241,124 @@ export class ManagerPage extends Component {
 
   hideCardModal = () => this.setState({ cardModal: false });
 
-  hideCardModalOnAdd = async() => {
-    var cards = await loadTrainerCards(this.state.user.stripeId);
+  hideCardModalOnAdd = async () => {
+    // eslint-disable-next-line
+    const cards = await loadTrainerCards(this.state.user.stripeId)
     this.setState({ cardModal: false, cards });
   }
 
   renderCards = () => {
     if (!this.state.cards || !this.state.cards.length) {
-      return (<Text style={{ marginTop: 10, fontSize: 20, color: COLORS.PRIMARY }}>No Cards Added</Text>);
+      return (
+        <Text style={{ marginTop: 10, fontSize: 20, color: COLORS.PRIMARY }}>
+          No Cards Added
+        </Text>
+      );
     }
-    let index = 0;
     return this.state.cards.map((currCard) => {
-      index++;
       let defaultButton;
       let defaultCard = false;
       if (currCard.default_for_currency) {
-        defaultButton = (<Text style={styles.greenIcon}><FontAwesome name="check-circle" size={20} /></Text>);
+        defaultButton = (
+          <Text style={styles.greenIcon}>
+            <FontAwesome name="check-circle" size={20} />
+          </Text>
+        );
         defaultCard = true;
       } else {
         defaultButton = (
-          <TouchableOpacity style={styles.defaultButton} onPress={() => this.setDefaultTrainerCard(this.state.user.stripeId, currCard.id)}>
-              <Text style={{color: COLORS.WHITE}}><FontAwesome name="check" size={15} /></Text>
-            </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.defaultButton}
+            onPress={() => this.setDefaultTrainerCard(this.state.user.stripeId, currCard.id)}
+          >
+            <Text style={{ color: COLORS.WHITE }}>
+              <FontAwesome name="check" size={15} />
+            </Text>
+          </TouchableOpacity>
         );
       }
       return (
         <View style={styles.cardRow} key={currCard.id}>
           <Text style={styles.icon}>{getCardIcon(currCard.brand)}</Text>
-          <Text>•••••• {currCard.last4}</Text>
+          <Text>
+            ••••••
+            {currCard.last4}
+          </Text>
           {defaultButton}
-          <Text>{currCard.exp_month.toString()} / {currCard.exp_year.toString().substring(2, 4)}</Text>
-          <TouchableOpacity style={styles.deleteButton} onPress={() => this.deleteTrainerCard(this.state.user.stripeId, currCard.id, defaultCard)}>
-            <Text style={{color: COLORS.WHITE}}><FontAwesome name="remove" size={15} /></Text>
+          <Text>
+            {currCard.exp_month.toString()}
+            {' '}
+            /
+            {' '}
+            {currCard.exp_year.toString().substring(2, 4)}
+          </Text>
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={() => this.deleteTrainerCard(
+              this.state.user.stripeId,
+              currCard.id,
+              defaultCard,
+            )}
+          >
+            <Text style={{ color: COLORS.WHITE }}>
+              <FontAwesome name="remove" size={15} />
+            </Text>
           </TouchableOpacity>
         </View>
       );
     });
   }
 
-  updateRate = async() => {
+  updateRate = async () => {
     try {
-      if (!this.state.rate || this.state.rate.replace(/\D/g,'') < 25) {
-        Alert.alert("Please enter your rate (has to be $25+)!");
+      if (!this.state.rate || this.state.rate.replace(/\D/g, '') < 25) {
+        Alert.alert('Please enter your rate (has to be $25+)!');
         return;
       }
-      await firebase.database().ref(`/users/${this.state.selectedTrainer.key}/`).update({ rate: parseInt(this.state.rate) });
-      await firebase.database().ref(`/gyms/${this.props.gym}/trainers/${this.state.selectedTrainer.key}`).update({ rate: parseInt(this.state.rate) });
-      const gym = await loadGym(this.props.gym);
+      await firebase.database().ref(`/users/${this.state.selectedTrainer.key}/`).update({ rate: parseInt(this.state.rate, 10) });
+      await firebase.database().ref(`/gyms/${this.props.gymKey}/trainers/${this.state.selectedTrainer.key}`).update({ rate: parseInt(this.state.rate, 10) });
+      const gym = await loadGym(this.props.gymKey);
       this.setState({ gym });
       Alert.alert('Rate updated.');
-    } catch(error) {
+    } catch (error) {
       this.bugsnagClient.notify(error);
-      Alert.alert(`There was an error updating the trainer's rate.`);
+      Alert.alert('There was an error updating the trainer\'s rate.');
     }
   }
 
   render() {
-    if (!this.state.user || !this.state.gym || !this.state.cards || this.state.balance === undefined) {
-      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
+    if (
+      !this.state.user
+      || !this.state.gym
+      || !this.state.cards
+      || this.state.balance === undefined
+    ) {
+      return (
+        <View style={styles.loadingContainer}>
+          <Image source={loading} style={styles.loading} />
+        </View>
+      );
     }
+    let navBar;
+    let content;
     if (this.state.currentTab === 'pending') {
-      var navBar = (
+      navBar = (
         <View style={styles.navigationBar}>
-          <TouchableOpacity style={styles.activeTab} onPress={() => this.setState({ currentTab: 'pending' })}>
+          <TouchableOpacity
+            style={styles.activeTab}
+            onPress={() => this.setState({ currentTab: 'pending' })}
+          >
             <Text style={styles.activeText}>Pending</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({ currentTab: 'current' })}>
+          <TouchableOpacity
+            style={styles.inactiveTab}
+            onPress={() => this.setState({ currentTab: 'current' })}
+          >
             <Text style={styles.navText}>Trainers</Text>
           </TouchableOpacity>
         </View>
       );
-      var content = (
+      content = (
         <View style={styles.trainerContainer}>
           <ScrollView style={{ width: '90%' }} showsVerticalScrollIndicator={false}>
             {this.renderPending()}
@@ -280,7 +366,7 @@ export class ManagerPage extends Component {
         </View>
       );
     } else {
-      var navBar = (
+      navBar = (
         <View style={styles.navigationBar}>
           <TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({ currentTab: 'pending' })}>
             <Text style={styles.navText}>Pending</Text>
@@ -290,7 +376,7 @@ export class ManagerPage extends Component {
           </TouchableOpacity>
         </View>
       );
-      var content = (
+      content = (
         <View style={styles.trainerContainer}>
           <ScrollView style={{ width: '90%' }} showsVerticalScrollIndicator={false}>
             {this.renderTrainers()}
@@ -298,10 +384,11 @@ export class ManagerPage extends Component {
         </View>
       );
     }
-    if (this.state.balance == 0) {
-      var balanceFormatted = "0.00"
+    let balanceFormatted;
+    if (this.state.balance === 0) {
+      balanceFormatted = '0.00';
     } else {
-      var balanceFormatted = (this.state.balance / 100).toFixed(2);
+      balanceFormatted = (this.state.balance / 100).toFixed(2);
     }
     const trainerName = this.state.selectedTrainer ? this.state.selectedTrainer.name : 'None';
     return (
@@ -312,20 +399,34 @@ export class ManagerPage extends Component {
         <Text style={styles.title}>Trainers</Text>
         {navBar}
         {content}
-        <Text style={styles.balanceText}>${balanceFormatted}</Text>
+        <Text style={styles.balanceText}>
+          $
+          {balanceFormatted}
+        </Text>
         <View style={styles.cardHolder}>
           {this.renderCards()}
         </View>
         <TouchableOpacity style={styles.button} onPress={() => this.setState({ cardModal: true })}>
-          <Text style={styles.activeText}><FontAwesome name="credit-card" size={25} /> Add Card </Text>
+          <Text style={styles.activeText}>
+            <FontAwesome name="credit-card" size={25} />
+            {' '}
+            Add Card
+            {' '}
+          </Text>
         </TouchableOpacity>
-        <Text style={{ fontSize: 20, textAlign: 'center', color: COLORS.PRIMARY, marginTop: 10 }}>Funds will be transfered daily</Text>
+        <Text style={{
+          fontSize: 20, textAlign: 'center', color: COLORS.PRIMARY, marginTop: 10,
+        }}
+        >
+          Funds will be transfered daily
+        </Text>
         <Modal
           isVisible={this.state.cardModal}
-          onBackdropPress={this.hideCardModal}>
-          <ManagerCardModal hide={this.hideCardModalOnAdd} gym={this.props.gym} />
+          onBackdropPress={this.hideCardModal}
+        >
+          <ManagerCardModal hide={this.hideCardModalOnAdd} gymKey={this.props.gymKey} />
         </Modal>
-        <Modal 
+        <Modal
           isVisible={this.state.rateModal}
           onBackdropPress={this.hideRateModal}
         >
@@ -351,6 +452,10 @@ export class ManagerPage extends Component {
   }
 }
 
+ManagerPage.propTypes = {
+  gymKey: PropTypes.string.isRequired,
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -358,14 +463,14 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.WHITE,
     flexDirection: 'column',
     justifyContent: 'flex-start',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   trainerContainer: {
     flex: 0.5,
     width: '90%',
     flexDirection: 'column',
     alignItems: 'center',
-    justifyContent: 'flex-start'
+    justifyContent: 'flex-start',
   },
   title: {
     marginTop: 45,
@@ -381,14 +486,14 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     flexDirection: 'column',
     justifyContent: 'flex-start',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   cardRow: {
     width: '95%',
     marginTop: 10,
     flexDirection: 'row',
     justifyContent: 'space-around',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   navigationBar: {
     width: '100%',
@@ -406,7 +511,7 @@ const styles = StyleSheet.create({
     height: 60,
     backgroundColor: COLORS.PRIMARY,
     borderWidth: 1,
-    borderColor: COLORS.SECONDARY
+    borderColor: COLORS.SECONDARY,
   },
   inactiveTab: {
     flexDirection: 'column',
@@ -416,30 +521,30 @@ const styles = StyleSheet.create({
     height: 60,
     backgroundColor: COLORS.WHITE,
     borderWidth: 1,
-    borderColor: COLORS.SECONDARY
+    borderColor: COLORS.SECONDARY,
   },
   navText: {
     fontSize: 25,
     color: COLORS.PRIMARY,
-    textAlign: 'center'
+    textAlign: 'center',
   },
   balanceText: {
     fontSize: 30,
     marginTop: 15,
     color: COLORS.PRIMARY,
-    textAlign: 'center'
+    textAlign: 'center',
   },
   activeText: {
     fontSize: 25,
     color: COLORS.WHITE,
-    textAlign: 'center'
+    textAlign: 'center',
   },
   clientRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     width: '100%',
-    marginTop: 10
+    marginTop: 10,
   },
   backButton: {
     position: 'absolute',
@@ -454,7 +559,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: '50%',
     height: 50,
-    marginTop: 10
+    marginTop: 10,
   },
   defaultButton: {
     backgroundColor: COLORS.GREEN,
@@ -462,11 +567,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     width: 30,
-    height: 30
+    height: 30,
   },
   greenIcon: {
     fontSize: 20,
-    color: COLORS.GREEN
+    color: COLORS.GREEN,
   },
   deleteButton: {
     backgroundColor: COLORS.RED,
@@ -474,17 +579,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     width: 30,
-    height: 30
+    height: 30,
   },
   buttonText: {
     fontSize: 15,
     color: COLORS.WHITE,
-    textAlign: 'center'
+    textAlign: 'center',
   },
   largeText: {
     fontSize: 30,
     color: COLORS.WHITE,
-    textAlign: 'center'
+    textAlign: 'center',
   },
   denyButton: {
     backgroundColor: COLORS.RED,
@@ -511,25 +616,25 @@ const styles = StyleSheet.create({
     height: 30,
   },
   icon: {
-    fontSize: 15
+    fontSize: 15,
   },
   loading: {
     width: '100%',
-    resizeMode: 'contain'
+    resizeMode: 'contain',
   },
   loadingContainer: {
     height: '100%',
     width: '100%',
     flexDirection: 'column',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   nameText: {
     fontSize: 18,
     fontWeight: '500',
     width: '50%',
     textAlign: 'center',
-    color: COLORS.PRIMARY
+    color: COLORS.PRIMARY,
   },
   closeButton: {
     position: 'absolute',
@@ -545,7 +650,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: COLORS.WHITE,
     borderRadius: 10,
-    padding: 20
+    padding: 20,
   },
   submitButton: {
     borderRadius: 5,
@@ -553,7 +658,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     width: 150,
     flexDirection: 'column',
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   header: {
     textAlign: 'center',

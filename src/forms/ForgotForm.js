@@ -1,20 +1,22 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Alert, Image } from 'react-native';
+import {
+  StyleSheet, Text, View, TouchableOpacity, Alert, Image,
+} from 'react-native';
 import firebase from 'firebase';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import TextField from '../components/TextField';
+
 const loading = require('../images/loading.gif');
 
-export class ForgotForm extends Component {
-  
+export default class ForgotForm extends Component {
   constructor(props) {
     super(props);
     this.state = {};
     this.bugsnagClient = bugsnag();
   }
 
-  submit = async() => {
+  submit = async () => {
     // Prevents multiple form submissions
     if (this.state.pressed) {
       return;
@@ -23,30 +25,34 @@ export class ForgotForm extends Component {
 
     try {
       await firebase.auth().sendPasswordResetEmail(this.state.email);
-      Alert.alert("A password reset email has been sent!");
+      Alert.alert('A password reset email has been sent!');
       this.setState({ pressed: false });
-    } catch(error) {
-      if (error.code === "auth/user-not-found") {
-        Alert.alert("There is no account associated with this email");
+    } catch (error) {
+      if (error.code === 'auth/user-not-found') {
+        Alert.alert('There is no account associated with this email');
         return;
       }
-      Alert.alert("There was an error when sending the email. Please try again.");
+      Alert.alert('There was an error when sending the email. Please try again.');
       this.bugsnagClient.notify(error);
     }
   }
 
   render() {
     if (this.state.pressed) {
-      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
+      return (
+        <View style={styles.loadingContainer}>
+          <Image source={loading} style={styles.loading} />
+        </View>
+      );
     }
-    
+
     return (
       <View>
         <TextField
           icon="user"
           placeholder="Email"
           keyboard="email-address"
-          onChange={(email) => this.setState({email})}
+          onChange={(email) => this.setState({ email })}
           value={this.state.email}
         />
         <TouchableOpacity style={styles.buttonContainer} onPressIn={this.submit}>
@@ -61,11 +67,11 @@ const styles = StyleSheet.create({
   buttonContainer: {
     backgroundColor: COLORS.SECONDARY,
     paddingVertical: 15,
-    marginTop: 20
+    marginTop: 20,
   },
   buttonText: {
     textAlign: 'center',
     color: COLORS.WHITE,
-    fontWeight: '700'
-  }
+    fontWeight: '700',
+  },
 });

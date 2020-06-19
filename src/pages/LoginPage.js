@@ -1,11 +1,14 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, Image, KeyboardAvoidingView, TouchableOpacity } from 'react-native';
-import { LoginForm } from '../forms/LoginForm'
+import {
+  StyleSheet, Text, View, Image, KeyboardAvoidingView, TouchableOpacity,
+} from 'react-native';
 import { Actions } from 'react-native-router-flux';
+import LoginForm from '../forms/LoginForm';
 import COLORS from '../components/Colors';
+
 const logo = require('../images/logo.png');
 
-export class LoginPage extends Component {
+export default class LoginPage extends Component {
   signup = () => Actions.SignupPage();
 
   forgot = () => Actions.ForgotPage();
@@ -16,7 +19,7 @@ export class LoginPage extends Component {
         <View style={styles.logoContainer}>
           <Image style={styles.logo} source={logo} />
         </View>
-        <KeyboardAvoidingView behavior='padding' style={styles.formContainer}>
+        <KeyboardAvoidingView behavior="padding" style={styles.formContainer}>
           <LoginForm />
         </KeyboardAvoidingView>
         <View style={styles.linkContainer}>
@@ -46,34 +49,34 @@ const styles = StyleSheet.create({
   },
   logo: {
     flex: 1,
-    resizeMode: 'contain'
+    resizeMode: 'contain',
   },
   formContainer: {
     height: '30%',
     width: '80%',
     flexDirection: 'column',
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   textContain: {
-    height: 30
+    height: 30,
   },
   logoContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     height: '25%',
-    width: '80%'
+    width: '80%',
   },
   linkContainer: {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'flex-start',
-    height: "20%",
+    height: '20%',
   },
   linkText: {
     color: COLORS.PRIMARY,
     fontSize: 16,
     fontWeight: '500',
-  }
+  },
 });

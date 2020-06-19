@@ -1,23 +1,35 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, KeyboardAvoidingView, ScrollView, TouchableOpacity, Alert, TextInput, Image } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  KeyboardAvoidingView,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  TextInput,
+  Image,
+} from 'react-native';
 import firebase from 'firebase';
 import { FontAwesome } from '@expo/vector-icons';
 import Modal from 'react-native-modal';
 import { Actions } from 'react-native-router-flux';
 import bugsnag from '@bugsnag/expo';
-import COLORS from './../components/Colors';
-import { loadSessions, renderStars, reportSession, timeToString } from './../components/Functions';
+import COLORS from '../components/Colors';
+import {
+  loadSessions, renderStars, reportSession, timeToString,
+} from '../components/Functions';
 import Constants from '../components/Constants';
+
 const loading = require('../images/loading.gif');
 
-export class HistoryPage extends Component {
-
+export default class HistoryPage extends Component {
   constructor(props) {
     super(props);
     this.state = {
       reportModal: false,
-      report: ''
-    }
+      report: '',
+    };
     this.bugsnagClient = bugsnag();
   }
 
@@ -25,7 +37,7 @@ export class HistoryPage extends Component {
     try {
       const sessions = await loadSessions(firebase.auth().currentUser.uid);
       this.setState({ sessions });
-    } catch(error) {
+    } catch (error) {
       this.bugsnagClient.notify(error);
       Alert.alert('There was an error loading the history page. Please try again later.');
       this.goToMap();
@@ -36,60 +48,122 @@ export class HistoryPage extends Component {
 
   hideReportModal = () => this.setState({ reportModal: false, report: '' });
 
-  reportSession = async(session) => {
+  reportSession = async (session) => {
     this.hideReportModal();
     const userId = firebase.auth().currentUser.uid;
-    const reporter = (userId === session.client ? session.client: session.trainer);
+    const reporter = (userId === session.client ? session.client : session.trainer);
     reportSession(session, reporter, this.state.report);
     setTimeout(() => Alert.alert('Session Reported!'), 1000);
   }
 
   renderSessions = () => {
-    this.state.sessions.sort(function(a, b){ return (new Date(b.start) - new Date(a.start))});
+    this.state.sessions.sort((a, b) => (new Date(b.start) - new Date(a.start)));
     return this.state.sessions.map((session) => {
-
       const startDate = timeToString(session.start);
       const endDate = timeToString(session.end);
-      const day = (new Date(session.start).getMonth() + 1) + "/" + new Date(session.start).getDate();
-      const minutes = Math.floor(((new Date(session.end) - new Date(session.start))/1000)/60);
+      const day = `${new Date(session.start).getMonth() + 1}/${new Date(session.start).getDate()}`;
+      const minutes = Math.floor(((new Date(session.end) - new Date(session.start)) / 1000) / 60);
       const rate = (minutes * (session.rate / 60)).toFixed(2);
-      const percentage = session.regular ? Constants.regularClientPercentage : Constants.newClientPercentage;
+      const percentage = session.regular
+        ? Constants.regularClientPercentage
+        : Constants.newClientPercentage;
       let payout = (rate - rate * percentage).toFixed(2);
-      let rateView, client, stars;
+      let rateView;
+      let client;
+      let stars;
 
       if (session.type === Constants.personalSessionType) {
         if (session.trainer !== firebase.auth().currentUser.uid) {
-          rateView = (<View style={styles.sessionRow}><Text style={styles.smallText}>${rate}</Text></View>);
-          client = (<Text style={styles.titleText}>Trained by {session.trainerName}</Text>);
+          rateView = (
+            <View style={styles.sessionRow}>
+              <Text style={styles.smallText}>
+                $
+                {rate}
+              </Text>
+            </View>
+          );
+          client = (
+            <Text style={styles.titleText}>
+              Trained by
+              {session.trainerName}
+            </Text>
+          );
           stars = renderStars(session.clientRating);
         } else {
-          rateView = (<View style={styles.sessionRow}><Text style={styles.smallText}>${payout}</Text></View>);
-          client = (<Text style={styles.titleText}>You trained {session.clientName}</Text>);
+          rateView = (
+            <View style={styles.sessionRow}>
+              <Text style={styles.smallText}>
+                $
+                {payout}
+              </Text>
+            </View>
+          );
+          client = (
+            <Text style={styles.titleText}>
+              You trained
+              {session.clientName}
+            </Text>
+          );
           stars = renderStars(session.trainerRating);
         }
+      } else if (session.trainer !== firebase.auth().currentUser.uid) {
+        rateView = (
+          <View style={styles.sessionRow}>
+            <Text style={styles.smallText}>
+              $
+              {rate}
+            </Text>
+          </View>
+        );
+        client = (
+          <Text style={styles.titleText}>
+            Trained by
+            {session.trainerName}
+          </Text>
+        );
+        stars = renderStars(session.clients[firebase.auth().currentUser.uid].rating);
       } else {
-        if (session.trainer !== firebase.auth().currentUser.uid) {
-          rateView = (<View style={styles.sessionRow}><Text style={styles.smallText}>${rate}</Text></View>);
-          client = (<Text style={styles.titleText}>Trained by {session.trainerName}</Text>);
-          stars = renderStars(session.clients[firebase.auth().currentUser.uid].rating);
-        } else {
-          payout = ((rate - rate * Constants.newClientPercentage) * session.clientCount).toFixed(2);
-          rateView = (<View style={styles.sessionRow}><Text style={styles.smallText}>${payout}</Text></View>);
-          client = (<Text style={styles.titleText}>You trained {session.clientCount} clients</Text>);
-          stars = renderStars(session.trainerRating);
-        }
+        payout = ((rate - rate * Constants.newClientPercentage) * session.clientCount).toFixed(2);
+        rateView = (
+          <View style={styles.sessionRow}>
+            <Text style={styles.smallText}>
+              $
+              {payout}
+            </Text>
+          </View>
+        );
+        client = (
+          <Text style={styles.titleText}>
+            You trained
+            {session.clientCount}
+            {' '}
+            clients
+          </Text>
+        );
+        stars = renderStars(session.trainerRating);
       }
-      
-      return(
+
+      return (
         <View style={styles.sessionContainer} key={session.key}>
           <View style={styles.sessionRow}>{client}</View>
           <View style={styles.sessionRow}><Text style={styles.icon}>{stars}</Text></View>
           <View style={styles.sessionRow}><Text style={styles.smallText}>{session.gym}</Text></View>
           {rateView}
           <View style={styles.sessionRow}><Text style={styles.smallText}>{day}</Text></View>
-          <View style={styles.sessionRow}><Text style={styles.timeText}>{startDate} to {endDate}</Text></View>
           <View style={styles.sessionRow}>
-            <TouchableOpacity style={styles.buttonContainer} onPress={() => this.setState({reportModal: true, reportSession: session})}>
+            <Text style={styles.timeText}>
+              {startDate}
+              {' '}
+              to
+              {' '}
+              {endDate}
+            </Text>
+          </View>
+          <View style={styles.sessionRow}>
+            <TouchableOpacity
+              style={styles.buttonContainer}
+              onPress={() => this.setState({ reportModal: true, reportSession: session })}
+            >
               <Text style={styles.buttonText}>Report Session</Text>
             </TouchableOpacity>
           </View>
@@ -100,22 +174,26 @@ export class HistoryPage extends Component {
 
   render() {
     if (!this.state.sessions) {
-      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
+      return (
+        <View style={styles.loadingContainer}>
+          <Image source={loading} style={styles.loading} />
+        </View>
+      );
     }
     return (
-      <View style = {styles.container}>
+      <View style={styles.container}>
         <View style={styles.nameContainer}>
           <Text style={styles.backButton} onPress={this.goToMap}>
             <FontAwesome name="arrow-left" size={35} />
           </Text>
           <Text style={styles.header}>Trainer History</Text>
         </View>
-        <View style={styles.historyContainer}>		
+        <View style={styles.historyContainer}>
           <ScrollView contentContainerStyle={styles.center} showsVerticalScrollIndicator={false}>
             {this.renderSessions()}
           </ScrollView>
         </View>
-        <Modal 
+        <Modal
           isVisible={this.state.reportModal}
           onBackdropPress={this.hideReportModal}
         >
@@ -124,20 +202,24 @@ export class HistoryPage extends Component {
               <FontAwesome name="close" size={35} />
             </Text>
             <Text style={styles.header}>Report Session</Text>
-            <TextInput 
+            <TextInput
               placeholder="What was the problem?"
               style={styles.input}
               returnKeyType="done"
-              multiline={true}
+              multiline
               placeholderTextColor={COLORS.PRIMARY}
-              onChangeText = {(report) => this.setState({report})}
-              value={this.state.report} />
-            <TouchableOpacity style={styles.submitButton} onPress={() => this.reportSession(this.state.reportSession)}>
+              onChangeText={(report) => this.setState({ report })}
+              value={this.state.report}
+            />
+            <TouchableOpacity
+              style={styles.submitButton}
+              onPress={() => this.reportSession(this.state.reportSession)}
+            >
               <Text style={styles.buttonText}>Report Session</Text>
             </TouchableOpacity>
           </KeyboardAvoidingView>
         </Modal>
-      </View>	
+      </View>
     );
   }
 }
@@ -150,7 +232,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.WHITE,
     flexDirection: 'column',
     justifyContent: 'flex-start',
-    alignItems: 'center'	
+    alignItems: 'center',
   },
   reportModal: {
     flex: 0.6,
@@ -165,14 +247,14 @@ const styles = StyleSheet.create({
     width: '100%',
     flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'flex-end'
+    alignItems: 'flex-end',
   },
   historyContainer: {
     width: '85%',
     height: '80%',
     flexDirection: 'column',
     justifyContent: 'flex-start',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   sessionContainer: {
     width: '90%',
@@ -184,18 +266,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.PRIMARY,
     marginTop: 20,
-    padding: 10
+    padding: 10,
   },
   center: {
     flexDirection: 'column',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   sessionRow: {
     width: '100%',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 5
+    padding: 5,
   },
   header: {
     textAlign: 'center',
@@ -207,17 +289,17 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 20,
     fontWeight: '600',
-    color: COLORS.PRIMARY
+    color: COLORS.PRIMARY,
   },
   smallText: {
     fontSize: 15,
     fontWeight: '400',
-    color: COLORS.PRIMARY
+    color: COLORS.PRIMARY,
   },
   timeText: {
     fontSize: 12,
     fontWeight: '400',
-    color: COLORS.PRIMARY
+    color: COLORS.PRIMARY,
   },
   icon: {
     color: COLORS.SECONDARY,
@@ -234,7 +316,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     textAlign: 'center',
     color: '#f6f5f5',
-    fontWeight: '500'
+    fontWeight: '500',
   },
   buttonContainer: {
     borderRadius: 5,
@@ -242,13 +324,13 @@ const styles = StyleSheet.create({
     width: 150,
     height: 30,
     flexDirection: 'column',
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   submitButton: {
     borderRadius: 5,
     backgroundColor: COLORS.SECONDARY,
     paddingVertical: 15,
-    width: 200
+    width: 200,
   },
   input: {
     height: '50%',
@@ -256,24 +338,23 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderWidth: 1,
     borderColor: COLORS.PRIMARY,
-    width: '80%',
     color: COLORS.PRIMARY,
   },
   backButton: {
     position: 'absolute',
     left: 20,
-    fontSize: 35, 
-    color: COLORS.SECONDARY, 
+    fontSize: 35,
+    color: COLORS.SECONDARY,
   },
   loading: {
     width: '100%',
-    resizeMode: 'contain'
+    resizeMode: 'contain',
   },
   loadingContainer: {
     height: '100%',
     width: '100%',
     flexDirection: 'column',
     justifyContent: 'center',
-    alignItems: 'center'
-  }
+    alignItems: 'center',
+  },
 });

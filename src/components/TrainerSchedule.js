@@ -1,89 +1,103 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, Image } from 'react-native';
+import {
+  StyleSheet, Text, View, Image,
+} from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
-import COLORS from './Colors';
-import { dateToString, loadAcceptedSchedule, dateforAgenda, loadAvailableSchedule, loadTrainer } from './Functions';
 import { Agenda } from 'react-native-calendars';
+import PropTypes from 'prop-types';
+import COLORS from './Colors';
+import {
+  dateToString,
+  loadAcceptedSchedule,
+  dateforAgenda,
+  loadAvailableSchedule,
+  loadTrainer,
+} from './Functions';
+
 const loading = require('../images/loading.gif');
 
-export class TrainerSchedule extends Component {
-  
+export default class TrainerSchedule extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      date: new Date()
+      date: new Date(),
     };
   }
 
-  async componentDidMount(){
+  async componentDidMount() {
     // load trainer and user info and trainer sessions
-    if(!this.state.trainer || !this.state.sessions){
-      var trainer = await loadTrainer(this.props.trainerKey);
-      var sessions = await loadAcceptedSchedule(this.props.trainerKey);
-      var availability = await loadAvailableSchedule(this.props.trainerKey);
+    if (!this.state.trainer || !this.state.sessions) {
+      const trainer = await loadTrainer(this.props.trainerKey);
+      let sessions = await loadAcceptedSchedule(this.props.trainerKey);
+      const availability = await loadAvailableSchedule(this.props.trainerKey);
       sessions = sessions.concat(availability);
+      this.setState({ trainer, sessions });
     }
-
-    this.setState({trainer, sessions, trainer});
   }
 
-  renderAgendaItem(item, firstItemInDay){
-    return (
-      <View style={styles.agendaItem}>
-        <Text style={styles.agendaItemHeader}>{item.text}</Text>
-        <Text style={styles.agendaItemText}>{dateToString(item.start)}</Text>
-        <Text style={styles.agendaItemText}>to</Text>
-        <Text style={styles.agendaItemText}>{dateToString(item.end)}</Text>
-      </View>
-    )
-  }
+  renderAgendaItem = (item) => (
+    <View style={styles.agendaItem}>
+      <Text style={styles.agendaItemHeader}>{item.text}</Text>
+      <Text style={styles.agendaItemText}>{dateToString(item.start)}</Text>
+      <Text style={styles.agendaItemText}>to</Text>
+      <Text style={styles.agendaItemText}>{dateToString(item.end)}</Text>
+    </View>
+  );
 
-  renderAgendaEvents(){
-    let startDate = this.state.date.getTime();
-    let endDate = new Date(this.state.date.getTime() + 86400000 * 14).getTime();
-    let events = {};
-    for(let currDate = startDate; currDate <= endDate; currDate += 86400000){
-      let currentDay = new Date(currDate);
-      events[dateforAgenda(currentDay)] = this.state.sessions.filter(function(session){
-        return dateforAgenda(currentDay) == dateforAgenda(new Date(session.start))
-      })
+  renderAgendaEvents() {
+    const startDate = this.state.date.getTime();
+    const endDate = new Date(this.state.date.getTime() + 86400000 * 14).getTime();
+    const events = {};
+    for (let currDate = startDate; currDate <= endDate; currDate += 86400000) {
+      const currentDay = new Date(currDate);
+      events[dateforAgenda(currentDay)] = this.state.sessions.filter(
+        (session) => dateforAgenda(currentDay) === dateforAgenda(new Date(session.start)),
+      );
     }
     return events;
   }
 
-  render(){
-    if(!this.state.trainer || !this.state.sessions){
-      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
-    }else{
-      let events = this.renderAgendaEvents();
-      return(
-        <View style={styles.modal}>
-          <View style={styles.nameContainer}>
-            <Text style={styles.trainerName}>Schedule</Text>
-            <Text style={styles.closeButton} onPress={this.props.hideandOpen}>
-              <FontAwesome name="close" size={35} />
-            </Text>
-          </View>
-          <View style={styles.calendarContainer}>
-            <Agenda 
-              style={styles.calendar}
-              minDate={this.state.date}
-              maxDate={new Date(this.state.date.getTime() + 86400000 * 14)}
-              items={events}
-              renderItem={this.renderAgendaItem}
-              renderEmptyDate={() => {return (<View />);}}
-              rowHasChanged={(r1, r2) => {return r1.text !== r2.text}}
-            />
-          </View>
+  render() {
+    if (!this.state.trainer || !this.state.sessions) {
+      return (
+        <View style={styles.loadingContainer}>
+          <Image source={loading} style={styles.loading} />
         </View>
-      )
+      );
     }
+    const events = this.renderAgendaEvents();
+    return (
+      <View style={styles.modal}>
+        <View style={styles.nameContainer}>
+          <Text style={styles.trainerName}>Schedule</Text>
+          <Text style={styles.closeButton} onPress={this.props.hideAndOpen}>
+            <FontAwesome name="close" size={35} />
+          </Text>
+        </View>
+        <View style={styles.calendarContainer}>
+          <Agenda
+            style={styles.calendar}
+            minDate={this.state.date}
+            maxDate={new Date(this.state.date.getTime() + 86400000 * 14)}
+            items={events}
+            renderItem={this.renderAgendaItem}
+            renderEmptyDate={() => (<View />)}
+            rowHasChanged={(r1, r2) => r1.text !== r2.text}
+          />
+        </View>
+      </View>
+    );
   }
 }
 
+TrainerSchedule.propTypes = {
+  trainerKey: PropTypes.string.isRequired,
+  hideAndOpen: PropTypes.func.isRequired,
+};
+
 const styles = StyleSheet.create({
   modal: {
-    flex: .8,
+    flex: 0.8,
     flexDirection: 'column',
     justifyContent: 'flex-start',
     alignItems: 'center',
@@ -94,7 +108,7 @@ const styles = StyleSheet.create({
     fontSize: 30,
     color: COLORS.WHITE,
     fontWeight: '500',
-    textAlign: 'center'
+    textAlign: 'center',
   },
   nameContainer: {
     flex: 1,
@@ -104,7 +118,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.PRIMARY,
     flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   closeButton: {
     position: 'absolute',
@@ -115,11 +129,11 @@ const styles = StyleSheet.create({
   },
   calendarContainer: {
     flex: 6,
-    width: '100%'
+    width: '100%',
   },
   calendar: {
     height: '100%',
-    width: '100%'
+    width: '100%',
   },
   agendaItem: {
     height: 100,
@@ -134,7 +148,7 @@ const styles = StyleSheet.create({
   agendaItemHeader: {
     color: COLORS.WHITE,
     fontSize: 20,
-    fontWeight: '300'
+    fontWeight: '300',
   },
   agendaItemText: {
     color: COLORS.PRIMARY,
@@ -142,13 +156,13 @@ const styles = StyleSheet.create({
   },
   loading: {
     width: '100%',
-    resizeMode: 'contain'
+    resizeMode: 'contain',
   },
   loadingContainer: {
     height: '100%',
     width: '100%',
     flexDirection: 'column',
     justifyContent: 'center',
-    alignItems: 'center'
-  }
-})
+    alignItems: 'center',
+  },
+});

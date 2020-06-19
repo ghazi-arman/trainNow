@@ -1,50 +1,60 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Alert, Switch, Image, Picker, Linking } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  Alert,
+  Switch,
+  Image,
+  Picker,
+  Linking,
+} from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import * as Permissions from 'expo-permissions';
 import * as ImagePicker from 'expo-image-picker';
 import firebase from 'firebase';
 import { FontAwesome } from '@expo/vector-icons';
 import bugsnag from '@bugsnag/expo';
+import { STRIPE_KEY, FB_URL } from 'react-native-dotenv';
 import COLORS from '../components/Colors';
 import TextField from '../components/TextField';
-import { STRIPE_KEY, FB_URL } from 'react-native-dotenv';
 import Constants from '../components/Constants';
+
 const stripe = require('stripe-client')(STRIPE_KEY);
 const defaultProfilePic = require('../images/profile.png');
 const loading = require('../images/loading.gif');
 
-export class SignupForm extends Component {
-
+export default class SignupForm extends Component {
   constructor(props) {
     super(props);
     this.state = {
       trainer: false,
       page: 1,
       pressed: false,
-      image: defaultProfilePic.uri
+      image: defaultProfilePic.uri,
     };
     this.bugsnagClient = bugsnag();
   }
 
   async componentDidMount() {
     if (!this.state.gymLoaded) {
-      try{
+      try {
         const gyms = await this.loadGyms();
-        this.setState({ gyms: gyms, gymLoaded: true });
-      } catch(error) {
+        this.setState({ gyms, gymLoaded: true });
+      } catch (error) {
         this.bugsnagClient.notify(error);
       }
     }
   }
 
-  loadGyms = async() => {
-    let gyms = [];
+  loadGyms = async () => {
+    const gyms = [];
     const gymsList = await firebase.database().ref('gyms').once('value');
-    gymsList.forEach(function (snapshot) {
-        const gym = snapshot.val();
-        gym.key = snapshot.key;
-        gyms.push(gym);
+    gymsList.forEach((snapshot) => {
+      const gym = snapshot.val();
+      gym.key = snapshot.key;
+      gyms.push(gym);
     });
     return gyms;
   }
@@ -53,7 +63,7 @@ export class SignupForm extends Component {
     // Ask for image permissions from phone
     const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
     if (status === 'granted') {
-      let result = await ImagePicker.launchImageLibraryAsync({
+      const result = await ImagePicker.launchImageLibraryAsync({
         allowsEditing: true,
         aspect: [4, 3],
       });
@@ -67,15 +77,15 @@ export class SignupForm extends Component {
     Alert.alert('Camera roll permission not granted');
   }
 
-  uploadImage = async(uri, uid) => {
-    try{
+  uploadImage = async (uri, uid) => {
+    try {
       // Create image blob for upload
       const blob = await new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
-        xhr.onload = function() {
+        xhr.onload = () => {
           resolve(xhr.response);
         };
-        xhr.onerror = function(error) {
+        xhr.onerror = (error) => {
           reject(new Error(error));
         };
         xhr.responseType = 'blob';
@@ -85,70 +95,71 @@ export class SignupForm extends Component {
 
       // Upload image to firebase storage
       await firebase.storage().ref().child(uid).put(blob);
-    } catch(error) {
+    } catch (error) {
       this.bugsnagClient.notify(error);
-      Alert.alert('There was an error uploading the image.')
+      Alert.alert('There was an error uploading the image.');
     }
   }
 
-  signUp = async() => {
+  signUp = async () => {
     // Prevent multiple submissions
     if (this.state.pressed) {
       return;
     }
-    this.setState({ pressed: true});
-    let firstName = this.state.name.split(" ")[0];
-    let lastName = this.state.name.split(" ")[1];
-    let user = null;
-    let data = null;
+    this.setState({ pressed: true });
+    const firstName = this.state.name.split(' ')[0];
+    const lastName = this.state.name.split(' ')[1];
+    let user;
+    let data;
+    let token;
 
     if (this.state.trainer) {
       const gymKey = this.state.gyms[this.state.gym].key;
       const gymType = this.state.gyms[this.state.gym].type;
-      if (gymType == Constants.independentType) {
-        let ssn = {
+      if (gymType === Constants.independentType) {
+        const ssn = {
           pii: {
-            personal_id_number: this.state.ssn.replace(/\D/g,'')
-          }
-        }
+            personal_id_number: this.state.ssn.replace(/\D/g, ''),
+          },
+        };
 
         try {
           // Create token from social security number
-          var token = await stripe.createToken(ssn);
+          token = await stripe.createToken(ssn);
         } catch (error) {
           Alert.alert('Invalid Social Security Number entered. Please check your info and try again!');
           this.setState({ pressed: false });
           this.bugsnagClient.notify(error);
           return;
         }
-        const month = this.state.birthDay.split("/")[0];
-        const day = this.state.birthDay.split("/")[1];
-        const year = this.state.birthDay.split("/")[2];
+        const month = this.state.birthDay.split('/')[0];
+        const day = this.state.birthDay.split('/')[1];
+        const year = this.state.birthDay.split('/')[2];
 
         try {
           // Call firebase cloud function to create stripe account
           const res = await fetch(`${FB_URL}/stripe/createTrainer/`,
-          {
-            method: 'POST',
-            body: JSON.stringify({
-              line1: this.state.address,
-              city: this.state.city,
-              state: this.state.state,
-              zip: this.state.zip,
-              email: this.state.email,
-              phone: this.state.phone.replace(/\D/g,''),
-              firstName: firstName,
-              lastName: lastName,
-              token: token.id,
-              day: day,
-              month: month,
-              year: year
-            }),
-          });
+            {
+              method: 'POST',
+              body: JSON.stringify({
+                line1: this.state.address,
+                city: this.state.city,
+                state: this.state.state,
+                zip: this.state.zip,
+                email: this.state.email,
+                phone: this.state.phone.replace(/\D/g, ''),
+                firstName,
+                lastName,
+                token: token.id,
+                day,
+                month,
+                year,
+              }),
+            });
           const response = await res.json();
           data = JSON.parse(response.body);
-          
-          if(data.message !== 'Success') {
+
+          if (data.message !== 'Success') {
             throw new Error('Stripe Error');
           }
         } catch (error) {
@@ -159,14 +170,19 @@ export class SignupForm extends Component {
         }
       }
 
+      let gymRef;
       try {
-        user = await firebase.auth().createUserWithEmailAndPassword(this.state.email, this.state.password);
-        if (gymType === Constants.independentType){
-          var pending = false;
-          var gymRef = firebase.database().ref('/gyms/' + gymKey + '/trainers/');
-        }else{
-          var pending = true;
-          var gymRef = firebase.database().ref('/gyms/' + gymKey + '/pendingtrainers/');
+        let pending;
+        user = await firebase.auth().createUserWithEmailAndPassword(
+          this.state.email,
+          this.state.password,
+        );
+        if (gymType === Constants.independentType) {
+          pending = false;
+          gymRef = firebase.database().ref(`/gyms/${gymKey}/trainers/`);
+        } else {
+          pending = true;
+          gymRef = firebase.database().ref(`/gyms/${gymKey}/pendingtrainers/`);
         }
 
         gymRef.child(user.user.uid).set({
@@ -174,7 +190,7 @@ export class SignupForm extends Component {
           bio: this.state.bio,
           cert: this.state.cert,
           name: this.state.name,
-          rate: parseInt(this.state.rate.replace(/\D/g,'')),
+          rate: parseInt(this.state.rate.replace(/\D/g, ''), 10),
           rating: 0,
           offset: 0,
         });
@@ -182,13 +198,13 @@ export class SignupForm extends Component {
         firebase.database().ref('users').child(user.user.uid).set({
           type: 'trainer',
           trainerType: gymType,
-          pending: pending,
+          pending,
           name: this.state.name,
           gym: gymKey,
           cert: this.state.cert,
-          rate: parseInt(this.state.rate.replace(/\D/g,'')),
+          rate: parseInt(this.state.rate.replace(/\D/g, ''), 10),
           bio: this.state.bio,
-          phone: this.state.phone.replace(/\D/g,''),
+          phone: this.state.phone.replace(/\D/g, ''),
           active: false,
           rating: 0,
           sessions: 0,
@@ -198,69 +214,70 @@ export class SignupForm extends Component {
         if (gymType === Constants.managedType) {
           const gymManagerKey = this.state.gyms[this.state.gym].managerKey;
           firebase.database().ref('users').child(user.user.uid).update({
-            managerKey: gymManagerKey
+            managerKey: gymManagerKey,
           });
         }
-          
+
         if (this.state.image) {
           this.uploadImage(this.state.image, user.user.uid);
         }
 
-        if(gymType === Constants.independentType){
-          await firebase.database().ref('users').child(user.user.uid).update({stripeId: data.trainer.id, cardAdded: false});
+        if (gymType === Constants.independentType) {
+          await firebase.database().ref('users').child(user.user.uid).update({ stripeId: data.trainer.id, cardAdded: false });
           await firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password);
           Actions.reset('CalendarPage');
           Alert.alert('You must enter a debit card for payouts before clients can book a session with you!');
-        }else{
+        } else {
           Actions.reset('LoginPage');
           Alert.alert('Your account is now pending approval. Sign in once your gym manager approves your account.');
         }
-
-      } catch(error) {
+      } catch (error) {
         try {
           if (user.user.uid) {
             await firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password);
             if (gymType === Constants.independentType) {
               const idToken = await firebase.auth().currentUser.getIdToken(true);
               const res = await fetch(`${FB_URL}/stripe/deleteTrainer/`,
-              {
-                method: 'POST',
-                headers: {
-                  Authorization: idToken
-                },
-                body: JSON.stringify({
-                  stripeId: data.trainer.id
-                })
-              });
+                {
+                  method: 'POST',
+                  headers: {
+                    Authorization: idToken,
+                  },
+                  body: JSON.stringify({
+                    stripeId: data.trainer.id,
+                  }),
+                });
               const response = await res.json();
               data = JSON.parse(response.body);
-              
-              if(data.message !== 'Success') {
+
+              if (data.message !== 'Success') {
                 throw new Error('Stripe Error');
               }
             }
             firebase.database().ref('users').child(user.user.uid).remove();
             gymRef.child(user.user.uid).remove();
-            firebase.auth().currentUser.delete()
+            firebase.auth().currentUser.delete();
           }
-          Alert.alert("There was an error creating your account. Please review your info and try again.");
+          Alert.alert('There was an error creating your account. Please review your info and try again.');
           this.setState({ pressed: false });
           this.bugsnagClient.notify(error);
           return;
-        } catch (error) {
-          Alert.alert("There was an error creating your account. Please review your info and try again.");
+        } catch (err) {
+          Alert.alert('There was an error creating your account. Please review your info and try again.');
           this.setState({ pressed: false });
-          this.bugsnagClient.notify(error);
-          return;
+          this.bugsnagClient.notify(err);
         }
       }
     } else {
       try {
-        user = await firebase.auth().createUserWithEmailAndPassword(this.state.email, this.state.password);
+        user = await firebase.auth().createUserWithEmailAndPassword(
+          this.state.email,
+          this.state.password,
+        );
         firebase.database().ref('users').child(user.user.uid).set({
           type: 'client',
           name: this.state.name,
-          phone: this.state.phone.replace(/\D/g,''),
+          phone: this.state.phone.replace(/\D/g, ''),
           rating: 0,
           sessions: 0,
           cardAdded: false,
@@ -271,79 +288,74 @@ export class SignupForm extends Component {
         }
 
         await firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password);
-        Actions.reset("MapPage");
-
-      } catch(error) {
+        Actions.reset('MapPage');
+      } catch (error) {
         try {
           if (user.user.uid) {
             await firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password);
             firebase.database().ref('users').child(user.user.uid).remove();
-            firebase.auth().currentUser.delete()
+            firebase.auth().currentUser.delete();
           }
-          Alert.alert("There was an error creating your account. Please review your info and try again.");
+          Alert.alert('There was an error creating your account. Please review your info and try again.');
           this.setState({ pressed: false });
           this.bugsnagClient.notify(error);
           return;
-        } catch (error) {
-          Alert.alert("There was an error creating your account. Please review your info and try again.");
+        } catch (err) {
+          Alert.alert('There was an error creating your account. Please review your info and try again.');
           this.setState({ pressed: false });
-          this.bugsnagClient.notify(error);
-          return;
+          this.bugsnagClient.notify(err);
         }
       }
     }
   }
 
   goBack = () => {
-    if (this.state.page == 2) {
+    if (this.state.page === 2) {
       this.setState({ page: 1 });
-    } else if (this.state.page == 3) {
+    } else if (this.state.page === 3) {
       this.setState({ page: 2 });
-    } else {
-      if (this.state.trainer) {
-        if (this.state.gyms[this.state.gym].type === Constants.managedType) {
-          this.setState({ page: 2 })
-        } else {
-          this.setState({ page: 3 });
-        }
+    } else if (this.state.trainer) {
+      if (this.state.gyms[this.state.gym].type === Constants.managedType) {
+        this.setState({ page: 2 });
       } else {
-        this.setState({ page: 1 });
+        this.setState({ page: 3 });
       }
+    } else {
+      this.setState({ page: 1 });
     }
   }
 
-  goNext = async() => {
+  goNext = async () => {
     if (this.state.page === 1) {
-
       if (!this.state.name) {
-        Alert.alert("Please enter a name!");
+        Alert.alert('Please enter a name!');
         return;
       }
       if (!this.state.email) {
-        Alert.alert("Please enter an email!");
+        Alert.alert('Please enter an email!');
         return;
       }
       if (!this.state.password || this.state.password.trim().length < 6) {
-        Alert.alert("Please enter a password at least 6 characters long!");
+        Alert.alert('Please enter a password at least 6 characters long!');
         return;
       }
-      if (!this.state.confirmPass || this.state.password != this.state.confirmPass) {
-        Alert.alert("Passwords must match!");
+      if (!this.state.confirmPass || this.state.password !== this.state.confirmPass) {
+        Alert.alert('Passwords must match!');
         return;
       }
-      if (!this.state.phone || this.state.phone.replace(/\D/g,'').length < 10) {
-        Alert.alert("Please enter a valid phone number");
+      if (!this.state.phone || this.state.phone.replace(/\D/g, '').length < 10) {
+        Alert.alert('Please enter a valid phone number');
         return;
       }
       try {
         const emailCheck = await firebase.auth().fetchSignInMethodsForEmail(this.state.email);
-        if(emailCheck.length) {
-          Alert.alert("That email is already in use");
+        if (emailCheck.length) {
+          Alert.alert('That email is already in use');
           return;
         }
-      } catch(error) {
+      } catch (error) {
         this.bugsnagClient.notify(error);
-        Alert.alert("Please enter a valid email");
+        Alert.alert('Please enter a valid email');
         return;
       }
 
@@ -352,52 +364,51 @@ export class SignupForm extends Component {
       } else {
         this.setState({ page: 4 });
       }
-
     } else if (this.state.page === 2) {
       if (this.state.gym === undefined || this.state.gym === 'none') {
-        Alert.alert("Please select a gym!");
+        Alert.alert('Please select a gym!');
         return;
       }
       if (!this.state.cert) {
-        Alert.alert("Please enter your certifications!");
+        Alert.alert('Please enter your certifications!');
         return;
       }
       if (!this.state.bio) {
-        Alert.alert("Please fill out your bio!");
+        Alert.alert('Please fill out your bio!');
         return;
       }
-      if (this.state.gyms[this.state.gym].type == Constants.managedType) {
+      if (this.state.gyms[this.state.gym].type === Constants.managedType) {
         this.setState({ page: 4 });
       } else {
-        if (!this.state.rate || this.state.rate.replace(/\D/g,'') < 25) {
-          Alert.alert("Please enter your rate (has to be $25+)!");
+        if (!this.state.rate || this.state.rate.replace(/\D/g, '') < 25) {
+          Alert.alert('Please enter your rate (has to be $25+)!');
           return;
         }
-        if (!this.state.ssn || this.state.ssn.replace(/\D/g,'').length < 9) {
-          Alert.alert("Please enter a valid Social Security Number!");
+        if (!this.state.ssn || this.state.ssn.replace(/\D/g, '').length < 9) {
+          Alert.alert('Please enter a valid Social Security Number!');
           return;
         }
-        if (!this.state.birthDay || this.state.birthDay.replace(/\D/g,'').length < 8) {
-          Alert.alert("Please enter a valid formatted birthday!");
+        if (!this.state.birthDay || this.state.birthDay.replace(/\D/g, '').length < 8) {
+          Alert.alert('Please enter a valid formatted birthday!');
           return;
         }
         this.setState({ page: 3 });
       }
     } else {
       if (!this.state.address) {
-        Alert.alert("Please enter an address!");
+        Alert.alert('Please enter an address!');
         return;
       }
       if (!this.state.city) {
-        Alert.alert("Please enter a city!");
+        Alert.alert('Please enter a city!');
         return;
       }
-      if (!this.state.zip || this.state.zip.length != 5) {
-        Alert.alert("Please enter a valid 5 digit zip code!");
+      if (!this.state.zip || this.state.zip.length !== 5) {
+        Alert.alert('Please enter a valid 5 digit zip code!');
         return;
       }
-      if (!this.state.state || this.state.state.length != 2) {
-        Alert.alert("Please enter a valid state Abbreviation!");
+      if (!this.state.state || this.state.state.length !== 2) {
+        Alert.alert('Please enter a valid state Abbreviation!');
         return;
       }
       this.setState({ page: 4 });
@@ -405,13 +416,23 @@ export class SignupForm extends Component {
   }
 
   render() {
-    if(!this.state.gymLoaded || this.state.pressed) {
-      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
+    if (!this.state.gymLoaded || this.state.pressed) {
+      return (
+        <View style={styles.loadingContainer}>
+          <Image source={loading} style={styles.loading} />
+        </View>
+      );
     }
 
-    let image = this.state.image;
-    let page1 = page2 = page3 = page4 = null;
-    let submitButton = agreement = null;
+    const { image } = this.state;
+    let page1;
+    let page2;
+    let page3;
+    let page4;
+    let submitButton;
+    let agreement;
+    let nextButton;
+    let prevButton;
 
     prevButton = (
       <TouchableOpacity style={styles.buttonContainer} onPressIn={this.goBack}>
@@ -425,38 +446,38 @@ export class SignupForm extends Component {
       </TouchableOpacity>
     );
 
-    if (this.state.page == 1) {
+    if (this.state.page === 1) {
       prevButton = null;
       page1 = (
         <View style={styles.container}>
-          <TextField 
+          <TextField
             icon="user"
             placeholder="Name (First and Last)"
             onChange={(name) => this.setState({ name })}
             value={this.state.name}
           />
-          <TextField 
+          <TextField
             icon="envelope"
             placeholder="Email"
             keyboard="email-address"
             onChange={(email) => this.setState({ email })}
             value={this.state.email}
           />
-          <TextField 
+          <TextField
             icon="lock"
             placeholder="Password"
-            secure={true}
+            secure
             onChange={(password) => this.setState({ password })}
             value={this.state.password}
           />
-          <TextField 
+          <TextField
             icon="lock"
             placeholder="Confirm Password"
-            secure={true}
+            secure
             onChange={(confirmPass) => this.setState({ confirmPass })}
             value={this.state.confirmPass}
           />
-          <TextField 
+          <TextField
             icon="phone"
             placeholder="Phone Number"
             keyboard="number-pad"
@@ -467,7 +488,6 @@ export class SignupForm extends Component {
             <Text style={styles.hints}>Are you signing up as a trainer? </Text>
             <Switch
               trackColor={COLORS.PRIMARY}
-              trackColor={COLORS.PRIMARY}
               _thumbColor={COLORS.SECONDARY}
               value={this.state.trainer}
               onValueChange={(trainer) => this.setState({ trainer })}
@@ -475,12 +495,12 @@ export class SignupForm extends Component {
           </View>
         </View>
       );
-    } else if (this.state.page == 2) {
+    } else if (this.state.page === 2) {
       let rateFieldEditable;
       if (this.state.gym !== undefined && this.state.gym !== 'none') {
-        rateFieldEditable = (this.state.gyms[this.state.gym].type === Constants.independentType) ?  true : false;
-        if(!rateFieldEditable) {
-          this.state.rate = "50";
+        rateFieldEditable = (this.state.gyms[this.state.gym].type === Constants.independentType);
+        if (!rateFieldEditable) {
+          this.state.rate = '50';
         }
       }
       page2 = (
@@ -493,14 +513,15 @@ export class SignupForm extends Component {
               style={styles.picker}
               itemStyle={{ height: 45, color: COLORS.PRIMARY }}
               selectedValue={this.state.gym}
-              onValueChange={(itemValue) => this.setState({ gym: itemValue })}>
-              <Picker.Item label="Pick a Gym (Scroll)" value='none' key='0' />
-              {this.state.gyms.map(function (gym, index) {
-                return (<Picker.Item label={gym.name} value={index} key={gym.key} />);
-              })}
+              onValueChange={(itemValue) => this.setState({ gym: itemValue })}
+            >
+              <Picker.Item label="Pick a Gym (Scroll)" value="none" key="0" />
+              {this.state.gyms.map(
+                (gym, index) => (<Picker.Item label={gym.name} value={index} key={gym.key} />),
+              )}
             </Picker>
           </View>
-          <TextField 
+          <TextField
             icon="dollar"
             placeholder="Rate ($ hourly)"
             keyboard="number-pad"
@@ -508,27 +529,27 @@ export class SignupForm extends Component {
             editable={rateFieldEditable}
             value={this.state.rate}
           />
-          <TextField 
+          <TextField
             icon="info"
-            multiline={true}
+            multiline
             placeholder="Enter your bio here (specialities, schedule, experience, etc.)"
             onChange={(bio) => this.setState({ bio })}
             value={this.state.bio}
           />
-          <TextField 
+          <TextField
             icon="vcard"
             placeholder="Certifications"
             onChange={(cert) => this.setState({ cert })}
             value={this.state.cert}
           />
-          <TextField 
+          <TextField
             icon="user"
             placeholder="SSN (For Stripe Account)"
             keyboard="number-pad"
             onChange={(ssn) => this.setState({ ssn })}
             value={this.state.ssn}
           />
-          <TextField 
+          <TextField
             icon="user"
             placeholder="Birth Date (mm/dd/yyyy)"
             onChange={(birthDay) => this.setState({ birthDay })}
@@ -536,29 +557,29 @@ export class SignupForm extends Component {
           />
         </View>
       );
-    } else if (this.state.page == 3) {
+    } else if (this.state.page === 3) {
       page3 = (
         <View>
-          <TextField 
+          <TextField
             icon="envelope"
             placeholder="Address"
             onChange={(address) => this.setState({ address })}
             value={this.state.address}
           />
-          <TextField 
+          <TextField
             icon="map"
             placeholder="City"
             onChange={(city) => this.setState({ city })}
             value={this.state.city}
           />
-          <TextField 
+          <TextField
             icon="map-marker"
             placeholder="Zip Code"
             keyboard="number-pad"
             onChange={(zip) => this.setState({ zip })}
             value={this.state.zip}
           />
-          <TextField 
+          <TextField
             icon="map"
             placeholder="State (Abbreviation eg. CA)"
             onChange={(state) => this.setState({ state })}
@@ -569,37 +590,53 @@ export class SignupForm extends Component {
     } else {
       nextButton = null;
       let buttonText = 'Add Picture';
-      let profileImage = <Image source={defaultProfilePic} style={styles.imageHolder} />
-      if (image != defaultProfilePic.uri) {
+      let profileImage = <Image source={defaultProfilePic} style={styles.imageHolder} />;
+      if (image !== defaultProfilePic.uri) {
         buttonText = 'Change';
-        profileImage = <Image source={{ uri: image }} style={styles.imageHolder} />
+        profileImage = <Image source={{ uri: image }} style={styles.imageHolder} />;
       }
       page4 = (
         <View style={styles.imageContainer}>
           {profileImage}
           <TouchableOpacity style={styles.pictureButton} onPressIn={this.pickImage}>
-            <Text style={styles.pictureButtonText}> {buttonText} </Text>
+            <Text style={styles.pictureButtonText}>
+              {' '}
+              {buttonText}
+              {' '}
+            </Text>
           </TouchableOpacity>
         </View>
       );
 
       submitButton = (
-        <TouchableOpacity ref={btn => { this.btn = btn; }} style={styles.buttonContainer} onPressIn={this.signUp}>
+        <TouchableOpacity
+          ref={(btn) => { this.btn = btn; }}
+          style={styles.buttonContainer}
+          onPressIn={this.signUp}
+        >
           <Text style={styles.buttonText}> Signup </Text>
         </TouchableOpacity>
       );
-      
+
       agreement = (
         <View style={{ marginTop: 15 }}>
           <Text style={styles.agreement}>
-            By registering for an account you agree to the </Text>
-          <TouchableOpacity onPress={() => Linking.openURL('https://stripe.com/en-US/legal')}>
+            By registering for an account you agree to the
+            {' '}
+          </Text>
+          <TouchableOpacity
+            onPress={() => Linking.openURL('https://stripe.com/en-US/legal')}
+          >
             <Text style={styles.link}> Stripe Services Agreement</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => Linking.openURL('https://stripe.com/en-US/connect-account/legal')}>
+          <TouchableOpacity
+            onPress={() => Linking.openURL('https://stripe.com/en-US/connect-account/legal')}
+          >
             <Text style={styles.link}> Stripe Connected Account Agreement</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => Linking.openURL('http://trainnow.fit/user-agreement-privacy-policy/')}>
+          <TouchableOpacity
+            onPress={() => Linking.openURL('http://trainnow.fit/user-agreement-privacy-policy/')}
+          >
             <Text style={styles.link}> TrainNow User Agreement</Text>
           </TouchableOpacity>
         </View>
@@ -638,21 +675,21 @@ const styles = StyleSheet.create({
   },
   loading: {
     width: '100%',
-    resizeMode: 'contain'
+    resizeMode: 'contain',
   },
   loadingContainer: {
     height: '100%',
     width: '100%',
     flexDirection: 'column',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   inputRow: {
     width: '100%',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'flex-end',
-    marginBottom: 20
+    marginBottom: 20,
   },
   picker: {
     height: 45,
@@ -670,7 +707,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 10
+    marginTop: 10,
   },
   pictureButton: {
     padding: 10,
@@ -679,19 +716,19 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
-    margin: 5
+    margin: 5,
   },
   pictureButtonText: {
     fontWeight: '700',
     color: '#f6f5f5',
     fontSize: 20,
-    textAlign: 'center'
+    textAlign: 'center',
   },
   buttonText: {
     fontSize: 20,
     textAlign: 'center',
     color: COLORS.WHITE,
-    fontWeight: '700'
+    fontWeight: '700',
   },
   imageContainer: {
     flexDirection: 'column',
@@ -706,37 +743,26 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderColor: COLORS.PRIMARY,
-    marginBottom: 10
+    marginBottom: 10,
   },
   icon: {
     color: COLORS.PRIMARY,
     fontSize: 30,
     marginRight: 10,
-    marginTop: 13
+    marginTop: 13,
   },
   hints: {
     color: COLORS.PRIMARY,
     marginBottom: 10,
-    marginRight: 10
+    marginRight: 10,
   },
   agreement: {
     color: COLORS.PRIMARY,
-    textAlign: 'center'
+    textAlign: 'center',
   },
   link: {
     color: COLORS.PRIMARY,
     textAlign: 'center',
-    textDecorationLine: 'underline'
+    textDecorationLine: 'underline',
   },
-  loading: {
-    width: '100%',
-    resizeMode: 'contain'
-  },
-  loadingContainer: {
-    height: '100%',
-    width: '100%',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center'
-  }
 });

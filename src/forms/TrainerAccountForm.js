@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Alert, Switch, Image } from 'react-native';
+import {
+  StyleSheet, Text, View, TouchableOpacity, Alert, Switch, Image,
+} from 'react-native';
 import firebase from 'firebase';
 import * as Permissions from 'expo-permissions';
 import * as ImagePicker from 'expo-image-picker';
@@ -8,24 +10,25 @@ import COLORS from '../components/Colors';
 import TextField from '../components/TextField';
 import { loadUser } from '../components/Functions';
 import Constants from '../components/Constants';
+
 const loading = require('../images/loading.gif');
 
-export class TrainerAccountForm extends Component {
-
+export default class TrainerAccountForm extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      change: false
+      change: false,
     };
     this.bugsnagClient = bugsnag();
   }
 
   async componentDidMount() {
+    let trainer;
     try {
       const userId = firebase.auth().currentUser.uid;
-      var trainer = await loadUser(userId);
+      trainer = await loadUser(userId);
       const image = await firebase.storage().ref().child(userId).getDownloadURL();
-      this.setState({ 
+      this.setState({
         image,
         trainer,
         name: trainer.name,
@@ -35,11 +38,11 @@ export class TrainerAccountForm extends Component {
         gym: trainer.gym,
         active: trainer.active,
         offset: String(trainer.offset),
-        imageUploaded: true
+        imageUploaded: true,
       });
-    } catch(error) {
-      if(error.code === "storage/object-not-found") {
-        this.setState({ 
+    } catch (error) {
+      if (error.code === 'storage/object-not-found') {
+        this.setState({
           trainer,
           name: trainer.name,
           rate: String(trainer.rate),
@@ -48,7 +51,7 @@ export class TrainerAccountForm extends Component {
           gym: trainer.gym,
           active: trainer.active,
           offset: String(trainer.offset),
-          imageUploaded: true 
+          imageUploaded: true,
         });
         return;
       }
@@ -60,7 +63,7 @@ export class TrainerAccountForm extends Component {
     // Ask for image permissions from phone
     const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
     if (status === 'granted') {
-      let result = await ImagePicker.launchImageLibraryAsync({
+      const result = await ImagePicker.launchImageLibraryAsync({
         allowsEditing: true,
         aspect: [4, 3],
       });
@@ -74,15 +77,15 @@ export class TrainerAccountForm extends Component {
     Alert.alert('Camera roll permission not granted');
   }
 
-  uploadImage = async(uri, uid) => {
-    try{
+  uploadImage = async (uri, uid) => {
+    try {
       // Create image blob for upload
       const blob = await new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
-        xhr.onload = function() {
+        xhr.onload = () => {
           resolve(xhr.response);
         };
-        xhr.onerror = function(error) {
+        xhr.onerror = (error) => {
           reject(new Error(error));
         };
         xhr.responseType = 'blob';
@@ -92,36 +95,36 @@ export class TrainerAccountForm extends Component {
 
       // Upload image to firebase storage
       await firebase.storage().ref().child(uid).put(blob);
-    } catch(error) {
+    } catch (error) {
       this.bugsnagClient.metaData = {
-        trainer: this.state.trainer
-      }
+        trainer: this.state.trainer,
+      };
       this.bugsnagClient.notify(error);
-      Alert.alert('There was an error uploading the image.')
+      Alert.alert('There was an error uploading the image.');
     }
   }
 
-  updateAccount = async() => {
+  updateAccount = async () => {
     // Input validation
     if (!this.state.name || !this.state.name.length) {
-      Alert.alert("Please enter a name!");
+      Alert.alert('Please enter a name!');
       return;
     }
-    if (!this.state.rate || !this.state.rate.length || this.state.rate.replace(/\D/g,'') < 25) {
-      Alert.alert("Please enter a rate over $25!");
+    if (!this.state.rate || !this.state.rate.length || this.state.rate.replace(/\D/g, '') < 25) {
+      Alert.alert('Please enter a rate over $25!');
       return;
     }
     if (!this.state.cert || !this.state.cert.length) {
-      Alert.alert("Please enter your certifications!");
+      Alert.alert('Please enter your certifications!');
       return;
     }
     if (!this.state.bio || !this.state.bio.length) {
-      Alert.alert("Please enter your bio!");
+      Alert.alert('Please enter your bio!');
       return;
     }
 
     if (!this.state.offset || !this.state.offset.length) {
-      Alert.alert("Please enter an offset!");
+      Alert.alert('Please enter an offset!');
       return;
     }
 
@@ -131,21 +134,20 @@ export class TrainerAccountForm extends Component {
       firebase.database().ref(`/gyms/${this.state.gym}/trainers/${userId}`).update({
         name: this.state.name,
         cert: this.state.cert,
-        rate: parseInt(this.state.rate),
+        rate: parseInt(this.state.rate, 10),
         bio: this.state.bio,
         active: this.state.active,
-        offset: parseInt(this.state.offset)
+        offset: parseInt(this.state.offset, 10),
       });
 
       // user table updated
       firebase.database().ref('users').child(userId).update({
         name: this.state.name,
         cert: this.state.cert,
-        rate: parseInt(this.state.rate),
+        rate: parseInt(this.state.rate, 10),
         bio: this.state.bio,
-        gym: this.state.gym,
         active: this.state.active,
-        offset: parseInt(this.state.offset)
+        offset: parseInt(this.state.offset, 10),
       });
 
       // image upload
@@ -153,12 +155,12 @@ export class TrainerAccountForm extends Component {
         this.uploadImage(this.state.imageToUpload, userId);
       }
 
-      this.setState({ change: false })
-      Alert.alert("Updated");
-    } catch(error) {
+      this.setState({ change: false });
+      Alert.alert('Updated');
+    } catch (error) {
       this.bugsnagClient.metaData = {
-        trainer: this.state.trainer
-      }
+        trainer: this.state.trainer,
+      };
       this.bugsnagClient.notify(error);
       Alert.alert('There was an error updating your account info. Please try again.');
     }
@@ -166,11 +168,15 @@ export class TrainerAccountForm extends Component {
 
   render() {
     if (!this.state.trainer || !this.state.imageUploaded) {
-      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
+      return (
+        <View style={styles.loadingContainer}>
+          <Image source={loading} style={styles.loading} />
+        </View>
+      );
     }
 
     let rateField = null;
-    if(this.state.trainer.trainerType === Constants.independentType) {
+    if (this.state.trainer.trainerType === Constants.independentType) {
       rateField = (
         <TextField
           icon="dollar"
@@ -178,10 +184,10 @@ export class TrainerAccountForm extends Component {
           onChange={(rate) => this.setState({ rate, change: true })}
           value={this.state.rate}
           keyboard="number-pad"
-          />
+        />
       );
     }
-    
+
     return (
       <View style={styles.container}>
         <View style={styles.switchRow}>
@@ -246,24 +252,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 5
+    marginBottom: 5,
   },
   buttonContainer: {
     borderRadius: 5,
     width: 200,
     backgroundColor: COLORS.SECONDARY,
     paddingVertical: 15,
-    marginTop: 10
+    marginTop: 10,
   },
   buttonText: {
     textAlign: 'center',
     color: COLORS.WHITE,
-    fontWeight: '700'
+    fontWeight: '700',
   },
   hints: {
     color: COLORS.PRIMARY,
     fontSize: 25,
-    fontWeight: "500"
+    fontWeight: '500',
   },
   imageContainer: {
     flexDirection: 'column',
@@ -278,13 +284,13 @@ const styles = StyleSheet.create({
   },
   loading: {
     width: '100%',
-    resizeMode: 'contain'
+    resizeMode: 'contain',
   },
   loadingContainer: {
     height: '100%',
     width: '100%',
     flexDirection: 'column',
     justifyContent: 'center',
-    alignItems: 'center'
-  }
+    alignItems: 'center',
+  },
 });

@@ -408,7 +408,7 @@ function deleteTrainerCard(req, res){
     }
 
     //Remove card from customer
-    stripe.accounts.deleteExternalAccount(stripeId, cardId).then(card => {
+    stripe.accounts.deleteExternalAccount(body.stripeId, body.cardId).then(card => {
         send(res, 200, {
             message: 'Success',
             card: card

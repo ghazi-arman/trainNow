@@ -1,17 +1,21 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, KeyboardAvoidingView, TouchableOpacity, Alert, Image, View } from 'react-native';
+import {
+  StyleSheet, Text, KeyboardAvoidingView, TouchableOpacity, Alert, Image, View,
+} from 'react-native';
 import firebase from 'firebase';
 import { FontAwesome } from '@expo/vector-icons';
-import  TextField from '../components/TextField';
 import bugsnag from '@bugsnag/expo';
+import PropTypes from 'prop-types';
+import { STRIPE_KEY, FB_URL } from 'react-native-dotenv';
+import TextField from '../components/TextField';
 import { loadUser } from '../components/Functions';
 import COLORS from '../components/Colors';
-import { STRIPE_KEY, FB_URL } from 'react-native-dotenv';
 import Constants from '../components/Constants';
+
 const stripe = require('stripe-client')(STRIPE_KEY);
 const loading = require('../images/loading.gif');
 
-export class CardModal extends Component {
+export default class CardModal extends Component {
   constructor(props) {
     super(props);
     this.state = {};
@@ -19,16 +23,15 @@ export class CardModal extends Component {
   }
 
   async componentDidMount() {
-    //Get user info for state
-    if(!this.state.user) {
+    if (!this.state.user) {
       try {
         const user = await loadUser(firebase.auth().currentUser.uid);
         this.setState({ user });
-      } catch(error) {
+      } catch (error) {
         this.bugsnagClient.notify(error);
         Alert.alert('There was an error loading the card modal.');
         this.props.hide();
-      } 
+      }
     }
   }
 
@@ -45,15 +48,15 @@ export class CardModal extends Component {
         exp_year: this.state.expYear,
         cvc: this.state.cvc,
         name: this.state.name,
-        currency: 'usd'
-      }
+        currency: 'usd',
+      },
 
-    }
+    };
 
     let card;
     try {
       card = await stripe.createToken(information);
-    } catch(error) {
+    } catch (error) {
       this.setState({ pressed: false });
       this.bugsnagClient.notify(error);
       Alert.alert('There was an error creating a token for the card. Please check your information and try again.');
@@ -67,12 +70,12 @@ export class CardModal extends Component {
         const res = await fetch(`${FB_URL}/stripe/createCustomer/`, {
           method: 'POST',
           headers: {
-            Authorization: idToken
+            Authorization: idToken,
           },
           body: JSON.stringify({
             token: card,
             id: user.uid,
-            email: user.email
+            email: user.email,
           }),
         });
         const response = await res.json();
@@ -83,82 +86,80 @@ export class CardModal extends Component {
 
         await firebase.database().ref('users').child(user.uid).update({
           stripeId: data.customer.id,
-          cardAdded: true
+          cardAdded: true,
         });
         this.props.hide();
       } catch (error) {
         this.setState({ pressed: false });
         this.bugsnagClient.notify(error);
         Alert.alert('There was an error adding the card. Please try again.');
-        return;
+      }
+    } else if (this.state.user.type === Constants.trainerType) {
+      try {
+        const res = await fetch(`${FB_URL}/stripe/addTrainerCard/`, {
+          method: 'POST',
+          headers: {
+            Authorization: idToken,
+          },
+          body: JSON.stringify({
+            token: card,
+            stripeId: this.state.user.stripeId,
+            user: user.uid,
+          }),
+        });
+        const response = await res.json();
+        const data = JSON.parse(response.body);
+        if (data.message !== 'Success') {
+          throw new Error('Stripe Error');
+        }
+
+        await firebase.database().ref('users').child(user.uid).update({
+          cardAdded: true,
+        });
+        this.props.hide();
+      } catch (error) {
+        this.setState({ pressed: false });
+        this.bugsnagClient.notify(error);
+        Alert.alert('There was an error adding the card. Please check the info and make sure it is a debit card before trying again.');
       }
     } else {
-      if (this.state.user.type === Constants.trainerType) {
-        try {
-          const res = await fetch(`${FB_URL}/stripe/addTrainerCard/`, {
-            method: 'POST',
-            headers: {
-              Authorization: idToken
-            },
-            body: JSON.stringify({
-              token: card,
-              stripeId: this.state.user.stripeId,
-              user: user.uid
-            })
-          })
-          const response = await res.json();
-          const data = JSON.parse(response.body);
-          if (data.message !== 'Success') {
-            throw new Error('Stripe Error');
-          }
+      try {
+        const res = await fetch(`${FB_URL}/stripe/addCard/`, {
+          method: 'POST',
+          headers: {
+            Authorization: idToken,
+          },
+          body: JSON.stringify({
+            token: card,
+            stripeId: this.state.user.stripeId,
+            user: user.uid,
+          }),
+        });
+        const response = await res.json();
+        const data = JSON.parse(response.body);
+        if (data.message !== 'Success') {
+          throw new Error('Stripe Error');
+        }
 
-          await firebase.database().ref('users').child(user.uid).update({
-            cardAdded: true
-          });
-          this.props.hide();
-        } catch (error) {
-          this.setState({ pressed: false });
-          this.bugsnagClient.notify(error);
-          Alert.alert('There was an error adding the card. Please check the info and make sure it is a debit card before trying again.');
-          return;
-        }
-      } else {
-        try {
-          const idToken = await firebase.auth().currentUser.getIdToken(true);
-          const res = await fetch(`${FB_URL}/stripe/addCard/`, {
-            method: 'POST',
-            headers: {
-              Authorization: idToken
-            },
-            body: JSON.stringify({
-              token: card,
-              stripeId: this.state.user.stripeId,
-              user: user.uid
-            }),
-          });
-          const response = await res.json();
-          const data = JSON.parse(response.body);
-          if (data.message !== 'Success') {
-            throw new Error('Stripe Error');
-          }
-          
-          await firebase.database().ref('users').child(user.uid).update({
-            cardAdded: true
-          });
-          this.props.hide();
-        } catch (error) {
-          this.setState({ pressed: false });
-          this.bugsnagClient.notify(error);
-          Alert.alert('There was an error adding the card. Please try again.');
-        }
+        await firebase.database().ref('users').child(user.uid).update({
+          cardAdded: true,
+        });
+        this.props.hide();
+      } catch (error) {
+        this.setState({ pressed: false });
+        this.bugsnagClient.notify(error);
+        Alert.alert('There was an error adding the card. Please try again.');
       }
-
     }
   }
 
   render() {
     if (!this.state.user || this.state.pressed) {
-      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
+      return (
+        <View style={styles.loadingContainer}>
+          <Image source={loading} style={styles.loading} />
+        </View>
+      );
     }
     return (
       <KeyboardAvoidingView behavior="padding" style={styles.formContainer}>
@@ -206,9 +207,13 @@ export class CardModal extends Component {
           </Text>
         </TouchableOpacity>
       </KeyboardAvoidingView>
-    )
+    );
   }
 }
+
+CardModal.propTypes = {
+  hide: PropTypes.func.isRequired,
+};
 
 const styles = StyleSheet.create({
   formContainer: {
@@ -218,7 +223,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: COLORS.WHITE,
     borderRadius: 10,
-    padding: 20
+    padding: 20,
   },
   submitButton: {
     borderRadius: 5,
@@ -226,13 +231,13 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     width: 150,
     flexDirection: 'column',
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   buttonText: {
     fontSize: 20,
     textAlign: 'center',
     color: COLORS.WHITE,
-    fontWeight: '700'
+    fontWeight: '700',
   },
   closeButton: {
     position: 'absolute',
@@ -244,17 +249,17 @@ const styles = StyleSheet.create({
   title: {
     color: COLORS.PRIMARY,
     fontSize: 30,
-    fontWeight: '700'
+    fontWeight: '700',
   },
   loading: {
     width: '100%',
-    resizeMode: 'contain'
+    resizeMode: 'contain',
   },
   loadingContainer: {
     height: '100%',
     width: '100%',
     flexDirection: 'column',
     justifyContent: 'center',
-    alignItems: 'center'
-  }
-})
+    alignItems: 'center',
+  },
+});

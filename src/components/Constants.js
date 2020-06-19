@@ -7,5 +7,5 @@ export default {
   groupSessionType: 'group',
   personalSessionType: 'personal',
   newClientPercentage: 0.25,
-  regularClientPercentage: 0.1
-}
+  regularClientPercentage: 0.1,
+};

@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Alert, Image } from 'react-native';
+import {
+  StyleSheet, Text, View, TouchableOpacity, Alert, Image,
+} from 'react-native';
 import firebase from 'firebase';
 import * as Permissions from 'expo-permissions';
 import * as ImagePicker from 'expo-image-picker';
@@ -7,29 +9,32 @@ import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import TextField from '../components/TextField';
 import { loadUser } from '../components/Functions';
+
 const loading = require('../images/loading.gif');
 
-export class ClientAccountForm extends Component {
-
+export default class ClientAccountForm extends Component {
   constructor(props) {
     super(props);
     this.state = {
       change: false,
-      pressed: false
+      pressed: false,
     };
     this.bugsnagClient = bugsnag();
   }
 
   async componentDidMount() {
+    let user;
     try {
       // pull user info and profile image from firebase
       const userId = firebase.auth().currentUser.uid;
-      var user = await loadUser(userId);
+      user = await loadUser(userId);
       const image = await firebase.storage().ref().child(userId).getDownloadURL();
-      this.setState({image, user, name: user.name, imageUploaded: true });
-    } catch(error) {
+      this.setState({
+        image, user, name: user.name, imageUploaded: true,
+      });
+    } catch (error) {
       // if image is not found in firebase ignore image and load user
-      if(error.code === "storage/object-not-found") {
+      if (error.code === 'storage/object-not-found') {
         this.setState({ user, name: user.name, imageUploaded: true });
         return;
       }
@@ -41,7 +46,7 @@ export class ClientAccountForm extends Component {
     // Ask for image permissions from phone
     const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
     if (status === 'granted') {
-      let result = await ImagePicker.launchImageLibraryAsync({
+      const result = await ImagePicker.launchImageLibraryAsync({
         allowsEditing: true,
         aspect: [4, 3],
       });
@@ -55,15 +60,15 @@ export class ClientAccountForm extends Component {
     Alert.alert('Camera roll permission not granted');
   }
 
-  uploadImage = async(uri, uid) => {
-    try{
+  uploadImage = async (uri, uid) => {
+    try {
       // Create image blob for upload
       const blob = await new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
-        xhr.onload = function() {
+        xhr.onload = () => {
           resolve(xhr.response);
         };
-        xhr.onerror = function(error) {
+        xhr.onerror = (error) => {
           reject(new Error(error));
         };
         xhr.responseType = 'blob';
@@ -73,30 +78,30 @@ export class ClientAccountForm extends Component {
 
       // Upload image to firebase storage
       await firebase.storage().ref().child(uid).put(blob);
-    } catch(error) {
+    } catch (error) {
       this.bugsnagClient.metaData = {
-        user: this.state.user
-      }
+        user: this.state.user,
+      };
       this.bugsnagClient.notify(error);
-      Alert.alert('There was an error uploading the image.')
+      Alert.alert('There was an error uploading the image.');
     }
   }
 
   updateAccount = () => {
     // Input validation
     if (!this.state.name || !this.state.name.length) {
-      Alert.alert("Please enter a name!");
+      Alert.alert('Please enter a name!');
       return;
     }
 
-    if(this.state.pressed) {
+    if (this.state.pressed) {
       return;
     }
     this.setState({ pressed: true });
 
     try {
       // Update info in users table
-      let user = firebase.auth().currentUser;
+      const user = firebase.auth().currentUser;
       firebase.database().ref('users').child(user.uid).update({
         name: this.state.name,
       });
@@ -105,13 +110,12 @@ export class ClientAccountForm extends Component {
       if (this.state.imageToUpload) {
         this.uploadImage(this.state.imageToUpload, user.uid);
       }
-      
       this.setState({ change: false, pressed: false });
-      Alert.alert("Updated");
-    } catch(error) {
+      Alert.alert('Updated');
+    } catch (error) {
       this.bugsnagClient.metaData = {
-        user: this.state.user
-      }
+        user: this.state.user,
+      };
       this.bugsnagClient.notify(error);
       this.setState({ pressed: false });
       Alert.alert('There was an error updating your account info. Please try again.');
@@ -120,7 +124,11 @@ export class ClientAccountForm extends Component {
 
   render() {
     if (!this.state.user || !this.state.imageUploaded || this.state.pressed) {
-      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
+      return (
+        <View style={styles.loadingContainer}>
+          <Image source={loading} style={styles.loading} />
+        </View>
+      );
     }
 
     return (
@@ -158,23 +166,23 @@ const styles = StyleSheet.create({
     width: 200,
     backgroundColor: COLORS.SECONDARY,
     paddingVertical: 15,
-    marginTop: 10
+    marginTop: 10,
   },
   buttonText: {
     textAlign: 'center',
     color: COLORS.WHITE,
-    fontWeight: '700'
+    fontWeight: '700',
   },
   loading: {
     width: '100%',
-    resizeMode: 'contain'
+    resizeMode: 'contain',
   },
   loadingContainer: {
     height: '100%',
     width: '100%',
     flexDirection: 'column',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   imageContainer: {
     flexDirection: 'column',

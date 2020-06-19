@@ -8,7 +8,7 @@ import {
   KeyboardAvoidingView,
 } from 'react-native';
 import { Actions } from 'react-native-router-flux';
-import { SignupForm } from '../forms/SignupForm';
+import SignupForm from '../forms/SignupForm';
 import COLORS from '../components/Colors';
 
 const logo = require('../images/logo.png');

@@ -1,87 +1,103 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, Image } from 'react-native';
+import {
+  StyleSheet, Text, View, Image, Alert,
+} from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import firebase from 'firebase';
 import { Agenda } from 'react-native-calendars';
 import bugsnag from '@bugsnag/expo';
+import PropTypes from 'prop-types';
 import COLORS from '../components/Colors';
-import { dateToString, loadUser, loadAcceptedSchedule, dateforAgenda, loadAvailableSchedule, loadTrainer } from '../components/Functions';
+import {
+  dateToString,
+  loadUser,
+  loadAcceptedSchedule,
+  dateforAgenda,
+  loadAvailableSchedule,
+  loadTrainer,
+} from '../components/Functions';
+
 const loading = require('../images/loading.gif');
 
-export class ScheduleModal extends Component {
-  
+export default class ScheduleModal extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      date: new Date()
+      date: new Date(),
     };
     this.bugsnagClient = bugsnag();
   }
 
-  async componentDidMount(){
+  async componentDidMount() {
     // load trainer and user info and trainer sessions
-    if(!this.state.trainer || !this.state.sessions || !this.state.user){
+    if (!this.state.trainer || !this.state.sessions || !this.state.user) {
       try {
-        var user = await loadUser(firebase.auth().currentUser.uid)
-        var trainer = await loadTrainer(this.props.trainer.key);
-        var sessions = await loadAcceptedSchedule(this.props.trainer.key);
-        var availability = await loadAvailableSchedule(this.props.trainer.key);
+        const user = await loadUser(firebase.auth().currentUser.uid);
+        const trainer = await loadTrainer(this.props.trainerKey);
+        let sessions = await loadAcceptedSchedule(this.props.trainerKey);
+        const availability = await loadAvailableSchedule(this.props.trainerKey);
         sessions = sessions.concat(availability);
-        this.setState({user, trainer, sessions});
-      } catch(error) {
+        this.setState({ user, trainer, sessions });
+      } catch (error) {
         this.bugsnagClient.notify(error);
-        Alert.alert(`There was an error loading the trainer's schedule.`);
+        Alert.alert('There was an error loading the trainer\'s schedule.');
         this.props.hideandOpen();
       }
     }
   }
 
-  renderAgendaItem(item, firstItemInDay){
-    return (
-      <View style={styles.agendaItem}>
-        <Text style={styles.agendaItemHeader}>{item.text}</Text>
-        <Text style={styles.agendaItemText}>{dateToString(item.start)}</Text>
-        <Text style={styles.agendaItemText}>to</Text>
-        <Text style={styles.agendaItemText}>{dateToString(item.end)}</Text>
-      </View>
-    );
-  }
+  renderAgendaItem = (item) => (
+    <View style={styles.agendaItem}>
+      <Text style={styles.agendaItemHeader}>{item.text}</Text>
+      <Text style={styles.agendaItemText}>{dateToString(item.start)}</Text>
+      <Text style={styles.agendaItemText}>to</Text>
+      <Text style={styles.agendaItemText}>{dateToString(item.end)}</Text>
+    </View>
+  );
 
-  renderAgendaEvents(){
+  renderAgendaEvents() {
     const startDate = this.state.date.getTime();
     const endDate = new Date(this.state.date.getTime() + 86400000 * 14).getTime();
     const events = {};
-    for(let currDate = startDate; currDate <= endDate; currDate += 86400000){
+    for (let currDate = startDate; currDate <= endDate; currDate += 86400000) {
       const currentDay = new Date(currDate);
-      events[dateforAgenda(currentDay)] = this.state.sessions.filter((session) => {
-        return dateforAgenda(currentDay) == dateforAgenda(new Date(session.start))
-      });
+      events[dateforAgenda(currentDay)] = this.state.sessions.filter(
+        (session) => dateforAgenda(currentDay) === dateforAgenda(new Date(session.start)),
+      );
     }
     return events;
   }
 
-  render(){
-    if(!this.state.trainer || !this.state.user || !this.state.sessions){
-      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
+  render() {
+    if (!this.state.trainer || !this.state.user || !this.state.sessions) {
+      return (
+        <View style={styles.loadingContainer}>
+          <Image source={loading} style={styles.loading} />
+        </View>
+      );
     }
     const events = this.renderAgendaEvents();
-    return(
+    return (
       <View style={styles.modal}>
         <View style={styles.nameContainer}>
           <Text style={styles.backButton} onPress={this.props.hideandOpen}>
             <FontAwesome name="arrow-left" size={35} />
           </Text>
-          <Text style={styles.trainerName}> {this.state.trainer.name} </Text>
+          <Text style={styles.trainerName}>
+            {' '}
+            {this.state.trainer.name}
+            {' '}
+          </Text>
         </View>
         <View style={styles.calendarContainer}>
-          <Agenda 
+          <Agenda
             style={styles.calendar}
             minDate={this.state.date}
             maxDate={new Date(this.state.date.getTime() + 86400000 * 14)}
             items={events}
             renderItem={this.renderAgendaItem}
-            renderEmptyDate={() => {return (<View />);}}
-            rowHasChanged={(r1, r2) => {return r1.text !== r2.text}}
+            renderEmptyDate={() => (<View />)}
+            rowHasChanged={(r1, r2) => r1.text !== r2.text}
           />
         </View>
       </View>
@@ -89,9 +105,18 @@ export class ScheduleModal extends Component {
   }
 }
 
+ScheduleModal.propTypes = {
+  trainerKey: PropTypes.string,
+  hideandOpen: PropTypes.func.isRequired,
+};
+
+ScheduleModal.defaultProps = {
+  trainerKey: null,
+};
+
 const styles = StyleSheet.create({
   modal: {
-    flex: .8,
+    flex: 0.8,
     flexDirection: 'column',
     justifyContent: 'flex-start',
     alignItems: 'center',
@@ -102,7 +127,7 @@ const styles = StyleSheet.create({
     fontSize: 30,
     color: COLORS.WHITE,
     fontWeight: '500',
-    textAlign: 'center'
+    textAlign: 'center',
   },
   nameContainer: {
     flex: 1,
@@ -112,7 +137,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.PRIMARY,
     flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   backButton: {
     position: 'absolute',
@@ -122,7 +147,7 @@ const styles = StyleSheet.create({
   },
   calendarContainer: {
     flex: 6,
-    width: '100%'
+    width: '100%',
   },
   calendar: {
     height: '100%',
@@ -141,7 +166,7 @@ const styles = StyleSheet.create({
   agendaItemHeader: {
     color: COLORS.WHITE,
     fontSize: 20,
-    fontWeight: '300'
+    fontWeight: '300',
   },
   agendaItemText: {
     color: COLORS.PRIMARY,
@@ -149,13 +174,13 @@ const styles = StyleSheet.create({
   },
   loading: {
     width: '100%',
-    resizeMode: 'contain'
+    resizeMode: 'contain',
   },
   loadingContainer: {
     height: '100%',
     width: '100%',
     flexDirection: 'column',
     justifyContent: 'center',
-    alignItems: 'center'
-  }
-})
+    alignItems: 'center',
+  },
+});

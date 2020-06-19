@@ -1,5 +1,7 @@
-import React, {Component} from 'react';
-import { Image, StyleSheet, Text, View, Alert, TouchableOpacity } from 'react-native';
+import React, { Component } from 'react';
+import {
+  Image, StyleSheet, Text, View, Alert, TouchableOpacity,
+} from 'react-native';
 import * as Permissions from 'expo-permissions';
 import MapView from 'react-native-maps';
 import firebase from 'firebase';
@@ -8,54 +10,68 @@ import { Actions } from 'react-native-router-flux';
 import { FontAwesome } from '@expo/vector-icons';
 import Drawer from 'react-native-drawer';
 import bugsnag from '@bugsnag/expo';
-import { SideMenu } from '../components/SideMenu';
-import { ManagedSideMenu } from '../components/ManagedSideMenu';
-import { GymModal } from '../modals/GymModal';
-import { BookModal } from '../modals/BookModal';
-import { ScheduleModal } from '../modals/ScheduleModal';
+import SideMenu from '../components/SideMenu';
+import ManagedSideMenu from '../components/ManagedSideMenu';
+import GymModal from '../modals/GymModal';
+import BookModal from '../modals/BookModal';
+import ScheduleModal from '../modals/ScheduleModal';
 import COLORS from '../components/Colors';
-import { loadUser, getLocation, loadGyms, goToPendingRating, loadCurrentSession, checkForUnreadSessions, markSessionsAsRead, loadPendingSessions, loadUpcomingSessions, loadCurrentGroupSession } from '../components/Functions';
+import {
+  loadUser,
+  getLocation,
+  loadGyms,
+  goToPendingRating,
+  loadCurrentSession,
+  checkForUnreadSessions,
+  markSessionsAsRead,
+  loadPendingSessions,
+  loadUpcomingSessions,
+  loadCurrentGroupSession,
+} from '../components/Functions';
 import Constants from '../components/Constants';
+
 const markerImg = require('../images/marker.png');
 const loading = require('../images/loading.gif');
 
-export class MapPage extends Component {
-
+export default class MapPage extends Component {
   constructor(props) {
     super(props);
     this.state = {
       selectedGym: {},
+      scheduleTrainer: {},
+      selectedTrainer: {},
       currentSession: null,
-      locationLoaded: false,
       gymModal: false,
       bookModal: false,
       scheduleModal: false,
       unread: false,
       modalPresent: false,
-      menuOpen: false
-    }
+      menuOpen: false,
+    };
     this.bugsnagClient = bugsnag();
   }
 
   async componentDidMount() {
     if (!this.state.userRegion || !this.state.mapRegion) {
       const { status, permissions } = await Permissions.askAsync(Permissions.LOCATION);
-      if (status === 'granted') {
+      if (permissions && status === 'granted') {
         const location = await getLocation();
         this.setState({ userRegion: location, mapRegion: location });
       } else {
-        Alert.alert(`You must allow this app to access your location before you can proceed. Please change your settings and restart the application.`,
-        "",
-        [
-          {text: 'Ok', onPress: () => {
-            firebase.auth().signOut().then(function() {
-              Actions.reset('LoginPage');
-            }, function(error) {
-              Alert.alert('Sign Out Error', error);
-            });
-          }},
-        ]
-        );
+        Alert.alert('You must allow this app to access your location before you can proceed. Please change your settings and restart the application.',
+          '',
+          [
+            {
+              text: 'Ok',
+              onPress: () => {
+                firebase.auth().signOut().then(() => {
+                  Actions.reset('LoginPage');
+                }, (error) => {
+                  Alert.alert('Sign Out Error', error);
+                });
+              },
+            },
+          ]);
       }
     }
     if (!this.state.gyms || !this.state.user) {
@@ -69,51 +85,51 @@ export class MapPage extends Component {
         const unread = await checkForUnreadSessions(user.type, userId);
         const pendingSessions = await loadPendingSessions(userId, user.type);
         const acceptSessions = await loadUpcomingSessions(userId, user.type);
-        this.setState({gyms, user, currentSession, unread, pendingSessions, acceptSessions, currentGroupSession });
-      } catch(error) {
+        this.setState({
+          gyms, user, currentSession, unread, pendingSessions, acceptSessions, currentGroupSession,
+        });
+      } catch (error) {
         this.bugsnagClient.notify(error);
         Alert.alert('There was an error loading the map.');
       }
     }
   }
 
-  handleMapRegionChange = mapRegion => {
-    if(this.state.regionSet){
+  handleMapRegionChange = (mapRegion) => {
+    if (this.state.regionSet) {
       this.setState({ mapRegion });
-    }else{
-      return;
     }
   };
 
   showModal = (type, option) => {
-    if(type === 'gym'){
+    if (type === 'gym') {
       this.setState({
         bookModal: false,
         scheduleModal: false,
         gymModal: true,
         modalPresent: true,
-        selectedGym: option
+        selectedGym: option,
       });
     }
 
-    if(type === 'book'){
+    if (type === 'book') {
       this.setState({
         gymModal: false,
         scheduleModal: false,
-        bookingTrainer: option,
-        modalPresent: true
+        selectedTrainer: option,
+        modalPresent: true,
       });
-      setTimeout(() => this.setState({bookModal: true}), 800);
+      setTimeout(() => this.setState({ bookModal: true }), 800);
     }
 
-    if(type === 'schedule'){
+    if (type === 'schedule') {
       this.setState({
         gymModal: false,
         bookModal: false,
         scheduleTrainer: option,
         modalPresent: true,
       });
-      setTimeout(() => this.setState({scheduleModal: true}), 800);
+      setTimeout(() => this.setState({ scheduleModal: true }), 800);
     }
   }
 
@@ -124,31 +140,37 @@ export class MapPage extends Component {
   viewSchedule = (trainer) => this.showModal('schedule', trainer);
 
   setLocation = () => {
-    if(this.state.userRegion){
-      _map.animateToRegion(this.state.userRegion, 499);
+    if (this.state.userRegion) {
+      this.map.animateToRegion(this.state.userRegion, 499);
     }
   }
 
   toggleMenu = () => {
-    if(this.state.menuOpen){
-      this.setState({menuOpen: false});
-    }else{
-      this.setState({menuOpen: true});
+    if (this.state.menuOpen) {
+      this.setState({ menuOpen: false });
+    } else {
+      this.setState({ menuOpen: true });
     }
   }
 
   hidegymModal = () => this.setState({ gymModal: false, modalPresent: false });
+
   hidebookModal = () => this.setState({ bookModal: false, modalPresent: false });
-  hidescheduleModal = () => this.setState({ scheduleModal: false, modalPresent: false});
+
+  hidescheduleModal = () => this.setState({ scheduleModal: false, modalPresent: false });
 
   hideandOpen = () => {
-    this.setState({scheduleModal: false, bookModal: false})
-    setTimeout(() => this.setState({gymModal: true}), 500);
+    this.setState({ scheduleModal: false, bookModal: false });
+    setTimeout(() => this.setState({ gymModal: true }), 500);
   }
 
   render() {
-    if(!this.state.mapRegion || !this.state.gyms || !this.state.user) {
-      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
+    if (!this.state.mapRegion || !this.state.gyms || !this.state.user) {
+      return (
+        <View style={styles.loadingContainer}>
+          <Image source={loading} style={styles.loading} />
+        </View>
+      );
     }
 
     if (this.state.unread && !this.state.modalPresent) {
@@ -156,23 +178,37 @@ export class MapPage extends Component {
         `Hello ${this.state.user.name}`,
         'You have a new session!',
         [
-          {text: 'Close', onPress: () => markSessionsAsRead(this.state.pendingSessions, this.state.acceptSessions, this.state.user.type)},
-          {text: 'View', onPress: () => Actions.CalendarPage()}
-        ]
+          {
+            text: 'Close',
+            onPress: () => markSessionsAsRead(
+              this.state.pendingSessions,
+              this.state.acceptSessions,
+              this.state.user.type,
+            ),
+          },
+          { text: 'View', onPress: () => Actions.CalendarPage() },
+        ],
       );
       this.state.modalPresent = true;
     }
 
-    let alertBox, menu;
+    let alertBox;
+    let menu;
     if (this.state.currentSession) {
       alertBox = (
-        <TouchableOpacity style={styles.buttonContainer} onPress={() => Actions.SessionPage({session: this.state.currentSession})}>
+        <TouchableOpacity
+          style={styles.buttonContainer}
+          onPress={() => Actions.SessionPage({ session: this.state.currentSession })}
+        >
           <Text style={styles.buttonText}>Enter Session!</Text>
         </TouchableOpacity>
       );
-    } else if(this.state.currentGroupSession) {
+    } else if (this.state.currentGroupSession) {
       alertBox = (
-        <TouchableOpacity style={styles.buttonContainer} onPress={() => Actions.GroupSessionPage({session: this.state.currentGroupSession})}>
+        <TouchableOpacity
+          style={styles.buttonContainer}
+          onPress={() => Actions.GroupSessionPage({ session: this.state.currentGroupSession })}
+        >
           <Text style={styles.buttonText}>Enter Session!</Text>
         </TouchableOpacity>
       );
@@ -190,29 +226,30 @@ export class MapPage extends Component {
         content={menu}
         type="overlay"
         openDrawerOffset={0.3}
-        tapToClose={true}
-        onClose={() => this.setState({menuOpen: false})}>
+        tapToClose
+        onClose={() => this.setState({ menuOpen: false })}
+      >
         <View style={styles.container}>
           <MapView
-            ref = {(mapView) => { _map = mapView; }}
+            ref={(mapView) => { this.map = mapView; }}
             style={styles.map}
             onRegionChange={this.handleMapRegionChange}
             region={this.state.mapRegion}
-            showsUserLocation={true}
+            showsUserLocation
             onMapReady={() => {
               this.setState({ regionSet: true });
             }}
           >
-          {this.state.gyms.map(marker => (
-            <MapView.Marker
-              ref={marker => (this.marker = marker)}
-              key={marker.key}
-              coordinate={marker.location}
-              onPress={() => this.showModal('gym', marker)}
-            >
-              <Image source={markerImg} style={{width: 50, height: 50}} />
-            </MapView.Marker>
-          ))}
+            {this.state.gyms.map((marker) => (
+              <MapView.Marker
+                ref={(currentMarker) => { this.marker = currentMarker; }}
+                key={marker.key}
+                coordinate={marker.location}
+                onPress={() => this.showModal('gym', marker)}
+              >
+                <Image source={markerImg} style={{ width: 50, height: 50 }} />
+              </MapView.Marker>
+            ))}
           </MapView>
           <TouchableOpacity style={styles.menuButton}>
             <Text style={styles.menuIcon} onPress={this.toggleMenu}>
@@ -220,19 +257,40 @@ export class MapPage extends Component {
             </Text>
           </TouchableOpacity>
           {alertBox}
-          <Modal isVisible={this.state.gymModal}
-          onBackdropPress={this.hidegymModal}>
-            <GymModal gymKey={this.state.selectedGym.key} setTrainer={this.setTrainer} viewSchedule={this.viewSchedule} hide={this.hidegymModal} />
+          <Modal
+            isVisible={this.state.gymModal}
+            onBackdropPress={this.hidegymModal}
+          >
+            <GymModal
+              gymKey={this.state.selectedGym.key}
+              setTrainer={this.setTrainer}
+              viewSchedule={this.viewSchedule}
+              hide={this.hidegymModal}
+            />
           </Modal>
 
-          <Modal isVisible={this.state.bookModal}
-          onBackdropPress={this.hidebookModal}>
-            <BookModal trainer={this.state.bookingTrainer} gym={this.state.selectedGym} hide={this.hidebookModal} confirm={() => Alert.alert('Session Booked!')} hideandOpen={this.hideandOpen} />
+          <Modal
+            isVisible={this.state.bookModal}
+            onBackdropPress={this.hidebookModal}
+          >
+            <BookModal
+              trainerKey={this.state.selectedTrainer.key}
+              gymKey={this.state.selectedGym.key}
+              hide={this.hidebookModal}
+              confirm={() => Alert.alert('Session Booked!')}
+              hideAndOpen={this.hideandOpen}
+            />
           </Modal>
 
-          <Modal isVisible={this.state.scheduleModal}
-          onBackdropPress={this.hidescheduleModal}>
-            <ScheduleModal trainer={this.state.scheduleTrainer} hide={this.hidescheduleModal} hideandOpen={this.hideandOpen}/>
+          <Modal
+            isVisible={this.state.scheduleModal}
+            onBackdropPress={this.hidescheduleModal}
+          >
+            <ScheduleModal
+              trainerKey={this.state.scheduleTrainer.key}
+              hide={this.hidescheduleModal}
+              hideandOpen={this.hideandOpen}
+            />
           </Modal>
 
         </View>
@@ -251,7 +309,7 @@ const styles = StyleSheet.create({
   },
   map: {
     height: '100%',
-    width: '100%'
+    width: '100%',
   },
   menuButton: {
     position: 'absolute',
@@ -261,7 +319,7 @@ const styles = StyleSheet.create({
     height: 60,
   },
   menuIcon: {
-    color: COLORS.PRIMARY, 
+    color: COLORS.PRIMARY,
   },
   buttonContainer: {
     position: 'absolute',
@@ -272,23 +330,23 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'center',
     margin: 10,
-    borderRadius: 5
+    borderRadius: 5,
   },
   buttonText: {
     textAlign: 'center',
     color: COLORS.WHITE,
     fontWeight: '700',
-    fontSize: 16
+    fontSize: 16,
   },
   loading: {
     width: '100%',
-    resizeMode: 'contain'
+    resizeMode: 'contain',
   },
   loadingContainer: {
     height: '100%',
     width: '100%',
     flexDirection: 'column',
     justifyContent: 'center',
-    alignItems: 'center'
-  }
+    alignItems: 'center',
+  },
 });

@@ -13,7 +13,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import Modal from 'react-native-modal';
 import { Actions } from 'react-native-router-flux';
 import bugsnag from '@bugsnag/expo';
-import { BookModalRegular } from '../modals/BookModalRegular';
+import BookModalRegular from '../modals/BookModalRegular';
 import COLORS from '../components/Colors';
 import {
   loadUser,
@@ -120,7 +120,8 @@ export default class TrainerPage extends Component {
         >
           <Text style={styles.buttonText}>
             <FontAwesome name="close" size={18} />
-            &nbsp; Deny
+            {' '}
+            Deny
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -134,7 +135,8 @@ export default class TrainerPage extends Component {
         >
           <Text style={styles.buttonText}>
             <FontAwesome name="check" size={18} />
-            &nbsp; Accept
+            {' '}
+            Accept
           </Text>
         </TouchableOpacity>
       </View>
@@ -156,7 +158,8 @@ export default class TrainerPage extends Component {
           >
             <Text style={styles.buttonText}>
               <FontAwesome name="calendar" size={18} />
-              &nbsp; Book
+              {' '}
+              Book
             </Text>
           </TouchableOpacity>
         </View>
@@ -180,7 +183,8 @@ export default class TrainerPage extends Component {
           <TouchableOpacity style={styles.requestButton} disabled>
             <Text style={styles.buttonText}>
               <FontAwesome name="hourglass" size={18} />
-              &nbsp; Pending
+              {' '}
+              Pending
             </Text>
           </TouchableOpacity>
         );
@@ -192,7 +196,8 @@ export default class TrainerPage extends Component {
           >
             <Text style={styles.buttonText}>
               <FontAwesome name="user-plus" size={18} />
-              &nbsp; Add
+              {' '}
+              Add
             </Text>
           </TouchableOpacity>
         );
@@ -298,8 +303,8 @@ export default class TrainerPage extends Component {
           onBackdropPress={this.hidebookModal}
         >
           <BookModalRegular
-            trainer={this.state.bookingTrainer}
-            gym={this.state.selectedGym}
+            trainerKey={this.state.bookingTrainer}
+            gymKey={this.state.selectedGym}
             hide={this.hidebookModal}
             confirm={() => Alert.alert('Session Booked!')}
           />

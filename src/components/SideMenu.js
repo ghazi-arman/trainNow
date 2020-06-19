@@ -1,107 +1,128 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Alert, Image } from 'react-native';
+import {
+  StyleSheet, Text, View, TouchableOpacity, Alert, Image,
+} from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import firebase from 'firebase';
 import { Actions } from 'react-native-router-flux';
 import COLORS from './Colors';
 import Constants from './Constants';
 import { loadUser, renderStars } from './Functions';
+
 const loading = require('../images/loading.gif');
 
-export class SideMenu extends Component {
-  
+export default class SideMenu extends Component {
   constructor(props) {
     super(props);
     this.state = {};
   }
 
-  async componentDidMount(){
+  async componentDidMount() {
     const user = await loadUser(firebase.auth().currentUser.uid);
     this.setState({ user });
   }
 
-    // user log out confirm
-  logout() {
+  // user log out confirm
+  logout = () => {
     Alert.alert(
-      "Are you sure you wish to sign out?", 
-      "",
+      'Are you sure you wish to sign out?',
+      '',
       [
-        {text: 'No'},
-        {text: 'Yes', onPress: () => {
-          firebase.auth().signOut().then(function() {
-            Actions.reset('LoginPage');
-          }, function(error) {
-            Alert.alert('Sign Out Error', error);
-          });
-        }},
+        { text: 'No' },
+        {
+          text: 'Yes',
+          onPress: () => {
+            firebase.auth().signOut().then(() => {
+              Actions.reset('LoginPage');
+            }, (error) => {
+              Alert.alert('Sign Out Error', error);
+            });
+          },
+        },
       ],
     );
   }
 
-  render(){
-    if(!this.state.user){
-      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
+  render() {
+    if (!this.state.user) {
+      return (
+        <View style={styles.loadingContainer}>
+          <Image source={loading} style={styles.loading} />
+        </View>
+      );
     }
-    let clientLink, active;
-    if(this.state.user.type === Constants.trainerType){
+    let clientLink;
+    let active;
+    if (this.state.user.type === Constants.trainerType) {
       clientLink = (
         <TouchableOpacity onPress={() => Actions.ClientPage()}>
           <Text style={styles.icon}>
-              <FontAwesome name="users" size={30} /><Text style={styles.menuLink}> Clients</Text>
+            <FontAwesome name="users" size={30} />
+            <Text style={styles.menuLink}> Clients</Text>
           </Text>
         </TouchableOpacity>
       );
-      if(this.state.user.active){
-        active = (<Text style={{fontSize: 20, color: COLORS.WHITE}}>Active</Text>);
-      }else{
-        active = (<Text style={{fontSize: 20, color: COLORS.RED}}>Away</Text>)
+      if (this.state.user.active) {
+        active = (<Text style={{ fontSize: 20, color: COLORS.WHITE }}>Active</Text>);
+      } else {
+        active = (<Text style={{ fontSize: 20, color: COLORS.RED }}>Away</Text>);
       }
-    }else{
+    } else {
       clientLink = (
         <TouchableOpacity onPress={() => Actions.TrainerPage()}>
           <Text style={styles.icon}>
-              <FontAwesome name="users" size={30} /><Text style={styles.menuLink}> Trainers</Text>
+            <FontAwesome name="users" size={30} />
+            <Text style={styles.menuLink}> Trainers</Text>
           </Text>
         </TouchableOpacity>
       );
     }
 
-    return(
+    return (
       <View style={styles.container}>
         <View style={styles.nameContainer}>
-          <Text style={{fontSize: 25, color: COLORS.WHITE}}>{this.state.user.name}</Text>
+          <Text style={{ fontSize: 25, color: COLORS.WHITE }}>{this.state.user.name}</Text>
           <Text style={styles.stars}>{renderStars(this.state.user.rating)}</Text>
           {active}
         </View>
         <TouchableOpacity onPress={() => Actions.MapPage()}>
           <Text style={styles.icon}>
-              <FontAwesome name="compass" size={30} /><Text style={styles.menuLink}> Map</Text>
+            <FontAwesome name="compass" size={30} />
+            <Text style={styles.menuLink}> Map</Text>
           </Text>
         </TouchableOpacity>
         <TouchableOpacity>
-          <Text style={styles.icon} onPress={() => Actions.SettingsPage({userType: this.state.user.type})}>
-              <FontAwesome name="gear" size={30} /><Text style={styles.menuLink}> Settings</Text>
+          <Text
+            style={styles.icon}
+            onPress={() => Actions.SettingsPage({ userType: this.state.user.type })}
+          >
+            <FontAwesome name="gear" size={30} />
+            <Text style={styles.menuLink}> Settings</Text>
           </Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => Actions.CalendarPage()}>
           <Text style={styles.icon}>
-              <FontAwesome name="calendar" size={30} /><Text style={styles.menuLink}> Calendar</Text>
+            <FontAwesome name="calendar" size={30} />
+            <Text style={styles.menuLink}> Calendar</Text>
           </Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => Actions.HistoryPage()}>
           <Text style={styles.icon}>
-              <FontAwesome name="list" size={30} /><Text style={styles.menuLink}> History</Text>
+            <FontAwesome name="list" size={30} />
+            <Text style={styles.menuLink}> History</Text>
           </Text>
         </TouchableOpacity>
         {clientLink}
         <TouchableOpacity onPress={() => Actions.PaymentPage()}>
           <Text style={styles.icon}>
-            <FontAwesome name="credit-card" size={30} /><Text style={styles.menuLink}> Payments</Text>
+            <FontAwesome name="credit-card" size={30} />
+            <Text style={styles.menuLink}> Payments</Text>
           </Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={this.logout}>
           <Text style={styles.icon}>
-            <FontAwesome name="power-off" size={30} /><Text style={styles.menuLink}> Sign Out</Text>
+            <FontAwesome name="power-off" size={30} />
+            <Text style={styles.menuLink}> Sign Out</Text>
           </Text>
         </TouchableOpacity>
       </View>
@@ -115,7 +136,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
-    backgroundColor: COLORS.WHITE
+    backgroundColor: COLORS.WHITE,
   },
   nameContainer: {
     width: '100%',
@@ -124,31 +145,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: COLORS.SECONDARY,
     paddingBottom: 20,
-    paddingTop: 40
+    paddingTop: 40,
   },
-  icon:{
+  icon: {
     fontSize: 30,
     color: COLORS.PRIMARY,
     marginLeft: 10,
-    padding: 10
+    padding: 10,
   },
-  menuLink:{
+  menuLink: {
     fontSize: 30,
-    color: COLORS.PRIMARY
+    color: COLORS.PRIMARY,
   },
   loading: {
     width: '100%',
-    resizeMode: 'contain'
+    resizeMode: 'contain',
   },
   loadingContainer: {
     height: '100%',
     width: '100%',
     flexDirection: 'column',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   stars: {
     color: COLORS.WHITE,
     fontSize: 15,
-  }
+  },
 });

@@ -1,15 +1,18 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, KeyboardAvoidingView, TouchableOpacity, Alert, Image, View } from 'react-native';
+import {
+  StyleSheet, Text, KeyboardAvoidingView, TouchableOpacity, Alert, Image, View,
+} from 'react-native';
 import firebase from 'firebase';
 import bugsnag from '@bugsnag/expo';
-import { loadGym, loadUser } from '../components/Functions';
-import  TextField from '../components/TextField';
+import PropTypes from 'prop-types';
 import { STRIPE_KEY, FB_URL } from 'react-native-dotenv';
+import { loadGym, loadUser } from '../components/Functions';
+import TextField from '../components/TextField';
+
 const stripe = require('stripe-client')(STRIPE_KEY);
 const loading = require('../images/loading.gif');
 
-export class ManagerCardModal extends Component {
-  
+export default class ManagerCardModal extends Component {
   constructor(props) {
     super(props);
     this.state = {};
@@ -19,10 +22,10 @@ export class ManagerCardModal extends Component {
   async componentDidMount() {
     if (!this.state.gym) {
       try {
-        const gym = await loadGym(this.props.gym);
+        const gym = await loadGym(this.props.gymKey);
         const user = await loadUser(firebase.auth().currentUser.uid);
         this.setState({ gym, user });
-      } catch(error) {
+      } catch (error) {
         this.bugsnagClient.notify(error);
         Alert.alert('There was an error loading the card modal. Please try again later.');
         this.props.hide();
@@ -30,8 +33,8 @@ export class ManagerCardModal extends Component {
     }
   }
 
-  addCard = async() => {
-    if(this.state.pressed){
+  addCard = async () => {
+    if (this.state.pressed) {
       return;
     }
     this.setState({ pressed: true });
@@ -43,58 +46,61 @@ export class ManagerCardModal extends Component {
         exp_year: this.state.expYear,
         cvc: this.state.cvc,
         name: this.state.name,
-        currency: 'usd'
-      }
+        currency: 'usd',
+      },
 
-    }
+    };
 
     let card;
     try {
       card = await stripe.createToken(information);
-    } catch(error) {
+    } catch (error) {
       this.setState({ pressed: false });
       this.bugsnagClient.notify(error);
       Alert.alert('There was an error creating a token for the card. Please check your information and try again.');
       return;
     }
-    
+
     const user = firebase.auth().currentUser;
     try {
       const idToken = await firebase.auth().currentUser.getIdToken(true);
       const res = await fetch(`${FB_URL}/stripe/addTrainerCard/`, {
         method: 'POST',
         headers: {
-          Authorization: idToken
+          Authorization: idToken,
         },
         body: JSON.stringify({
           token: card,
           stripeId: this.state.user.stripeId,
-          user: user.uid
-        })
-      })
+          user: user.uid,
+        }),
+      });
       const response = await res.json();
       const data = JSON.parse(response.body);
-      if(data.message !== 'Success'){
+      if (data.message !== 'Success') {
         throw new Error('Stripe Error');
       }
-      
+
       await firebase.database().ref('users').child(user.uid).update({
-        cardAdded: true
+        cardAdded: true,
       });
       this.props.hide();
-    } catch(error){
+    } catch (error) {
       this.setState({ pressed: false });
       this.bugsnagClient.notify(error);
       Alert.alert('There was an error adding the card. Please check the info and make sure it is a debit card before trying again.');
-      return;
     }
   }
 
-  render(){
+  render() {
     if (!this.state.gym || !this.state.user || this.state.pressed) {
-      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
+      return (
+        <View style={styles.loadingContainer}>
+          <Image source={loading} style={styles.loading} />
+        </View>
+      );
     }
-    return(
+    return (
       <KeyboardAvoidingView behavior="padding" style={styles.formContainer}>
         <Text style={styles.title}>Add Card</Text>
         <TextField
@@ -138,15 +144,20 @@ export class ManagerCardModal extends Component {
   }
 }
 
+ManagerCardModal.propTypes = {
+  hide: PropTypes.func.isRequired,
+  gymKey: PropTypes.string.isRequired,
+};
+
 const styles = StyleSheet.create({
   formContainer: {
     flex: 0.85,
     flexDirection: 'column',
-    justifyContent: 'center',
+    justifyContent: 'space-around',
     alignItems: 'center',
     backgroundColor: '#fafafa',
     borderRadius: 10,
-    padding: 20
+    padding: 20,
   },
   submitButton: {
     backgroundColor: '#0097A7',
@@ -154,30 +165,30 @@ const styles = StyleSheet.create({
     marginTop: 10,
     width: '50%',
     flexDirection: 'column',
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   buttonText: {
     fontSize: 20,
     textAlign: 'center',
     color: '#FAFAFA',
-    fontWeight: '700'
+    fontWeight: '700',
   },
   title: {
     color: '#0097A7',
     fontSize: 30,
     marginTop: 5,
     marginBottom: 10,
-    textDecorationLine: 'underline'
+    textDecorationLine: 'underline',
   },
   loading: {
     width: '100%',
-    resizeMode: 'contain'
+    resizeMode: 'contain',
   },
   loadingContainer: {
     height: '100%',
     width: '100%',
     flexDirection: 'column',
     justifyContent: 'center',
-    alignItems: 'center'
-  }
-})
+    alignItems: 'center',
+  },
+});

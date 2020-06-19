@@ -10,8 +10,8 @@ import {
 import { FontAwesome } from '@expo/vector-icons';
 import { Actions } from 'react-native-router-flux';
 import PropTypes from 'prop-types';
-import { ClientAccountForm } from '../forms/ClientAccountForm';
-import { TrainerAccountForm } from '../forms/TrainerAccountForm';
+import ClientAccountForm from '../forms/ClientAccountForm';
+import TrainerAccountForm from '../forms/TrainerAccountForm';
 import COLORS from '../components/Colors';
 import Constants from '../components/Constants';
 

@@ -1,14 +1,37 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Alert, DatePickerIOS, DatePickerAndroid, TimePickerAndroid, Picker, Image, Platform } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  Alert,
+  DatePickerIOS,
+  DatePickerAndroid,
+  TimePickerAndroid,
+  Picker,
+  Image,
+  Platform,
+} from 'react-native';
 import firebase from 'firebase';
+import PropTypes from 'prop-types';
 import { FontAwesome } from '@expo/vector-icons';
 import bugsnag from '@bugsnag/expo';
-import { dateToString, timeOverlapCheck, loadPendingSchedule, sendMessage, loadUser, createPendingSession, loadAcceptedSchedule, loadTrainer } from '../components/Functions';
+import {
+  dateToString,
+  timeOverlapCheck,
+  loadPendingSchedule,
+  sendMessage,
+  loadUser,
+  createPendingSession,
+  loadAcceptedSchedule,
+  loadTrainer,
+} from '../components/Functions';
 import COLORS from '../components/Colors';
 import Constants from '../components/Constants';
+
 const loading = require('../images/loading.gif');
 
-export class BookModal extends Component {
+export default class BookModal extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -19,21 +42,25 @@ export class BookModal extends Component {
   }
 
   async componentDidMount() {
-    if(!this.state.trainer || !this.state.user){
+    if (!this.state.trainer || !this.state.user) {
       try {
         // Load trainer and user logged in
-        const trainer = await loadTrainer(this.props.trainer.key);
+        const trainer = await loadTrainer(this.props.trainerKey);
         const user = await loadUser(firebase.auth().currentUser.uid);
-        this.setState({ trainer, user, bookDate: new Date(new Date().getTime() + trainer.offset * 60000) });
-      } catch(error) {
+        this.setState({
+          trainer,
+          user,
+          bookDate: new Date(new Date().getTime() + trainer.offset * 60000),
+        });
+      } catch (error) {
         this.bugsnagClient.notify(error);
         this.props.hide();
-        Alert.alert("There was an error loading this trainer. Please try again later.");
+        Alert.alert('There was an error loading this trainer. Please try again later.');
       }
     }
   }
 
-  bookTrainer = async() => {
+  bookTrainer = async () => {
     // Prevent multiple form submits
     if (this.state.pressed) {
       return;
@@ -43,7 +70,10 @@ export class BookModal extends Component {
       Alert.alert('You must have a card on file to book a session.');
       return;
     }
-    if (!this.state.trainer.cardAdded && this.state.trainer.trainerType === Constants.independentType) {
+    if (
+      !this.state.trainer.cardAdded
+      && this.state.trainer.trainerType === Constants.independentType
+    ) {
       Alert.alert('This trainer has not added a payment method yet.');
       return;
     }
@@ -55,23 +85,24 @@ export class BookModal extends Component {
     this.setState({ pressed: true });
 
     // Pulls schedules for trainers and conflicts to check for overlaps
-    let user = firebase.auth().currentUser;    
-    const trainerSchedule = await loadAcceptedSchedule(this.props.trainer.key);
+    const user = firebase.auth().currentUser;
+    const trainerSchedule = await loadAcceptedSchedule(this.props.trainerKey);
     const pendingSchedule = await loadPendingSchedule(user.uid);
     let clientSchedule = await loadAcceptedSchedule(user.uid);
     clientSchedule = clientSchedule.concat(pendingSchedule);
-    const endTime = new Date(new Date(this.state.bookDate).getTime() + (60000 * this.state.bookDuration));
+    const bookDurationMs = 60000 * this.state.bookDuration;
+    const endTime = new Date(new Date(this.state.bookDate).getTime() + bookDurationMs);
     let timeConflict = false;
 
     trainerSchedule.forEach((currSession) => {
-      if(timeOverlapCheck(currSession.start, currSession.end, this.state.bookDate, endTime)){
+      if (timeOverlapCheck(currSession.start, currSession.end, this.state.bookDate, endTime)) {
         Alert.alert('The Trainer has a session during this time.');
         timeConflict = true;
       }
     });
 
     clientSchedule.forEach((currSession) => {
-      if(timeOverlapCheck(currSession.start, currSession.end, this.state.bookDate, endTime)){
+      if (timeOverlapCheck(currSession.start, currSession.end, this.state.bookDate, endTime)) {
         Alert.alert('You already have a pending session or session during this time.');
         timeConflict = true;
       }
@@ -81,27 +112,31 @@ export class BookModal extends Component {
       this.setState({ pressed: false });
       return;
     }
-    
+
     // create session in pending table
-    const price = (this.state.trainer.rate * (parseInt(this.state.bookDuration) / 60)).toFixed(2);
-    let trainer = this.state.trainer;
-    let client = this.state.user;
+    const minutesTrained = parseInt(this.state.bookDuration, 10) / 60;
+    const price = (this.state.trainer.rate * minutesTrained).toFixed(2);
+    const { trainer } = this.state;
+    const client = this.state.user;
     client.key = firebase.auth().currentUser.uid;
-    trainer.key = this.props.trainer.key;
-    const trainerIsRegular = (await firebase.database().ref(`/users/${client.key}/trainers/${trainer.key}`).once('value')).val()
-    const regular = trainerIsRegular ? true : false;
+    trainer.key = this.props.trainerKey;
+    const regular = (await firebase.database().ref(`/users/${client.key}/trainers/${trainer.key}`)
+      .once('value'))
+      .val();
     Alert.alert(
-      `Book Session`,
+      'Book Session',
       `Request session with ${this.state.trainer.name} for $${price} at ${dateToString(this.state.bookDate)}`,
       [
-        { 
-          text: 'No', onPress: () => {
+        {
+          text: 'No',
+          onPress: () => {
             this.setState({ pressed: false });
-          } 
+          },
         },
         {
-          text: 'Yes', onPress: async () => {
-            createPendingSession(client, trainer, this.props.gym, this.state.bookDate, this.state.bookDuration, 'client', regular);
+          text: 'Yes',
+          onPress: async () => {
+            createPendingSession(client, trainer, this.props.gymKey, this.state.bookDate, this.state.bookDuration, 'client', regular);
             try {
               const message = `${this.state.user.name} has requested a session at ${dateToString(this.state.bookDate)} for ${this.state.bookDuration} mins.`;
               sendMessage(this.state.trainer.phone, message);
@@ -112,68 +147,82 @@ export class BookModal extends Component {
               this.props.hide();
               setTimeout(this.props.confirm, 1000);
             }
-          }
-        }
-      ]
+          },
+        },
+      ],
     );
   }
 
-  openDatePicker = async() => {
+  openDatePicker = async () => {
     try {
-      const {action, year, month, day} = await DatePickerAndroid.open({
+      const {
+        action, year, month, day,
+      } = await DatePickerAndroid.open({
         date: new Date(),
         minDate: new Date(new Date().getTime() + this.state.trainer.offset * 60000),
       });
       if (action !== DatePickerAndroid.dismissedAction) {
-        this.setState({ bookDate: new Date(year, month, day)});
+        this.setState({ bookDate: new Date(year, month, day) });
       }
     } catch (error) {
       this.bugsnagClient.notify(error);
     }
   }
 
-  openTimePicker = async() => {
+  openTimePicker = async () => {
     try {
-      const {action, hour, minute} = await TimePickerAndroid.open({
+      const { action, hour, minute } = await TimePickerAndroid.open({
         is24Hour: false,
       });
       if (action !== TimePickerAndroid.dismissedAction) {
-        const date = new Date(this.state.bookDate.setHours(hour, minute));
-        this.setState({ bookDate: date });
+        // eslint-disable-next-line
+        const bookDate = new Date(this.state.bookDate.setHours(hour, minute));
+        this.setState({ bookDate });
       }
-    } catch ({code, message}) {
-      console.warn('Cannot open time picker', message);
+    } catch ({ code, message }) {
+      this.bugsnagClient.notify(message);
     }
   }
 
   render() {
     if (!this.state.trainer || !this.state.user || this.state.pressed) {
-      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
+      return (
+        <View style={styles.loadingContainer}>
+          <Image source={loading} style={styles.loading} />
+        </View>
+      );
     }
-    let picker, timePicker;
-    if(Platform.OS === 'ios') {
+    let picker;
+    let timePicker;
+    if (Platform.OS === 'ios') {
       picker = (
         <DatePickerIOS
-          mode='datetime'
+          mode="datetime"
           itemStyle={{ color: COLORS.PRIMARY }}
           textColor={COLORS.PRIMARY}
           style={styles.datePicker}
           minuteInterval={5}
           minimumDate={new Date(new Date().getTime() + this.state.trainer.offset * 60000)}
           date={this.state.bookDate}
-          onDateChange={(bookDate) => this.setState({ bookDate: bookDate })}
+          onDateChange={(bookDate) => this.setState({ bookDate })}
         />
       );
     } else {
       picker = (
-        <TouchableOpacity style={styles.bookButton} onPressIn={() => this.openDatePicker()}>
+        <TouchableOpacity
+          style={styles.bookButton}
+          onPressIn={() => this.openDatePicker()}
+        >
           <Text style={styles.buttonText}>
             Choose Date
           </Text>
         </TouchableOpacity>
       );
       timePicker = (
-        <TouchableOpacity style={[styles.bookButton, {marginTop: 20}]} onPressIn={() => this.openTimePicker()}>
+        <TouchableOpacity
+          style={[styles.bookButton, { marginTop: 20 }]}
+          onPressIn={() => this.openTimePicker()}
+        >
           <Text style={styles.buttonText}>
             Choose Time
           </Text>
@@ -183,7 +232,7 @@ export class BookModal extends Component {
     return (
       <View style={styles.modal}>
         <View style={styles.nameContainer}>
-          <Text style={styles.backButton} onPress={this.props.hideandOpen}>
+          <Text style={styles.backButton} onPress={this.props.hideAndOpen}>
             <FontAwesome name="arrow-left" size={35} />
           </Text>
           <Text style={styles.trainerName}>{this.state.trainer.name}</Text>
@@ -202,9 +251,9 @@ export class BookModal extends Component {
               selectedValue={this.state.bookDuration}
               onValueChange={(itemValue) => this.setState({ bookDuration: itemValue })}
             >
-              <Picker.Item label='1 hour' value='60' />
-              <Picker.Item label='90 minutes' value='90' />
-              <Picker.Item label='2 hours' value='120' />
+              <Picker.Item label="1 hour" value="60" />
+              <Picker.Item label="90 minutes" value="90" />
+              <Picker.Item label="2 hours" value="120" />
             </Picker>
           </View>
           <TouchableOpacity style={styles.bookButton} onPressIn={() => this.bookTrainer()}>
@@ -217,6 +266,19 @@ export class BookModal extends Component {
     );
   }
 }
+
+BookModal.propTypes = {
+  trainerKey: PropTypes.string,
+  hideAndOpen: PropTypes.func.isRequired,
+  hide: PropTypes.func.isRequired,
+  gymKey: PropTypes.string,
+  confirm: PropTypes.func.isRequired,
+};
+
+BookModal.defaultProps = {
+  gymKey: null,
+  trainerKey: null,
+};
 
 const styles = StyleSheet.create({
   modal: {
@@ -231,7 +293,7 @@ const styles = StyleSheet.create({
     fontSize: 30,
     color: COLORS.WHITE,
     fontWeight: '500',
-    textAlign: 'center'
+    textAlign: 'center',
   },
   nameContainer: {
     flex: 1,
@@ -241,7 +303,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.PRIMARY,
     flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   formLabel: {
     fontSize: 20,
@@ -279,13 +341,13 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: COLORS.SECONDARY,
     width: '70%',
-    borderRadius: 5
+    borderRadius: 5,
   },
   buttonText: {
     textAlign: 'center',
     color: COLORS.WHITE,
     fontSize: 15,
-    fontWeight: '700'
+    fontWeight: '700',
   },
   backButton: {
     position: 'absolute',
@@ -295,13 +357,13 @@ const styles = StyleSheet.create({
   },
   loading: {
     width: '100%',
-    resizeMode: 'contain'
+    resizeMode: 'contain',
   },
   loadingContainer: {
     height: '100%',
     width: '100%',
     flexDirection: 'column',
     justifyContent: 'center',
-    alignItems: 'center'
-  }
-})
+    alignItems: 'center',
+  },
+});

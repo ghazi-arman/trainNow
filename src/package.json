@@ -28,6 +28,7 @@
     "react-native": "https://github.com/expo/react-native/archive/sdk-34.0.0.tar.gz",
     "react-native-calendars": "^1.188.0",
     "react-native-drawer": "^2.5.1",
+    "react-native-dotenv": "^0.2.0",
     "react-native-maps": "~0.24.0",
     "react-native-modal": "^4.1.1",
     "react-native-router-flux": "^4.0.6",
@@ -42,7 +43,6 @@
     "eslint-plugin-react": "^7.20.0",
     "eslint-plugin-react-hooks": "^2.5.1",
     "metro-react-native-babel-preset": "^0.56.0",
-    "react-native-dotenv": "^0.2.0",
     "react-test-renderer": "^16.13.1"
   }
 }

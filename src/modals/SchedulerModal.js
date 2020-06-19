@@ -1,30 +1,43 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, DatePickerIOS, DatePickerAndroid, TouchableOpacity, Alert, ScrollView, Image, Platform } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  DatePickerIOS,
+  DatePickerAndroid,
+  TouchableOpacity,
+  TimePickerAndroid,
+  Alert,
+  ScrollView,
+  Image,
+  Platform,
+} from 'react-native';
+import PropTypes from 'prop-types';
 import { FontAwesome } from '@expo/vector-icons';
 import firebase from 'firebase';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import { loadUser, addAvailableSession } from '../components/Functions';
+
 const loading = require('../images/loading.gif');
 
-export class SchedulerModal extends Component {
-  
+export default class SchedulerModal extends Component {
   constructor(props) {
     super(props);
     this.state = {
       startDate: new Date(),
-      endDate: new Date()
+      endDate: new Date(),
     };
     this.bugsnagClient = bugsnag();
   }
 
-  async componentDidMount(){
+  async componentDidMount() {
     // load user info
-    if(!this.state.user){
+    if (!this.state.user) {
       try {
         const user = await loadUser(firebase.auth().currentUser.uid);
         this.setState({ user });
-      } catch(error) {
+      } catch (error) {
         this.bugsnagClient.notify(error);
         Alert.alert('There was an error loading the scheduler.');
         this.props.hide();
@@ -32,22 +45,19 @@ export class SchedulerModal extends Component {
     }
   }
 
-  addSession(startDate, endDate){
-    addAvailableSession(this.props.trainerKey, startDate, endDate);
-    this.props.hideandConfirm();
-  }
-  
-  openDatePicker = async(start) => {
+  openDatePicker = async (start) => {
     try {
-      const {action, year, month, day} = await DatePickerAndroid.open({
+      const {
+        action, year, month, day,
+      } = await DatePickerAndroid.open({
         date: new Date(),
-        minDate: new Date()
+        minDate: new Date(),
       });
       if (action !== DatePickerAndroid.dismissedAction) {
         if (start) {
-          this.setState({ startDate: new Date(year, month, day)});
+          this.setState({ startDate: new Date(year, month, day) });
         } else {
-          this.setState({ endDate: new Date(year, month, day)});
+          this.setState({ endDate: new Date(year, month, day) });
         }
       }
     } catch (error) {
@@ -55,37 +65,48 @@ export class SchedulerModal extends Component {
     }
   }
 
-  openTimePicker = async(start) => {
+  openTimePicker = async (start) => {
     try {
-      const {action, hour, minute} = await TimePickerAndroid.open({
+      const { action, hour, minute } = await TimePickerAndroid.open({
         hour: 0,
         minute: 0,
         is24Hour: false,
       });
       if (action !== TimePickerAndroid.dismissedAction) {
         if (start) {
-          const date = this.state.startDate;
-          this.setState({ startDate: date.setHours(hour, minute)});
+          const { startDate } = this.state;
+          this.setState({ startDate: startDate.setHours(hour, minute) });
         } else {
-          const date = this.state.endDate;
-          this.setState({ endDate: date.setHours(hour, minute)});
+          const { endDate } = this.state;
+          this.setState({ endDate: endDate.setHours(hour, minute) });
         }
-          
       }
-    } catch ({code, message}) {
-      console.warn('Cannot open time picker', message);
+    } catch ({ code, message }) {
+      this.bugsnagClient.notify(message);
     }
   }
 
-  render(){
-    if(!this.state.user){
-      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
+  addSession(startDate, endDate) {
+    addAvailableSession(this.props.trainerKey, startDate, endDate);
+    this.props.hideandConfirm();
+  }
+
+  render() {
+    if (!this.state.user) {
+      return (
+        <View style={styles.loadingContainer}>
+          <Image source={loading} style={styles.loading} />
+        </View>
+      );
     }
-    let startPicker, endPicker, startTimePicker, endTimePicker;
-    if(Platform.OS === 'ios') {
+    let startPicker;
+    let endPicker;
+    let startTimePicker;
+    let endTimePicker;
+    if (Platform.OS === 'ios') {
       startPicker = (
         <DatePickerIOS
-          mode='datetime'
+          mode="datetime"
           itemStyle={{ color: COLORS.PRIMARY }}
           textColor={COLORS.PRIMARY}
           style={styles.datepicker}
@@ -97,7 +118,7 @@ export class SchedulerModal extends Component {
       );
       endPicker = (
         <DatePickerIOS
-          mode='datetime'
+          mode="datetime"
           itemStyle={{ color: COLORS.PRIMARY }}
           textColor={COLORS.PRIMARY}
           style={styles.datepicker}
@@ -109,36 +130,47 @@ export class SchedulerModal extends Component {
       );
     } else {
       startPicker = (
-        <TouchableOpacity style={styles.bookButton} onPressIn={() => this.openDatePicker(true)}>
+        <TouchableOpacity
+          style={styles.bookButton}
+          onPressIn={() => this.openDatePicker(true)}
+        >
           <Text style={styles.buttonText}>
             Choose Date
           </Text>
         </TouchableOpacity>
       );
       startTimePicker = (
-        <TouchableOpacity style={[styles.bookButton, {marginTop: 20}]} onPressIn={() => this.openTimePicker(true)}>
+        <TouchableOpacity
+          style={[styles.bookButton, { marginTop: 20 }]}
+          onPressIn={() => this.openTimePicker(true)}
+        >
           <Text style={styles.buttonText}>
             Choose Time
           </Text>
         </TouchableOpacity>
       );
       endPicker = (
-        <TouchableOpacity style={styles.bookButton} onPressIn={() => this.openDatePicker(false)}>
+        <TouchableOpacity
+          style={styles.bookButton}
+          onPressIn={() => this.openDatePicker(false)}
+        >
           <Text style={styles.buttonText}>
             Choose Date
           </Text>
         </TouchableOpacity>
       );
       endTimePicker = (
-        <TouchableOpacity style={[styles.bookButton, {marginTop: 20}]} onPressIn={() => this.openTimePicker(false)}>
+        <TouchableOpacity
+          style={[styles.bookButton, { marginTop: 20 }]}
+          onPressIn={() => this.openTimePicker(false)}
+        >
           <Text style={styles.buttonText}>
             Choose Time
           </Text>
         </TouchableOpacity>
       );
-      
     }
-    return(
+    return (
       <View style={styles.modal}>
         <View style={styles.nameContainer}>
           <Text style={styles.trainerName}>Add Availability</Text>
@@ -147,7 +179,11 @@ export class SchedulerModal extends Component {
           </Text>
         </View>
         <View style={styles.formContainer}>
-          <ScrollView style={{ width: '90%' }} contentContainerStyle={styles.center} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={{ width: '90%' }}
+            contentContainerStyle={styles.center}
+            showsVerticalScrollIndicator={false}
+          >
             <View style={styles.inputRow}>
               <Text style={styles.formLabel}>Start Time</Text>
               {startPicker}
@@ -158,8 +194,8 @@ export class SchedulerModal extends Component {
               {endPicker}
               {endTimePicker}
             </View>
-            <TouchableOpacity 
-              style={styles.bookButton} 
+            <TouchableOpacity
+              style={styles.bookButton}
               onPressIn={() => this.addSession(this.state.startDate, this.state.endDate)}
             >
               <Text style={styles.buttonText}> Add Availability</Text>
@@ -170,6 +206,12 @@ export class SchedulerModal extends Component {
     );
   }
 }
+
+SchedulerModal.propTypes = {
+  hide: PropTypes.func.isRequired,
+  trainerKey: PropTypes.string.isRequired,
+  hideandConfirm: PropTypes.func.isRequired,
+};
 
 const styles = StyleSheet.create({
   modal: {
@@ -183,7 +225,7 @@ const styles = StyleSheet.create({
   trainerName: {
     fontSize: 30,
     color: COLORS.WHITE,
-    fontWeight: '500'
+    fontWeight: '500',
   },
   nameContainer: {
     flex: 1,
@@ -193,7 +235,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.PRIMARY,
     flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   formContainer: {
     flex: 6,
@@ -218,7 +260,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     backgroundColor: COLORS.SECONDARY,
     width: '70%',
-    marginTop: 10
+    marginTop: 10,
   },
   inputRow: {
     width: '100%',
@@ -226,19 +268,19 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingTop: 10,
-    paddingBottom: 10
+    paddingBottom: 10,
   },
   formLabel: {
     fontSize: 20,
     fontWeight: '500',
     textAlign: 'center',
     color: COLORS.PRIMARY,
-    paddingBottom: 10
+    paddingBottom: 10,
   },
   buttonText: {
     textAlign: 'center',
     color: COLORS.WHITE,
-    fontWeight: '700'
+    fontWeight: '700',
   },
   datepicker: {
     height: 200,
@@ -248,13 +290,13 @@ const styles = StyleSheet.create({
   },
   loading: {
     width: '100%',
-    resizeMode: 'contain'
+    resizeMode: 'contain',
   },
   loadingContainer: {
     height: '100%',
     width: '100%',
     flexDirection: 'column',
     justifyContent: 'center',
-    alignItems: 'center'
-  }
-})
+    alignItems: 'center',
+  },
+});

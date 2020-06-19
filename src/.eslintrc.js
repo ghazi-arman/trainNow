@@ -9,6 +9,8 @@ module.exports = {
   "rules": {
     "react/destructuring-assignment": "off",
     "react/jsx-filename-extension": "off",
+    "react/forbid-prop-types": "off",
+    "react/no-unused-state": "off",
     "no-use-before-define": ["error", { "variables": false }]
   }
 }

@@ -1,15 +1,31 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, DatePickerIOS, DatePickerAndroid, TouchableOpacity, Alert, ScrollView, Image, Platform, KeyboardAvoidingView } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  DatePickerIOS,
+  DatePickerAndroid,
+  TimePickerAndroid,
+  TouchableOpacity,
+  Alert,
+  ScrollView,
+  Image,
+  Platform,
+  KeyboardAvoidingView,
+} from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
+import PropTypes from 'prop-types';
 import firebase from 'firebase';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
-import { loadUser, createGroupSession, loadGroupSession, updateGroupSession } from '../components/Functions';
+import {
+  loadUser, createGroupSession, loadGroupSession, updateGroupSession,
+} from '../components/Functions';
 import TextField from '../components/TextField';
+
 const loading = require('../images/loading.gif');
 
-export class GroupSessionModal extends Component {
-  
+export default class GroupSessionModal extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -18,80 +34,82 @@ export class GroupSessionModal extends Component {
     this.bugsnagClient = bugsnag();
   }
 
-  async componentDidMount(){
+  async componentDidMount() {
     // load user info
-    if(!this.state.user){
+    if (!this.state.user) {
       try {
         const user = await loadUser(firebase.auth().currentUser.uid);
-        if(this.props.sessionKey) {
-          session = await loadGroupSession(this.props.sessionKey);
-          this.setState({ 
-            user, 
+        if (this.props.sessionKey) {
+          const session = await loadGroupSession(this.props.sessionKey);
+          this.setState({
+            user,
             session,
             start: new Date(session.start),
             duration: session.duration,
             name: session.name,
             bio: session.bio,
-            capacity: session.capacity
+            capacity: session.capacity,
           });
         } else {
           this.setState({ user });
         }
-      } catch(error) {
+      } catch (error) {
         this.bugsnagClient.notify(error);
         Alert.alert('There was an error loading the modal.');
         this.props.hide();
       }
     }
   }
-  
-  openDatePicker = async(start) => {
+
+  openDatePicker = async () => {
     try {
-      let minimumDate = new Date() < this.state.start ? new Date() : this.state.start;
-      const {action, year, month, day} = await DatePickerAndroid.open({
+      const minimumDate = new Date() < this.state.start ? new Date() : this.state.start;
+      const {
+        action, year, month, day,
+      } = await DatePickerAndroid.open({
         date: this.state.start,
-        minDate: minimumDate
+        minDate: minimumDate,
       });
       if (action !== DatePickerAndroid.dismissedAction) {
-        this.setState({ start: new Date(year, month, day)});
+        this.setState({ start: new Date(year, month, day) });
       }
     } catch (error) {
       this.bugsnagClient.notify(error);
     }
   }
 
-  openTimePicker = async(start) => {
+  openTimePicker = async () => {
     try {
-      const {action, hour, minute} = await TimePickerAndroid.open({
+      const { action, hour, minute } = await TimePickerAndroid.open({
         hour: 0,
         minute: 0,
         is24Hour: false,
       });
       if (action !== TimePickerAndroid.dismissedAction) {
-        const date = this.state.start;
-        this.setState({ start: date.setHours(hour, minute)});
+        const { start } = this.state;
+        this.setState({ start: start.setHours(hour, minute) });
       }
-    } catch ({code, message}) {
-      console.warn('Cannot open time picker', message);
+    } catch ({ code, message }) {
+      this.bugsnagClient.notify(message);
     }
   }
-  
-  createSession = async() => {
+
+  createSession = async () => {
     try {
-      if (!this.state.duration || this.state.duration.replace(/\D/g,'') < 30) {
-        Alert.alert("Please enter a duration greater than 30 minutes.");
+      if (!this.state.duration || this.state.duration.replace(/\D/g, '') < 30) {
+        Alert.alert('Please enter a duration greater than 30 minutes.');
         return;
       }
-      if (!this.state.capacity || this.state.capacity.replace(/\D/g,'') < 2) {
-        Alert.alert("Please enter a capacity greater than 1.");
+      if (!this.state.capacity || this.state.capacity.replace(/\D/g, '') < 2) {
+        Alert.alert('Please enter a capacity greater than 1.');
         return;
       }
       if (!this.state.bio) {
-        Alert.alert("Please enter a session description");
+        Alert.alert('Please enter a session description');
         return;
       }
       if (!this.state.name) {
-        Alert.alert("Please enter a session name");
+        Alert.alert('Please enter a session name');
       }
       await createGroupSession(
         this.state.user,
@@ -99,18 +117,22 @@ export class GroupSessionModal extends Component {
         this.state.duration,
         this.state.name,
         this.state.bio,
-        this.state.capacity
+        this.state.capacity,
       );
       this.props.hideAndConfirm();
-    } catch(error) {
+    } catch (error) {
       Alert.alert('There was an error when trying to create the session.');
     }
   }
 
-  updateSession = async() => {
+  updateSession = async () => {
     try {
-      if (this.state.session.clientCount > 0 &&
-        (this.state.session.start != this.state.start.toString() || this.state.session.duration != this.state.duration)) {
+      if (this.state.session.clientCount > 0
+        && (
+          this.state.session.start !== this.state.start.toString()
+          || this.state.session.duration !== this.state.duration
+        )
+      ) {
         Alert.alert('You cannot change the time or duration after someone has joined. Please cancel to change the time or duration.');
         return;
       }
@@ -118,20 +140,20 @@ export class GroupSessionModal extends Component {
         Alert.alert('You cannot change your rate after someone has already joined. Please delete the session to change the rate.');
         return;
       }
-      if (!this.state.duration || this.state.duration.replace(/\D/g,'') < 30) {
-        Alert.alert("Please enter a duration greater than 30 minutes.");
+      if (!this.state.duration || this.state.duration.replace(/\D/g, '') < 30) {
+        Alert.alert('Please enter a duration greater than 30 minutes.');
         return;
       }
-      if (!this.state.capacity || this.state.capacity.replace(/\D/g,'') < 2) {
-        Alert.alert("Please enter a capacity greater than 1.");
+      if (!this.state.capacity || this.state.capacity.replace(/\D/g, '') < 2) {
+        Alert.alert('Please enter a capacity greater than 1.');
         return;
       }
       if (!this.state.bio) {
-        Alert.alert("Please enter a session description");
+        Alert.alert('Please enter a session description');
         return;
       }
       if (!this.state.name) {
-        Alert.alert("Please enter a session name");
+        Alert.alert('Please enter a session name');
       }
       await updateGroupSession(
         this.state.user,
@@ -140,24 +162,29 @@ export class GroupSessionModal extends Component {
         this.state.duration,
         this.state.name,
         this.state.bio,
-        this.state.capacity
+        this.state.capacity,
       );
       this.props.hideAndConfirm();
-    } catch(error) {
+    } catch (error) {
       Alert.alert('There was an error when trying to update the session.');
     }
   }
 
-  render(){
-    if(!this.state.user){
-      return <View style={styles.loadingContainer}><Image source={loading} style={styles.loading} /></View>;
+  render() {
+    if (!this.state.user) {
+      return (
+        <View style={styles.loadingContainer}>
+          <Image source={loading} style={styles.loading} />
+        </View>
+      );
     }
-    let startDatePicker, startTimePicker;
-    if(Platform.OS === 'ios') {
-      let minimumDate = new Date() < this.state.start ? new Date() : this.state.start;
+    let startDatePicker;
+    let startTimePicker;
+    if (Platform.OS === 'ios') {
+      const minimumDate = new Date() < this.state.start ? new Date() : this.state.start;
       startTimePicker = (
         <DatePickerIOS
-          mode='datetime'
+          mode="datetime"
           itemStyle={{ color: COLORS.PRIMARY }}
           textColor={COLORS.PRIMARY}
           style={styles.datepicker}
@@ -169,25 +196,31 @@ export class GroupSessionModal extends Component {
       );
     } else {
       startDatePicker = (
-        <TouchableOpacity style={styles.bookButton} onPressIn={() => this.openDatePicker(true)}>
+        <TouchableOpacity
+          style={styles.bookButton}
+          onPressIn={() => this.openDatePicker(true)}
+        >
           <Text style={styles.buttonText}>
             Choose Session Date
           </Text>
         </TouchableOpacity>
       );
       startTimePicker = (
-        <TouchableOpacity style={[styles.bookButton, {marginTop: 20}]} onPressIn={() => this.openTimePicker(true)}>
+        <TouchableOpacity
+          style={[styles.bookButton, { marginTop: 20 }]}
+          onPress={() => this.openTimePicker(true)}
+        >
           <Text style={styles.buttonText}>
             Choose Session Time
           </Text>
         </TouchableOpacity>
       );
     }
-    let actionButton
+    let actionButton;
     if (this.props.sessionKey) {
       actionButton = (
-        <TouchableOpacity 
-          style={styles.bookButton} 
+        <TouchableOpacity
+          style={styles.bookButton}
           onPress={this.updateSession}
         >
           <Text style={styles.buttonText}> Update Session </Text>
@@ -195,15 +228,15 @@ export class GroupSessionModal extends Component {
       );
     } else {
       actionButton = (
-        <TouchableOpacity 
-          style={styles.bookButton} 
+        <TouchableOpacity
+          style={styles.bookButton}
           onPress={this.createSession}
         >
           <Text style={styles.buttonText}> Create Session </Text>
         </TouchableOpacity>
       );
     }
-    return(
+    return (
       <View style={styles.modal}>
         <View style={styles.nameContainer}>
           <Text style={styles.trainerName}>Create Group Session</Text>
@@ -212,29 +245,33 @@ export class GroupSessionModal extends Component {
           </Text>
         </View>
         <KeyboardAvoidingView behavior="padding" style={styles.formContainer}>
-          <ScrollView style={{ width: '90%' }} contentContainerStyle={styles.center} showsVerticalScrollIndicator={false}>
-            <View style={[styles.inputRow, {paddingTop: 10}]}>
-              <TextField 
+          <ScrollView
+            style={{ width: '90%' }}
+            contentContainerStyle={styles.center}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={[styles.inputRow, { paddingTop: 10 }]}>
+              <TextField
                 icon="vcard"
                 placeholder="Session Name (limit to a few words)"
                 onChange={(name) => this.setState({ name })}
                 value={this.state.name}
               />
-              <TextField 
+              <TextField
                 icon="info"
-                multiline={true}
+                multiline
                 placeholder="Enter session description (type, exercises, etc.)"
                 onChange={(bio) => this.setState({ bio })}
                 value={this.state.bio}
               />
-              <TextField 
+              <TextField
                 icon="user"
                 placeholder="Maximum Capacity"
                 keyboard="number-pad"
                 onChange={(capacity) => this.setState({ capacity })}
                 value={this.state.capacity}
               />
-              <TextField 
+              <TextField
                 icon="clock-o"
                 placeholder="Duration (Minutes)"
                 keyboard="number-pad"
@@ -255,6 +292,16 @@ export class GroupSessionModal extends Component {
   }
 }
 
+GroupSessionModal.propTypes = {
+  sessionKey: PropTypes.string,
+  hide: PropTypes.func.isRequired,
+  hideAndConfirm: PropTypes.func.isRequired,
+};
+
+GroupSessionModal.defaultProps = {
+  sessionKey: null,
+};
+
 const styles = StyleSheet.create({
   modal: {
     flex: 0.9,
@@ -267,7 +314,7 @@ const styles = StyleSheet.create({
   trainerName: {
     fontSize: 30,
     color: COLORS.WHITE,
-    fontWeight: '500'
+    fontWeight: '500',
   },
   nameContainer: {
     flex: 1,
@@ -277,7 +324,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.PRIMARY,
     flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   formContainer: {
     flex: 6,
@@ -302,7 +349,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     backgroundColor: COLORS.SECONDARY,
     width: '70%',
-    marginTop: 10
+    marginTop: 10,
   },
   inputRow: {
     width: '100%',
@@ -315,12 +362,12 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textAlign: 'center',
     color: COLORS.PRIMARY,
-    paddingBottom: 10
+    paddingBottom: 10,
   },
   buttonText: {
     textAlign: 'center',
     color: COLORS.WHITE,
-    fontWeight: '700'
+    fontWeight: '700',
   },
   datepicker: {
     height: 200,
@@ -330,13 +377,13 @@ const styles = StyleSheet.create({
   },
   loading: {
     width: '100%',
-    resizeMode: 'contain'
+    resizeMode: 'contain',
   },
   loadingContainer: {
     height: '100%',
     width: '100%',
     flexDirection: 'column',
     justifyContent: 'center',
-    alignItems: 'center'
-  }
-})
+    alignItems: 'center',
+  },
+});

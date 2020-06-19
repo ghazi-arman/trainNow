@@ -1,20 +1,23 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, Image, KeyboardAvoidingView, TouchableOpacity } from 'react-native';
-import { ManagerSignupForm } from '../forms/ManagerSignupForm';
+import {
+  StyleSheet, Text, View, Image, KeyboardAvoidingView, TouchableOpacity,
+} from 'react-native';
 import { Actions } from 'react-native-router-flux';
+import ManagerSignupForm from '../forms/ManagerSignupForm';
 import COLORS from '../components/Colors';
+
 const logo = require('../images/logo.png');
 
-export class ManagerSignupPage extends Component {
+export default class ManagerSignupPage extends Component {
   goback = () => Actions.LoginPage();
-  
+
   render() {
     return (
       <View style={styles.container}>
-        <View style = {styles.logoContainer}>
+        <View style={styles.logoContainer}>
           <Image style={styles.logo} source={logo} />
         </View>
-        <KeyboardAvoidingView style={styles.formContainer} behavior='padding'>
+        <KeyboardAvoidingView style={styles.formContainer} behavior="padding">
           <ManagerSignupForm />
         </KeyboardAvoidingView>
         <View style={styles.linkContainer}>
@@ -35,18 +38,18 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'space-around',
     alignItems: 'center',
-    backgroundColor: COLORS.WHITE
+    backgroundColor: COLORS.WHITE,
   },
   logo: {
     height: '50%',
-    resizeMode: 'contain'
+    resizeMode: 'contain',
   },
   formContainer: {
     flex: 7,
     width: '80%',
     flexDirection: 'column',
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   logoContainer: {
     flexDirection: 'row',
@@ -55,8 +58,8 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '80%',
   },
-  textContain:{
-    height: 30
+  textContain: {
+    height: 30,
   },
   linkContainer: {
     flexDirection: 'column',
@@ -68,5 +71,5 @@ const styles = StyleSheet.create({
     color: COLORS.PRIMARY,
     fontSize: 16,
     fontWeight: '500',
-  }
+  },
 });
