@@ -8,4 +8,5 @@ export default {
   personalSessionType: 'personal',
   newClientPercentage: 0.25,
   regularClientPercentage: 0.1,
+  faqUrl: 'https://trainnow.fit/faq',
 };

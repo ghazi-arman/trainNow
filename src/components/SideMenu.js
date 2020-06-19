@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {
-  StyleSheet, Text, View, TouchableOpacity, Alert, Image,
+  StyleSheet, Text, View, TouchableOpacity, Alert, Image, Linking,
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import firebase from 'firebase';
@@ -117,6 +117,12 @@ export default class SideMenu extends Component {
           <Text style={styles.icon}>
             <FontAwesome name="credit-card" size={30} />
             <Text style={styles.menuLink}> Payments</Text>
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => Linking.openURL(Constants.faqUrl)}>
+          <Text style={styles.icon}>
+            <FontAwesome name="book" size={30} />
+            <Text style={styles.menuLink}> FAQ</Text>
           </Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={this.logout}>

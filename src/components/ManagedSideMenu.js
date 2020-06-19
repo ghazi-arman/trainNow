@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {
-  StyleSheet, Text, View, TouchableOpacity, Alert, Image,
+  StyleSheet, Text, View, TouchableOpacity, Alert, Image, Linking,
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import firebase from 'firebase';
@@ -105,6 +105,12 @@ export default class ManagedSideMenu extends Component {
           </Text>
         </TouchableOpacity>
         {clientLink}
+        <TouchableOpacity onPress={() => Linking.openURL(Constants.faqUrl)}>
+          <Text style={styles.icon}>
+            <FontAwesome name="book" size={30} />
+            <Text style={styles.menuLink}> FAQ</Text>
+          </Text>
+        </TouchableOpacity>
         <TouchableOpacity onPress={this.logout}>
           <Text style={styles.icon}>
             <FontAwesome name="power-off" size={30} />
