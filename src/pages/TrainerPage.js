@@ -112,33 +112,37 @@ export default class TrainerPage extends Component {
 
   renderRequests = () => (
     this.state.clientRequests.map((request) => (
-      <View key={request.trainer} style={styles.clientRow}>
-        <Text style={styles.nameText}>{request.trainerName}</Text>
-        <TouchableOpacity
-          style={styles.denyButton}
-          onPress={() => this.denyRequest(request.key, request.trainer)}
-        >
-          <Text style={styles.buttonText}>
-            <FontAwesome name="close" size={18} />
-            {' '}
-            Deny
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.acceptButton}
-          onPress={() => this.acceptRequest(
-            request.key,
-            request.trainer,
-            request.trainerName,
-            request.gym,
-          )}
-        >
-          <Text style={styles.buttonText}>
-            <FontAwesome name="check" size={18} />
-            {' '}
-            Accept
-          </Text>
-        </TouchableOpacity>
+      <View key={request.trainer}>
+        <View style={styles.centeredRow}>
+          <Text style={styles.navText}>{request.trainerName}</Text>
+        </View>
+        <View style={styles.centeredRow}>
+          <TouchableOpacity
+            style={styles.denyButton}
+            onPress={() => this.denyRequest(request.key, request.trainer)}
+          >
+            <Text style={styles.buttonText}>
+              <FontAwesome name="close" size={18} />
+              {' '}
+              Deny
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.acceptButton}
+            onPress={() => this.acceptRequest(
+              request.key,
+              request.trainer,
+              request.trainerName,
+              request.gym,
+            )}
+          >
+            <Text style={styles.buttonText}>
+              <FontAwesome name="check" size={18} />
+              {' '}
+              Accept
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     ))
   )
@@ -368,6 +372,14 @@ const styles = StyleSheet.create({
     color: COLORS.WHITE,
     textAlign: 'center',
   },
+  centeredRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '90%',
+    marginTop: 10,
+    paddingLeft: 27,
+  },
   clientRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -402,6 +414,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 15,
+    margin: 5,
   },
   denyButton: {
     borderRadius: 5,
@@ -410,6 +423,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 15,
+    margin: 5,
   },
   icon: {
     fontSize: 15,

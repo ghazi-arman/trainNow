@@ -105,20 +105,32 @@ export default class ClientPage extends Component {
       return null;
     }
     return this.state.trainerRequests.map((request) => (
-      <View key={request.client} style={styles.clientRow}>
-        <Text style={styles.nameText}>{request.clientName}</Text>
-        <TouchableOpacity
-          style={styles.denyButton}
-          onPress={() => this.denyRequest(request.key, request.client)}
-        >
-          <Text style={styles.buttonText}><FontAwesome name="close" size={18} /></Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.acceptButton}
-          onPress={() => this.acceptRequest(request.key, request.client, request.clientName)}
-        >
-          <Text style={styles.buttonText}><FontAwesome name="check" size={18} /></Text>
-        </TouchableOpacity>
+      <View key={request.client}>
+        <View style={styles.centeredRow}>
+          <Text style={styles.nameText}>{request.clientName}</Text>
+        </View>
+        <View style={styles.centeredRow}>
+          <TouchableOpacity
+            style={styles.denyButton}
+            onPress={() => this.denyRequest(request.key, request.client)}
+          >
+            <Text style={styles.buttonText}>
+              <FontAwesome name="close" size={18} />
+              {' '}
+              Deny
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.acceptButton}
+            onPress={() => this.acceptRequest(request.key, request.client, request.clientName)}
+          >
+            <Text style={styles.buttonText}>
+              <FontAwesome name="check" size={18} />
+              {' '}
+              Accept
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     ));
   }
@@ -379,6 +391,14 @@ const styles = StyleSheet.create({
     color: COLORS.WHITE,
     textAlign: 'center',
   },
+  centeredRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '90%',
+    marginTop: 10,
+    paddingLeft: 27,
+  },
   clientRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -413,6 +433,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 15,
+    margin: 5,
   },
   acceptButton: {
     borderRadius: 5,
@@ -421,6 +442,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 15,
+    margin: 5,
   },
   icon: {
     fontSize: 15,
