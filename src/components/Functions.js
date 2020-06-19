@@ -376,7 +376,25 @@ export async function sendMessage(number, message) {
   return data;
 }
 
-export async function createPendingSession(client, trainer, gym, date, duration, sentBy, regular) {
+export async function loadGym(gymKey) {
+  let gym;
+  await firebase.database().ref('gyms').child(gymKey).once('value', (snapshot) => {
+    gym = snapshot.val();
+    gym.key = gymKey;
+  });
+  return gym;
+}
+
+export async function createPendingSession(
+  client,
+  trainer,
+  gymKey,
+  date,
+  duration,
+  sentBy,
+  regular,
+) {
+  const gym = await loadGym(gymKey);
   const userStripeField = (sentBy === 'client') ? 'clientStripe' : 'trainerStripe';
   const userStripe = (sentBy === 'client') ? client.stripeId : trainer.stripeId;
   const sessionKey = firebase.database().ref('pendingSessions').push({
@@ -406,15 +424,6 @@ export async function createPendingSession(client, trainer, gym, date, duration,
     end: end.toString(),
     type: Constants.personalSessionType,
   });
-}
-
-export async function loadGym(gymKey) {
-  let gym;
-  await firebase.database().ref('gyms').child(gymKey).once('value', (snapshot) => {
-    gym = snapshot.val();
-    gym.key = gymKey;
-  });
-  return gym;
 }
 
 export function renderStars(rating) {

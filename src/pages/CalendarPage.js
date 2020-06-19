@@ -695,6 +695,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
+    paddingTop: 10,
   },
   headerContainer: {
     flex: 1,
@@ -768,8 +769,7 @@ const styles = StyleSheet.create({
   },
   activeButton: {
     borderRadius: 5,
-    padding: 10,
-    height: 48,
+    padding: 15,
     backgroundColor: COLORS.SECONDARY,
     flexDirection: 'column',
     justifyContent: 'center',
@@ -777,9 +777,8 @@ const styles = StyleSheet.create({
   },
   scheduleButton: {
     borderRadius: 5,
-    padding: 10,
-    height: 48,
-    width: 200,
+    padding: 15,
+    width: '80%',
     backgroundColor: COLORS.SECONDARY,
     flexDirection: 'column',
     justifyContent: 'center',
@@ -798,6 +797,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: COLORS.WHITE,
     fontWeight: '700',
+    fontSize: 20,
   },
   statusText: {
     textAlign: 'center',

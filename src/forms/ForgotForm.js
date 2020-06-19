@@ -47,7 +47,7 @@ export default class ForgotForm extends Component {
     }
 
     return (
-      <View>
+      <View style={styles.formContainer}>
         <TextField
           icon="user"
           placeholder="Email"
@@ -64,14 +64,23 @@ export default class ForgotForm extends Component {
 }
 
 const styles = StyleSheet.create({
+  formContainer: {
+    width: '100%',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   buttonContainer: {
     backgroundColor: COLORS.SECONDARY,
     paddingVertical: 15,
     marginTop: 20,
+    borderRadius: 5,
+    width: '80%',
   },
   buttonText: {
     textAlign: 'center',
     color: COLORS.WHITE,
     fontWeight: '700',
+    fontSize: 20,
   },
 });

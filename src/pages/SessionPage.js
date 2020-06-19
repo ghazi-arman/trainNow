@@ -247,6 +247,7 @@ export default class SessionPage extends Component {
       length = (
         <Text style={styles.bookDetails}>
           You have
+          {' '}
           {minutes}
           {' '}
           min left

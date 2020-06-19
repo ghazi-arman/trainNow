@@ -258,8 +258,9 @@ const styles = StyleSheet.create({
   },
   bookButton: {
     paddingVertical: 15,
+    borderRadius: 5,
     backgroundColor: COLORS.SECONDARY,
-    width: '70%',
+    width: '80%',
     marginTop: 10,
   },
   inputRow: {

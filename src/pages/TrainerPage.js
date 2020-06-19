@@ -389,12 +389,11 @@ const styles = StyleSheet.create({
   },
   requestButton: {
     borderRadius: 5,
-    backgroundColor: COLORS.PRIMARY,
+    backgroundColor: COLORS.SECONDARY,
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
-    width: 120,
-    height: 40,
+    padding: 15,
   },
   acceptButton: {
     borderRadius: 5,
@@ -402,8 +401,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
-    width: 80,
-    height: 40,
+    padding: 15,
   },
   denyButton: {
     borderRadius: 5,
@@ -411,8 +409,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
-    width: 80,
-    height: 40,
+    padding: 15,
   },
   icon: {
     fontSize: 15,

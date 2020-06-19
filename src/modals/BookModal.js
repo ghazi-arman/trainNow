@@ -120,9 +120,10 @@ export default class BookModal extends Component {
     const client = this.state.user;
     client.key = firebase.auth().currentUser.uid;
     trainer.key = this.props.trainerKey;
-    const regular = (await firebase.database().ref(`/users/${client.key}/trainers/${trainer.key}`)
+    const trainerIsRegular = (await firebase.database().ref(`/users/${client.key}/trainers/${trainer.key}`)
       .once('value'))
       .val();
+    const regular = trainerIsRegular !== null;
     Alert.alert(
       'Book Session',
       `Request session with ${this.state.trainer.name} for $${price} at ${dateToString(this.state.bookDate)}`,
@@ -338,15 +339,15 @@ const styles = StyleSheet.create({
     borderColor: COLORS.PRIMARY,
   },
   bookButton: {
-    paddingVertical: 10,
+    paddingVertical: 15,
     backgroundColor: COLORS.SECONDARY,
-    width: '70%',
+    width: '80%',
     borderRadius: 5,
   },
   buttonText: {
     textAlign: 'center',
     color: COLORS.WHITE,
-    fontSize: 15,
+    fontSize: 20,
     fontWeight: '700',
   },
   backButton: {

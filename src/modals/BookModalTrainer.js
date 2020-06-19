@@ -316,9 +316,9 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   bookButton: {
-    paddingVertical: 10,
+    paddingVertical: 15,
     backgroundColor: COLORS.SECONDARY,
-    width: '70%',
+    width: '80%',
     borderRadius: 5,
   },
   inputRow: {
@@ -331,6 +331,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: COLORS.WHITE,
     fontWeight: '700',
+    fontSize: 20,
   },
   loading: {
     width: '100%',

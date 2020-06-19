@@ -54,7 +54,7 @@ export default class RatingPage extends Component {
         const percentage = this.state.session.regular
           ? Constants.regularClientPercentage
           : Constants.newClientPercentage;
-        const payout = total - total * percentage;
+        const payout = (total - total * percentage).toFixed(0);
         await chargeCard(
           this.state.user.stripeId,
           this.state.session.trainerStripe,

@@ -436,13 +436,13 @@ export default class SignupForm extends Component {
 
     prevButton = (
       <TouchableOpacity style={styles.buttonContainer} onPressIn={this.goBack}>
-        <Text style={styles.buttonText}> Previous </Text>
+        <Text style={styles.buttonText}>Previous</Text>
       </TouchableOpacity>
     );
 
     nextButton = (
       <TouchableOpacity style={styles.buttonContainer} onPressIn={this.goNext}>
-        <Text style={styles.buttonText}> Next </Text>
+        <Text style={styles.buttonText}>Next</Text>
       </TouchableOpacity>
     );
 
@@ -598,11 +598,9 @@ export default class SignupForm extends Component {
       page4 = (
         <View style={styles.imageContainer}>
           {profileImage}
-          <TouchableOpacity style={styles.pictureButton} onPressIn={this.pickImage}>
+          <TouchableOpacity style={styles.pictureButton} onPress={this.pickImage}>
             <Text style={styles.pictureButtonText}>
-              {' '}
               {buttonText}
-              {' '}
             </Text>
           </TouchableOpacity>
         </View>
@@ -700,7 +698,8 @@ const styles = StyleSheet.create({
   buttonContainer: {
     backgroundColor: COLORS.SECONDARY,
     paddingVertical: 15,
-    width: '45%',
+    width: '40%',
+    borderRadius: 5,
     margin: 5,
   },
   buttonHolder: {
@@ -717,6 +716,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     margin: 5,
+    borderRadius: 5,
   },
   pictureButtonText: {
     fontWeight: '700',

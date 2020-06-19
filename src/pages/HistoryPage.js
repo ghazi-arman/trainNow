@@ -85,6 +85,7 @@ export default class HistoryPage extends Component {
           client = (
             <Text style={styles.titleText}>
               Trained by
+              {' '}
               {session.trainerName}
             </Text>
           );
@@ -101,6 +102,7 @@ export default class HistoryPage extends Component {
           client = (
             <Text style={styles.titleText}>
               You trained
+              {' '}
               {session.clientName}
             </Text>
           );
@@ -250,7 +252,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   historyContainer: {
-    width: '85%',
+    width: '100%',
     height: '80%',
     flexDirection: 'column',
     justifyContent: 'flex-start',
@@ -287,17 +289,17 @@ const styles = StyleSheet.create({
   },
   titleText: {
     textAlign: 'center',
-    fontSize: 20,
+    fontSize: 25,
     fontWeight: '600',
     color: COLORS.PRIMARY,
   },
   smallText: {
-    fontSize: 15,
+    fontSize: 20,
     fontWeight: '400',
     color: COLORS.PRIMARY,
   },
   timeText: {
-    fontSize: 12,
+    fontSize: 15,
     fontWeight: '400',
     color: COLORS.PRIMARY,
   },
@@ -313,7 +315,7 @@ const styles = StyleSheet.create({
     color: COLORS.RED,
   },
   buttonText: {
-    fontSize: 15,
+    fontSize: 20,
     textAlign: 'center',
     color: '#f6f5f5',
     fontWeight: '500',
@@ -321,8 +323,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     borderRadius: 5,
     backgroundColor: COLORS.SECONDARY,
-    width: 150,
-    height: 30,
+    padding: 15,
     flexDirection: 'column',
     justifyContent: 'center',
   },
@@ -330,7 +331,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: COLORS.SECONDARY,
     paddingVertical: 15,
-    width: 200,
+    width: '80%',
   },
   input: {
     height: '50%',

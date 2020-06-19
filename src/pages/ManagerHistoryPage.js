@@ -19,7 +19,7 @@ import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import Constants from '../components/Constants';
 import {
-  loadSessions, dateToString, renderStars, reportSession,
+  loadSessions, renderStars, reportSession, timeToString,
 } from '../components/Functions';
 
 const loading = require('../images/loading.gif');
@@ -59,12 +59,12 @@ export default class ManagerHistoryPage extends Component {
   renderSessions = () => {
     this.state.sessions.sort((a, b) => (new Date(b.start) - new Date(a.start)));
     return this.state.sessions.map((session) => {
-      const startDate = dateToString(session.start);
-      const endDate = dateToString(session.end);
+      const startDate = timeToString(session.start);
+      const endDate = timeToString(session.end);
       const day = `${new Date(session.start).getMonth() + 1} / ${new Date(session.start).getDate()}`;
       const minutes = Math.floor(((new Date(session.end) - new Date(session.start)) / 1000) / 60);
       const rate = (minutes * (session.rate / 60)).toFixed(2);
-      const percentage = this.state.session.regular
+      const percentage = session.regular
         ? Constants.regularClientPercentage
         : Constants.newClientPercentage;
       let payout = (rate - rate * percentage).toFixed(2);
@@ -85,6 +85,7 @@ export default class ManagerHistoryPage extends Component {
           client = (
             <Text style={styles.titleText}>
               Trained by
+              {' '}
               {session.trainerName}
             </Text>
           );
@@ -101,6 +102,7 @@ export default class ManagerHistoryPage extends Component {
           client = (
             <Text style={styles.titleText}>
               You trained
+              {' '}
               {session.clientName}
             </Text>
           );
@@ -151,18 +153,13 @@ export default class ManagerHistoryPage extends Component {
           {rateView}
           <View style={styles.sessionRow}><Text style={styles.smallText}>{day}</Text></View>
           <View style={styles.sessionRow}>
-            <View style={styles.halfRow}>
-              <Text style={styles.timeText}>
-                Start:
-                {startDate}
-              </Text>
-            </View>
-            <View style={styles.halfRow}>
-              <Text style={styles.timeText}>
-                End:
-                {endDate}
-              </Text>
-            </View>
+            <Text style={styles.timeText}>
+              {startDate}
+              {' '}
+              to
+              {' '}
+              {endDate}
+            </Text>
           </View>
           <View style={styles.sessionRow}>
             <TouchableOpacity
@@ -201,6 +198,9 @@ export default class ManagerHistoryPage extends Component {
           onBackdropPress={this.hideReportModal}
         >
           <KeyboardAvoidingView behavior="padding" style={styles.reportModal}>
+            <Text style={styles.closeButton} onPress={this.hideReportModal}>
+              <FontAwesome name="close" size={35} />
+            </Text>
             <Text style={styles.titleText}>Report Session</Text>
             <TextInput
               placeholder="What was the problem?"
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   reportModal: {
-    flex: 0.3,
+    flex: 0.6,
     flexDirection: 'column',
     justifyContent: 'space-around',
     alignItems: 'center',
@@ -264,8 +264,11 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   sessionRow: {
+    width: '100%',
     flexDirection: 'row',
     justifyContent: 'center',
+    alignItems: 'center',
+    padding: 5,
   },
   halfRow: {
     width: '50%',
@@ -279,17 +282,18 @@ const styles = StyleSheet.create({
     color: COLORS.PRIMARY,
   },
   titleText: {
-    fontSize: 20,
+    fontSize: 25,
+    textAlign: 'center',
     fontWeight: '600',
     color: COLORS.PRIMARY,
   },
   smallText: {
-    fontSize: 15,
+    fontSize: 20,
     fontWeight: '400',
     color: COLORS.PRIMARY,
   },
   timeText: {
-    fontSize: 12,
+    fontSize: 15,
     fontWeight: '400',
     color: COLORS.PRIMARY,
   },
@@ -297,25 +301,34 @@ const styles = StyleSheet.create({
     color: COLORS.SECONDARY,
     fontSize: 15,
   },
+  closeButton: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    fontSize: 35,
+    color: COLORS.RED,
+  },
   buttonText: {
-    fontSize: 15,
+    fontSize: 20,
     textAlign: 'center',
     color: '#f6f5f5',
     fontWeight: '500',
   },
   buttonContainer: {
+    borderRadius: 5,
     backgroundColor: COLORS.SECONDARY,
-    padding: 5,
-    margin: 5,
+    padding: 15,
+    flexDirection: 'column',
+    justifyContent: 'center',
   },
   submitButton: {
+    borderRadius: 5,
     backgroundColor: COLORS.SECONDARY,
-    paddingVertical: 10,
-    margin: 5,
+    paddingVertical: 15,
     width: '80%',
   },
   input: {
-    height: 80,
+    height: '50%',
     width: '80%',
     backgroundColor: 'transparent',
     borderWidth: 1,

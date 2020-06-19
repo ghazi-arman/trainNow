@@ -57,6 +57,7 @@ export default class ManagedSideMenu extends Component {
         <TouchableOpacity onPress={() => Actions.ClientPage()}>
           <Text style={styles.icon}>
             <FontAwesome name="users" size={30} />
+            {' '}
             <Text style={styles.menuLink}>Clients</Text>
           </Text>
         </TouchableOpacity>
@@ -71,6 +72,7 @@ export default class ManagedSideMenu extends Component {
         <TouchableOpacity onPress={() => Actions.TrainerPage()}>
           <Text style={styles.icon}>
             <FontAwesome name="users" size={30} />
+            {' '}
             <Text style={styles.menuLink}>Trainers</Text>
           </Text>
         </TouchableOpacity>
@@ -86,6 +88,7 @@ export default class ManagedSideMenu extends Component {
         <TouchableOpacity onPress={() => Actions.MapPage()}>
           <Text style={styles.icon}>
             <FontAwesome name="compass" size={30} />
+            {' '}
             <Text style={styles.menuLink}>Map</Text>
           </Text>
         </TouchableOpacity>
@@ -95,12 +98,14 @@ export default class ManagedSideMenu extends Component {
             onPress={() => Actions.SettingsPage({ userType: Constants.trainerType })}
           >
             <FontAwesome name="gear" size={30} />
+            {' '}
             <Text style={styles.menuLink}>Settings</Text>
           </Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => Actions.CalendarPage()}>
           <Text style={styles.icon}>
             <FontAwesome name="calendar" size={30} />
+            {' '}
             <Text style={styles.menuLink}>Calendar</Text>
           </Text>
         </TouchableOpacity>
@@ -108,12 +113,14 @@ export default class ManagedSideMenu extends Component {
         <TouchableOpacity onPress={() => Linking.openURL(Constants.faqUrl)}>
           <Text style={styles.icon}>
             <FontAwesome name="book" size={30} />
-            <Text style={styles.menuLink}> FAQ</Text>
+            {' '}
+            <Text style={styles.menuLink}>FAQ</Text>
           </Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={this.logout}>
           <Text style={styles.icon}>
             <FontAwesome name="power-off" size={30} />
+            {' '}
             <Text style={styles.menuLink}>Sign Out</Text>
           </Text>
         </TouchableOpacity>

@@ -58,6 +58,7 @@ export default class SideMenu extends Component {
         <TouchableOpacity onPress={() => Actions.ClientPage()}>
           <Text style={styles.icon}>
             <FontAwesome name="users" size={30} />
+            {' '}
             <Text style={styles.menuLink}> Clients</Text>
           </Text>
         </TouchableOpacity>
@@ -72,7 +73,8 @@ export default class SideMenu extends Component {
         <TouchableOpacity onPress={() => Actions.TrainerPage()}>
           <Text style={styles.icon}>
             <FontAwesome name="users" size={30} />
-            <Text style={styles.menuLink}> Trainers</Text>
+            {' '}
+            <Text style={styles.menuLink}>Trainers</Text>
           </Text>
         </TouchableOpacity>
       );
@@ -88,7 +90,8 @@ export default class SideMenu extends Component {
         <TouchableOpacity onPress={() => Actions.MapPage()}>
           <Text style={styles.icon}>
             <FontAwesome name="compass" size={30} />
-            <Text style={styles.menuLink}> Map</Text>
+            {' '}
+            <Text style={styles.menuLink}>Map</Text>
           </Text>
         </TouchableOpacity>
         <TouchableOpacity>
@@ -97,38 +100,44 @@ export default class SideMenu extends Component {
             onPress={() => Actions.SettingsPage({ userType: this.state.user.type })}
           >
             <FontAwesome name="gear" size={30} />
-            <Text style={styles.menuLink}> Settings</Text>
+            {' '}
+            <Text style={styles.menuLink}>Settings</Text>
           </Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => Actions.CalendarPage()}>
           <Text style={styles.icon}>
             <FontAwesome name="calendar" size={30} />
-            <Text style={styles.menuLink}> Calendar</Text>
+            {' '}
+            <Text style={styles.menuLink}>Calendar</Text>
           </Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => Actions.HistoryPage()}>
           <Text style={styles.icon}>
             <FontAwesome name="list" size={30} />
-            <Text style={styles.menuLink}> History</Text>
+            {' '}
+            <Text style={styles.menuLink}>History</Text>
           </Text>
         </TouchableOpacity>
         {clientLink}
         <TouchableOpacity onPress={() => Actions.PaymentPage()}>
           <Text style={styles.icon}>
             <FontAwesome name="credit-card" size={30} />
-            <Text style={styles.menuLink}> Payments</Text>
+            {' '}
+            <Text style={styles.menuLink}>Payments</Text>
           </Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => Linking.openURL(Constants.faqUrl)}>
           <Text style={styles.icon}>
             <FontAwesome name="book" size={30} />
-            <Text style={styles.menuLink}> FAQ</Text>
+            {' '}
+            <Text style={styles.menuLink}>FAQ</Text>
           </Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={this.logout}>
           <Text style={styles.icon}>
             <FontAwesome name="power-off" size={30} />
-            <Text style={styles.menuLink}> Sign Out</Text>
+            {' '}
+            <Text style={styles.menuLink}>Sign Out</Text>
           </Text>
         </TouchableOpacity>
       </View>

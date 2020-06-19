@@ -224,20 +224,20 @@ export default class ManagerSignupForm extends Component {
 
     prevButton = (
       <TouchableOpacity style={styles.buttonContainer} onPressIn={this.goBack}>
-        <Text style={styles.buttonText}> Previous </Text>
+        <Text style={styles.buttonText}>Previous</Text>
       </TouchableOpacity>
     );
 
     nextButton = (
       <TouchableOpacity style={styles.buttonContainer} onPressIn={this.goNext}>
-        <Text style={styles.buttonText}> Next </Text>
+        <Text style={styles.buttonText}>Next</Text>
       </TouchableOpacity>
     );
 
     if (this.state.page === 1) {
       prevButton = null;
       page1 = (
-        <View>
+        <View style={styles.container}>
           <TextField
             icon="user"
             placeholder="Name (First and Last Only)"
@@ -276,7 +276,7 @@ export default class ManagerSignupForm extends Component {
       );
     } else if (this.state.page === 2) {
       page2 = (
-        <View>
+        <View style={styles.container}>
           <TextField
             icon="building"
             placeholder="Company Name"
@@ -314,7 +314,7 @@ export default class ManagerSignupForm extends Component {
     } else if (this.state.page === 3) {
       nextButton = null;
       page3 = (
-        <View>
+        <View style={styles.container}>
           <TextField
             icon="envelope"
             placeholder="Address"
@@ -404,8 +404,9 @@ const styles = StyleSheet.create({
   buttonContainer: {
     backgroundColor: COLORS.SECONDARY,
     paddingVertical: 15,
-    width: '45%',
+    width: '40%',
     margin: 5,
+    borderRadius: 5,
   },
   buttonHolder: {
     flexDirection: 'row',

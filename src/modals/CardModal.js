@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: COLORS.SECONDARY,
     paddingVertical: 15,
-    width: 150,
+    width: '80%',
     flexDirection: 'column',
     justifyContent: 'center',
   },
