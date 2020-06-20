@@ -125,7 +125,8 @@ export default class ManagerHistoryPage extends Component {
         );
         stars = renderStars(session.clients[firebase.auth().currentUser.uid].rating);
       } else {
-        payout = ((rate - rate * Constants.newClientPercentage) * session.clientCount).toFixed(2);
+        payout = ((rate - rate * Constants.groupSessionPercentage) * session.clientCount)
+          .toFixed(2);
         rateView = (
           <View style={styles.sessionRow}>
             <Text style={styles.smallText}>

@@ -51,9 +51,12 @@ export default class RatingPage extends Component {
         const duration = new Date(this.state.session.end) - new Date(this.state.session.start);
         const minutes = Math.floor((duration / 1000) / 60);
         const total = (minutes * (this.state.session.rate / 60) * 100).toFixed(0);
-        const percentage = this.state.session.regular
+        let percentage = this.state.session.regular
           ? Constants.regularClientPercentage
           : Constants.newClientPercentage;
+        if (this.state.session.type === Constants.groupSessionType) {
+          percentage = Constants.groupSessionPercentage;
+        }
         const payout = (total - total * percentage).toFixed(0);
         await chargeCard(
           this.state.user.stripeId,
@@ -118,9 +121,12 @@ export default class RatingPage extends Component {
     const duration = new Date(this.state.session.end) - new Date(this.state.session.start);
     const minutes = Math.floor((duration / 1000) / 60);
     const total = (minutes * (this.state.session.rate / 60)).toFixed(2);
-    const percentage = this.state.session.regular
+    let percentage = this.state.session.regular
       ? Constants.regularClientPercentage
       : Constants.newClientPercentage;
+    if (this.state.session.type === Constants.groupSessionType) {
+      percentage = Constants.groupSessionPercentage;
+    }
     const payout = (total - total * percentage).toFixed(2);
 
     let cost = null;
