@@ -368,12 +368,11 @@ export async function sendMessage(number, message) {
     body: JSON.stringify({
       phone: number,
       message,
-      user: firebase.auth().currentUser.uid,
+      uid: firebase.auth().currentUser.uid,
     }),
   });
-  const data = await res.json();
-  data.body = JSON.parse(data.body);
-  return data;
+  const response = await res.json();
+  return response;
 }
 
 export async function loadGym(gymKey) {
@@ -732,10 +731,9 @@ export async function loadTrainerCards(stripeId) {
       user: firebase.auth().currentUser.uid,
     }),
   });
-  const data = await res.json();
-  data.body = JSON.parse(data.body);
-  if (data.body.message === 'Success' && data.body.cards) {
-    return data.body.cards.data;
+  const response = await res.json();
+  if (response.body.message === 'Success' && response.body.cards) {
+    return response.body.cards.data;
   }
   return [];
 }
@@ -756,10 +754,9 @@ export async function loadBalance(stripeId) {
       user: user.uid,
     }),
   });
-  const data = await res.json();
-  data.body = JSON.parse(data.body);
-  if (data.body.message === 'Success' && data.body.balance) {
-    return data.body.balance.available[0].amount + data.body.balance.pending[0].amount;
+  const response = await res.json();
+  if (response.body.message === 'Success' && response.body.balance) {
+    return response.body.balance.available[0].amount + response.body.balance.pending[0].amount;
   }
   return 0;
 }
@@ -777,9 +774,8 @@ export async function deleteTrainerCard(stripeId, cardId) {
       user: firebase.auth().currentUser.uid,
     }),
   });
-  const data = await res.json();
-  data.body = JSON.parse(data.body);
-  if (data.body.message !== 'Success') {
+  const response = await res.json();
+  if (response.body.message !== 'Success') {
     throw new Error('Stripe Error.');
   }
 }
@@ -797,9 +793,8 @@ export async function deleteCard(stripeId, cardId, lastCard) {
       user: firebase.auth().currentUser.uid,
     }),
   });
-  const data = await res.json();
-  data.body = JSON.parse(data.body);
-  if (data.body.message !== 'Success') {
+  const response = await res.json();
+  if (response.body.message !== 'Success') {
     throw new Error('Stripe Error');
   }
   if (lastCard) {
@@ -846,10 +841,9 @@ export async function loadCards(stripeId) {
       user: firebase.auth().currentUser.uid,
     }),
   });
-  const data = await res.json();
-  data.body = JSON.parse(data.body);
-  if (data.body.message === 'Success' && data.body.cards) {
-    return data.body.cards.data;
+  const response = await res.json();
+  if (response.body.message === 'Success' && response.body.cards) {
+    return response.body.cards.data;
   }
   return [];
 }
@@ -867,9 +861,8 @@ export async function setDefaultCard(stripeId, cardId) {
       user: firebase.auth().currentUser.uid,
     }),
   });
-  const data = await res.json();
-  data.body = JSON.parse(data.body);
-  if (data.body.message !== 'Success') {
+  const response = await res.json();
+  if (response.body.message !== 'Success') {
     throw new Error('Stripe Error');
   }
 }
@@ -887,9 +880,8 @@ export async function setDefaultTrainerCard(stripeId, cardId) {
       user: firebase.auth().currentUser.uid,
     }),
   });
-  const data = await res.json();
-  data.body = JSON.parse(data.body);
-  if (data.body.message !== 'Success') {
+  const response = await res.json();
+  if (response.body.message !== 'Success') {
     throw new Error('Stripe Error');
   }
 }
@@ -1008,9 +1000,8 @@ export async function chargeCard(clientStripe, trainerStripe, amount, cut, sessi
       },
     }),
   });
-  const data = await res.json();
-  data.body = JSON.parse(data.body);
-  if (data.body.message !== 'Success') {
+  const response = await res.json();
+  if (response.body.message !== 'Success') {
     throw new Error('Stripe Error');
   }
   const message = `You were charged $ ${(amount / 100).toFixed(2)} for your session with ${session.trainerName}. If this is not accurate please contact support.`;

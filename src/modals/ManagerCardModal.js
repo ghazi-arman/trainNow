@@ -76,8 +76,7 @@ export default class ManagerCardModal extends Component {
         }),
       });
       const response = await res.json();
-      const data = JSON.parse(response.body);
-      if (data.message !== 'Success') {
+      if (response.body.message !== 'Success') {
         throw new Error('Stripe Error');
       }
 

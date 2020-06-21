@@ -2,13 +2,26 @@
   "name": "trainnowfirebase",
   "description": "Firebase cloud functions used for TrainNow",
   "private": true,
+  "scripts": {
+    "lint": "eslint . --ext .js"
+  },
   "dependencies": {
     "cors": "^2.8.4",
     "express": "^4.17.1",
+    "firebase": "^6.6.2",
     "firebase-admin": "^8.2.0",
     "firebase-functions": "^3.0.2",
     "stripe": "6.26.0",
     "twilio": "^3.33.0"
+  },
+  "devDependencies": {
+    "babel-eslint": "^10.1.0",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb": "^18.1.0",
+    "eslint-plugin-import": "^2.20.2",
+    "eslint-plugin-jsx-a11y": "^6.2.3",
+    "eslint-plugin-react": "^7.20.0",
+    "eslint-plugin-react-hooks": "^2.5.1"
   },
   "engines": {
     "node": "8"

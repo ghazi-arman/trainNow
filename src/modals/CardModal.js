@@ -74,18 +74,17 @@ export default class CardModal extends Component {
           },
           body: JSON.stringify({
             token: card,
-            id: user.uid,
+            uid: user.uid,
             email: user.email,
           }),
         });
         const response = await res.json();
-        const data = JSON.parse(response.body);
-        if (data.message !== 'Success') {
+        if (response.body.message !== 'Success') {
           throw new Error('Stripe Error');
         }
 
         await firebase.database().ref('users').child(user.uid).update({
-          stripeId: data.customer.id,
+          stripeId: response.body.customer.id,
           cardAdded: true,
         });
         this.props.hide();
@@ -108,8 +107,7 @@ export default class CardModal extends Component {
           }),
         });
         const response = await res.json();
-        const data = JSON.parse(response.body);
-        if (data.message !== 'Success') {
+        if (response.body.message !== 'Success') {
           throw new Error('Stripe Error');
         }
 
@@ -136,8 +134,7 @@ export default class CardModal extends Component {
           }),
         });
         const response = await res.json();
-        const data = JSON.parse(response.body);
-        if (data.message !== 'Success') {
+        if (response.body.message !== 'Success') {
           throw new Error('Stripe Error');
         }
 

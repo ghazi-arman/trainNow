@@ -1,627 +1,616 @@
 const functions = require('firebase-functions');
 const express = require('express');
-const cors = require('cors')({origin: true});
-const app = express();
 const admin = require('firebase-admin');
-admin.initializeApp(functions.config().firebase);
-
-// TODO: Remember to set token using >> firebase functions:config:set stripe.token="SECRET_STRIPE_TOKEN_HERE"
+const firebase = require('firebase');
+const cors = require('cors')({ origin: true });
 const stripe = require('stripe')(functions.config().stripe.token);
 const twilio = require('twilio')(functions.config().twilio.id, functions.config().twilio.auth);
 
-function addGym(req, res) {
-    const body = JSON.parse(req.body);
-    const latitude = parseFloat(body.latitude);
-    const longitude = parseFloat(body.longitude);
-    const idToken = req.headers.authorization;
-    let isValid = true;
+const app = express();
+admin.initializeApp(functions.config().firebase);
+firebase.initializeApp({
+  apiKey: functions.config().fb.api_key,
+  authDomain: functions.config().fb.auth_domain,
+  databaseURL: functions.config().fb.db_url,
+  projectId: functions.config().fb.project_id,
+  storageBucket: functions.config().fb.storage_bucket,
+  messagingSenderId: functions.config().fb.messaging_sender_id,
+});
 
-    admin.auth().verifyIdToken(idToken).then(async decodedToken => {
-        let uid = decodedToken.uid;
-        let adminStatus = await admin.database().ref(`/users/${uid}/admin`).once('value');
-        adminStatus = adminStatus.val();
-        if(!adminStatus) {
-            isValid = false;
-        }
-    }).catch(error => isValid = false);
+const send = (res, code, body) => {
+  res.status(code).send({
+    headers: { 'Access-Control-Allow-Origin': '*' },
+    body,
+  });
+};
 
-    if(!isValid){
-        send(res, 401, 'Unauthorized User');
-        return;
+const login = async (req, res) => {
+  const body = JSON.parse(req.body);
+  const { email } = body;
+  const { password } = body;
+  try {
+    await firebase.auth().signInWithEmailAndPassword(
+      email,
+      password,
+    );
+    const idToken = await firebase.auth().currentUser.getIdToken(true);
+    console.log(idToken);
+    firebase.auth().signOut();
+    send(res, 200, { idToken });
+  } catch (error) {
+    send(res, 401, 'Unauthorized User');
+  }
+};
+
+const addGym = async (req, res) => {
+  const body = JSON.parse(req.body);
+  const latitude = parseFloat(body.latitude);
+  const longitude = parseFloat(body.longitude);
+  const idToken = req.headers.authorization;
+
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const { uid } = decodedToken;
+    let adminStatus = await admin.database().ref(`/users/${uid}/admin`).once('value');
+    adminStatus = adminStatus.val();
+    if (!adminStatus) {
+      send(res, 401, 'Unauthorized User');
+      return;
     }
+  } catch (error) {
+    send(res, 401, 'Unauthorized User');
+    return;
+  }
 
-    const gym = {
-        hours: body.hours,
-        location: {
-            longitude,
-            latitude
+  const gym = {
+    hours: body.hours,
+    location: {
+      longitude,
+      latitude,
+    },
+    address: body.address,
+    name: body.name,
+    type: body.type,
+    website: body.website,
+  };
+
+  try {
+    await admin.database().ref('gyms').push(gym);
+    send(res, 200, { gym });
+  } catch (error) {
+    console.log(error);
+    send(res, 500, { error, gym });
+  }
+};
+
+const charge = async (req, res) => {
+  const body = JSON.parse(req.body);
+  const idToken = req.headers.authorization;
+
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const { uid } = decodedToken;
+    let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
+    userStripe = userStripe.val();
+    if (body.charge.clientStripe !== userStripe) {
+      send(res, 401, 'Unauthorized User');
+      return;
+    }
+  } catch (error) {
+    send(res, 401, 'Unauthorized User');
+    return;
+  }
+
+  stripe.tokens.create(
+    {
+      customer: body.charge.clientStripe,
+    },
+    {
+      stripe_account: body.charge.trainerStripe,
+    },
+  ).then((token) => Promise.all(
+    [
+      token.id,
+      stripe.charges.create(
+        {
+          amount: body.charge.amount,
+          currency: body.charge.currency,
+          source: token.id,
+          description: 'trainNow Session',
+          application_fee_amount: body.charge.cut,
         },
-        name: body.name,
-        type: body.type
-    }
-    
-    if(body.type === 'manager'){
-        gym.managerKey = body.managerKey;
-    }
-
-    admin.database().ref('gyms').push(gym).then(result => {
-        send(res, 200, { message: 'Gym added' });
-    }).catch(error => {
-        send(res, 500, { error: error.message });
+        {
+          stripe_account: body.charge.trainerStripe,
+        },
+      ),
+    ],
+  )).then((results) => {
+    send(res, 200, {
+      message: 'Success',
+      charge: results[1],
     });
-}
+  }).catch((error) => {
+    console.log(error);
+    send(res, 500, { error: error.message });
+  });
+};
 
-function charge(req, res) {
-    const body = JSON.parse(req.body);
-    const idToken = req.headers.authorization;
-    let isValid = true;
+const createCustomer = async (req, res) => {
+  const body = JSON.parse(req.body);
+  const idToken = req.headers.authorization;
 
-    admin.auth().verifyIdToken(idToken).then(async decodedToken => {
-        let uid = decodedToken.uid;
-        let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
-        userStripe = userStripe.val();
-        if(body.charge.clientStripe !== userStripe) {
-            isValid = false;
-        }
-    }).catch(error => isValid = false);
-
-    if(!isValid){
-        send(res, 401, 'Unauthorized User');
-        return;
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const { uid } = decodedToken;
+    if (uid !== body.uid) {
+      send(res, 401, 'Unauthorized User');
+      return;
     }
+  } catch (error) {
+    send(res, 401, 'Unauthorized User');
+    return;
+  }
 
-    //Create token and charge
-    stripe.tokens.create({ customer: body.charge.clientStripe}, {stripe_account: body.charge.trainerStripe }).then(token => {
-        return Promise.all([token.id,
-            stripe.charges.create({
-                amount: body.charge.amount,
-                currency: body.charge.currency,
-                source: token.id, 
-                description: 'trainNow Session',
-                application_fee_amount: body.charge.cut,
-            }, {stripe_account: body.charge.trainerStripe})
-        ]);
-    }).then(results => {
-        send(res, 200, {
-            message: 'Success',
-            charge: results[1]
-        });
-        return;
-    }).catch(error => {
-        console.log(error);
-        send(res, 500, { error: error.message });
-        return;
+  // Create customer
+  stripe.customers.create({
+    description: body.uid,
+    email: body.email,
+    source: body.token.id,
+  }).then((customer) => {
+    send(res, 200, {
+      message: 'Success',
+      customer,
     });
-}
+  }).catch((error) => {
+    console.log(error);
+    send(res, 500, { error: error.message });
+  });
+};
 
-function createCustomer(req, res) {
-    const body = JSON.parse(req.body);
-    const idToken = req.headers.authorization;
-
-    let isValid = true;
-    admin.auth().verifyIdToken(idToken).then(decodedToken => {
-        let uid = decodedToken.uid;
-        if(uid !== body.id){
-            isValid = false;
-        }
-        return;
-    }).catch(error => isValid = false);
-
-    if(!isValid){
-        send(res, 401, 'Unauthorized User');
-        return;
-    }
-
-    //Create customer
-    stripe.customers.create({
-        description: body.id,
-        email: body.email,
-        source: body.token.id,
-    }).then(customer => {
-        send(res, 200, {
-            message: 'Success',
-            customer: customer,
-        });
-        return;
-    }).catch(error => {
-        console.log(error);
-        send(res, 500, { error: error.message });
-        return;
-    });
-}
-
-function createTrainer(req, res) {
-    const body = JSON.parse(req.body);
-    stripe.accounts.create({ 
-        type: 'custom',
+const createTrainer = async (req, res) => {
+  const body = JSON.parse(req.body);
+  stripe.accounts.create({
+    type: 'custom',
+    country: 'US',
+    email: body.email,
+    requested_capabilities: ['card_payments', 'transfers'],
+    business_type: 'individual',
+    business_profile: {
+      product_description: 'Personal Trainer who sells his services to clients.',
+      mcc: 7298,
+    },
+    individual: {
+      first_name: body.firstName,
+      last_name: body.lastName,
+      id_number: body.token,
+      email: body.email,
+      phone: body.phone,
+      dob: {
+        day: body.day,
+        month: body.month,
+        year: body.year,
+      },
+      address: {
+        line1: body.line1,
+        city: body.city,
+        postal_code: body.zip,
+        state: body.state,
         country: 'US',
-        email: body.email,
-        requested_capabilities: ['card_payments', 'transfers'],
-        business_type: 'individual',
-        business_profile: {
-            product_description: 'Personal Trainer who sells his services to clients.',
-            mcc: 7298
-        },
-        individual: {
-            first_name: body.firstName,
-            last_name: body.lastName,
-            id_number: body.token,
-            email: body.email,
-            phone: body.phone,
-            dob: {
-                day: body.day,
-                month: body.month,
-                year: body.year
-            },
-            address: {
-                line1: body.line1,
-                city: body.city,
-                postal_code: body.zip,
-                state: body.state,
-                country: 'US',
-            }
-        },
-        tos_acceptance: {
-            date: new Date(),
-            ip: req.ip,
-        }
-    }).then(trainer => {
-        send(res, 200, {
-            message: 'Success',
-            trainer: trainer
-        });
-        return;
-    }).catch(err => {
-        console.log(err);
-        send(res, 500, { error: err.message });
-        return;
+      },
+    },
+    tos_acceptance: {
+      date: new Date(),
+      ip: req.ip,
+    },
+  }).then((trainer) => {
+    send(res, 200, {
+      message: 'Success',
+      trainer,
     });
-}
+  }).catch((err) => {
+    console.log(err);
+    send(res, 500, { error: err.message });
+  });
+};
 
-function deleteTrainer(req, res) {
-    const body = JSON.parse(req.body);
-    const idToken = req.headers.authorization;
-    let isValid = true;
+const deleteTrainer = async (req, res) => {
+  const body = JSON.parse(req.body);
+  const idToken = req.headers.authorization;
 
-    admin.auth().verifyIdToken(idToken).then(async decodedToken => {
-        let uid = decodedToken.uid;
-        userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
-        userStripe = userStripe.val();
-        if(userStripe !== body.stripeId) {
-            isValid = false;
-        }
-    }).catch(error => isValid = false);
-
-    if(!isValid){
-        send(res, 401, 'Unauthorized User');
-        return;
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const { uid } = decodedToken;
+    let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
+    userStripe = userStripe.val();
+    if (userStripe !== body.stripeId) {
+      send(res, 401, 'Unauthorized User');
+      return;
     }
+  } catch (error) {
+    send(res, 401, 'Unauthorized User');
+    return;
+  }
 
-    stripe.accounts.del(body.stripeId).then(response => {
-        send(res, 200, {
-            message: 'Success',
-            response
-        });
-        return;
-    }).catch(err => {
-        console.log(err);
-        send(res, 500, { error: err.message });
-        return;
+  stripe.accounts.del(body.stripeId).then((response) => {
+    send(res, 200, {
+      message: 'Success',
+      response,
     });
-}
+  }).catch((err) => {
+    console.log(err);
+    send(res, 500, { error: err.message });
+  });
+};
 
-
-
-function createManager(req, res) {
-    const body = JSON.parse(req.body);
-    stripe.accounts.create({ 
-        type: 'custom',
+const createManager = async (req, res) => {
+  const body = JSON.parse(req.body);
+  stripe.accounts.create({
+    type: 'custom',
+    country: 'US',
+    email: body.email,
+    requested_capabilities: ['card_payments', 'transfers'],
+    business_type: 'company',
+    business_profile: {
+      product_description: 'Gym',
+      mcc: 7298,
+    },
+    company: {
+      name: body.company,
+      tax_id: body.taxToken,
+      phone: body.phone,
+      address: {
+        line1: body.line1,
+        city: body.city,
+        postal_code: body.zip,
+        state: body.state,
         country: 'US',
+      },
+    },
+    tos_acceptance: {
+      date: new Date(),
+      ip: req.ip,
+    },
+  }).then((trainer) => Promise.all([trainer.id,
+    stripe.accounts.createPerson(trainer.id,
+      {
+        first_name: body.firstName,
+        last_name: body.lastName,
         email: body.email,
-        requested_capabilities: ['card_payments', 'transfers'],
-        business_type: 'company',
-        business_profile: {
-            product_description: 'Gym',
-            mcc: 7298
+        phone: body.phone,
+        relationship: {
+          owner: true,
+          account_opener: true,
+          title: 'Owner',
         },
-        company: {
-            name: body.company,
-            tax_id: body.taxToken,
-            phone: body.phone,
-            address: {
-                line1: body.line1,
-                city: body.city,
-                postal_code: body.zip,
-                state: body.state,
-                country: 'US',
-            }
+        id_number: body.ssnToken,
+        dob: {
+          day: body.day,
+          month: body.month,
+          year: body.year,
         },
-        tos_acceptance: {
-            date: new Date(),
-            ip: req.ip,
-        }
-    }).then(trainer => {
-        return Promise.all([trainer.id,
-            stripe.accounts.createPerson(trainer.id, 
-            {
-                first_name: body.firstName,
-                last_name: body.lastName,
-                email: body.email,
-                phone: body.phone,
-                relationship: {
-                    owner: true,
-                    account_opener: true,
-                    title: 'Owner'
-                },
-                id_number: body.ssnToken,
-                dob: {
-                    day: body.day,
-                    month: body.month,
-                    year: body.year
-                },
-                address: {
-                    line1: body.line1,
-                    city: body.city,
-                    postal_code: body.zip,
-                    state: body.state,
-                },
-            })
-        ]);
-    }).then(results => {
-        send(res, 200, {
-            message: 'Success',
-            trainer: results[1]
-        });
-        return;
-    }).catch(err => {
-        console.log(err);
-        send(res, 500, { error: err.message });
-        return;
+        address: {
+          line1: body.line1,
+          city: body.city,
+          postal_code: body.zip,
+          state: body.state,
+        },
+      }),
+  ])).then((results) => {
+    send(res, 200, {
+      message: 'Success',
+      trainer: results[1],
     });
-}
+  }).catch((err) => {
+    console.log(err);
+    send(res, 500, { error: err.message });
+  });
+};
 
-function addCard(req, res) {
-    const body = JSON.parse(req.body);
-    const idToken = req.headers.authorization;
-    let isValid = true;
+const addCard = async (req, res) => {
+  const body = JSON.parse(req.body);
+  const idToken = req.headers.authorization;
 
-    admin.auth().verifyIdToken(idToken).then(async decodedToken => {
-        let uid = decodedToken.uid;
-        let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
-        userStripe = userStripe.val();
-        if(body.stripeId !== userStripe) {
-            isValid = false;
-        }
-    }).catch(error => isValid = false);
-
-    if(!isValid){
-        send(res, 401, 'Unauthorized User');
-        return;
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const { uid } = decodedToken;
+    let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
+    userStripe = userStripe.val();
+    if (userStripe !== body.stripeId) {
+      send(res, 401, 'Unauthorized User');
+      return;
     }
+  } catch (error) {
+    send(res, 401, 'Unauthorized User');
+    return;
+  }
 
-    //Add Card to Customer
-    stripe.customers.createSource(body.stripeId, {
-        source: body.token.id
-    }).then(card => {
-        send(res, 200, {
-            message: 'Success',
-            card: card,
-        });
-        return;
-    }).catch(err => {
-        console.log(err);
-        send(res, 500, { error: err.message });
-        return;
+  stripe.customers.createSource(body.stripeId, {
+    source: body.token.id,
+  }).then((card) => {
+    send(res, 200, {
+      message: 'Success',
+      card,
     });
-}
+  }).catch((err) => {
+    console.log(err);
+    send(res, 500, { error: err.message });
+  });
+};
 
-function addTrainerCard(req, res) {
-    const body = JSON.parse(req.body);
-    const idToken = req.headers.authorization;
+const addTrainerCard = async (req, res) => {
+  const body = JSON.parse(req.body);
+  const idToken = req.headers.authorization;
 
-    if(!idToken){
-        send(res, 401, 'id Token not found');
-        return;
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const { uid } = decodedToken;
+    let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
+    userStripe = userStripe.val();
+    if (userStripe !== body.stripeId) {
+      send(res, 401, 'Unauthorized User');
+      return;
     }
+  } catch (error) {
+    send(res, 401, 'Unauthorized User');
+    return;
+  }
 
-    let isValid = true;
-    admin.auth().verifyIdToken(idToken).then(async decodedToken => {
-        let uid = decodedToken.uid;
-        let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
-        userStripe = userStripe.val();
-        if(body.stripeId !== userStripe) {
-            isValid = false;
-        }
-    }).catch(error => isValid = false);
+  stripe.accounts.createExternalAccount(body.stripeId, {
+    external_account: body.token.id,
+  }).then((card) => {
+    send(res, 200, {
+      message: 'Success',
+      card,
+    });
+  }).catch((err) => {
+    console.log(err);
+    send(res, 500, { error: err.message });
+  });
+};
 
-    if(!isValid){
-        send(res, 401, 'Unauthorized User');
-        return;
+const deleteCard = async (req, res) => {
+  const body = JSON.parse(req.body);
+  const idToken = req.headers.authorization;
+
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const { uid } = decodedToken;
+    let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
+    userStripe = userStripe.val();
+    if (userStripe !== body.stripeId) {
+      send(res, 401, 'Unauthorized User');
+      return;
     }
+  } catch (error) {
+    send(res, 401, 'Unauthorized User');
+    return;
+  }
 
-    //Add Card to Customer
-    stripe.accounts.createExternalAccount(body.stripeId, {
-        external_account: body.token.id
-    }).then(card => {
-        send(res, 200, {
-            message: 'Success',
-            card: card,
-        });
-        return;
-    }).catch(err => {
-        console.log(err);
-        send(res, 500, { error: err.message });
+  stripe.customers.deleteCard(body.stripeId, body.cardId).then((card) => {
+    send(res, 200, {
+      message: 'Success',
+      card,
     });
-}
+  }).catch((err) => {
+    console.log(err);
+    send(res, 500, {
+      error: err.message,
+    });
+  });
+};
 
-function deleteCard(req, res){
-    const body = JSON.parse(req.body);
-    const idToken = req.headers.authorization;
-    let isValid = true;
+const deleteTrainerCard = async (req, res) => {
+  const body = JSON.parse(req.body);
+  const idToken = req.headers.authorization;
 
-    admin.auth().verifyIdToken(idToken).then(async decodedToken => {
-        let uid = decodedToken.uid;
-        let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
-        userStripe = userStripe.val();
-        if(body.stripeId !== userStripe) {
-            isValid = false;
-        }
-    }).catch(error => isValid = false);
-
-    if(!isValid){
-        send(res, 401, 'Unauthorized User');
-        return;
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const { uid } = decodedToken;
+    let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
+    userStripe = userStripe.val();
+    if (userStripe !== body.stripeId) {
+      send(res, 401, 'Unauthorized User');
+      return;
     }
+  } catch (error) {
+    send(res, 401, 'Unauthorized User');
+    return;
+  }
 
-    //Remove card from customer
-    stripe.customers.deleteCard(body.stripeId, body.cardId).then(card => {
-        send(res, 200, {
-            message: 'Success',
-            card: card
-        });
-        return;
-    }).catch(err => {
-        console.log(err);
-        send(res, 500, {
-            error: err.message
-        });
+  stripe.accounts.deleteExternalAccount(body.stripeId, body.cardId).then((card) => {
+    send(res, 200, {
+      message: 'Success',
+      card,
     });
-}
+  }).catch((err) => {
+    console.log(err);
+    send(res, 500, { error: err.message });
+  });
+};
 
-function deleteTrainerCard(req, res){
-    const body = JSON.parse(req.body);
-    const idToken = req.headers.authorization;
-    let isValid = true;
+const listCards = async (req, res) => {
+  const body = JSON.parse(req.body);
+  const idToken = req.headers.authorization;
 
-    admin.auth().verifyIdToken(idToken).then(async decodedToken => {
-        let uid = decodedToken.uid;
-        let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
-        userStripe = userStripe.val();
-        if(body.stripeId !== userStripe) {
-            isValid = false;
-        }
-    }).catch(error => isValid = false);
-
-    if(!isValid){
-        send(res, 401, 'Unauthorized User.');
-        return;
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const { uid } = decodedToken;
+    let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
+    userStripe = userStripe.val();
+    if (userStripe !== body.stripeId) {
+      send(res, 401, 'Unauthorized User');
+      return;
     }
+  } catch (error) {
+    send(res, 401, 'Unauthorized User');
+    return;
+  }
 
-    //Remove card from customer
-    stripe.accounts.deleteExternalAccount(body.stripeId, body.cardId).then(card => {
-        send(res, 200, {
-            message: 'Success',
-            card: card
-        });
-        return;
-    }).catch(err => {
-        console.log(err);
-        send(res, 500, { error: err.message });
+  stripe.customers.listCards(body.stripeId).then((cards) => {
+    send(res, 200, {
+      message: 'Success',
+      cards,
     });
-}
+  }).catch((err) => {
+    console.log(err);
+    send(res, 500, { error: err.message });
+  });
+};
 
-function listCards(req, res) {
-    const body = JSON.parse(req.body);
-    const idToken = req.headers.authorization;
-    let isValid = true;
+const listTrainerCards = async (req, res) => {
+  const body = JSON.parse(req.body);
+  const idToken = req.headers.authorization;
 
-    admin.auth().verifyIdToken(idToken).then(async decodedToken => {
-        let uid = decodedToken.uid;
-        let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
-        userStripe = userStripe.val();
-        if(body.stripeId !== userStripe) {
-            isValid = false;
-        }
-        return;
-    }).catch(error => isValid = false);
-
-    if(!isValid){
-        send(res, 401, 'Unauthorized User.');
-        return;
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const { uid } = decodedToken;
+    let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
+    userStripe = userStripe.val();
+    if (userStripe !== body.stripeId) {
+      send(res, 401, 'Unauthorized User');
+      return;
     }
+  } catch (error) {
+    send(res, 401, 'Unauthorized User');
+    return;
+  }
 
-    stripe.customers.listCards(body.stripeId).then(cards => {
-        send(res, 200, {
-            message: 'Success',
-            cards: cards
-        });
-        return;
-    }).catch(err => {
-        console.log(err);
-        send(res, 500, { error: err.message });
+  stripe.accounts.listExternalAccounts(body.stripeId, { object: 'card' }).then((cards) => {
+    send(res, 200, {
+      message: 'Success',
+      cards,
     });
-}
+  }).catch((err) => {
+    console.log(err);
+    send(res, 500, { error: err.message });
+  });
+};
 
-function listTrainerCards(req, res) {
-    const body = JSON.parse(req.body);
-    const idToken = req.headers.authorization;
-    let isValid = true;
+const getBalance = async (req, res) => {
+  const body = JSON.parse(req.body);
+  const idToken = req.headers.authorization;
 
-    admin.auth().verifyIdToken(idToken).then(async decodedToken => {
-        let uid = decodedToken.uid;
-        let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
-        userStripe = userStripe.val();
-        if(body.stripeId !== userStripe) {
-            isValid = false;
-        }
-    }).catch(error => isValid = false);
-
-    if(!isValid){
-        send(res, 401, 'Unauthorized User.');
-        return;
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const { uid } = decodedToken;
+    let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
+    userStripe = userStripe.val();
+    if (userStripe !== body.stripeId) {
+      send(res, 401, 'Unauthorized User');
+      return;
     }
+  } catch (error) {
+    send(res, 401, 'Unauthorized User');
+    return;
+  }
 
-    stripe.accounts.listExternalAccounts(body.stripeId, {object: 'card'}).then(cards => {
-        send(res, 200, {
-            message: 'Success',
-            cards: cards
-        });
-        return;
-    }).catch(err => {
-        console.log(err);
-        send(res, 500, { error: err.message });
+  stripe.balance.retrieve({ stripe_account: body.stripeId }).then((balance) => {
+    send(res, 200, {
+      message: 'Success',
+      balance,
     });
-}
+  }).catch((err) => {
+    console.log(err);
+    send(res, 500, { error: err.message });
+  });
+};
 
-function getBalance(req, res) {
-    const body = JSON.parse(req.body);
-    const idToken = req.headers.authorization;
-    let isValid = true;
+const setDefaultCard = async (req, res) => {
+  const body = JSON.parse(req.body);
+  const idToken = req.headers.authorization;
 
-    admin.auth().verifyIdToken(idToken).then(async decodedToken => {
-        let uid = decodedToken.uid;
-        let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
-        userStripe = userStripe.val();
-        if(body.stripeId !== userStripe) {
-            isValid = false;
-        }
-    }).catch(error => isValid = false);
-
-    if(!isValid){
-        send(res, 401, 'Unauthorized User.');
-        return;
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const { uid } = decodedToken;
+    let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
+    userStripe = userStripe.val();
+    if (userStripe !== body.stripeId) {
+      send(res, 401, 'Unauthorized User');
+      return;
     }
+  } catch (error) {
+    send(res, 401, 'Unauthorized User');
+    return;
+  }
 
-    stripe.balance.retrieve({ stripe_account: body.stripeId }).then(balance => {
-        send(res, 200, {
-            message: 'Success',
-            balance: balance
-        });
-        return;
-    }).catch(err => {
-        console.log(err);
-        send(res, 500, { error: err.message });
+  stripe.customers.update(body.stripeId, {
+    default_source: body.cardId,
+  }).then((result) => {
+    send(res, 200, {
+      message: 'Success',
+      result,
     });
-}
+  }).catch((err) => {
+    console.log(err);
+    send(res, 500, { error: err.message });
+  });
+};
 
-function setDefaultCard(req, res) {
-    const body = JSON.parse(req.body);
-    const idToken = req.headers.authorization;
-    let isValid = true;
+const setDefaultTrainerCard = async (req, res) => {
+  const body = JSON.parse(req.body);
+  const idToken = req.headers.authorization;
 
-    admin.auth().verifyIdToken(idToken).then(async decodedToken => {
-        let uid = decodedToken.uid;
-        let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
-        userStripe = userStripe.val();
-        if(body.stripeId !== userStripe) {
-            isValid = false;
-        }
-    }).catch(error => isValid = false);
-
-    if(!isValid){
-        send(res, 401, 'Unauthorized User.');
-        return;
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const { uid } = decodedToken;
+    let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
+    userStripe = userStripe.val();
+    if (userStripe !== body.stripeId) {
+      send(res, 401, 'Unauthorized User');
+      return;
     }
+  } catch (error) {
+    send(res, 401, 'Unauthorized User');
+    return;
+  }
 
-    stripe.customers.update(body.stripeId, {
-        default_source: body.cardId
-    }).then(result => {
-        send(res, 200, {
-            message: 'Success',
-            result: result
-        });
-        return;
-    }).catch(err => {
-        console.log(err);
-        send(res, 500, { error: err.message });
+  stripe.accounts.updateExternalAccount(body.stripeId, body.cardId, {
+    default_for_currency: true,
+  }).then((result) => {
+    send(res, 200, {
+      message: 'Success',
+      result,
     });
-}
+  }).catch((err) => {
+    console.log(err);
+    send(res, 500, { error: err.message });
+  });
+};
 
-function setDefaultTrainerCard(req, res) {
-    const body = JSON.parse(req.body);
-    const idToken = req.headers.authorization;
-    let isValid = true;
+const sendMessage = async (req, res) => {
+  const body = JSON.parse(req.body);
+  const idToken = req.headers.authorization;
 
-    admin.auth().verifyIdToken(idToken).then(async decodedToken => {
-        let uid = decodedToken.uid;
-        let userStripe = await admin.database().ref(`/users/${uid}/stripeId`).once('value');
-        userStripe = userStripe.val();
-        if(body.stripeId !== userStripe) {
-            isValid = false;
-        }
-    }).catch(error => isValid = false);
-
-    if(!isValid){
-        send(res, 401, 'Unauthorized User.');
-        return;
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const { uid } = decodedToken;
+    if (uid !== body.uid) {
+      send(res, 401, 'Unauthorized User');
+      return;
     }
+  } catch (error) {
+    send(res, 401, 'Unauthorized User');
+    return;
+  }
 
-    stripe.accounts.updateExternalAccount(body.stripeId, body.cardId, {
-        default_for_currency: true
-    }).then(result => {
-        send(res, 200, {
-            message: 'Success',
-            result: result
-        });
-        return;
-    }).catch(err => {
-        console.log(err);
-        send(res, 500, { error: err.message });
+  twilio.messages.create({
+    to: `+1${body.phone}`,
+    from: '+18582408311',
+    body: body.message,
+  }).then((message) => {
+    send(res, 200, {
+      message: 'Success',
+      result: message,
     });
-}
-
-function sendMessage(req, res) {
-    const body = JSON.parse(req.body);
-    const idToken = req.headers.authorization;
-    let isValid = true;
-
-    admin.auth().verifyIdToken(idToken).then(decodedToken => {
-        let uid = decodedToken.uid;
-        if(uid !== body.user){
-            isValid = false;
-        }
-    }).catch(error => isValid = false);
-
-    if(!isValid){
-        send(res, 401, 'Unauthorized User.');
-        return;
-    }
-
-    twilio.messages.create({
-        to: `+1${body.phone}`,
-        from: '+18582408311',
-        body: body.message
-    }).then(message => {
-        send(res, 200, {
-            message: 'Success',
-            result: message
-        });
-        return
-    }).catch(err => {
-        console.log(err);
-        send(res, 500, { error: err.mesage });
-    });
-}
-
-function send(res, code, body) {
-    res.status(code).send({
-        headers: {'Access-Control-Allow-Origin': '*'},
-        body: JSON.stringify(body),
-    });
-}
+  }).catch((err) => {
+    console.log(err);
+    send(res, 500, { error: err.mesage });
+  });
+};
 
 app.use(cors);
 
+app.post('/login', (req, res) => login(req, res));
 app.post('/addGym', (req, res) => addGym(req, res));
 app.post('/stripe/charge', (req, res) => charge(req, res));
 app.post('/stripe/createCustomer', (req, res) => createCustomer(req, res));

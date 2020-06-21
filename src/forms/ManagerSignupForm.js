@@ -98,11 +98,10 @@ export default class ManagerSignupForm extends Component {
 
       // Check if stripe account was created successfully
       const response = await res.json();
-      const data = JSON.parse(response.body);
 
-      if (data.message !== 'Success') {
+      if (response.body.message !== 'Success') {
         this.setState({ pressed: false });
-        this.bugsnagClient.leaveBreadcrumb(data);
+        this.bugsnagClient.leaveBreadcrumb(response.body);
         Alert.alert('There was an error creating your stripe Account. Please review your information and try again!');
         return;
       }
@@ -117,7 +116,7 @@ export default class ManagerSignupForm extends Component {
           name: this.state.name,
           gym: this.state.gymKey,
           phone: this.state.phone,
-          stripeId: data.trainer.account,
+          stripeId: response.body.trainer.account,
           pending: true,
           cardAdded: false,
         });

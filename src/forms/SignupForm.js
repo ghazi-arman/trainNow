@@ -110,8 +110,8 @@ export default class SignupForm extends Component {
     const firstName = this.state.name.split(' ')[0];
     const lastName = this.state.name.split(' ')[1];
     let user;
-    let data;
     let token;
+    let response;
 
     if (this.state.trainer) {
       const gymKey = this.state.gyms[this.state.gym].key;
@@ -156,10 +156,9 @@ export default class SignupForm extends Component {
                 year,
               }),
             });
-          const response = await res.json();
-          data = JSON.parse(response.body);
+          response = await res.json();
 
-          if (data.message !== 'Success') {
+          if (response.body.message !== 'Success') {
             throw new Error('Stripe Error');
           }
         } catch (error) {
@@ -223,7 +222,7 @@ export default class SignupForm extends Component {
         }
 
         if (gymType === Constants.independentType) {
-          await firebase.database().ref('users').child(user.user.uid).update({ stripeId: data.trainer.id, cardAdded: false });
+          await firebase.database().ref('users').child(user.user.uid).update({ stripeId: response.body.trainer.id, cardAdded: false });
           await firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password);
           Actions.reset('CalendarPage');
           Alert.alert('You must enter a debit card for payouts before clients can book a session with you!');
@@ -244,13 +243,12 @@ export default class SignupForm extends Component {
                     Authorization: idToken,
                   },
                   body: JSON.stringify({
-                    stripeId: data.trainer.id,
+                    stripeId: response.body.trainer.id,
                   }),
                 });
-              const response = await res.json();
-              data = JSON.parse(response.body);
+              response = await res.json();
 
-              if (data.message !== 'Success') {
+              if (response.body.message !== 'Success') {
                 throw new Error('Stripe Error');
               }
             }

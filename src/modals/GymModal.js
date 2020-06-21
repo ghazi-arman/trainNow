@@ -361,16 +361,22 @@ export default class GymModal extends Component {
     const content = (this.state.page === 'trainers') ? this.renderTrainers() : this.renderSessions();
     const trainerButtonStyle = (this.state.page === 'trainers') ? styles.toggledButton : null;
     const sessionButtonStyle = (this.state.page === 'trainers') ? null : styles.toggledButton;
+    let websiteLink;
+    if (this.state.gym.website) {
+      websiteLink = (
+        <Text
+          onPress={() => Linking.openURL(this.state.gym.website)}
+          style={styles.smallText}
+        >
+          Website
+        </Text>
+      );
+    }
     return (
       <View style={styles.modal}>
         <View style={styles.nameContainer}>
           <Text style={styles.gymName}>{this.state.gym.name}</Text>
-          <Text
-            onPress={() => Linking.openURL(this.state.gym.website)}
-            style={styles.smallText}
-          >
-            Website
-          </Text>
+          {websiteLink}
           <Text style={styles.smallText}>{this.state.gym.hours}</Text>
           <View style={[styles.buttonRow, { marginTop: 0 }]}>
             <TouchableOpacity
