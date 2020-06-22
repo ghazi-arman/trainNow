@@ -55,6 +55,7 @@ export default class GroupSessionRatingPage extends Component {
           total,
           total - payout,
           this.state.session,
+          this.state.user.phone,
         );
       }
       await rateGroupSession(

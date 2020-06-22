@@ -983,7 +983,7 @@ export async function markSessionsAsRead(pendingSessions, acceptSessions, userTy
   });
 }
 
-export async function chargeCard(clientStripe, trainerStripe, amount, cut, session) {
+export async function chargeCard(clientStripe, trainerStripe, amount, cut, session, userPhone) {
   const idToken = await firebase.auth().currentUser.getIdToken(true);
   const res = await fetch(`${FB_URL}/stripe/charge/`, {
     method: 'POST',
@@ -1005,7 +1005,7 @@ export async function chargeCard(clientStripe, trainerStripe, amount, cut, sessi
     throw new Error('Stripe Error');
   }
   const message = `You were charged $ ${(amount / 100).toFixed(2)} for your session with ${session.trainerName}. If this is not accurate please contact support.`;
-  sendMessage(session.clientPhone, message);
+  sendMessage(userPhone, message);
 }
 
 export async function startSession(sessionKey, userRegion) {

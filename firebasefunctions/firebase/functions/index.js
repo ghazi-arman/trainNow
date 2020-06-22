@@ -26,8 +26,7 @@ const send = (res, code, body) => {
 
 const login = async (req, res) => {
   const body = JSON.parse(req.body);
-  const { email } = body;
-  const { password } = body;
+  const { email, password } = body;
   try {
     await firebase.auth().signInWithEmailAndPassword(
       email,
