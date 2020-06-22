@@ -49,6 +49,7 @@ export default class GroupSessionModal extends Component {
             name: session.name,
             bio: session.bio,
             capacity: session.capacity,
+            cost: String(session.cost),
           });
         } else {
           this.setState({ user });
@@ -96,11 +97,11 @@ export default class GroupSessionModal extends Component {
 
   createSession = async () => {
     try {
-      if (!this.state.duration || this.state.duration.replace(/\D/g, '') < 30) {
+      if (!this.state.duration || parseInt(this.state.duration, 10) < 30) {
         Alert.alert('Please enter a duration greater than 30 minutes.');
         return;
       }
-      if (!this.state.capacity || this.state.capacity.replace(/\D/g, '') < 2) {
+      if (!this.state.capacity || parseInt(this.state.capacity, 10) < 2) {
         Alert.alert('Please enter a capacity greater than 1.');
         return;
       }
@@ -118,6 +119,7 @@ export default class GroupSessionModal extends Component {
         this.state.name,
         this.state.bio,
         this.state.capacity,
+        this.state.cost,
       );
       this.props.hideAndConfirm();
     } catch (error) {
@@ -136,16 +138,23 @@ export default class GroupSessionModal extends Component {
         Alert.alert('You cannot change the time or duration after someone has joined. Please cancel to change the time or duration.');
         return;
       }
-      if (this.state.session.clientCount > 0 && this.state.session.rate !== this.state.user.rate) {
-        Alert.alert('You cannot change your rate after someone has already joined. Please delete the session to change the rate.');
+      if (
+        this.state.session.clientCount > 0
+        && this.state.session.cost !== parseInt(this.state.cost, 10)
+      ) {
+        Alert.alert('You cannot change your cost after someone has already joined. Please delete the session to change the cost.');
         return;
       }
-      if (!this.state.duration || this.state.duration.replace(/\D/g, '') < 30) {
+      if (!this.state.duration || parseInt(this.state.duration, 10) < 30) {
         Alert.alert('Please enter a duration greater than 30 minutes.');
         return;
       }
-      if (!this.state.capacity || this.state.capacity.replace(/\D/g, '') < 2) {
+      if (!this.state.capacity || parseInt(this.state.capacity, 10) < 2) {
         Alert.alert('Please enter a capacity greater than 1.');
+        return;
+      }
+      if (!this.state.cost || parseInt(this.state.cost, 10) < 10) {
+        Alert.alert('Please enter a cost greater than $10.');
         return;
       }
       if (!this.state.bio) {
@@ -163,6 +172,7 @@ export default class GroupSessionModal extends Component {
         this.state.name,
         this.state.bio,
         this.state.capacity,
+        this.state.cost,
       );
       this.props.hideAndConfirm();
     } catch (error) {
@@ -278,6 +288,13 @@ export default class GroupSessionModal extends Component {
                 onChange={(duration) => this.setState({ duration })}
                 value={this.state.duration}
               />
+              <TextField
+                icon="dollar"
+                placeholder="Cost"
+                keyboard="number-pad"
+                onChange={(cost) => this.setState({ cost })}
+                value={this.state.cost}
+              />
             </View>
             <View style={styles.inputRow}>
               <Text style={styles.formLabel}>Start Time</Text>
@@ -337,6 +354,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingBottom: 20,
   },
   closeButton: {
     position: 'absolute',

@@ -311,7 +311,7 @@ export default class ManagerPage extends Component {
 
   updateRate = async () => {
     try {
-      if (!this.state.rate || this.state.rate.replace(/\D/g, '') < 25) {
+      if (!this.state.rate || parseInt(this.state.rate, 10) < 25) {
         Alert.alert('Please enter your rate (has to be $25+)!');
         return;
       }

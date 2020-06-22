@@ -47,9 +47,7 @@ export default class GroupSessionRatingPage extends Component {
     this.setState({ pressed: true });
     try {
       if (this.state.session.trainer !== firebase.auth().currentUser.uid) {
-        const duration = new Date(this.state.session.end) - new Date(this.state.session.start);
-        const minutes = Math.floor((duration / 1000) / 60);
-        const total = (minutes * (this.state.session.rate / 60) * 100).toFixed(0);
+        const total = (this.state.session.cost * 100).toFixed(0);
         const payout = (total - (total * Constants.groupSessionPercentage)).toFixed(0);
         await chargeCard(
           this.state.user.stripeId,
@@ -112,7 +110,7 @@ export default class GroupSessionRatingPage extends Component {
     const displayDate = dateToString(this.state.session.end);
     const duration = new Date(this.state.session.end) - new Date(this.state.session.start);
     const minutes = Math.floor((duration / 1000) / 60);
-    const total = (minutes * (this.state.session.rate / 60)).toFixed(2);
+    const total = (this.state.session.cost).toFixed(2);
     const payout = (total - total * Constants.groupSessionPercentage).toFixed(2);
 
     let cost = null;

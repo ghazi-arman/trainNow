@@ -1044,7 +1044,7 @@ export async function startGroupSession(sessionKey, userRegion) {
   gymSessionDatabase.update({ started: true, start: new Date() });
 }
 
-export async function createGroupSession(trainer, start, duration, name, bio, capacity) {
+export async function createGroupSession(trainer, start, duration, name, bio, capacity, cost) {
   const location = (await firebase.database().ref(`/gyms/${trainer.gym}/location`).once('value')).val();
   const gymName = (await firebase.database().ref(`/gyms/${trainer.gym}/name`).once('value')).val();
   const session = {
@@ -1056,7 +1056,7 @@ export async function createGroupSession(trainer, start, duration, name, bio, ca
     trainerStripe: trainer.stripeId,
     trainerPhone: trainer.phone,
     trainerType: trainer.trainerType,
-    rate: trainer.rate,
+    cost: parseInt(cost, 10),
     start: start.toString(),
     duration,
     name,
@@ -1077,7 +1077,16 @@ export async function createGroupSession(trainer, start, duration, name, bio, ca
   });
 }
 
-export async function updateGroupSession(trainer, session, start, duration, name, bio, capacity) {
+export async function updateGroupSession(
+  trainer,
+  session,
+  start,
+  duration,
+  name,
+  bio,
+  capacity,
+  cost,
+) {
   const location = (await firebase.database().ref(`/gyms/${trainer.gym}/location`).once('value')).val();
   const gymName = (await firebase.database().ref(`/gyms/${trainer.gym}/name`).once('value')).val();
   const updatedSession = {
@@ -1088,7 +1097,7 @@ export async function updateGroupSession(trainer, session, start, duration, name
     trainerName: trainer.name,
     trainerStripe: trainer.stripeId,
     trainerPhone: trainer.phone,
-    rate: trainer.rate,
+    cost: parseInt(cost, 10),
     start: start.toString(),
     duration,
     name,

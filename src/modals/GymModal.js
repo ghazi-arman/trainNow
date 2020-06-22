@@ -159,8 +159,7 @@ export default class GymModal extends Component {
               {session.trainerName}
               {' '}
               - $
-              {session.rate}
-              /hr
+              {session.cost}
             </Text>
             <Text style={styles.info}>{session.bio}</Text>
             <View style={styles.fullButtonRow}>

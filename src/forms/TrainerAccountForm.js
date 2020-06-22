@@ -110,7 +110,7 @@ export default class TrainerAccountForm extends Component {
       Alert.alert('Please enter a name!');
       return;
     }
-    if (!this.state.rate || !this.state.rate.length || this.state.rate.replace(/\D/g, '') < 25) {
+    if (!this.state.rate || !this.state.rate.length || parseInt(this.state.rate, 10) < 25) {
       Alert.alert('Please enter a rate over $25!');
       return;
     }

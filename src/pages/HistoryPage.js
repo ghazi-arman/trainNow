@@ -113,7 +113,7 @@ export default class HistoryPage extends Component {
           <View style={styles.sessionRow}>
             <Text style={styles.smallText}>
               $
-              {rate}
+              {session.cost}
             </Text>
           </View>
         );
@@ -125,7 +125,8 @@ export default class HistoryPage extends Component {
         );
         stars = renderStars(session.clients[firebase.auth().currentUser.uid].rating);
       } else {
-        payout = ((rate - rate * Constants.groupSessionPercentage) * session.clientCount)
+        // eslint-disable-next-line
+        payout = ((session.cost - session.cost * Constants.groupSessionPercentage) * session.clientCount)
           .toFixed(2);
         rateView = (
           <View style={styles.sessionRow}>

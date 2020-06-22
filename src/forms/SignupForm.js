@@ -119,7 +119,7 @@ export default class SignupForm extends Component {
       if (gymType === Constants.independentType) {
         const ssn = {
           pii: {
-            personal_id_number: this.state.ssn.replace(/\D/g, ''),
+            personal_id_number: parseInt(this.state.ssn, 10),
           },
         };
 
@@ -147,7 +147,7 @@ export default class SignupForm extends Component {
                 state: this.state.state,
                 zip: this.state.zip,
                 email: this.state.email,
-                phone: this.state.phone.replace(/\D/g, ''),
+                phone: this.state.phone,
                 firstName,
                 lastName,
                 token: token.id,
@@ -189,7 +189,7 @@ export default class SignupForm extends Component {
           bio: this.state.bio,
           cert: this.state.cert,
           name: this.state.name,
-          rate: parseInt(this.state.rate.replace(/\D/g, ''), 10),
+          rate: parseInt(this.state.rate, 10),
           rating: 0,
           offset: 0,
         });
@@ -201,9 +201,9 @@ export default class SignupForm extends Component {
           name: this.state.name,
           gym: gymKey,
           cert: this.state.cert,
-          rate: parseInt(this.state.rate.replace(/\D/g, ''), 10),
+          rate: parseInt(this.state.rate, 10),
           bio: this.state.bio,
-          phone: this.state.phone.replace(/\D/g, ''),
+          phone: this.state.phone,
           active: false,
           rating: 0,
           sessions: 0,
@@ -275,7 +275,7 @@ export default class SignupForm extends Component {
         firebase.database().ref('users').child(user.user.uid).set({
           type: 'client',
           name: this.state.name,
-          phone: this.state.phone.replace(/\D/g, ''),
+          phone: this.state.phone,
           rating: 0,
           sessions: 0,
           cardAdded: false,
@@ -341,7 +341,7 @@ export default class SignupForm extends Component {
         Alert.alert('Passwords must match!');
         return;
       }
-      if (!this.state.phone || this.state.phone.replace(/\D/g, '').length < 10) {
+      if (!this.state.phone || this.state.phone.length < 10) {
         Alert.alert('Please enter a valid phone number');
         return;
       }
@@ -378,15 +378,15 @@ export default class SignupForm extends Component {
       if (this.state.gyms[this.state.gym].type === Constants.managedType) {
         this.setState({ page: 4 });
       } else {
-        if (!this.state.rate || this.state.rate.replace(/\D/g, '') < 25) {
+        if (!this.state.rate || parseInt(this.state.rate, 10) < 25) {
           Alert.alert('Please enter your rate (has to be $25+)!');
           return;
         }
-        if (!this.state.ssn || this.state.ssn.replace(/\D/g, '').length < 9) {
+        if (!this.state.ssn || this.state.ssn.length < 9) {
           Alert.alert('Please enter a valid Social Security Number!');
           return;
         }
-        if (!this.state.birthDay || this.state.birthDay.replace(/\D/g, '').length < 8) {
+        if (!this.state.birthDay || this.state.birthDay.length < 8) {
           Alert.alert('Please enter a valid formatted birthday!');
           return;
         }
