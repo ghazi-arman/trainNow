@@ -15,16 +15,18 @@ import MapView from 'react-native-maps';
 import PropTypes from 'prop-types';
 import { FontAwesome } from '@expo/vector-icons';
 import bugsnag from '@bugsnag/expo';
+import { Actions } from 'react-native-router-flux';
 import COLORS from '../components/Colors';
 import {
   loadGym, renderStars, dateToString, joinGroupSession, loadUser,
 } from '../components/Functions';
+import Constants from '../components/Constants';
 
 const markerImg = require('../images/marker.png');
 const profileImg = require('../images/profile.png');
 const loading = require('../images/loading.gif');
 
-export default class GymModal extends Component {
+export default class GymPage extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -43,7 +45,7 @@ export default class GymModal extends Component {
       } catch (error) {
         this.bugsnagClient.notify(error);
         Alert.alert('There was an error loading this gym. Please try again later.');
-        this.props.hide();
+        Actions.MapPage();
       }
     }
   }
@@ -176,7 +178,6 @@ export default class GymModal extends Component {
         infoArea = null;
       }
 
-      // DOM Element for a trainer in gym modal
       return (
         <TouchableWithoutFeedback
           key={session.key}
@@ -235,7 +236,6 @@ export default class GymModal extends Component {
     });
 
     const trainersList = trainers.map((trainer) => {
-      // Get active status of trainer
       let activeField;
       if (trainer.active) {
         activeField = (
@@ -283,13 +283,20 @@ export default class GymModal extends Component {
             <View style={styles.buttonRow}>
               <TouchableOpacity
                 style={styles.buttonContainer}
-                onPress={() => { this.props.setTrainer(trainer); }}
+                onPress={() => {
+                  Actions.BookingPage({
+                    clientKey: this.state.user.key,
+                    trainerKey: trainer.key,
+                    gymKey: this.props.gymKey,
+                    bookedBy: Constants.clientType,
+                  });
+                }}
               >
                 <Text style={styles.buttonText}>Book Now!</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.buttonContainer}
-                onPress={() => { this.props.viewSchedule(trainer); }}
+                onPress={() => { Actions.SchedulePage({ trainerKey: trainer.key }); }}
               >
                 <Text style={styles.buttonText}>Schedule</Text>
               </TouchableOpacity>
@@ -357,9 +364,6 @@ export default class GymModal extends Component {
         </View>
       );
     }
-    const content = (this.state.page === 'trainers') ? this.renderTrainers() : this.renderSessions();
-    const trainerButtonStyle = (this.state.page === 'trainers') ? styles.toggledButton : null;
-    const sessionButtonStyle = (this.state.page === 'trainers') ? null : styles.toggledButton;
     let websiteLink;
     if (this.state.gym.website) {
       websiteLink = (
@@ -372,35 +376,22 @@ export default class GymModal extends Component {
       );
     }
     return (
-      <View style={styles.modal}>
+      <View style={styles.container}>
         <View style={styles.nameContainer}>
+          <Text style={styles.backButton} onPress={() => Actions.reset('MapPage')}>
+            <FontAwesome name="arrow-left" size={35} />
+          </Text>
           <Text style={styles.gymName}>{this.state.gym.name}</Text>
           {websiteLink}
           <Text style={styles.smallText}>{this.state.gym.hours}</Text>
-          <View style={[styles.buttonRow, { marginTop: 0 }]}>
-            <TouchableOpacity
-              style={[styles.menuTab, trainerButtonStyle]}
-              onPress={() => this.setState({ page: 'trainers' })}
-            >
-              <Text style={styles.smallText}>Trainers</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.menuTab, sessionButtonStyle]}
-              onPress={() => this.setState({ page: 'sessions' })}
-            >
-              <Text style={styles.smallText}>Sessions</Text>
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.closeButton} onPress={this.props.hide}>
-            <FontAwesome name="close" size={35} />
-          </Text>
         </View>
         <View style={styles.mapContainer}>
           {this.loadMap()}
         </View>
         <View style={styles.trainersContainer}>
           <ScrollView showsVerticalScrollIndicator={false}>
-            {content}
+            {this.renderTrainers()}
+            {this.renderSessions()}
           </ScrollView>
         </View>
       </View>
@@ -408,25 +399,17 @@ export default class GymModal extends Component {
   }
 }
 
-GymModal.propTypes = {
-  hide: PropTypes.func.isRequired,
-  gymKey: PropTypes.string,
-  setTrainer: PropTypes.func.isRequired,
-  viewSchedule: PropTypes.func.isRequired,
-};
-
-GymModal.defaultProps = {
-  gymKey: null,
+GymPage.propTypes = {
+  gymKey: PropTypes.string.isRequired,
 };
 
 const styles = StyleSheet.create({
-  modal: {
-    flex: 0.95,
+  container: {
+    flex: 1,
     flexDirection: 'column',
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: COLORS.WHITE,
-    borderRadius: 10,
   },
   gymName: {
     fontSize: 30,
@@ -435,26 +418,23 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   nameContainer: {
-    height: '25%',
+    flex: 2,
     width: '100%',
-    paddingTop: 20,
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
     backgroundColor: COLORS.PRIMARY,
     flexDirection: 'column',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
   },
   mapContainer: {
-    height: '20%',
+    flex: 2,
     width: '100%',
   },
   map: {
-    height: '100%',
+    flex: 2,
     width: '100%',
   },
   trainersContainer: {
-    height: '55%',
+    flex: 6,
     width: '95%',
     flexDirection: 'row',
     justifyContent: 'center',
@@ -538,12 +518,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.PRIMARY,
   },
-  closeButton: {
+  backButton: {
     position: 'absolute',
-    top: 0,
-    right: 0,
+    left: 20,
+    top: 30,
     fontSize: 35,
-    color: COLORS.RED,
+    color: COLORS.SECONDARY,
   },
   rate: {
     fontSize: 16,

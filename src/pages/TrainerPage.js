@@ -10,10 +10,8 @@ import {
 } from 'react-native';
 import firebase from 'firebase';
 import { FontAwesome } from '@expo/vector-icons';
-import Modal from 'react-native-modal';
 import { Actions } from 'react-native-router-flux';
 import bugsnag from '@bugsnag/expo';
-import BookModalRegular from '../modals/BookModalRegular';
 import COLORS from '../components/Colors';
 import {
   loadUser,
@@ -23,6 +21,7 @@ import {
   sendTrainerRequest,
   denyClientRequest,
 } from '../components/Functions';
+import Constants from '../components/Constants';
 
 const loading = require('../images/loading.gif');
 
@@ -31,7 +30,6 @@ export default class TrainerPage extends Component {
     super(props);
     this.state = {
       currentTab: 'recent',
-      bookModal: false,
       pressed: false,
     };
     this.bugsnagClient = bugsnag();
@@ -102,14 +100,6 @@ export default class TrainerPage extends Component {
     }
   }
 
-  bookSession = (trainer, trainerGym) => {
-    this.setState({ bookingTrainer: trainer, selectedGym: trainerGym, bookModal: true });
-  }
-
-  hidebookModal = () => {
-    this.setState({ bookModal: false });
-  }
-
   renderRequests = () => (
     this.state.clientRequests.map((request) => (
       <View key={request.trainer}>
@@ -158,7 +148,14 @@ export default class TrainerPage extends Component {
           <Text style={styles.nameText}>{trainer.trainerName}</Text>
           <TouchableOpacity
             style={styles.requestButton}
-            onPress={() => this.bookSession(trainer.trainer, trainer.gym)}
+            onPress={() => {
+              Actions.BookingPage({
+                clientKey: this.state.user.key,
+                trainerKey: trainer.trainer,
+                gymKey: trainer.gym,
+                bookedBy: Constants.clientType,
+              });
+            }}
           >
             <Text style={styles.buttonText}>
               <FontAwesome name="calendar" size={18} />
@@ -302,17 +299,6 @@ export default class TrainerPage extends Component {
         </View>
         {navBar}
         {content}
-        <Modal
-          isVisible={this.state.bookModal}
-          onBackdropPress={this.hidebookModal}
-        >
-          <BookModalRegular
-            trainerKey={this.state.bookingTrainer}
-            gymKey={this.state.selectedGym}
-            hide={this.hidebookModal}
-            confirm={() => Alert.alert('Session Booked!')}
-          />
-        </Modal>
       </View>
     );
   }

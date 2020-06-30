@@ -13,25 +13,27 @@ import {
   Platform,
 } from 'react-native';
 import firebase from 'firebase';
+import PropTypes from 'prop-types';
 import { FontAwesome } from '@expo/vector-icons';
 import bugsnag from '@bugsnag/expo';
-import PropTypes from 'prop-types';
-import COLORS from '../components/Colors';
+import { Actions } from 'react-native-router-flux';
 import {
   dateToString,
   timeOverlapCheck,
-  loadUser,
-  loadGym,
-  loadAcceptedSchedule,
   loadPendingSchedule,
-  createPendingSession,
   sendMessage,
+  loadUser,
+  createPendingSession,
+  loadAcceptedSchedule,
   loadTrainer,
+  loadClient,
 } from '../components/Functions';
+import COLORS from '../components/Colors';
+import Constants from '../components/Constants';
 
 const loading = require('../images/loading.gif');
 
-export default class BookModalRegular extends Component {
+export default class BookingPage extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -42,37 +44,61 @@ export default class BookModalRegular extends Component {
   }
 
   async componentDidMount() {
-    if (!this.state.trainer || !this.state.user || !this.state.gym) {
+    if (!this.state.trainer || !this.state.client) {
       try {
-        const trainer = await loadTrainer(this.props.trainerKey);
-        const user = await loadUser(firebase.auth().currentUser.uid);
-        const gym = await loadGym(this.props.gymKey);
+        // Load trainer and user logged in
+        const trainer = this.props.bookedBy === Constants.trainerType
+          ? await loadUser(this.props.trainerKey)
+          : await loadTrainer(this.props.trainerKey);
+        const client = this.props.bookedBy === Constants.clientType
+          ? await loadUser(this.props.clientKey)
+          : await loadClient(this.props.clientKey);
         this.setState({
-          user, trainer, gym, bookDate: new Date(new Date().getTime() + trainer.offset * 60000),
+          trainer,
+          client,
+          bookDate: new Date(new Date().getTime() + trainer.offset * 60000),
         });
       } catch (error) {
         this.bugsnagClient.notify(error);
-        Alert.alert('There was an error loading the trainer. Please try again later.');
-        this.props.hide();
+        Actions.pop();
+        Alert.alert('There was an error loading this trainer. Please try again later.');
       }
     }
   }
 
   bookTrainer = async () => {
-    const user = firebase.auth().currentUser;
-    if (!this.state.user.cardAdded) {
+    // Prevent multiple form submits
+    if (this.state.pressed) {
+      return;
+    }
+    // Checks stripe account creation for both trainer and client
+    if (!this.state.client.cardAdded) {
       Alert.alert('You must have a card on file to book a session.');
       return;
     }
-    if (user.uid === this.state.trainer.key) {
-      Alert.alert('You cannot book yourself as a Trainer!');
+    if (
+      !this.state.trainer.cardAdded
+      && this.state.trainer.trainerType === Constants.independentType
+    ) {
+      Alert.alert('This trainer has not added a payment method yet.');
       return;
     }
+    // checks if client is using trainer account and if trainer is active
+    if (this.state.client.type === Constants.trainerType) {
+      Alert.alert('Sign into a non-trainer account to book sessions.');
+      return;
+    }
+    this.setState({ pressed: true });
 
     // Pulls schedules for trainers and conflicts to check for overlaps
     const trainerSchedule = await loadAcceptedSchedule(this.props.trainerKey);
-    const pendingSchedule = await loadPendingSchedule(user.uid);
-    let clientSchedule = await loadAcceptedSchedule(user.uid);
+    let clientSchedule = await loadAcceptedSchedule(this.props.clientKey);
+    let pendingSchedule;
+    if (this.props.bookedBy === Constants.trainerType) {
+      pendingSchedule = await loadPendingSchedule(this.props.trainerKey);
+    } else {
+      pendingSchedule = await loadPendingSchedule(this.props.clientKey);
+    }
     clientSchedule = clientSchedule.concat(pendingSchedule);
     const bookDurationMs = 60000 * this.state.bookDuration;
     const endTime = new Date(new Date(this.state.bookDate).getTime() + bookDurationMs);
@@ -92,34 +118,58 @@ export default class BookModalRegular extends Component {
       }
     });
 
-    if (timeConflict) return;
+    if (timeConflict) {
+      this.setState({ pressed: false });
+      return;
+    }
 
     // create session in pending table
-    const bookDurationMin = parseInt(this.state.bookDuration, 10) / 60;
-    const price = (this.state.trainer.rate * bookDurationMin).toFixed(2);
+    const minutesTrained = parseInt(this.state.bookDuration, 10) / 60;
+    const price = (this.state.trainer.rate * minutesTrained).toFixed(2);
     const { trainer } = this.state;
-    const client = this.state.user;
-    client.key = firebase.auth().currentUser.uid;
-    trainer.key = this.props.trainerKey;
+    const { client } = this.state;
+    const trainerIsRegular = (await firebase.database().ref(`/users/${client.key}/trainers/${trainer.key}`)
+      .once('value'))
+      .val();
+    const regular = trainerIsRegular !== null;
     Alert.alert(
       'Book Session',
       `Request session with ${this.state.trainer.name} for $${price} at ${dateToString(this.state.bookDate)}`,
       [
-        { text: 'No' },
+        {
+          text: 'No',
+          onPress: () => {
+            this.setState({ pressed: false });
+          },
+        },
         {
           text: 'Yes',
           onPress: async () => {
-            createPendingSession(client, trainer, this.state.gym, this.state.bookDate, this.state.bookDuration, 'client', true);
             try {
-              const message = `${this.state.user.name} has requested a session at ${dateToString(this.state.bookDate)} for ${this.state.bookDuration} mins.`;
+              createPendingSession(
+                client,
+                trainer,
+                this.props.gymKey,
+                this.state.bookDate,
+                this.state.bookDuration,
+                this.props.bookedBy,
+                regular,
+              );
+            } catch (error) {
+              this.bugsnagClient.notify(error);
+              Alert.alert('There was an error when trying to create the session.');
+              return;
+            }
+            try {
+              const message = `${this.state.client.name} has requested a session at ${dateToString(this.state.bookDate)} for ${this.state.bookDuration} mins.`;
               sendMessage(this.state.trainer.phone, message);
             } catch (error) {
               this.bugsnagClient.notify(error);
               Alert.alert('There was an error sending a notification text to the trainer.');
-            } finally {
-              this.props.hide();
-              setTimeout(this.props.confirm, 1000);
+              return;
             }
+            Alert.alert('Session successfully booked.');
+            Actions.pop();
           },
         },
       ],
@@ -145,13 +195,12 @@ export default class BookModalRegular extends Component {
   openTimePicker = async () => {
     try {
       const { action, hour, minute } = await TimePickerAndroid.open({
-        hour: 0,
-        minute: 0,
         is24Hour: false,
       });
       if (action !== TimePickerAndroid.dismissedAction) {
-        const { bookDate } = this.state;
-        this.setState({ bookDate: bookDate.setHours(hour, minute) });
+        // eslint-disable-next-line
+        const bookDate = new Date(this.state.bookDate.setHours(hour, minute));
+        this.setState({ bookDate });
       }
     } catch ({ code, message }) {
       this.bugsnagClient.notify(message);
@@ -159,7 +208,7 @@ export default class BookModalRegular extends Component {
   }
 
   render() {
-    if (!this.state.trainer || !this.state.user || !this.state.gym) {
+    if (!this.state.trainer || !this.state.client || this.state.pressed) {
       return (
         <View style={styles.loadingContainer}>
           <Image source={loading} style={styles.loading} />
@@ -174,7 +223,7 @@ export default class BookModalRegular extends Component {
           mode="datetime"
           itemStyle={{ color: COLORS.PRIMARY }}
           textColor={COLORS.PRIMARY}
-          style={styles.datepicker}
+          style={styles.datePicker}
           minuteInterval={5}
           minimumDate={new Date(new Date().getTime() + this.state.trainer.offset * 60000)}
           date={this.state.bookDate}
@@ -204,12 +253,12 @@ export default class BookModalRegular extends Component {
       );
     }
     return (
-      <View style={styles.modal}>
+      <View style={styles.container}>
         <View style={styles.nameContainer}>
-          <Text style={styles.trainerName}>{this.state.trainer.name}</Text>
-          <Text style={styles.closeButton} onPress={this.props.hide}>
-            <FontAwesome name="close" size={35} />
+          <Text style={styles.backButton} onPress={Actions.pop}>
+            <FontAwesome name="arrow-left" size={35} />
           </Text>
+          <Text style={styles.trainerName}>{this.state.trainer.name}</Text>
         </View>
         <View style={styles.formContainer}>
           <View style={styles.inputRow}>
@@ -226,7 +275,7 @@ export default class BookModalRegular extends Component {
               onValueChange={(itemValue) => this.setState({ bookDuration: itemValue })}
             >
               <Picker.Item label="1 hour" value="60" />
-              <Picker.Item label="90 minuts" value="90" />
+              <Picker.Item label="90 minutes" value="90" />
               <Picker.Item label="2 hours" value="120" />
             </Picker>
           </View>
@@ -241,26 +290,20 @@ export default class BookModalRegular extends Component {
   }
 }
 
-BookModalRegular.propTypes = {
-  trainerKey: PropTypes.string,
-  gymKey: PropTypes.string,
-  hide: PropTypes.func.isRequired,
-  confirm: PropTypes.func.isRequired,
-};
-
-BookModalRegular.defaultProps = {
-  gymKey: null,
-  trainerKey: null,
+BookingPage.propTypes = {
+  clientKey: PropTypes.string.isRequired,
+  trainerKey: PropTypes.string.isRequired,
+  gymKey: PropTypes.string.isRequired,
+  bookedBy: PropTypes.string.isRequired,
 };
 
 const styles = StyleSheet.create({
-  modal: {
-    flex: 0.9,
+  container: {
+    flex: 1,
     flexDirection: 'column',
     justifyContent: 'flex-start',
     alignItems: 'center',
     backgroundColor: COLORS.WHITE,
-    borderRadius: 10,
   },
   trainerName: {
     fontSize: 30,
@@ -271,19 +314,10 @@ const styles = StyleSheet.create({
   nameContainer: {
     flex: 1,
     width: '100%',
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
     backgroundColor: COLORS.PRIMARY,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  closeButton: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    fontSize: 35,
-    color: COLORS.RED,
   },
   formLabel: {
     fontSize: 20,
@@ -293,29 +327,11 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   formContainer: {
-    flex: 6,
     flexDirection: 'column',
     justifyContent: 'space-around',
     alignItems: 'center',
+    flex: 6,
     width: '95%',
-  },
-  datepicker: {
-    height: 200,
-    width: '100%',
-    borderWidth: 1,
-    borderColor: COLORS.PRIMARY,
-  },
-  picker: {
-    height: 70,
-    borderWidth: 1,
-    borderColor: COLORS.PRIMARY,
-    width: '100%',
-  },
-  bookButton: {
-    paddingVertical: 15,
-    backgroundColor: COLORS.SECONDARY,
-    width: '80%',
-    borderRadius: 5,
   },
   inputRow: {
     width: '100%',
@@ -323,11 +339,36 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  datePicker: {
+    height: 200,
+    width: '100%',
+    borderWidth: 1,
+    borderColor: COLORS.PRIMARY,
+  },
+  picker: {
+    height: 70,
+    width: '100%',
+    borderWidth: 1,
+    borderColor: COLORS.PRIMARY,
+  },
+  bookButton: {
+    paddingVertical: 15,
+    backgroundColor: COLORS.SECONDARY,
+    width: '80%',
+    borderRadius: 5,
+  },
   buttonText: {
     textAlign: 'center',
     color: COLORS.WHITE,
-    fontWeight: '700',
     fontSize: 20,
+    fontWeight: '700',
+  },
+  backButton: {
+    position: 'absolute',
+    left: 20,
+    top: 30,
+    fontSize: 35,
+    color: COLORS.SECONDARY,
   },
   loading: {
     width: '100%',

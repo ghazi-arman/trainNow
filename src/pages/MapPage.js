@@ -5,16 +5,12 @@ import {
 import * as Permissions from 'expo-permissions';
 import MapView from 'react-native-maps';
 import firebase from 'firebase';
-import Modal from 'react-native-modal';
 import { Actions } from 'react-native-router-flux';
 import { FontAwesome } from '@expo/vector-icons';
 import Drawer from 'react-native-drawer';
 import bugsnag from '@bugsnag/expo';
 import SideMenu from '../components/SideMenu';
 import ManagedSideMenu from '../components/ManagedSideMenu';
-import GymModal from '../modals/GymModal';
-import BookModal from '../modals/BookModal';
-import ScheduleModal from '../modals/ScheduleModal';
 import COLORS from '../components/Colors';
 import {
   loadUser,
@@ -41,11 +37,7 @@ export default class MapPage extends Component {
       scheduleTrainer: {},
       selectedTrainer: {},
       currentSession: null,
-      gymModal: false,
-      bookModal: false,
-      scheduleModal: false,
       unread: false,
-      modalPresent: false,
       menuOpen: false,
     };
     this.bugsnagClient = bugsnag();
@@ -101,44 +93,6 @@ export default class MapPage extends Component {
     }
   };
 
-  showModal = (type, option) => {
-    if (type === 'gym') {
-      this.setState({
-        bookModal: false,
-        scheduleModal: false,
-        gymModal: true,
-        modalPresent: true,
-        selectedGym: option,
-      });
-    }
-
-    if (type === 'book') {
-      this.setState({
-        gymModal: false,
-        scheduleModal: false,
-        selectedTrainer: option,
-        modalPresent: true,
-      });
-      setTimeout(() => this.setState({ bookModal: true }), 800);
-    }
-
-    if (type === 'schedule') {
-      this.setState({
-        gymModal: false,
-        bookModal: false,
-        scheduleTrainer: option,
-        modalPresent: true,
-      });
-      setTimeout(() => this.setState({ scheduleModal: true }), 800);
-    }
-  }
-
-  setTrainer = (trainer) => {
-    this.showModal('book', trainer);
-  }
-
-  viewSchedule = (trainer) => this.showModal('schedule', trainer);
-
   setLocation = () => {
     if (this.state.userRegion) {
       this.map.animateToRegion(this.state.userRegion, 499);
@@ -153,17 +107,6 @@ export default class MapPage extends Component {
     }
   }
 
-  hidegymModal = () => this.setState({ gymModal: false, modalPresent: false });
-
-  hidebookModal = () => this.setState({ bookModal: false, modalPresent: false });
-
-  hidescheduleModal = () => this.setState({ scheduleModal: false, modalPresent: false });
-
-  hideandOpen = () => {
-    this.setState({ scheduleModal: false, bookModal: false });
-    setTimeout(() => this.setState({ gymModal: true }), 500);
-  }
-
   render() {
     if (!this.state.mapRegion || !this.state.gyms || !this.state.user) {
       return (
@@ -173,7 +116,7 @@ export default class MapPage extends Component {
       );
     }
 
-    if (this.state.unread && !this.state.modalPresent) {
+    if (this.state.unread) {
       Alert.alert(
         `Hello ${this.state.user.name}`,
         'You have a new session!',
@@ -189,7 +132,6 @@ export default class MapPage extends Component {
           { text: 'View', onPress: () => Actions.CalendarPage() },
         ],
       );
-      this.state.modalPresent = true;
     }
 
     let alertBox;
@@ -245,7 +187,7 @@ export default class MapPage extends Component {
                 ref={(currentMarker) => { this.marker = currentMarker; }}
                 key={marker.key}
                 coordinate={marker.location}
-                onPress={() => this.showModal('gym', marker)}
+                onPress={() => Actions.GymPage({ gymKey: marker.key })}
               >
                 <Image source={markerImg} style={{ width: 50, height: 50 }} />
               </MapView.Marker>
@@ -257,42 +199,6 @@ export default class MapPage extends Component {
             </Text>
           </TouchableOpacity>
           {alertBox}
-          <Modal
-            isVisible={this.state.gymModal}
-            onBackdropPress={this.hidegymModal}
-          >
-            <GymModal
-              gymKey={this.state.selectedGym.key}
-              setTrainer={this.setTrainer}
-              viewSchedule={this.viewSchedule}
-              hide={this.hidegymModal}
-            />
-          </Modal>
-
-          <Modal
-            isVisible={this.state.bookModal}
-            onBackdropPress={this.hidebookModal}
-          >
-            <BookModal
-              trainerKey={this.state.selectedTrainer.key}
-              gymKey={this.state.selectedGym.key}
-              hide={this.hidebookModal}
-              confirm={() => Alert.alert('Session Booked!')}
-              hideAndOpen={this.hideandOpen}
-            />
-          </Modal>
-
-          <Modal
-            isVisible={this.state.scheduleModal}
-            onBackdropPress={this.hidescheduleModal}
-          >
-            <ScheduleModal
-              trainerKey={this.state.scheduleTrainer.key}
-              hide={this.hidescheduleModal}
-              hideandOpen={this.hideandOpen}
-            />
-          </Modal>
-
         </View>
       </Drawer>
     );

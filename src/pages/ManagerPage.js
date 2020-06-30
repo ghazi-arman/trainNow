@@ -10,7 +10,6 @@ import PropTypes from 'prop-types';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import TextField from '../components/TextField';
-import ManagerCardModal from '../modals/ManagerCardModal';
 import {
   loadUser,
   loadGym,
@@ -27,7 +26,6 @@ export default class ManagerPage extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      cardModal: false,
       rateModal: false,
     };
     this.bugsnagClient = bugsnag();
@@ -239,14 +237,6 @@ export default class ManagerPage extends Component {
 
   hideRateModal = () => this.setState({ rateModal: false, selectedTrainer: null });
 
-  hideCardModal = () => this.setState({ cardModal: false });
-
-  hideCardModalOnAdd = async () => {
-    // eslint-disable-next-line
-    const cards = await loadTrainerCards(this.state.user.stripeId)
-    this.setState({ cardModal: false, cards });
-  }
-
   renderCards = () => {
     if (!this.state.cards || !this.state.cards.length) {
       return (
@@ -406,7 +396,7 @@ export default class ManagerPage extends Component {
         <View style={styles.cardHolder}>
           {this.renderCards()}
         </View>
-        <TouchableOpacity style={styles.button} onPress={() => this.setState({ cardModal: true })}>
+        <TouchableOpacity style={styles.button} onPress={Actions.CardPage}>
           <Text style={styles.activeText}>
             <FontAwesome name="credit-card" size={25} />
             {' '}
@@ -420,12 +410,6 @@ export default class ManagerPage extends Component {
         >
           Funds will be transfered daily
         </Text>
-        <Modal
-          isVisible={this.state.cardModal}
-          onBackdropPress={this.hideCardModal}
-        >
-          <ManagerCardModal hide={this.hideCardModalOnAdd} gymKey={this.props.gymKey} />
-        </Modal>
         <Modal
           isVisible={this.state.rateModal}
           onBackdropPress={this.hideRateModal}

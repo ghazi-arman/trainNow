@@ -3,14 +3,13 @@ import {
   StyleSheet, Text, View, Image, Alert,
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
-import firebase from 'firebase';
 import { Agenda } from 'react-native-calendars';
 import bugsnag from '@bugsnag/expo';
 import PropTypes from 'prop-types';
+import { Actions } from 'react-native-router-flux';
 import COLORS from '../components/Colors';
 import {
   dateToString,
-  loadUser,
   loadAcceptedSchedule,
   dateforAgenda,
   loadAvailableSchedule,
@@ -19,7 +18,7 @@ import {
 
 const loading = require('../images/loading.gif');
 
-export default class ScheduleModal extends Component {
+export default class SchedulePage extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -29,19 +28,18 @@ export default class ScheduleModal extends Component {
   }
 
   async componentDidMount() {
-    // load trainer and user info and trainer sessions
-    if (!this.state.trainer || !this.state.sessions || !this.state.user) {
+    // load trainer info and sessions
+    if (!this.state.trainer || !this.state.sessions) {
       try {
-        const user = await loadUser(firebase.auth().currentUser.uid);
         const trainer = await loadTrainer(this.props.trainerKey);
         let sessions = await loadAcceptedSchedule(this.props.trainerKey);
         const availability = await loadAvailableSchedule(this.props.trainerKey);
         sessions = sessions.concat(availability);
-        this.setState({ user, trainer, sessions });
+        this.setState({ trainer, sessions });
       } catch (error) {
         this.bugsnagClient.notify(error);
         Alert.alert('There was an error loading the trainer\'s schedule.');
-        this.props.hideandOpen();
+        Actions.MapPage();
       }
     }
   }
@@ -69,7 +67,7 @@ export default class ScheduleModal extends Component {
   }
 
   render() {
-    if (!this.state.trainer || !this.state.user || !this.state.sessions) {
+    if (!this.state.trainer || !this.state.sessions) {
       return (
         <View style={styles.loadingContainer}>
           <Image source={loading} style={styles.loading} />
@@ -78,9 +76,9 @@ export default class ScheduleModal extends Component {
     }
     const events = this.renderAgendaEvents();
     return (
-      <View style={styles.modal}>
+      <View style={styles.container}>
         <View style={styles.nameContainer}>
-          <Text style={styles.backButton} onPress={this.props.hideandOpen}>
+          <Text style={styles.backButton} onPress={Actions.pop}>
             <FontAwesome name="arrow-left" size={35} />
           </Text>
           <Text style={styles.trainerName}>
@@ -105,23 +103,17 @@ export default class ScheduleModal extends Component {
   }
 }
 
-ScheduleModal.propTypes = {
-  trainerKey: PropTypes.string,
-  hideandOpen: PropTypes.func.isRequired,
-};
-
-ScheduleModal.defaultProps = {
-  trainerKey: null,
+SchedulePage.propTypes = {
+  trainerKey: PropTypes.string.isRequired,
 };
 
 const styles = StyleSheet.create({
-  modal: {
-    flex: 0.8,
+  container: {
+    flex: 1,
     flexDirection: 'column',
     justifyContent: 'flex-start',
     alignItems: 'center',
     backgroundColor: COLORS.WHITE,
-    borderRadius: 10,
   },
   trainerName: {
     fontSize: 30,
@@ -132,8 +124,6 @@ const styles = StyleSheet.create({
   nameContainer: {
     flex: 1,
     width: '100%',
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
     backgroundColor: COLORS.PRIMARY,
     flexDirection: 'row',
     justifyContent: 'center',
@@ -141,7 +131,8 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: 'absolute',
-    left: 10,
+    left: 20,
+    top: 30,
     fontSize: 35,
     color: COLORS.SECONDARY,
   },

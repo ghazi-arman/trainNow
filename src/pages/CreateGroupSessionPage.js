@@ -17,6 +17,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import PropTypes from 'prop-types';
 import firebase from 'firebase';
 import bugsnag from '@bugsnag/expo';
+import { Actions } from 'react-native-router-flux';
 import COLORS from '../components/Colors';
 import {
   loadUser, createGroupSession, loadGroupSession, updateGroupSession,
@@ -25,7 +26,7 @@ import TextField from '../components/TextField';
 
 const loading = require('../images/loading.gif');
 
-export default class GroupSessionModal extends Component {
+export default class CreateGroupSessionPage extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -56,8 +57,8 @@ export default class GroupSessionModal extends Component {
         }
       } catch (error) {
         this.bugsnagClient.notify(error);
-        Alert.alert('There was an error loading the modal.');
-        this.props.hide();
+        Alert.alert('There was an error loading the page.');
+        Actions.pop();
       }
     }
   }
@@ -121,7 +122,8 @@ export default class GroupSessionModal extends Component {
         this.state.capacity,
         this.state.cost,
       );
-      this.props.hideAndConfirm();
+      Alert.alert('Session successfully created.');
+      Actions.pop();
     } catch (error) {
       Alert.alert('There was an error when trying to create the session.');
     }
@@ -174,7 +176,8 @@ export default class GroupSessionModal extends Component {
         this.state.capacity,
         this.state.cost,
       );
-      this.props.hideAndConfirm();
+      Alert.alert('Session successfully updated.');
+      Actions.pop();
     } catch (error) {
       Alert.alert('There was an error when trying to update the session.');
     }
@@ -247,11 +250,11 @@ export default class GroupSessionModal extends Component {
       );
     }
     return (
-      <View style={styles.modal}>
+      <View style={styles.container}>
         <View style={styles.nameContainer}>
-          <Text style={styles.trainerName}>Create Group Session</Text>
-          <Text style={styles.closeButton} onPress={this.props.hide}>
-            <FontAwesome name="close" size={35} />
+          <Text style={styles.trainerName}>Group Session</Text>
+          <Text style={styles.backButton} onPress={Actions.pop}>
+            <FontAwesome name="arrow-left" size={35} />
           </Text>
         </View>
         <KeyboardAvoidingView behavior="padding" style={styles.formContainer}>
@@ -309,24 +312,21 @@ export default class GroupSessionModal extends Component {
   }
 }
 
-GroupSessionModal.propTypes = {
+CreateGroupSessionPage.propTypes = {
   sessionKey: PropTypes.string,
-  hide: PropTypes.func.isRequired,
-  hideAndConfirm: PropTypes.func.isRequired,
 };
 
-GroupSessionModal.defaultProps = {
+CreateGroupSessionPage.defaultProps = {
   sessionKey: null,
 };
 
 const styles = StyleSheet.create({
-  modal: {
-    flex: 0.9,
+  container: {
+    flex: 1,
     flexDirection: 'column',
     justifyContent: 'flex-start',
     alignItems: 'center',
     backgroundColor: COLORS.WHITE,
-    borderRadius: 10,
   },
   trainerName: {
     fontSize: 30,
@@ -356,12 +356,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingBottom: 20,
   },
-  closeButton: {
+  backButton: {
     position: 'absolute',
-    top: 0,
-    right: 0,
+    left: 20,
+    top: 30,
     fontSize: 35,
-    color: COLORS.RED,
+    color: COLORS.SECONDARY,
   },
   bookButton: {
     borderRadius: 5,

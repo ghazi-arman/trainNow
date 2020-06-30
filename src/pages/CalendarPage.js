@@ -5,7 +5,6 @@ import {
 import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
 import { FontAwesome } from '@expo/vector-icons';
-import Modal from 'react-native-modal';
 import bugsnag from '@bugsnag/expo';
 import {
   dateToString,
@@ -25,9 +24,6 @@ import {
   leaveGroupSession,
 } from '../components/Functions';
 import COLORS from '../components/Colors';
-import SchedulerModal from '../modals/SchedulerModal';
-import TrainerSchedule from '../components/TrainerSchedule';
-import GroupSessionModal from '../modals/GroupSessionModal';
 import Constants from '../components/Constants';
 
 const loading = require('../images/loading.gif');
@@ -36,9 +32,6 @@ export default class CalendarPage extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      scheduleModal: false,
-      groupSessionModal: false,
-      trainerSchedule: false,
       currentTab: 'pending',
     };
     this.bugsnagClient = bugsnag();
@@ -336,10 +329,7 @@ export default class CalendarPage extends Component {
         editButton = (
           <TouchableOpacity
             style={styles.buttonContainer}
-            onPress={() => this.setState({
-              selectedGroupSessionKey: session.key,
-              groupSessionModal: true,
-            })}
+            onPress={() => Actions.CreateGroupSessionPage({ sessionKey: session.key })}
           >
             <Text style={styles.buttonText}>Edit</Text>
           </TouchableOpacity>
@@ -526,27 +516,6 @@ export default class CalendarPage extends Component {
     this.forceUpdate();
   }
 
-  hideScheduleModalAndConfirm = () => {
-    this.hideScheduleModal();
-    setTimeout(() => Alert.alert('Availability Added.'), 700);
-  }
-
-  hideGroupSessionModalAndConfirm = async () => {
-    this.hideGroupSessionModal();
-    const groupSessions = await loadGroupSessions(
-      firebase.auth().currentUser.uid,
-      Constants.trainerType,
-    );
-    this.setState({ groupSessions, selectedGroupSessionKey: null });
-    setTimeout(() => Alert.alert('Group Session Created or Updated.'), 700);
-  }
-
-  hideScheduleModal = () => this.setState({ scheduleModal: false });
-
-  hidetrainerSchedule = () => this.setState({ trainerSchedule: false });
-
-  hideGroupSessionModal = () => this.setState({ groupSessionModal: false });
-
   render() {
     if (!this.state.upcomingSessions || !this.state.user || !this.state.pendingSessions) {
       return (
@@ -555,6 +524,7 @@ export default class CalendarPage extends Component {
         </View>
       );
     }
+    const userId = firebase.auth().currentUser.uid;
     let activeStatus;
     let viewScheduleButton;
     let addScheduleButton;
@@ -575,7 +545,7 @@ export default class CalendarPage extends Component {
       viewScheduleButton = (
         <TouchableOpacity
           style={styles.scheduleButton}
-          onPress={() => this.setState({ scheduleModal: true })}
+          onPress={Actions.SchedulerPage}
         >
           <Text style={styles.buttonText}>Set Schedule</Text>
         </TouchableOpacity>
@@ -583,7 +553,7 @@ export default class CalendarPage extends Component {
       addScheduleButton = (
         <TouchableOpacity
           style={styles.scheduleButton}
-          onPress={() => this.setState({ trainerSchedule: true })}
+          onPress={() => Actions.SchedulePage({ trainerKey: userId })}
         >
           <Text style={styles.buttonText}>View Schedule</Text>
         </TouchableOpacity>
@@ -591,7 +561,7 @@ export default class CalendarPage extends Component {
       groupSessionButton = (
         <TouchableOpacity
           style={styles.scheduleButton}
-          onPress={() => this.setState({ groupSessionModal: true })}
+          onPress={Actions.CreateGroupSessionPage}
         >
           <Text style={styles.buttonText}>Create Group Session</Text>
         </TouchableOpacity>
@@ -641,36 +611,6 @@ export default class CalendarPage extends Component {
         </View>
         {navBar}
         {content}
-        <Modal
-          isVisible={this.state.scheduleModal}
-          onBackdropPress={this.hideScheduleModal}
-        >
-          <SchedulerModal
-            trainerKey={firebase.auth().currentUser.uid}
-            hide={this.hideScheduleModal}
-            hideandConfirm={this.hideScheduleModalAndConfirm}
-          />
-        </Modal>
-        <Modal
-          isVisible={this.state.trainerSchedule}
-          onBackdropPress={this.hideTrainerSchedule}
-        >
-          <TrainerSchedule
-            trainerKey={firebase.auth().currentUser.uid}
-            hideAndOpen={this.hidetrainerSchedule}
-          />
-        </Modal>
-        <Modal
-          isVisible={this.state.groupSessionModal}
-          onBackdropPress={this.hideGroupSessionModal}
-        >
-          <GroupSessionModal
-            trainerKey={firebase.auth().currentUser.uid}
-            hide={this.hideGroupSessionModal}
-            hideAndConfirm={this.hideGroupSessionModalAndConfirm}
-            sessionKey={this.state.selectedGroupSessionKey}
-          />
-        </Modal>
       </View>
     );
   }

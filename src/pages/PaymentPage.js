@@ -4,10 +4,8 @@ import {
 } from 'react-native';
 import firebase from 'firebase';
 import { FontAwesome } from '@expo/vector-icons';
-import Modal from 'react-native-modal';
 import { Actions } from 'react-native-router-flux';
 import bugsnag from '@bugsnag/expo';
-import CardModal from '../modals/CardModal';
 import COLORS from '../components/Colors';
 import {
   loadUser,
@@ -27,9 +25,6 @@ const loading = require('../images/loading.gif');
 export default class PaymentPage extends Component {
   constructor(props) {
     super(props);
-    this.state = {
-      cardModal: false,
-    };
     this.bugsnagClient = bugsnag();
   }
 
@@ -106,19 +101,6 @@ export default class PaymentPage extends Component {
   }
 
   goToMap = () => Actions.MapPage();
-
-  hideCardModal = () => this.setState({ cardModal: false });
-
-  hideCardModalOnAdd = async () => {
-    let cards;
-    const user = await loadUser(firebase.auth().currentUser.uid);
-    if (user.type === Constants.trainerType) {
-      cards = await loadTrainerCards(user.stripeId);
-    } else {
-      cards = await loadCards(user.stripeId);
-    }
-    this.setState({ cardModal: false, cards, user });
-  }
 
   deleteCard = async (stripeId, cardId) => {
     Alert.alert(
@@ -313,7 +295,7 @@ export default class PaymentPage extends Component {
         <View style={styles.cardHolder}>
           {this.renderCards()}
         </View>
-        <TouchableOpacity style={styles.button} onPress={() => this.setState({ cardModal: true })}>
+        <TouchableOpacity style={styles.button} onPress={Actions.CardPage}>
           <Text style={styles.buttonText}>
             <FontAwesome name="credit-card" size={30} />
             {' '}
@@ -322,12 +304,6 @@ export default class PaymentPage extends Component {
           </Text>
         </TouchableOpacity>
         {payoutText}
-        <Modal
-          isVisible={this.state.cardModal}
-          onBackdropPress={this.hideCardModal}
-        >
-          <CardModal hide={this.hideCardModalOnAdd} />
-        </Modal>
       </KeyboardAvoidingView>
     );
   }

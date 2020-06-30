@@ -12,16 +12,16 @@ import {
   Image,
   Platform,
 } from 'react-native';
-import PropTypes from 'prop-types';
 import { FontAwesome } from '@expo/vector-icons';
 import firebase from 'firebase';
 import bugsnag from '@bugsnag/expo';
+import { Actions } from 'react-native-router-flux';
 import COLORS from '../components/Colors';
 import { loadUser, addAvailableSession } from '../components/Functions';
 
 const loading = require('../images/loading.gif');
 
-export default class SchedulerModal extends Component {
+export default class SchedulerPage extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -40,7 +40,7 @@ export default class SchedulerModal extends Component {
       } catch (error) {
         this.bugsnagClient.notify(error);
         Alert.alert('There was an error loading the scheduler.');
-        this.props.hide();
+        Actions.pop();
       }
     }
   }
@@ -86,9 +86,10 @@ export default class SchedulerModal extends Component {
     }
   }
 
-  addSession(startDate, endDate) {
-    addAvailableSession(this.props.trainerKey, startDate, endDate);
-    this.props.hideandConfirm();
+  addSession = (startDate, endDate) => {
+    addAvailableSession(firebase.auth().currentUser.uid, startDate, endDate);
+    Alert.alert('Availability added.');
+    Actions.pop();
   }
 
   render() {
@@ -171,11 +172,11 @@ export default class SchedulerModal extends Component {
       );
     }
     return (
-      <View style={styles.modal}>
+      <View style={styles.container}>
         <View style={styles.nameContainer}>
           <Text style={styles.trainerName}>Add Availability</Text>
-          <Text style={styles.closeButton} onPress={this.props.hide}>
-            <FontAwesome name="close" size={35} />
+          <Text style={styles.backButton} onPress={Actions.pop}>
+            <FontAwesome name="arrow-left" size={35} />
           </Text>
         </View>
         <View style={styles.formContainer}>
@@ -207,20 +208,13 @@ export default class SchedulerModal extends Component {
   }
 }
 
-SchedulerModal.propTypes = {
-  hide: PropTypes.func.isRequired,
-  trainerKey: PropTypes.string.isRequired,
-  hideandConfirm: PropTypes.func.isRequired,
-};
-
 const styles = StyleSheet.create({
-  modal: {
-    flex: 0.9,
+  container: {
+    flex: 1,
     flexDirection: 'column',
     justifyContent: 'flex-start',
     alignItems: 'center',
     backgroundColor: COLORS.WHITE,
-    borderRadius: 10,
   },
   trainerName: {
     fontSize: 30,
@@ -249,12 +243,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  closeButton: {
+  backButton: {
     position: 'absolute',
-    top: 0,
-    right: 0,
+    left: 20,
+    top: 30,
     fontSize: 35,
-    color: COLORS.RED,
+    color: COLORS.SECONDARY,
   },
   bookButton: {
     paddingVertical: 15,

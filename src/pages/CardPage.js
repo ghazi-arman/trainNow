@@ -5,8 +5,8 @@ import {
 import firebase from 'firebase';
 import { FontAwesome } from '@expo/vector-icons';
 import bugsnag from '@bugsnag/expo';
-import PropTypes from 'prop-types';
 import { STRIPE_KEY, FB_URL } from 'react-native-dotenv';
+import { Actions } from 'react-native-router-flux';
 import TextField from '../components/TextField';
 import { loadUser } from '../components/Functions';
 import COLORS from '../components/Colors';
@@ -15,7 +15,7 @@ import Constants from '../components/Constants';
 const stripe = require('stripe-client')(STRIPE_KEY);
 const loading = require('../images/loading.gif');
 
-export default class CardModal extends Component {
+export default class CardPage extends Component {
   constructor(props) {
     super(props);
     this.state = {};
@@ -29,8 +29,8 @@ export default class CardModal extends Component {
         this.setState({ user });
       } catch (error) {
         this.bugsnagClient.notify(error);
-        Alert.alert('There was an error loading the card modal.');
-        this.props.hide();
+        Alert.alert('There was an error loading the card page.');
+        Actions.pop();
       }
     }
   }
@@ -87,13 +87,16 @@ export default class CardModal extends Component {
           stripeId: response.body.customer.id,
           cardAdded: true,
         });
-        this.props.hide();
+        Actions.pop();
       } catch (error) {
         this.setState({ pressed: false });
         this.bugsnagClient.notify(error);
         Alert.alert('There was an error adding the card. Please try again.');
       }
-    } else if (this.state.user.type === Constants.trainerType) {
+    } else if (
+      this.state.user.type === Constants.trainerType
+      || this.state.user.type === Constants.managerType
+    ) {
       try {
         const res = await fetch(`${FB_URL}/stripe/addTrainerCard/`, {
           method: 'POST',
@@ -114,7 +117,7 @@ export default class CardModal extends Component {
         await firebase.database().ref('users').child(user.uid).update({
           cardAdded: true,
         });
-        this.props.hide();
+        Actions.pop();
       } catch (error) {
         this.setState({ pressed: false });
         this.bugsnagClient.notify(error);
@@ -141,7 +144,7 @@ export default class CardModal extends Component {
         await firebase.database().ref('users').child(user.uid).update({
           cardAdded: true,
         });
-        this.props.hide();
+        Actions.pop();
       } catch (error) {
         this.setState({ pressed: false });
         this.bugsnagClient.notify(error);
@@ -160,8 +163,8 @@ export default class CardModal extends Component {
     }
     return (
       <KeyboardAvoidingView behavior="padding" style={styles.formContainer}>
-        <Text style={styles.closeButton} onPress={this.props.hide}>
-          <FontAwesome name="close" size={35} />
+        <Text style={styles.backButton} onPress={Actions.pop}>
+          <FontAwesome name="arrow-left" size={35} />
         </Text>
         <Text style={styles.title}>Add Card</Text>
         <TextField
@@ -208,18 +211,13 @@ export default class CardModal extends Component {
   }
 }
 
-CardModal.propTypes = {
-  hide: PropTypes.func.isRequired,
-};
-
 const styles = StyleSheet.create({
   formContainer: {
-    flex: 0.9,
+    flex: 1,
     flexDirection: 'column',
     justifyContent: 'space-around',
     alignItems: 'center',
     backgroundColor: COLORS.WHITE,
-    borderRadius: 10,
     padding: 20,
   },
   submitButton: {
@@ -236,12 +234,12 @@ const styles = StyleSheet.create({
     color: COLORS.WHITE,
     fontWeight: '700',
   },
-  closeButton: {
+  backButton: {
     position: 'absolute',
-    top: 0,
-    right: 0,
+    left: 20,
+    top: 30,
     fontSize: 35,
-    color: COLORS.RED,
+    color: COLORS.SECONDARY,
   },
   title: {
     color: COLORS.PRIMARY,

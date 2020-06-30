@@ -394,8 +394,8 @@ export async function createPendingSession(
   regular,
 ) {
   const gym = await loadGym(gymKey);
-  const userStripeField = (sentBy === 'client') ? 'clientStripe' : 'trainerStripe';
-  const userStripe = (sentBy === 'client') ? client.stripeId : trainer.stripeId;
+  const userStripeField = (sentBy === Constants.clientType) ? 'clientStripe' : 'trainerStripe';
+  const userStripe = (sentBy === Constants.clientType) ? client.stripeId : trainer.stripeId;
   const sessionKey = firebase.database().ref('pendingSessions').push({
     client: client.key,
     clientName: client.name,

@@ -4,10 +4,8 @@ import {
 } from 'react-native';
 import firebase from 'firebase';
 import { FontAwesome } from '@expo/vector-icons';
-import Modal from 'react-native-modal';
 import { Actions } from 'react-native-router-flux';
 import bugsnag from '@bugsnag/expo';
-import BookModalTrainer from '../modals/BookModalTrainer';
 import COLORS from '../components/Colors';
 import {
   loadRecentClients,
@@ -17,6 +15,7 @@ import {
   acceptTrainerRequest,
   denyTrainerRequest,
 } from '../components/Functions';
+import Constants from '../components/Constants';
 
 const loading = require('../images/loading.gif');
 
@@ -24,7 +23,6 @@ export default class ClientPage extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      bookModal: false,
       currentTab: 'recent',
       pressed: false,
     };
@@ -96,10 +94,6 @@ export default class ClientPage extends Component {
     }
   }
 
-  hidebookModal = () => {
-    this.setState({ bookModal: false });
-  }
-
   renderRequests = () => {
     if (!this.state.trainerRequests || !Array.isArray(this.state.trainerRequests)) {
       return null;
@@ -146,7 +140,14 @@ export default class ClientPage extends Component {
           <Text style={styles.nameText}>{client.clientName}</Text>
           <TouchableOpacity
             style={styles.requestButton}
-            onPress={() => this.bookSession(client.client, this.state.user.gym)}
+            onPress={() => {
+              Actions.BookingPage({
+                clientKey: client.client,
+                gymKey: this.state.user.gym,
+                trainerKey: this.state.user.key,
+                bookedBy: Constants.trainerType,
+              });
+            }}
           >
             <Text style={styles.buttonText}>
               <FontAwesome name="calendar" size={18} />
@@ -202,10 +203,6 @@ export default class ClientPage extends Component {
       </View>
     );
   })
-
-  bookSession = (client, trainerGym) => {
-    this.setState({ bookingClient: client, selectedGym: trainerGym, bookModal: true });
-  }
 
   goToMap = () => {
     Actions.MapPage();
@@ -321,17 +318,6 @@ export default class ClientPage extends Component {
         </View>
         {navBar}
         {content}
-        <Modal
-          isVisible={this.state.bookModal}
-          onBackdropPress={this.hidebookModal}
-        >
-          <BookModalTrainer
-            clientKey={this.state.bookingClient}
-            gymKey={this.state.selectedGym}
-            hide={this.hidebookModal}
-            confirm={() => Alert.alert('Session Booked!')}
-          />
-        </Modal>
       </View>
     );
   }
