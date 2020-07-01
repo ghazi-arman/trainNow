@@ -9,12 +9,10 @@ import {
   DatePickerAndroid,
   TimePickerAndroid,
   Picker,
-  Image,
   Platform,
 } from 'react-native';
 import firebase from 'firebase';
 import PropTypes from 'prop-types';
-import { FontAwesome } from '@expo/vector-icons';
 import bugsnag from '@bugsnag/expo';
 import { Actions } from 'react-native-router-flux';
 import {
@@ -30,8 +28,8 @@ import {
 } from '../components/Functions';
 import COLORS from '../components/Colors';
 import Constants from '../components/Constants';
-
-const loading = require('../images/loading.gif');
+import BackButton from '../components/BackButton';
+import LoadingWheel from '../components/LoadingWheel';
 
 export default class BookingPage extends Component {
   constructor(props) {
@@ -209,11 +207,7 @@ export default class BookingPage extends Component {
 
   render() {
     if (!this.state.trainer || !this.state.client || this.state.pressed) {
-      return (
-        <View style={styles.loadingContainer}>
-          <Image source={loading} style={styles.loading} />
-        </View>
-      );
+      return <LoadingWheel />;
     }
     let picker;
     let timePicker;
@@ -255,9 +249,7 @@ export default class BookingPage extends Component {
     return (
       <View style={styles.container}>
         <View style={styles.nameContainer}>
-          <Text style={styles.backButton} onPress={Actions.pop}>
-            <FontAwesome name="arrow-left" size={35} />
-          </Text>
+          <BackButton />
           <Text style={styles.trainerName}>{this.state.trainer.name}</Text>
         </View>
         <View style={styles.formContainer}>
@@ -362,23 +354,5 @@ const styles = StyleSheet.create({
     color: COLORS.WHITE,
     fontSize: 20,
     fontWeight: '700',
-  },
-  backButton: {
-    position: 'absolute',
-    left: 20,
-    top: 30,
-    fontSize: 35,
-    color: COLORS.SECONDARY,
-  },
-  loading: {
-    width: '100%',
-    resizeMode: 'contain',
-  },
-  loadingContainer: {
-    height: '100%',
-    width: '100%',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });

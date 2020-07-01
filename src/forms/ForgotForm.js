@@ -1,13 +1,12 @@
 import React, { Component } from 'react';
 import {
-  StyleSheet, Text, View, TouchableOpacity, Alert, Image,
+  StyleSheet, Text, View, TouchableOpacity, Alert,
 } from 'react-native';
 import firebase from 'firebase';
 import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import TextField from '../components/TextField';
-
-const loading = require('../images/loading.gif');
+import LoadingWheel from '../components/LoadingWheel';
 
 export default class ForgotForm extends Component {
   constructor(props) {
@@ -39,11 +38,7 @@ export default class ForgotForm extends Component {
 
   render() {
     if (this.state.pressed) {
-      return (
-        <View style={styles.loadingContainer}>
-          <Image source={loading} style={styles.loading} />
-        </View>
-      );
+      return <LoadingWheel />;
     }
 
     return (

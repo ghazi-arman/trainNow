@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {
-  StyleSheet, Text, View, TouchableOpacity, Alert, Linking, Image,
+  StyleSheet, Text, View, TouchableOpacity, Alert, Linking,
 } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
@@ -9,9 +9,9 @@ import { STRIPE_KEY, FB_URL } from 'react-native-dotenv';
 import COLORS from '../components/Colors';
 import Constants from '../components/Constants';
 import TextField from '../components/TextField';
+import LoadingWheel from '../components/LoadingWheel';
 
 const stripe = require('stripe-client')(STRIPE_KEY);
-const loading = require('../images/loading.gif');
 
 export default class ManagerSignupForm extends Component {
   constructor(props) {
@@ -205,11 +205,7 @@ export default class ManagerSignupForm extends Component {
 
   render() {
     if (this.state.pressed) {
-      return (
-        <View style={styles.loadingContainer}>
-          <Image source={loading} style={styles.loading} />
-        </View>
-      );
+      return <LoadingWheel />;
     }
 
     let page1;
@@ -427,16 +423,5 @@ const styles = StyleSheet.create({
     color: COLORS.PRIMARY,
     textAlign: 'center',
     textDecorationLine: 'underline',
-  },
-  loading: {
-    width: '100%',
-    resizeMode: 'contain',
-  },
-  loadingContainer: {
-    height: '100%',
-    width: '100%',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });

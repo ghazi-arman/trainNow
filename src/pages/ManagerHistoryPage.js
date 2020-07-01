@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   Alert,
   TextInput,
-  Image,
 } from 'react-native';
 import firebase from 'firebase';
 import PropTypes from 'prop-types';
@@ -21,8 +20,8 @@ import Constants from '../components/Constants';
 import {
   loadSessions, renderStars, reportSession, timeToString,
 } from '../components/Functions';
-
-const loading = require('../images/loading.gif');
+import BackButton from '../components/BackButton';
+import LoadingWheel from '../components/LoadingWheel';
 
 export default class ManagerHistoryPage extends Component {
   constructor(props) {
@@ -178,17 +177,11 @@ export default class ManagerHistoryPage extends Component {
 
   render() {
     if (!this.state.sessions) {
-      return (
-        <View style={styles.loadingContainer}>
-          <Image source={loading} style={styles.loading} />
-        </View>
-      );
+      return <LoadingWheel />;
     }
     return (
       <View style={styles.container}>
-        <Text style={styles.backButton} onPress={this.goBack}>
-          <FontAwesome name="arrow-left" size={35} />
-        </Text>
+        <BackButton />
         <Text style={styles.header}>Trainer History</Text>
         <View style={styles.historyContainer}>
           <ScrollView showsVerticalScrollIndicator={false}>
@@ -336,23 +329,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.PRIMARY,
     color: COLORS.PRIMARY,
-  },
-  backButton: {
-    position: 'absolute',
-    top: 45,
-    left: 20,
-    fontSize: 35,
-    color: COLORS.SECONDARY,
-  },
-  loading: {
-    width: '100%',
-    resizeMode: 'contain',
-  },
-  loadingContainer: {
-    height: '100%',
-    width: '100%',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });

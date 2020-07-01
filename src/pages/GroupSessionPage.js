@@ -1,19 +1,18 @@
 import React, { Component } from 'react';
 import {
-  StyleSheet, Text, View, TouchableOpacity, Alert, Platform, Linking, Image,
+  StyleSheet, Text, View, TouchableOpacity, Alert, Platform, Linking,
 } from 'react-native';
 import MapView from 'react-native-maps';
 import firebase from 'firebase';
 import bugsnag from '@bugsnag/expo';
 import PropTypes from 'prop-types';
-import { FontAwesome } from '@expo/vector-icons';
 import { Actions } from 'react-native-router-flux';
 import COLORS from '../components/Colors';
 import {
   getLocation, loadGroupSession, dateToString, startGroupSession,
 } from '../components/Functions';
-
-const loading = require('../images/loading.gif');
+import BackButton from '../components/BackButton';
+import LoadingWheel from '../components/LoadingWheel';
 
 export default class GroupSessionPage extends Component {
   constructor(props) {
@@ -74,11 +73,7 @@ export default class GroupSessionPage extends Component {
 
   render() {
     if (!this.state.session || !this.state.userRegion) {
-      return (
-        <View style={styles.loadingContainer}>
-          <Image source={loading} style={styles.loading} />
-        </View>
-      );
+      return <LoadingWheel />;
     }
 
     let displayDate = dateToString(this.state.session.start);
@@ -221,9 +216,7 @@ export default class GroupSessionPage extends Component {
     return (
       <View style={styles.container}>
         <View style={styles.nameContainer}>
-          <Text style={styles.backButton} onPress={this.goToMap}>
-            <FontAwesome name="arrow-left" size={35} />
-          </Text>
+          <BackButton />
           <Text style={styles.header}>Your Session</Text>
         </View>
         <View style={styles.formContainer}>
@@ -320,22 +313,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: COLORS.WHITE,
     fontWeight: '700',
-  },
-  backButton: {
-    position: 'absolute',
-    left: 20,
-    fontSize: 35,
-    color: COLORS.SECONDARY,
-  },
-  loading: {
-    width: '100%',
-    resizeMode: 'contain',
-  },
-  loadingContainer: {
-    height: '100%',
-    width: '100%',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });

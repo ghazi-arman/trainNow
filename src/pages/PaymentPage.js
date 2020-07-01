@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {
-  StyleSheet, Text, View, KeyboardAvoidingView, TouchableOpacity, Alert, Image,
+  StyleSheet, Text, View, KeyboardAvoidingView, TouchableOpacity, Alert,
 } from 'react-native';
 import firebase from 'firebase';
 import { FontAwesome } from '@expo/vector-icons';
@@ -19,12 +19,16 @@ import {
   setDefaultTrainerCard,
 } from '../components/Functions';
 import Constants from '../components/Constants';
-
-const loading = require('../images/loading.gif');
+import BackButton from '../components/BackButton';
+import LoadingWheel from '../components/LoadingWheel';
 
 export default class PaymentPage extends Component {
   constructor(props) {
     super(props);
+    this.state = {
+      user: null,
+      cards: null,
+    };
     this.bugsnagClient = bugsnag();
   }
 
@@ -253,11 +257,7 @@ export default class PaymentPage extends Component {
 
   render() {
     if (!this.state.user || !this.state.cards) {
-      return (
-        <View style={styles.loadingContainer}>
-          <Image source={loading} style={styles.loading} />
-        </View>
-      );
+      return <LoadingWheel />;
     }
     let balanceDiv;
     let payoutText;
@@ -286,9 +286,7 @@ export default class PaymentPage extends Component {
     return (
       <KeyboardAvoidingView behavior="padding" style={styles.container}>
         <View style={styles.nameContainer}>
-          <Text style={styles.backButton} onPress={this.goToMap}>
-            <FontAwesome name="arrow-left" size={35} />
-          </Text>
+          <BackButton />
           <Text style={styles.title}>Payments</Text>
         </View>
         {balanceDiv}
@@ -351,12 +349,6 @@ const styles = StyleSheet.create({
     height: '100%',
     paddingBottom: 50,
   },
-  backButton: {
-    position: 'absolute',
-    left: 20,
-    fontSize: 35,
-    color: COLORS.SECONDARY,
-  },
   buttonText: {
     fontSize: 30,
     color: '#f6f5f5',
@@ -402,16 +394,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: 30,
     height: 30,
-  },
-  loading: {
-    width: '100%',
-    resizeMode: 'contain',
-  },
-  loadingContainer: {
-    height: '100%',
-    width: '100%',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });

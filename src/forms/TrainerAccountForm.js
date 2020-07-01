@@ -10,8 +10,7 @@ import COLORS from '../components/Colors';
 import TextField from '../components/TextField';
 import { loadUser } from '../components/Functions';
 import Constants from '../components/Constants';
-
-const loading = require('../images/loading.gif');
+import LoadingWheel from '../components/LoadingWheel';
 
 export default class TrainerAccountForm extends Component {
   constructor(props) {
@@ -168,11 +167,7 @@ export default class TrainerAccountForm extends Component {
 
   render() {
     if (!this.state.trainer || !this.state.imageUploaded) {
-      return (
-        <View style={styles.loadingContainer}>
-          <Image source={loading} style={styles.loading} />
-        </View>
-      );
+      return <LoadingWheel />;
     }
 
     let rateField = null;
@@ -281,16 +276,5 @@ const styles = StyleSheet.create({
     height: 200,
     borderWidth: 1,
     borderColor: COLORS.PRIMARY,
-  },
-  loading: {
-    width: '100%',
-    resizeMode: 'contain',
-  },
-  loadingContainer: {
-    height: '100%',
-    width: '100%',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });

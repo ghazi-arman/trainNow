@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {
-  StyleSheet, Text, View, TouchableOpacity, Alert, Image, Linking,
+  StyleSheet, Text, View, TouchableOpacity, Alert, Linking,
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import firebase from 'firebase';
@@ -8,8 +8,7 @@ import { Actions } from 'react-native-router-flux';
 import COLORS from './Colors';
 import Constants from './Constants';
 import { loadUser, renderStars } from './Functions';
-
-const loading = require('../images/loading.gif');
+import LoadingWheel from './LoadingWheel';
 
 export default class ManagedSideMenu extends Component {
   constructor(props) {
@@ -44,11 +43,7 @@ export default class ManagedSideMenu extends Component {
 
   render() {
     if (!this.state.user) {
-      return (
-        <View style={styles.loadingContainer}>
-          <Image source={loading} style={styles.loading} />
-        </View>
-      );
+      return <LoadingWheel />;
     }
     let clientLink;
     let active;
@@ -155,17 +150,6 @@ const styles = StyleSheet.create({
   menuLink: {
     fontSize: 30,
     color: COLORS.PRIMARY,
-  },
-  loading: {
-    width: '100%',
-    resizeMode: 'contain',
-  },
-  loadingContainer: {
-    height: '100%',
-    width: '100%',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   stars: {
     color: COLORS.WHITE,

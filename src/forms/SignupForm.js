@@ -20,10 +20,10 @@ import { STRIPE_KEY, FB_URL } from 'react-native-dotenv';
 import COLORS from '../components/Colors';
 import TextField from '../components/TextField';
 import Constants from '../components/Constants';
+import LoadingWheel from '../components/LoadingWheel';
 
 const stripe = require('stripe-client')(STRIPE_KEY);
 const defaultProfilePic = require('../images/profile.png');
-const loading = require('../images/loading.gif');
 
 export default class SignupForm extends Component {
   constructor(props) {
@@ -415,11 +415,7 @@ export default class SignupForm extends Component {
 
   render() {
     if (!this.state.gymLoaded || this.state.pressed) {
-      return (
-        <View style={styles.loadingContainer}>
-          <Image source={loading} style={styles.loading} />
-        </View>
-      );
+      return <LoadingWheel />;
     }
 
     const { image } = this.state;
@@ -667,17 +663,6 @@ const styles = StyleSheet.create({
     height: '80%',
     flexDirection: 'column',
     justifyContent: 'space-around',
-    alignItems: 'center',
-  },
-  loading: {
-    width: '100%',
-    resizeMode: 'contain',
-  },
-  loadingContainer: {
-    height: '100%',
-    width: '100%',
-    flexDirection: 'column',
-    justifyContent: 'center',
     alignItems: 'center',
   },
   inputRow: {

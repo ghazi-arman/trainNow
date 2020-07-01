@@ -1,10 +1,9 @@
 import React, { Component } from 'react';
 import {
-  StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert, Image,
+  StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert,
 } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
-import { FontAwesome } from '@expo/vector-icons';
 import bugsnag from '@bugsnag/expo';
 import {
   dateToString,
@@ -25,8 +24,9 @@ import {
 } from '../components/Functions';
 import COLORS from '../components/Colors';
 import Constants from '../components/Constants';
+import BackButton from '../components/BackButton';
+import LoadingWheel from '../components/LoadingWheel';
 
-const loading = require('../images/loading.gif');
 
 export default class CalendarPage extends Component {
   constructor(props) {
@@ -518,11 +518,7 @@ export default class CalendarPage extends Component {
 
   render() {
     if (!this.state.upcomingSessions || !this.state.user || !this.state.pendingSessions) {
-      return (
-        <View style={styles.loadingContainer}>
-          <Image source={loading} style={styles.loading} />
-        </View>
-      );
+      return <LoadingWheel />;
     }
     const userId = firebase.auth().currentUser.uid;
     let activeStatus;
@@ -604,9 +600,7 @@ export default class CalendarPage extends Component {
     return (
       <View style={styles.container}>
         <View style={styles.headerContainer}>
-          <Text style={styles.backButton} onPress={() => Actions.reset('MapPage')}>
-            <FontAwesome name="arrow-left" size={35} />
-          </Text>
+          <BackButton />
           <Text style={styles.title}> Calendar </Text>
         </View>
         {navBar}
@@ -745,24 +739,5 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 25,
     marginTop: 20,
-  },
-  backButton: {
-    position: 'absolute',
-    left: 20,
-    fontSize: 35,
-    paddingBottom: 5,
-    fontWeight: '700',
-    color: COLORS.SECONDARY,
-  },
-  loading: {
-    width: '100%',
-    resizeMode: 'contain',
-  },
-  loadingContainer: {
-    height: '100%',
-    width: '100%',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });

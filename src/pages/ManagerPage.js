@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {
-  StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, Image, KeyboardAvoidingView,
+  StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, KeyboardAvoidingView,
 } from 'react-native';
 import firebase from 'firebase';
 import Modal from 'react-native-modal';
@@ -19,8 +19,7 @@ import {
   getCardIcon,
   setDefaultTrainerCard,
 } from '../components/Functions';
-
-const loading = require('../images/loading.gif');
+import LoadingWheel from '../components/LoadingWheel';
 
 export default class ManagerPage extends Component {
   constructor(props) {
@@ -323,11 +322,7 @@ export default class ManagerPage extends Component {
       || !this.state.cards
       || this.state.balance === undefined
     ) {
-      return (
-        <View style={styles.loadingContainer}>
-          <Image source={loading} style={styles.loading} />
-        </View>
-      );
+      return <LoadingWheel />;
     }
     let navBar;
     let content;
@@ -383,7 +378,7 @@ export default class ManagerPage extends Component {
     const trainerName = this.state.selectedTrainer ? this.state.selectedTrainer.name : 'None';
     return (
       <View style={styles.container}>
-        <Text style={styles.backButton} onPress={this.logout}>
+        <Text style={styles.logoutButton} onPress={this.logout}>
           <FontAwesome name="power-off" size={35} />
         </Text>
         <Text style={styles.title}>Trainers</Text>
@@ -530,13 +525,6 @@ const styles = StyleSheet.create({
     width: '100%',
     marginTop: 10,
   },
-  backButton: {
-    position: 'absolute',
-    top: 45,
-    left: 20,
-    fontSize: 35,
-    color: COLORS.SECONDARY,
-  },
   button: {
     backgroundColor: COLORS.SECONDARY,
     flexDirection: 'column',
@@ -602,17 +590,6 @@ const styles = StyleSheet.create({
   icon: {
     fontSize: 15,
   },
-  loading: {
-    width: '100%',
-    resizeMode: 'contain',
-  },
-  loadingContainer: {
-    height: '100%',
-    width: '100%',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   nameText: {
     fontSize: 18,
     fontWeight: '500',
@@ -649,5 +626,12 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontWeight: '700',
     color: COLORS.PRIMARY,
+  },
+  logoutButton: {
+    position: 'absolute',
+    top: 45,
+    left: 20,
+    fontSize: 35,
+    color: COLORS.SECONDARY,
   },
 });

@@ -25,9 +25,9 @@ import {
   loadCurrentGroupSession,
 } from '../components/Functions';
 import Constants from '../components/Constants';
+import LoadingWheel from '../components/LoadingWheel';
 
 const markerImg = require('../images/marker.png');
-const loading = require('../images/loading.gif');
 
 export default class MapPage extends Component {
   constructor(props) {
@@ -109,11 +109,7 @@ export default class MapPage extends Component {
 
   render() {
     if (!this.state.mapRegion || !this.state.gyms || !this.state.user) {
-      return (
-        <View style={styles.loadingContainer}>
-          <Image source={loading} style={styles.loading} />
-        </View>
-      );
+      return <LoadingWheel />;
     }
 
     if (this.state.unread) {
@@ -243,16 +239,5 @@ const styles = StyleSheet.create({
     color: COLORS.WHITE,
     fontWeight: '700',
     fontSize: 16,
-  },
-  loading: {
-    width: '100%',
-    resizeMode: 'contain',
-  },
-  loadingContainer: {
-    height: '100%',
-    width: '100%',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });

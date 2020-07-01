@@ -9,17 +9,15 @@ import {
   TimePickerAndroid,
   Alert,
   ScrollView,
-  Image,
   Platform,
 } from 'react-native';
-import { FontAwesome } from '@expo/vector-icons';
 import firebase from 'firebase';
 import bugsnag from '@bugsnag/expo';
 import { Actions } from 'react-native-router-flux';
 import COLORS from '../components/Colors';
 import { loadUser, addAvailableSession } from '../components/Functions';
-
-const loading = require('../images/loading.gif');
+import BackButton from '../components/BackButton';
+import LoadingWheel from '../components/LoadingWheel';
 
 export default class SchedulerPage extends Component {
   constructor(props) {
@@ -94,11 +92,7 @@ export default class SchedulerPage extends Component {
 
   render() {
     if (!this.state.user) {
-      return (
-        <View style={styles.loadingContainer}>
-          <Image source={loading} style={styles.loading} />
-        </View>
-      );
+      return <LoadingWheel />;
     }
     let startPicker;
     let endPicker;
@@ -175,9 +169,7 @@ export default class SchedulerPage extends Component {
       <View style={styles.container}>
         <View style={styles.nameContainer}>
           <Text style={styles.trainerName}>Add Availability</Text>
-          <Text style={styles.backButton} onPress={Actions.pop}>
-            <FontAwesome name="arrow-left" size={35} />
-          </Text>
+          <BackButton />
         </View>
         <View style={styles.formContainer}>
           <ScrollView
@@ -243,13 +235,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  backButton: {
-    position: 'absolute',
-    left: 20,
-    top: 30,
-    fontSize: 35,
-    color: COLORS.SECONDARY,
-  },
   bookButton: {
     paddingVertical: 15,
     borderRadius: 5,
@@ -282,16 +267,5 @@ const styles = StyleSheet.create({
     width: '100%',
     borderWidth: 1,
     borderColor: COLORS.PRIMARY,
-  },
-  loading: {
-    width: '100%',
-    resizeMode: 'contain',
-  },
-  loadingContainer: {
-    height: '100%',
-    width: '100%',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });

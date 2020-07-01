@@ -7,13 +7,13 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
-import { FontAwesome } from '@expo/vector-icons';
 import { Actions } from 'react-native-router-flux';
 import PropTypes from 'prop-types';
 import ClientAccountForm from '../forms/ClientAccountForm';
 import TrainerAccountForm from '../forms/TrainerAccountForm';
 import COLORS from '../components/Colors';
 import Constants from '../components/Constants';
+import BackButton from '../components/BackButton';
 
 export default class SettingsPage extends Component {
   goToMap = () => {
@@ -44,9 +44,7 @@ export default class SettingsPage extends Component {
     return (
       <View style={styles.container}>
         <View style={styles.nameContainer}>
-          <Text style={styles.backButton} onPress={this.goToMap}>
-            <FontAwesome name="arrow-left" size={35} />
-          </Text>
+          <BackButton />
           <Text style={styles.title}>Settings</Text>
         </View>
         <KeyboardAvoidingView style={styles.formContainer} behavior="padding">
@@ -95,12 +93,5 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'space-around',
-  },
-  backButton: {
-    position: 'absolute',
-    left: 20,
-    fontSize: 35,
-    color: COLORS.SECONDARY,
-    paddingBottom: 5,
   },
 });

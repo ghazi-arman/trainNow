@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {
-  StyleSheet, Text, View, TouchableOpacity, Alert, Image,
+  StyleSheet, Text, View, TouchableOpacity, Alert,
 } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
@@ -8,8 +8,7 @@ import bugsnag from '@bugsnag/expo';
 import COLORS from '../components/Colors';
 import Constants from '../components/Constants';
 import TextField from '../components/TextField';
-
-const loading = require('../images/loading.gif');
+import LoadingWheel from '../components/LoadingWheel';
 
 export default class LoginForm extends Component {
   constructor(props) {
@@ -95,11 +94,7 @@ export default class LoginForm extends Component {
 
   render() {
     if (this.state.pressed) {
-      return (
-        <View style={styles.loadingContainer}>
-          <Image source={loading} style={styles.loading} />
-        </View>
-      );
+      return <LoadingWheel />;
     }
 
     return (
@@ -147,16 +142,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: COLORS.WHITE,
     fontWeight: '700',
-  },
-  loading: {
-    width: '100%',
-    resizeMode: 'contain',
-  },
-  loadingContainer: {
-    height: '100%',
-    width: '100%',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });

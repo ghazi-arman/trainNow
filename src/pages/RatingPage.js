@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {
-  StyleSheet, Text, View, TouchableOpacity, Alert, Image,
+  StyleSheet, Text, View, TouchableOpacity, Alert,
 } from 'react-native';
 import firebase from 'firebase';
 import { FontAwesome } from '@expo/vector-icons';
@@ -12,8 +12,7 @@ import {
   loadSession, loadUser, rateSession, dateToString, chargeCard,
 } from '../components/Functions';
 import Constants from '../components/Constants';
-
-const loading = require('../images/loading.gif');
+import LoadingWheel from '../components/LoadingWheel';
 
 export default class RatingPage extends Component {
   constructor(props) {
@@ -111,11 +110,7 @@ export default class RatingPage extends Component {
 
   render() {
     if (!this.state.session || !this.state.user || this.state.pressed) {
-      return (
-        <View style={styles.loadingContainer}>
-          <Image source={loading} style={styles.loading} />
-        </View>
-      );
+      return <LoadingWheel />;
     }
     const userId = firebase.auth().currentUser.uid;
     const displayDate = dateToString(this.state.session.end);
@@ -238,16 +233,5 @@ const styles = StyleSheet.create({
   icon: {
     color: COLORS.SECONDARY,
     fontSize: 35,
-  },
-  loading: {
-    width: '100%',
-    resizeMode: 'contain',
-  },
-  loadingContainer: {
-    height: '100%',
-    width: '100%',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });

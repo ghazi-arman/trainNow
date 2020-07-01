@@ -9,11 +9,9 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
-  Image,
   Platform,
   KeyboardAvoidingView,
 } from 'react-native';
-import { FontAwesome } from '@expo/vector-icons';
 import PropTypes from 'prop-types';
 import firebase from 'firebase';
 import bugsnag from '@bugsnag/expo';
@@ -23,8 +21,8 @@ import {
   loadUser, createGroupSession, loadGroupSession, updateGroupSession,
 } from '../components/Functions';
 import TextField from '../components/TextField';
-
-const loading = require('../images/loading.gif');
+import BackButton from '../components/BackButton';
+import LoadingWheel from '../components/LoadingWheel';
 
 export default class CreateGroupSessionPage extends Component {
   constructor(props) {
@@ -185,11 +183,7 @@ export default class CreateGroupSessionPage extends Component {
 
   render() {
     if (!this.state.user) {
-      return (
-        <View style={styles.loadingContainer}>
-          <Image source={loading} style={styles.loading} />
-        </View>
-      );
+      return <LoadingWheel />;
     }
     let startDatePicker;
     let startTimePicker;
@@ -253,9 +247,7 @@ export default class CreateGroupSessionPage extends Component {
       <View style={styles.container}>
         <View style={styles.nameContainer}>
           <Text style={styles.trainerName}>Group Session</Text>
-          <Text style={styles.backButton} onPress={Actions.pop}>
-            <FontAwesome name="arrow-left" size={35} />
-          </Text>
+          <BackButton />
         </View>
         <KeyboardAvoidingView behavior="padding" style={styles.formContainer}>
           <ScrollView
@@ -356,13 +348,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingBottom: 20,
   },
-  backButton: {
-    position: 'absolute',
-    left: 20,
-    top: 30,
-    fontSize: 35,
-    color: COLORS.SECONDARY,
-  },
   bookButton: {
     borderRadius: 5,
     paddingVertical: 15,
@@ -393,16 +378,5 @@ const styles = StyleSheet.create({
     width: '100%',
     borderWidth: 1,
     borderColor: COLORS.PRIMARY,
-  },
-  loading: {
-    width: '100%',
-    resizeMode: 'contain',
-  },
-  loadingContainer: {
-    height: '100%',
-    width: '100%',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });

@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
 import {
-  StyleSheet, Text, View, Image, Alert,
+  StyleSheet, Text, View, Alert,
 } from 'react-native';
-import { FontAwesome } from '@expo/vector-icons';
 import { Agenda } from 'react-native-calendars';
 import bugsnag from '@bugsnag/expo';
 import PropTypes from 'prop-types';
@@ -15,8 +14,8 @@ import {
   loadAvailableSchedule,
   loadTrainer,
 } from '../components/Functions';
-
-const loading = require('../images/loading.gif');
+import BackButton from '../components/BackButton';
+import LoadingWheel from '../components/LoadingWheel';
 
 export default class SchedulePage extends Component {
   constructor(props) {
@@ -68,19 +67,13 @@ export default class SchedulePage extends Component {
 
   render() {
     if (!this.state.trainer || !this.state.sessions) {
-      return (
-        <View style={styles.loadingContainer}>
-          <Image source={loading} style={styles.loading} />
-        </View>
-      );
+      return <LoadingWheel />;
     }
     const events = this.renderAgendaEvents();
     return (
       <View style={styles.container}>
         <View style={styles.nameContainer}>
-          <Text style={styles.backButton} onPress={Actions.pop}>
-            <FontAwesome name="arrow-left" size={35} />
-          </Text>
+          <BackButton />
           <Text style={styles.trainerName}>
             {' '}
             {this.state.trainer.name}
@@ -129,13 +122,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  backButton: {
-    position: 'absolute',
-    left: 20,
-    top: 30,
-    fontSize: 35,
-    color: COLORS.SECONDARY,
-  },
   calendarContainer: {
     flex: 6,
     width: '100%',
@@ -162,16 +148,5 @@ const styles = StyleSheet.create({
   agendaItemText: {
     color: COLORS.PRIMARY,
     fontSize: 15,
-  },
-  loading: {
-    width: '100%',
-    resizeMode: 'contain',
-  },
-  loadingContainer: {
-    height: '100%',
-    width: '100%',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });

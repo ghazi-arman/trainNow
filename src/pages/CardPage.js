@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
 import {
-  StyleSheet, Text, KeyboardAvoidingView, TouchableOpacity, Alert, Image, View,
+  StyleSheet, Text, KeyboardAvoidingView, TouchableOpacity, Alert, View,
 } from 'react-native';
 import firebase from 'firebase';
-import { FontAwesome } from '@expo/vector-icons';
 import bugsnag from '@bugsnag/expo';
 import { STRIPE_KEY, FB_URL } from 'react-native-dotenv';
 import { Actions } from 'react-native-router-flux';
@@ -11,9 +10,10 @@ import TextField from '../components/TextField';
 import { loadUser } from '../components/Functions';
 import COLORS from '../components/Colors';
 import Constants from '../components/Constants';
+import BackButton from '../components/BackButton';
+import LoadingWheel from '../components/LoadingWheel';
 
 const stripe = require('stripe-client')(STRIPE_KEY);
-const loading = require('../images/loading.gif');
 
 export default class CardPage extends Component {
   constructor(props) {
@@ -155,65 +155,71 @@ export default class CardPage extends Component {
 
   render() {
     if (!this.state.user || this.state.pressed) {
-      return (
-        <View style={styles.loadingContainer}>
-          <Image source={loading} style={styles.loading} />
-        </View>
-      );
+      return <LoadingWheel />;
     }
     return (
-      <KeyboardAvoidingView behavior="padding" style={styles.formContainer}>
-        <Text style={styles.backButton} onPress={Actions.pop}>
-          <FontAwesome name="arrow-left" size={35} />
-        </Text>
-        <Text style={styles.title}>Add Card</Text>
-        <TextField
-          icon="user"
-          placeholder="Name"
-          onChange={(name) => this.setState({ name })}
-          value={this.state.name}
-        />
-        <TextField
-          icon="credit-card"
-          placeholder="Card Number"
-          keyboard="number-pad"
-          onChange={(number) => this.setState({ number })}
-          value={this.state.number}
-        />
-        <TextField
-          icon="calendar"
-          placeholder="Expiration Month (mm)"
-          keyboard="number-pad"
-          onChange={(expMonth) => this.setState({ expMonth })}
-          value={this.state.expMonth}
-        />
-        <TextField
-          icon="calendar"
-          placeholder="Expiration Year (yy)"
-          keyboard="number-pad"
-          onChange={(expYear) => this.setState({ expYear })}
-          value={this.state.expYear}
-        />
-        <TextField
-          icon="lock"
-          placeholder="CVC Code"
-          keyboard="number-pad"
-          onChange={(cvc) => this.setState({ cvc })}
-          value={this.state.cvc}
-        />
-        <TouchableOpacity style={styles.submitButton} onPressIn={() => this.addCard()}>
-          <Text style={styles.buttonText}>
-            Add Card
-          </Text>
-        </TouchableOpacity>
-      </KeyboardAvoidingView>
+      <View style={styles.container}>
+        <View style={styles.nameContainer}>
+          <BackButton />
+          <Text style={styles.title}>Add Card</Text>
+        </View>
+        <KeyboardAvoidingView behavior="padding" style={styles.formContainer}>
+          <TextField
+            icon="user"
+            placeholder="Name"
+            onChange={(name) => this.setState({ name })}
+            value={this.state.name}
+          />
+          <TextField
+            icon="credit-card"
+            placeholder="Card Number"
+            keyboard="number-pad"
+            onChange={(number) => this.setState({ number })}
+            value={this.state.number}
+          />
+          <TextField
+            icon="calendar"
+            placeholder="Expiration Month (mm)"
+            keyboard="number-pad"
+            onChange={(expMonth) => this.setState({ expMonth })}
+            value={this.state.expMonth}
+          />
+          <TextField
+            icon="calendar"
+            placeholder="Expiration Year (yy)"
+            keyboard="number-pad"
+            onChange={(expYear) => this.setState({ expYear })}
+            value={this.state.expYear}
+          />
+          <TextField
+            icon="lock"
+            placeholder="CVC Code"
+            keyboard="number-pad"
+            onChange={(cvc) => this.setState({ cvc })}
+            value={this.state.cvc}
+          />
+          <TouchableOpacity style={styles.submitButton} onPressIn={() => this.addCard()}>
+            <Text style={styles.buttonText}>
+              Add Card
+            </Text>
+          </TouchableOpacity>
+        </KeyboardAvoidingView>
+      </View>
     );
   }
 }
 
 const styles = StyleSheet.create({
-  formContainer: {
+  container: {
     flex: 1,
+    flexDirection: 'column',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    backgroundColor: COLORS.WHITE,
+  },
+  formContainer: {
+    flex: 7,
+    width: '100%',
     flexDirection: 'column',
     justifyContent: 'space-around',
     alignItems: 'center',
@@ -234,27 +240,17 @@ const styles = StyleSheet.create({
     color: COLORS.WHITE,
     fontWeight: '700',
   },
-  backButton: {
-    position: 'absolute',
-    left: 20,
-    top: 30,
-    fontSize: 35,
-    color: COLORS.SECONDARY,
-  },
   title: {
     color: COLORS.PRIMARY,
-    fontSize: 30,
+    fontSize: 34,
     fontWeight: '700',
   },
-  loading: {
+  nameContainer: {
+    flex: 1,
     width: '100%',
-    resizeMode: 'contain',
-  },
-  loadingContainer: {
-    height: '100%',
-    width: '100%',
-    flexDirection: 'column',
+    flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'flex-end',
+    marginBottom: 10,
   },
 });

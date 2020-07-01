@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {
-  StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, Image,
+  StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert,
 } from 'react-native';
 import firebase from 'firebase';
 import { FontAwesome } from '@expo/vector-icons';
@@ -16,8 +16,8 @@ import {
   denyTrainerRequest,
 } from '../components/Functions';
 import Constants from '../components/Constants';
-
-const loading = require('../images/loading.gif');
+import BackButton from '../components/BackButton';
+import LoadingWheel from '../components/LoadingWheel';
 
 export default class ClientPage extends Component {
   constructor(props) {
@@ -215,11 +215,7 @@ export default class ClientPage extends Component {
       || !this.state.recentClients
       || this.state.pressed
     ) {
-      return (
-        <View style={styles.loadingContainer}>
-          <Image source={loading} style={styles.loading} />
-        </View>
-      );
+      return <LoadingWheel />;
     }
     let navBar;
     let content;
@@ -311,9 +307,7 @@ export default class ClientPage extends Component {
     return (
       <View style={styles.container}>
         <View style={styles.nameContainer}>
-          <Text style={styles.backButton} onPress={this.goToMap}>
-            <FontAwesome name="arrow-left" size={35} />
-          </Text>
+          <BackButton />
           <Text style={styles.title}>Trainers</Text>
         </View>
         {navBar}
@@ -392,13 +386,6 @@ const styles = StyleSheet.create({
     width: '90%',
     marginTop: 10,
   },
-  backButton: {
-    position: 'absolute',
-    left: 20,
-    fontSize: 35,
-    color: COLORS.SECONDARY,
-    paddingBottom: 5,
-  },
   buttonText: {
     fontSize: 18,
     color: COLORS.WHITE,
@@ -432,17 +419,6 @@ const styles = StyleSheet.create({
   },
   icon: {
     fontSize: 15,
-  },
-  loading: {
-    width: '100%',
-    resizeMode: 'contain',
-  },
-  loadingContainer: {
-    height: '100%',
-    width: '100%',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   nameText: {
     fontSize: 18,

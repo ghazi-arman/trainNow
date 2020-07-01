@@ -13,7 +13,6 @@ import {
 import firebase from 'firebase';
 import MapView from 'react-native-maps';
 import PropTypes from 'prop-types';
-import { FontAwesome } from '@expo/vector-icons';
 import bugsnag from '@bugsnag/expo';
 import { Actions } from 'react-native-router-flux';
 import COLORS from '../components/Colors';
@@ -21,10 +20,11 @@ import {
   loadGym, renderStars, dateToString, joinGroupSession, loadUser,
 } from '../components/Functions';
 import Constants from '../components/Constants';
+import BackButton from '../components/BackButton';
+import LoadingWheel from '../components/LoadingWheel';
 
 const markerImg = require('../images/marker.png');
 const profileImg = require('../images/profile.png');
-const loading = require('../images/loading.gif');
 
 export default class GymPage extends Component {
   constructor(props) {
@@ -358,11 +358,7 @@ export default class GymPage extends Component {
 
   render() {
     if (!this.state.gym) {
-      return (
-        <View style={styles.loadingContainer}>
-          <Image source={loading} style={styles.loading} />
-        </View>
-      );
+      return <LoadingWheel />;
     }
     let websiteLink;
     if (this.state.gym.website) {
@@ -378,9 +374,7 @@ export default class GymPage extends Component {
     return (
       <View style={styles.container}>
         <View style={styles.nameContainer}>
-          <Text style={styles.backButton} onPress={() => Actions.reset('MapPage')}>
-            <FontAwesome name="arrow-left" size={35} />
-          </Text>
+          <BackButton />
           <Text style={styles.gymName}>{this.state.gym.name}</Text>
           {websiteLink}
           <Text style={styles.smallText}>{this.state.gym.hours}</Text>
@@ -390,7 +384,9 @@ export default class GymPage extends Component {
         </View>
         <View style={styles.trainersContainer}>
           <ScrollView showsVerticalScrollIndicator={false}>
+            <Text style={styles.subTitle}>Trainers</Text>
             {this.renderTrainers()}
+            <Text style={styles.subTitle}>Sessions</Text>
             {this.renderSessions()}
           </ScrollView>
         </View>
@@ -417,6 +413,13 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textAlign: 'center',
   },
+  subTitle: {
+    fontSize: 30,
+    color: COLORS.PRIMARY,
+    fontWeight: '500',
+    textAlign: 'center',
+    margin: 10,
+  },
   nameContainer: {
     flex: 2,
     width: '100%',
@@ -439,6 +442,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     paddingLeft: 22,
+    paddingBottom: 10,
   },
   trainerContainer: {
     backgroundColor: COLORS.WHITE,
@@ -451,6 +455,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.PRIMARY,
     marginTop: 10,
+    shadowColor: "#000",
+    shadowOffset: {
+	    width: 0,
+	    height: 3,
+    },
+    shadowOpacity: 0.27,
+    shadowRadius: 4.65,
+    elevation: 6,
   },
   trainerRow: {
     width: '90%',
@@ -518,13 +530,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.PRIMARY,
   },
-  backButton: {
-    position: 'absolute',
-    left: 20,
-    top: 30,
-    fontSize: 35,
-    color: COLORS.SECONDARY,
-  },
   rate: {
     fontSize: 16,
     fontWeight: '500',
@@ -582,16 +587,5 @@ const styles = StyleSheet.create({
   icon: {
     color: COLORS.SECONDARY,
     fontSize: 15,
-  },
-  loading: {
-    width: '100%',
-    resizeMode: 'contain',
-  },
-  loadingContainer: {
-    height: '100%',
-    width: '100%',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });

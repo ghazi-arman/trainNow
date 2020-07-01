@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   Alert,
   TextInput,
-  Image,
 } from 'react-native';
 import firebase from 'firebase';
 import { FontAwesome } from '@expo/vector-icons';
@@ -20,8 +19,8 @@ import {
   loadSessions, renderStars, reportSession, timeToString,
 } from '../components/Functions';
 import Constants from '../components/Constants';
-
-const loading = require('../images/loading.gif');
+import BackButton from '../components/BackButton';
+import LoadingWheel from '../components/LoadingWheel';
 
 export default class HistoryPage extends Component {
   constructor(props) {
@@ -178,18 +177,12 @@ export default class HistoryPage extends Component {
 
   render() {
     if (!this.state.sessions) {
-      return (
-        <View style={styles.loadingContainer}>
-          <Image source={loading} style={styles.loading} />
-        </View>
-      );
+      return <LoadingWheel />;
     }
     return (
       <View style={styles.container}>
         <View style={styles.nameContainer}>
-          <Text style={styles.backButton} onPress={this.goToMap}>
-            <FontAwesome name="arrow-left" size={35} />
-          </Text>
+          <BackButton />
           <Text style={styles.header}>Trainer History</Text>
         </View>
         <View style={styles.historyContainer}>
@@ -342,22 +335,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.PRIMARY,
     color: COLORS.PRIMARY,
-  },
-  backButton: {
-    position: 'absolute',
-    left: 20,
-    fontSize: 35,
-    color: COLORS.SECONDARY,
-  },
-  loading: {
-    width: '100%',
-    resizeMode: 'contain',
-  },
-  loadingContainer: {
-    height: '100%',
-    width: '100%',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });
