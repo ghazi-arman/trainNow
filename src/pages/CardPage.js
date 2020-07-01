@@ -30,7 +30,7 @@ export default class CardPage extends Component {
       } catch (error) {
         this.bugsnagClient.notify(error);
         Alert.alert('There was an error loading the card page.');
-        Actions.pop();
+        Actions.ManagerPage({ gymKey: this.state.user.gym });
       }
     }
   }
@@ -87,7 +87,7 @@ export default class CardPage extends Component {
           stripeId: response.body.customer.id,
           cardAdded: true,
         });
-        Actions.pop();
+        Actions.ManagerPage({ gymKey: this.state.user.gym });
       } catch (error) {
         this.setState({ pressed: false });
         this.bugsnagClient.notify(error);
@@ -117,7 +117,7 @@ export default class CardPage extends Component {
         await firebase.database().ref('users').child(user.uid).update({
           cardAdded: true,
         });
-        Actions.pop();
+        Actions.ManagerPage({ gymKey: this.state.user.gym });
       } catch (error) {
         this.setState({ pressed: false });
         this.bugsnagClient.notify(error);
@@ -144,7 +144,7 @@ export default class CardPage extends Component {
         await firebase.database().ref('users').child(user.uid).update({
           cardAdded: true,
         });
-        Actions.pop();
+        Actions.ManagerPage({ gymKey: this.state.user.gym });
       } catch (error) {
         this.setState({ pressed: false });
         this.bugsnagClient.notify(error);

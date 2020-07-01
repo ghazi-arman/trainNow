@@ -455,10 +455,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.PRIMARY,
     marginTop: 10,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: {
-	    width: 0,
-	    height: 3,
+      width: 0,
+      height: 3,
     },
     shadowOpacity: 0.27,
     shadowRadius: 4.65,

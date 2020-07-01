@@ -38,7 +38,7 @@ export default class SchedulerPage extends Component {
       } catch (error) {
         this.bugsnagClient.notify(error);
         Alert.alert('There was an error loading the scheduler.');
-        Actions.pop();
+        Actions.CalendarPage();
       }
     }
   }
@@ -87,7 +87,7 @@ export default class SchedulerPage extends Component {
   addSession = (startDate, endDate) => {
     addAvailableSession(firebase.auth().currentUser.uid, startDate, endDate);
     Alert.alert('Availability added.');
-    Actions.pop();
+    Actions.CalendarPage();
   }
 
   render() {

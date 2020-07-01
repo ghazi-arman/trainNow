@@ -56,7 +56,7 @@ export default class CreateGroupSessionPage extends Component {
       } catch (error) {
         this.bugsnagClient.notify(error);
         Alert.alert('There was an error loading the page.');
-        Actions.pop();
+        Actions.CalendarPage();
       }
     }
   }
@@ -121,7 +121,7 @@ export default class CreateGroupSessionPage extends Component {
         this.state.cost,
       );
       Alert.alert('Session successfully created.');
-      Actions.pop();
+      Actions.CalendarPage();
     } catch (error) {
       Alert.alert('There was an error when trying to create the session.');
     }
@@ -175,7 +175,7 @@ export default class CreateGroupSessionPage extends Component {
         this.state.cost,
       );
       Alert.alert('Session successfully updated.');
-      Actions.pop();
+      Actions.CalendarPage();
     } catch (error) {
       Alert.alert('There was an error when trying to update the session.');
     }

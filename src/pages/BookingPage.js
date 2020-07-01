@@ -58,7 +58,7 @@ export default class BookingPage extends Component {
         });
       } catch (error) {
         this.bugsnagClient.notify(error);
-        Actions.pop();
+        Actions.GymPage({ gymKey: this.props.gymKey });
         Alert.alert('There was an error loading this trainer. Please try again later.');
       }
     }
@@ -167,7 +167,7 @@ export default class BookingPage extends Component {
               return;
             }
             Alert.alert('Session successfully booked.');
-            Actions.pop();
+            Actions.MapPage();
           },
         },
       ],
