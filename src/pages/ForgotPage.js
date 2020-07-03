@@ -20,7 +20,7 @@ export default function ForgotPage() {
       </View>
       <View style={styles.linkContainer}>
         <View style={styles.textContain}>
-          <TouchableOpacity onPress={() => Actions.LoginPage()}>
+          <TouchableOpacity onPress={Actions.LoginPage}>
             <Text style={styles.linkText}>Have an Account?</Text>
           </TouchableOpacity>
         </View>

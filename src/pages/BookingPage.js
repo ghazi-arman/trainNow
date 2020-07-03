@@ -229,7 +229,7 @@ export default class BookingPage extends Component {
       picker = (
         <TouchableOpacity
           style={styles.bookButton}
-          onPressIn={() => this.openDatePicker()}
+          onPress={() => this.openDatePicker()}
         >
           <Text style={styles.buttonText}>
             Choose Date
@@ -239,7 +239,7 @@ export default class BookingPage extends Component {
       timePicker = (
         <TouchableOpacity
           style={[styles.bookButton, { marginTop: 20 }]}
-          onPressIn={() => this.openTimePicker()}
+          onPress={() => this.openTimePicker()}
         >
           <Text style={styles.buttonText}>
             Choose Time
@@ -272,7 +272,7 @@ export default class BookingPage extends Component {
               <Picker.Item label="2 hours" value="120" />
             </Picker>
           </View>
-          <TouchableOpacity style={styles.bookButton} onPressIn={() => this.bookTrainer()}>
+          <TouchableOpacity style={styles.bookButton} onPress={() => this.bookTrainer()}>
             <Text style={styles.buttonText}>
               Schedule Session
             </Text>

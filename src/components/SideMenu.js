@@ -106,7 +106,7 @@ export default class SideMenu extends Component {
             <Text style={styles.menuLink}>Calendar</Text>
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => Actions.HistoryPage()}>
+        <TouchableOpacity onPress={Actions.HistoryPage}>
           <Text style={styles.icon}>
             <FontAwesome name="list" size={30} />
             {' '}
@@ -114,7 +114,7 @@ export default class SideMenu extends Component {
           </Text>
         </TouchableOpacity>
         {clientLink}
-        <TouchableOpacity onPress={() => Actions.PaymentPage()}>
+        <TouchableOpacity onPress={Actions.PaymentPage}>
           <Text style={styles.icon}>
             <FontAwesome name="credit-card" size={30} />
             {' '}

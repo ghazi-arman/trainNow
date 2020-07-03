@@ -46,7 +46,7 @@ export default class TrainerPage extends Component {
       } catch (error) {
         this.bugsnagClient.notify(error);
         Alert.alert('There was an error loading the trainer page. Please try again later.');
-        this.goToMap();
+        Actions.MapPage();
       }
     }
   }
@@ -211,10 +211,6 @@ export default class TrainerPage extends Component {
       );
     })
   )
-
-  goToMap = () => {
-    Actions.MapPage();
-  }
 
   render() {
     if (

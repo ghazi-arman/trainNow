@@ -10,7 +10,6 @@ import MasterStyles from '../components/MasterStyles';
 const logo = require('../images/logo.png');
 
 export default class ManagerSignupPage extends Component {
-  goback = () => Actions.LoginPage();
 
   render() {
     return (
@@ -23,7 +22,7 @@ export default class ManagerSignupPage extends Component {
         </KeyboardAvoidingView>
         <View style={styles.linkContainer}>
           <View style={styles.textContain}>
-            <TouchableOpacity onPressIn={this.goback}>
+            <TouchableOpacity onPressIn={Actions.LoginPage}>
               <Text style={styles.linkText}>Have an Account?</Text>
             </TouchableOpacity>
           </View>

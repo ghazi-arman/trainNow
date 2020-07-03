@@ -42,11 +42,9 @@ export default class ManagerHistoryPage extends Component {
     } catch (error) {
       this.bugsnagClient.notify(error);
       Alert.alert('There was an error loading the history for that trainer.');
-      this.goBack();
+      Actions.pop();
     }
   }
-
-  goBack = () => Actions.pop();
 
   hideReportModal = () => this.setState({ reportModal: false, report: '' });
 

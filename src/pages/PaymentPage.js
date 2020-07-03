@@ -54,7 +54,7 @@ export default class PaymentPage extends Component {
       } catch (error) {
         this.bugsnagClient.notify(error);
         Alert.alert('There was an error accessing your payment information.');
-        this.goToMap();
+        Actions.MapPage();
       }
     }
   }
@@ -104,8 +104,6 @@ export default class PaymentPage extends Component {
       ],
     );
   }
-
-  goToMap = () => Actions.MapPage();
 
   deleteCard = async (stripeId, cardId) => {
     Alert.alert(
