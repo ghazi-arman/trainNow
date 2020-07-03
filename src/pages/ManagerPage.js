@@ -8,7 +8,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import { Actions } from 'react-native-router-flux';
 import PropTypes from 'prop-types';
 import bugsnag from '@bugsnag/expo';
-import COLORS from '../components/Colors';
+import Colors from '../components/Colors';
 import TextField from '../components/TextField';
 import {
   loadUser,
@@ -20,6 +20,7 @@ import {
   setDefaultTrainerCard,
 } from '../components/Functions';
 import LoadingWheel from '../components/LoadingWheel';
+import MasterStyles from '../components/MasterStyles';
 
 export default class ManagerPage extends Component {
   constructor(props) {
@@ -239,7 +240,7 @@ export default class ManagerPage extends Component {
   renderCards = () => {
     if (!this.state.cards || !this.state.cards.length) {
       return (
-        <Text style={{ marginTop: 10, fontSize: 20, color: COLORS.PRIMARY }}>
+        <Text style={{ marginTop: 10, fontSize: 20, color: Colors.Primary }}>
           No Cards Added
         </Text>
       );
@@ -260,7 +261,7 @@ export default class ManagerPage extends Component {
             style={styles.defaultButton}
             onPress={() => this.setDefaultTrainerCard(this.state.user.stripeId, currCard.id)}
           >
-            <Text style={{ color: COLORS.WHITE }}>
+            <Text style={{ color: Colors.White }}>
               <FontAwesome name="check" size={15} />
             </Text>
           </TouchableOpacity>
@@ -289,7 +290,7 @@ export default class ManagerPage extends Component {
               defaultCard,
             )}
           >
-            <Text style={{ color: COLORS.WHITE }}>
+            <Text style={{ color: Colors.White }}>
               <FontAwesome name="remove" size={15} />
             </Text>
           </TouchableOpacity>
@@ -324,73 +325,25 @@ export default class ManagerPage extends Component {
     ) {
       return <LoadingWheel />;
     }
-    let navBar;
-    let content;
-    if (this.state.currentTab === 'pending') {
-      navBar = (
-        <View style={styles.navigationBar}>
-          <TouchableOpacity
-            style={styles.activeTab}
-            onPress={() => this.setState({ currentTab: 'pending' })}
-          >
-            <Text style={styles.activeText}>Pending</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.inactiveTab}
-            onPress={() => this.setState({ currentTab: 'current' })}
-          >
-            <Text style={styles.navText}>Trainers</Text>
-          </TouchableOpacity>
-        </View>
-      );
-      content = (
-        <View style={styles.trainerContainer}>
-          <ScrollView style={{ width: '90%' }} showsVerticalScrollIndicator={false}>
-            {this.renderPending()}
-          </ScrollView>
-        </View>
-      );
-    } else {
-      navBar = (
-        <View style={styles.navigationBar}>
-          <TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({ currentTab: 'pending' })}>
-            <Text style={styles.navText}>Pending</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.activeTab} onPress={() => this.setState({ currentTab: 'current' })}>
-            <Text style={styles.activeText}>Trainers</Text>
-          </TouchableOpacity>
-        </View>
-      );
-      content = (
-        <View style={styles.trainerContainer}>
-          <ScrollView style={{ width: '90%' }} showsVerticalScrollIndicator={false}>
-            {this.renderTrainers()}
-          </ScrollView>
-        </View>
-      );
-    }
-    let balanceFormatted;
-    if (this.state.balance === 0) {
-      balanceFormatted = '0.00';
-    } else {
-      balanceFormatted = (this.state.balance / 100).toFixed(2);
-    }
+    const balanceFormatted = this.state.balance === 0 ? '0.00' : (this.state.balance / 100).toFixed(2);
     const trainerName = this.state.selectedTrainer ? this.state.selectedTrainer.name : 'None';
     return (
-      <View style={styles.container}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={MasterStyles.flexStartContainer}
+      >
         <Text style={styles.logoutButton} onPress={this.logout}>
           <FontAwesome name="power-off" size={35} />
         </Text>
+        <Text style={styles.title}>Pending</Text>
+        {this.renderPending()}
         <Text style={styles.title}>Trainers</Text>
-        {navBar}
-        {content}
+        {this.renderTrainers()}
         <Text style={styles.balanceText}>
           $
           {balanceFormatted}
         </Text>
-        <View style={styles.cardHolder}>
-          {this.renderCards()}
-        </View>
+        {this.renderCards()}
         <TouchableOpacity style={styles.button} onPress={Actions.CardPage}>
           <Text style={styles.activeText}>
             <FontAwesome name="credit-card" size={25} />
@@ -400,7 +353,7 @@ export default class ManagerPage extends Component {
           </Text>
         </TouchableOpacity>
         <Text style={{
-          fontSize: 20, textAlign: 'center', color: COLORS.PRIMARY, marginTop: 10,
+          fontSize: 20, textAlign: 'center', color: Colors.Primary, marginTop: 10,
         }}
         >
           Funds will be transfered daily
@@ -426,7 +379,7 @@ export default class ManagerPage extends Component {
             </TouchableOpacity>
           </KeyboardAvoidingView>
         </Modal>
-      </View>
+      </ScrollView>
     );
   }
 }
@@ -436,14 +389,6 @@ ManagerPage.propTypes = {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    width: '100%',
-    backgroundColor: COLORS.WHITE,
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-  },
   trainerContainer: {
     flex: 0.5,
     width: '90%',
@@ -452,20 +397,10 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   title: {
-    marginTop: 45,
+    marginTop: 30,
     fontSize: 34,
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
     fontWeight: '700',
-  },
-  cardHolder: {
-    flex: 0.2,
-    marginTop: 10,
-    backgroundColor: '#f6f5f5',
-    width: '90%',
-    borderRadius: 10,
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
   },
   cardRow: {
     width: '95%',
@@ -488,9 +423,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '50%',
     height: 60,
-    backgroundColor: COLORS.PRIMARY,
+    backgroundColor: Colors.Primary,
     borderWidth: 1,
-    borderColor: COLORS.SECONDARY,
+    borderColor: Colors.Secondary,
   },
   inactiveTab: {
     flexDirection: 'column',
@@ -498,24 +433,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '50%',
     height: 60,
-    backgroundColor: COLORS.WHITE,
+    backgroundColor: Colors.White,
     borderWidth: 1,
-    borderColor: COLORS.SECONDARY,
+    borderColor: Colors.Secondary,
   },
   navText: {
     fontSize: 25,
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
     textAlign: 'center',
   },
   balanceText: {
     fontSize: 30,
-    marginTop: 15,
-    color: COLORS.PRIMARY,
+    marginTop: 30,
+    color: Colors.Primary,
     textAlign: 'center',
   },
   activeText: {
     fontSize: 25,
-    color: COLORS.WHITE,
+    color: Colors.White,
     textAlign: 'center',
   },
   clientRow: {
@@ -526,15 +461,17 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   button: {
-    backgroundColor: COLORS.SECONDARY,
+    backgroundColor: Colors.Secondary,
     flexDirection: 'column',
     justifyContent: 'center',
     width: '50%',
-    height: 50,
-    marginTop: 10,
+    paddingVertical: 15,
+    marginTop: 30,
+    borderRadius: 5,
+    marginBottom: 15,
   },
   defaultButton: {
-    backgroundColor: COLORS.GREEN,
+    backgroundColor: Colors.Green,
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
@@ -543,10 +480,10 @@ const styles = StyleSheet.create({
   },
   greenIcon: {
     fontSize: 20,
-    color: COLORS.GREEN,
+    color: Colors.Green,
   },
   deleteButton: {
-    backgroundColor: COLORS.RED,
+    backgroundColor: Colors.Red,
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
@@ -555,16 +492,16 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 15,
-    color: COLORS.WHITE,
+    color: Colors.White,
     textAlign: 'center',
   },
   largeText: {
     fontSize: 30,
-    color: COLORS.WHITE,
+    color: Colors.White,
     textAlign: 'center',
   },
   denyButton: {
-    backgroundColor: COLORS.RED,
+    backgroundColor: Colors.Red,
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
@@ -572,7 +509,7 @@ const styles = StyleSheet.create({
     height: 30,
   },
   historyButton: {
-    backgroundColor: COLORS.PRIMARY,
+    backgroundColor: Colors.Primary,
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
@@ -580,7 +517,7 @@ const styles = StyleSheet.create({
     height: 30,
   },
   acceptButton: {
-    backgroundColor: COLORS.GREEN,
+    backgroundColor: Colors.Green,
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
@@ -595,27 +532,27 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     width: '50%',
     textAlign: 'center',
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
   },
   closeButton: {
     position: 'absolute',
     top: 0,
     right: 0,
     fontSize: 35,
-    color: COLORS.RED,
+    color: Colors.Red,
   },
   cardModal: {
     flex: 0.4,
     flexDirection: 'column',
     justifyContent: 'space-around',
     alignItems: 'center',
-    backgroundColor: COLORS.WHITE,
+    backgroundColor: Colors.White,
     borderRadius: 10,
     padding: 20,
   },
   submitButton: {
     borderRadius: 5,
-    backgroundColor: COLORS.SECONDARY,
+    backgroundColor: Colors.Secondary,
     paddingVertical: 15,
     width: 150,
     flexDirection: 'column',
@@ -625,13 +562,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 30,
     fontWeight: '700',
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
   },
   logoutButton: {
     position: 'absolute',
     top: 45,
     left: 20,
     fontSize: 35,
-    color: COLORS.SECONDARY,
+    color: Colors.Secondary,
   },
 });

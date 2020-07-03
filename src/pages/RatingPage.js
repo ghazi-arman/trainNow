@@ -7,12 +7,13 @@ import { FontAwesome } from '@expo/vector-icons';
 import { Actions } from 'react-native-router-flux';
 import bugsnag from '@bugsnag/expo';
 import PropTypes from 'prop-types';
-import COLORS from '../components/Colors';
+import Colors from '../components/Colors';
 import {
   loadSession, loadUser, rateSession, dateToString, chargeCard,
 } from '../components/Functions';
 import Constants from '../components/Constants';
 import LoadingWheel from '../components/LoadingWheel';
+import MasterStyles from '../components/MasterStyles';
 
 export default class RatingPage extends Component {
   constructor(props) {
@@ -32,9 +33,6 @@ export default class RatingPage extends Component {
     }
     this.setState({ session, user });
   }
-
-  backtomap = () => Actions.reset('MapPage');
-
 
   rateSession = async () => {
     if (this.state.pressed) {
@@ -57,14 +55,16 @@ export default class RatingPage extends Component {
           percentage = Constants.groupSessionPercentage;
         }
         const payout = (total - total * percentage).toFixed(0);
-        await chargeCard(
-          this.state.user.stripeId,
-          this.state.session.trainerStripe,
-          total,
-          total - payout,
-          this.state.session,
-          this.state.user.phone,
-        );
+        if (payout !== '0') {
+          await chargeCard(
+            this.state.user.stripeId,
+            this.state.session.trainerStripe,
+            total,
+            total - payout,
+            this.state.session,
+            this.state.user.phone,
+          );
+        }
       }
 
       await rateSession(
@@ -145,8 +145,8 @@ export default class RatingPage extends Component {
     }
     const stars = this.renderStars(this.state.rating);
     return (
-      <View style={styles.container}>
-        <View style={styles.formContainer}>
+      <View style={MasterStyles.spacedContainer}>
+        <View style={MasterStyles.centeredContainer}>
           <View style={styles.infoContainer}>
             <Text style={styles.header}>Rate Session!</Text>
             <Text style={styles.bookDetails}>
@@ -155,6 +155,7 @@ export default class RatingPage extends Component {
             </Text>
             <Text style={styles.bookDetails}>
               Total Time:
+              {' '}
               {minutes}
               {' '}
               min
@@ -183,25 +184,12 @@ const styles = StyleSheet.create({
   bookDetails: {
     fontSize: 25,
     fontWeight: '500',
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
   },
   header: {
     fontSize: 35,
     fontWeight: '700',
-    color: COLORS.PRIMARY,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.WHITE,
-    flexDirection: 'column',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-  },
-  formContainer: {
-    width: '80%',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
+    color: Colors.Primary,
   },
   buttonContain: {
     width: '50%',
@@ -221,17 +209,17 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     borderRadius: 5,
-    backgroundColor: COLORS.SECONDARY,
+    backgroundColor: Colors.Secondary,
     paddingVertical: 15,
     width: '100%',
   },
   buttonText: {
     textAlign: 'center',
-    color: COLORS.WHITE,
+    color: Colors.White,
     fontWeight: '700',
   },
   icon: {
-    color: COLORS.SECONDARY,
+    color: Colors.Secondary,
     fontSize: 35,
   },
 });

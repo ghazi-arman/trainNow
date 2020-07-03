@@ -4,49 +4,37 @@ import {
 } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import LoginForm from '../forms/LoginForm';
-import COLORS from '../components/Colors';
+import Colors from '../components/Colors';
+import MasterStyles from '../components/MasterStyles';
 
 const logo = require('../images/logo.png');
 
-export default class LoginPage extends Component {
-  signup = () => Actions.SignupPage();
-
-  forgot = () => Actions.ForgotPage();
-
-  render() {
-    return (
-      <View style={styles.container}>
-        <View style={styles.logoContainer}>
-          <Image style={styles.logo} source={logo} />
+export default function LoginPage() {
+  return (
+    <View style={MasterStyles.spacedContainer}>
+      <View style={styles.logoContainer}>
+        <Image style={styles.logo} source={logo} />
+      </View>
+      <KeyboardAvoidingView behavior="padding" style={styles.formContainer}>
+        <LoginForm />
+      </KeyboardAvoidingView>
+      <View style={styles.linkContainer}>
+        <View style={styles.textContain}>
+          <TouchableOpacity onPress={Actions.ForgotPage}>
+            <Text style={styles.linkText}>Forgot Password?</Text>
+          </TouchableOpacity>
         </View>
-        <KeyboardAvoidingView behavior="padding" style={styles.formContainer}>
-          <LoginForm />
-        </KeyboardAvoidingView>
-        <View style={styles.linkContainer}>
-          <View style={styles.textContain}>
-            <TouchableOpacity onPress={this.forgot}>
-              <Text style={styles.linkText}>Forgot Password?</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.textContain}>
-            <TouchableOpacity onPress={this.signup}>
-              <Text style={styles.linkText}>New User?</Text>
-            </TouchableOpacity>
-          </View>
+        <View style={styles.textContain}>
+          <TouchableOpacity onPress={Actions.SignupPage}>
+            <Text style={styles.linkText}>New User?</Text>
+          </TouchableOpacity>
         </View>
       </View>
-    );
-  }
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    backgroundColor: COLORS.WHITE,
-  },
   logo: {
     flex: 1,
     resizeMode: 'contain',
@@ -75,7 +63,7 @@ const styles = StyleSheet.create({
     height: '20%',
   },
   linkText: {
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
     fontSize: 16,
     fontWeight: '500',
   },

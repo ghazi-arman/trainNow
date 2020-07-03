@@ -8,10 +8,11 @@ import { STRIPE_KEY, FB_URL } from 'react-native-dotenv';
 import { Actions } from 'react-native-router-flux';
 import TextField from '../components/TextField';
 import { loadUser } from '../components/Functions';
-import COLORS from '../components/Colors';
+import Colors from '../components/Colors';
 import Constants from '../components/Constants';
 import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
+import MasterStyles from '../components/MasterStyles';
 
 const stripe = require('stripe-client')(STRIPE_KEY);
 
@@ -87,7 +88,7 @@ export default class CardPage extends Component {
           stripeId: response.body.customer.id,
           cardAdded: true,
         });
-        Actions.ManagerPage({ gymKey: this.state.user.gym });
+        Actions.PaymentPage();
       } catch (error) {
         this.setState({ pressed: false });
         this.bugsnagClient.notify(error);
@@ -117,7 +118,11 @@ export default class CardPage extends Component {
         await firebase.database().ref('users').child(user.uid).update({
           cardAdded: true,
         });
-        Actions.ManagerPage({ gymKey: this.state.user.gym });
+        if (this.state.user.type === Constants.managerType) {
+          Actions.ManagerPage({ gymKey: this.state.user.gym });
+          return;
+        }
+        Actions.PaymentPage();
       } catch (error) {
         this.setState({ pressed: false });
         this.bugsnagClient.notify(error);
@@ -144,7 +149,7 @@ export default class CardPage extends Component {
         await firebase.database().ref('users').child(user.uid).update({
           cardAdded: true,
         });
-        Actions.ManagerPage({ gymKey: this.state.user.gym });
+        Actions.PaymentPage();
       } catch (error) {
         this.setState({ pressed: false });
         this.bugsnagClient.notify(error);
@@ -158,7 +163,7 @@ export default class CardPage extends Component {
       return <LoadingWheel />;
     }
     return (
-      <View style={styles.container}>
+      <View style={MasterStyles.spacedContainer}>
         <View style={styles.nameContainer}>
           <BackButton />
           <Text style={styles.title}>Add Card</Text>
@@ -210,25 +215,18 @@ export default class CardPage extends Component {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    flexDirection: 'column',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    backgroundColor: COLORS.WHITE,
-  },
   formContainer: {
     flex: 7,
     width: '100%',
     flexDirection: 'column',
     justifyContent: 'space-around',
     alignItems: 'center',
-    backgroundColor: COLORS.WHITE,
+    backgroundColor: Colors.White,
     padding: 20,
   },
   submitButton: {
     borderRadius: 5,
-    backgroundColor: COLORS.SECONDARY,
+    backgroundColor: Colors.Secondary,
     paddingVertical: 15,
     width: '80%',
     flexDirection: 'column',
@@ -237,11 +235,11 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 20,
     textAlign: 'center',
-    color: COLORS.WHITE,
+    color: Colors.White,
     fontWeight: '700',
   },
   title: {
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
     fontSize: 34,
     fontWeight: '700',
   },

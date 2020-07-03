@@ -6,10 +6,11 @@ import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
 import bugsnag from '@bugsnag/expo';
 import { STRIPE_KEY, FB_URL } from 'react-native-dotenv';
-import COLORS from '../components/Colors';
+import Colors from '../components/Colors';
 import Constants from '../components/Constants';
 import TextField from '../components/TextField';
 import LoadingWheel from '../components/LoadingWheel';
+import MasterStyles from '../components/MasterStyles';
 
 const stripe = require('stripe-client')(STRIPE_KEY);
 
@@ -367,7 +368,7 @@ export default class ManagerSignupForm extends Component {
     }
 
     return (
-      <View style={styles.formContainer}>
+      <View style={MasterStyles.centeredContainer}>
         {page1}
         {page2}
         {page3}
@@ -384,12 +385,6 @@ export default class ManagerSignupForm extends Component {
 }
 
 const styles = StyleSheet.create({
-  formContainer: {
-    height: '100%',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   container: {
     height: '80%',
     flexDirection: 'column',
@@ -397,7 +392,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonContainer: {
-    backgroundColor: COLORS.SECONDARY,
+    backgroundColor: Colors.Secondary,
     paddingVertical: 15,
     width: '40%',
     margin: 5,
@@ -412,15 +407,15 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 20,
     textAlign: 'center',
-    color: COLORS.WHITE,
+    color: Colors.White,
     fontWeight: '700',
   },
   agreement: {
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
     textAlign: 'center',
   },
   link: {
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
     textAlign: 'center',
     textDecorationLine: 'underline',
   },

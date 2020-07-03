@@ -11,9 +11,10 @@ import { Actions } from 'react-native-router-flux';
 import PropTypes from 'prop-types';
 import ClientAccountForm from '../forms/ClientAccountForm';
 import TrainerAccountForm from '../forms/TrainerAccountForm';
-import COLORS from '../components/Colors';
+import Colors from '../components/Colors';
 import Constants from '../components/Constants';
 import BackButton from '../components/BackButton';
+import MasterStyles from '../components/MasterStyles';
 
 export default class SettingsPage extends Component {
   goToMap = () => {
@@ -42,7 +43,7 @@ export default class SettingsPage extends Component {
       accountForm = (<ClientAccountForm ref={(form) => { this.form = form; }} />);
     }
     return (
-      <View style={styles.container}>
+      <View style={MasterStyles.spacedContainer}>
         <View style={styles.nameContainer}>
           <BackButton />
           <Text style={styles.title}>Settings</Text>
@@ -62,13 +63,6 @@ SettingsPage.propTypes = {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    flexDirection: 'column',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    backgroundColor: COLORS.WHITE,
-  },
   center: {
     flexDirection: 'column',
     justifyContent: 'center',
@@ -84,7 +78,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 34,
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
     fontWeight: '700',
   },
   formContainer: {

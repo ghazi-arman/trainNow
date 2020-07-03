@@ -4,7 +4,8 @@ import {
 } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import ManagerSignupForm from '../forms/ManagerSignupForm';
-import COLORS from '../components/Colors';
+import Colors from '../components/Colors';
+import MasterStyles from '../components/MasterStyles';
 
 const logo = require('../images/logo.png');
 
@@ -13,7 +14,7 @@ export default class ManagerSignupPage extends Component {
 
   render() {
     return (
-      <View style={styles.container}>
+      <View style={MasterStyles.spacedContainer}>
         <View style={styles.logoContainer}>
           <Image style={styles.logo} source={logo} />
         </View>
@@ -33,13 +34,6 @@ export default class ManagerSignupPage extends Component {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    flexDirection: 'column',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    backgroundColor: COLORS.WHITE,
-  },
   logo: {
     height: '50%',
     resizeMode: 'contain',
@@ -68,7 +62,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   linkText: {
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
     fontSize: 16,
     fontWeight: '500',
   },

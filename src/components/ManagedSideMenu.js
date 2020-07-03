@@ -5,7 +5,7 @@ import {
 import { FontAwesome } from '@expo/vector-icons';
 import firebase from 'firebase';
 import { Actions } from 'react-native-router-flux';
-import COLORS from './Colors';
+import Colors from './Colors';
 import Constants from './Constants';
 import { loadUser, renderStars } from './Functions';
 import LoadingWheel from './LoadingWheel';
@@ -49,7 +49,7 @@ export default class ManagedSideMenu extends Component {
     let active;
     if (this.state.user.type === Constants.trainerType) {
       clientLink = (
-        <TouchableOpacity onPress={() => Actions.ClientPage()}>
+        <TouchableOpacity onPress={Actions.ClientPage}>
           <Text style={styles.icon}>
             <FontAwesome name="users" size={30} />
             {' '}
@@ -58,13 +58,13 @@ export default class ManagedSideMenu extends Component {
         </TouchableOpacity>
       );
       if (this.state.user.active) {
-        active = (<Text style={{ fontSize: 20, color: COLORS.WHITE }}>Active</Text>);
+        active = (<Text style={{ fontSize: 20, color: Colors.White }}>Active</Text>);
       } else {
-        active = (<Text style={{ fontSize: 20, color: COLORS.RED }}>Away</Text>);
+        active = (<Text style={{ fontSize: 20, color: Colors.Red }}>Away</Text>);
       }
     } else {
       clientLink = (
-        <TouchableOpacity onPress={() => Actions.TrainerPage()}>
+        <TouchableOpacity onPress={Actions.TrainerPage}>
           <Text style={styles.icon}>
             <FontAwesome name="users" size={30} />
             {' '}
@@ -76,11 +76,11 @@ export default class ManagedSideMenu extends Component {
     return (
       <View style={styles.container}>
         <View style={styles.nameContainer}>
-          <Text style={{ fontSize: 25, color: COLORS.WHITE }}>{this.state.user.name}</Text>
+          <Text style={{ fontSize: 25, color: Colors.White }}>{this.state.user.name}</Text>
           <Text style={styles.stars}>{renderStars(this.state.user.rating)}</Text>
           {active}
         </View>
-        <TouchableOpacity onPress={() => Actions.MapPage()}>
+        <TouchableOpacity onPress={Actions.MapPage}>
           <Text style={styles.icon}>
             <FontAwesome name="compass" size={30} />
             {' '}
@@ -97,7 +97,7 @@ export default class ManagedSideMenu extends Component {
             <Text style={styles.menuLink}>Settings</Text>
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => Actions.CalendarPage()}>
+        <TouchableOpacity onPress={Actions.CalendarPage}>
           <Text style={styles.icon}>
             <FontAwesome name="calendar" size={30} />
             {' '}
@@ -130,29 +130,29 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
-    backgroundColor: COLORS.WHITE,
+    backgroundColor: Colors.White,
   },
   nameContainer: {
     width: '100%',
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.SECONDARY,
+    backgroundColor: Colors.Secondary,
     paddingBottom: 20,
     paddingTop: 40,
   },
   icon: {
     fontSize: 30,
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
     marginLeft: 10,
     padding: 10,
   },
   menuLink: {
     fontSize: 30,
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
   },
   stars: {
-    color: COLORS.WHITE,
+    color: Colors.White,
     fontSize: 15,
   },
 });

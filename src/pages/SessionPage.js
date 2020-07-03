@@ -7,7 +7,7 @@ import firebase from 'firebase';
 import bugsnag from '@bugsnag/expo';
 import PropTypes from 'prop-types';
 import { Actions } from 'react-native-router-flux';
-import COLORS from '../components/Colors';
+import Colors from '../components/Colors';
 import {
   getLocation, loadSession, dateToString, startSession,
 } from '../components/Functions';
@@ -46,7 +46,7 @@ export default class SessionPage extends Component {
       } catch (error) {
         this.bugsnagClient.notify(error);
         Alert.alert('There was an error when trying to load the current session.');
-        this.goToMap();
+        Actions.MapPage();
       }
     }, 1000);
   }
@@ -96,8 +96,6 @@ export default class SessionPage extends Component {
       Linking.openURL(`sms:${this.state.session.trainerPhone}`);
     }
   }
-
-  goToMap = () => Actions.reset('MapPage');
 
   render() {
     if (!this.state.session || !this.state.userRegion) {
@@ -335,23 +333,23 @@ const styles = StyleSheet.create({
   bookDetails: {
     fontSize: 18,
     fontWeight: '500',
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
   },
   smallText: {
     marginTop: 5,
     fontSize: 15,
     fontWeight: '300',
-    color: COLORS.SECONDARY,
+    color: Colors.Secondary,
     textAlign: 'center',
   },
   header: {
     fontSize: 30,
     fontWeight: '700',
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
   },
   container: {
     flex: 1,
-    backgroundColor: COLORS.WHITE,
+    backgroundColor: Colors.White,
     flexDirection: 'column',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -390,7 +388,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     borderRadius: 5,
-    backgroundColor: COLORS.SECONDARY,
+    backgroundColor: Colors.Secondary,
     paddingVertical: 15,
     width: '100%',
     paddingTop: 15,
@@ -399,7 +397,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     textAlign: 'center',
-    color: COLORS.WHITE,
+    color: Colors.White,
     fontWeight: '700',
   },
 });

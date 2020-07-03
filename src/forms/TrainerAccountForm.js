@@ -6,11 +6,12 @@ import firebase from 'firebase';
 import * as Permissions from 'expo-permissions';
 import * as ImagePicker from 'expo-image-picker';
 import bugsnag from '@bugsnag/expo';
-import COLORS from '../components/Colors';
+import Colors from '../components/Colors';
 import TextField from '../components/TextField';
 import { loadUser } from '../components/Functions';
 import Constants from '../components/Constants';
 import LoadingWheel from '../components/LoadingWheel';
+import MasterStyles from '../components/MasterStyles';
 
 export default class TrainerAccountForm extends Component {
   constructor(props) {
@@ -184,12 +185,12 @@ export default class TrainerAccountForm extends Component {
     }
 
     return (
-      <View style={styles.container}>
+      <View style={MasterStyles.spacedContainer}>
         <View style={styles.switchRow}>
           <Text style={styles.hints}>Active? </Text>
           <Switch
-            trackColor={COLORS.PRIMARY}
-            _thumbColor={COLORS.SECONDARY}
+            trackColor={Colors.Primary}
+            _thumbColor={Colors.Secondary}
             style={{ marginLeft: 10 }}
             value={this.state.active}
             onValueChange={(active) => this.setState({ active, change: true })}
@@ -235,13 +236,6 @@ export default class TrainerAccountForm extends Component {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    width: '95%',
-    flexDirection: 'column',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-  },
   switchRow: {
     width: '100%',
     flexDirection: 'row',
@@ -252,17 +246,17 @@ const styles = StyleSheet.create({
   buttonContainer: {
     borderRadius: 5,
     width: 200,
-    backgroundColor: COLORS.SECONDARY,
+    backgroundColor: Colors.Secondary,
     paddingVertical: 15,
     marginTop: 10,
   },
   buttonText: {
     textAlign: 'center',
-    color: COLORS.WHITE,
+    color: Colors.White,
     fontWeight: '700',
   },
   hints: {
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
     fontSize: 25,
     fontWeight: '500',
   },
@@ -275,6 +269,6 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderWidth: 1,
-    borderColor: COLORS.PRIMARY,
+    borderColor: Colors.Primary,
   },
 });

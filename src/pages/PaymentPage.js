@@ -6,7 +6,7 @@ import firebase from 'firebase';
 import { FontAwesome } from '@expo/vector-icons';
 import { Actions } from 'react-native-router-flux';
 import bugsnag from '@bugsnag/expo';
-import COLORS from '../components/Colors';
+import Colors from '../components/Colors';
 import {
   loadUser,
   loadTrainerCards,
@@ -21,6 +21,7 @@ import {
 import Constants from '../components/Constants';
 import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
+import MasterStyles from '../components/MasterStyles';
 
 export default class PaymentPage extends Component {
   constructor(props) {
@@ -164,7 +165,7 @@ export default class PaymentPage extends Component {
   renderCards() {
     if (!this.state.cards || !this.state.cards.length) {
       return (
-        <Text style={{ marginTop: 10, fontSize: 20, color: COLORS.PRIMARY }}>
+        <Text style={{ marginTop: 10, fontSize: 20, color: Colors.Primary }}>
           No Cards Added
         </Text>
       );
@@ -188,7 +189,7 @@ export default class PaymentPage extends Component {
               style={styles.defaultButton}
               onPress={() => this.setDefaultTrainerCard(this.state.user.stripeId, currCard.id)}
             >
-              <Text style={{ color: COLORS.WHITE }}>
+              <Text style={{ color: Colors.White }}>
                 <FontAwesome name="check" size={15} />
               </Text>
             </TouchableOpacity>
@@ -202,7 +203,7 @@ export default class PaymentPage extends Component {
               currCard.id, defaultCard,
             )}
           >
-            <Text style={{ color: COLORS.WHITE }}>
+            <Text style={{ color: Colors.White }}>
               <FontAwesome name="remove" size={15} />
             </Text>
           </TouchableOpacity>
@@ -216,7 +217,7 @@ export default class PaymentPage extends Component {
               style={styles.defaultButton}
               onPress={() => this.setDefaultCard(this.state.user.stripeId, currCard.id)}
             >
-              <Text style={{ color: COLORS.WHITE }}>
+              <Text style={{ color: Colors.White }}>
                 <FontAwesome name="check" size={15} />
               </Text>
             </TouchableOpacity>
@@ -227,7 +228,7 @@ export default class PaymentPage extends Component {
             style={styles.deleteButton}
             onPress={() => this.deleteCard(this.state.user.stripeId, currCard.id)}
           >
-            <Text style={{ color: COLORS.WHITE }}>
+            <Text style={{ color: Colors.White }}>
               <FontAwesome name="remove" size={15} />
             </Text>
           </TouchableOpacity>
@@ -276,7 +277,7 @@ export default class PaymentPage extends Component {
       );
       payoutText = (
         <Text style={{
-          fontSize: 20, textAlign: 'center', color: COLORS.PRIMARY, marginTop: 10,
+          fontSize: 20, textAlign: 'center', color: Colors.Primary, marginTop: 10,
         }}
         >
           Funds will be transfered daily
@@ -284,7 +285,7 @@ export default class PaymentPage extends Component {
       );
     }
     return (
-      <KeyboardAvoidingView behavior="padding" style={styles.container}>
+      <KeyboardAvoidingView behavior="padding" style={MasterStyles.flexStartContainer}>
         <View style={styles.nameContainer}>
           <BackButton />
           <Text style={styles.title}>Payments</Text>
@@ -308,13 +309,6 @@ export default class PaymentPage extends Component {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.WHITE,
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-  },
   cardHolder: {
     flex: 0.5,
     marginTop: 20,
@@ -341,7 +335,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 34,
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
     fontWeight: '700',
   },
   form: {
@@ -356,12 +350,12 @@ const styles = StyleSheet.create({
   },
   balanceText: {
     fontSize: 30,
-    color: COLORS.SECONDARY,
+    color: Colors.Secondary,
     textAlign: 'center',
   },
   button: {
     borderRadius: 5,
-    backgroundColor: COLORS.SECONDARY,
+    backgroundColor: Colors.Secondary,
     flexDirection: 'column',
     justifyContent: 'center',
     width: 200,
@@ -376,11 +370,11 @@ const styles = StyleSheet.create({
     height: 30,
     width: 30,
     fontSize: 20,
-    color: COLORS.GREEN,
+    color: Colors.Green,
     textAlign: 'center',
   },
   deleteButton: {
-    backgroundColor: COLORS.RED,
+    backgroundColor: Colors.Red,
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
@@ -388,7 +382,7 @@ const styles = StyleSheet.create({
     height: 30,
   },
   defaultButton: {
-    backgroundColor: COLORS.GREEN,
+    backgroundColor: Colors.Green,
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',

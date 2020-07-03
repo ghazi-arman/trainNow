@@ -4,9 +4,10 @@ import {
 } from 'react-native';
 import firebase from 'firebase';
 import bugsnag from '@bugsnag/expo';
-import COLORS from '../components/Colors';
+import Colors from '../components/Colors';
 import TextField from '../components/TextField';
 import LoadingWheel from '../components/LoadingWheel';
+import MasterStyles from '../components/MasterStyles';
 
 export default class ForgotForm extends Component {
   constructor(props) {
@@ -42,7 +43,7 @@ export default class ForgotForm extends Component {
     }
 
     return (
-      <View style={styles.formContainer}>
+      <View style={MasterStyles.centeredContainer}>
         <TextField
           icon="user"
           placeholder="Email"
@@ -59,14 +60,8 @@ export default class ForgotForm extends Component {
 }
 
 const styles = StyleSheet.create({
-  formContainer: {
-    width: '100%',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   buttonContainer: {
-    backgroundColor: COLORS.SECONDARY,
+    backgroundColor: Colors.Secondary,
     paddingVertical: 15,
     marginTop: 20,
     borderRadius: 5,
@@ -74,7 +69,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     textAlign: 'center',
-    color: COLORS.WHITE,
+    color: Colors.White,
     fontWeight: '700',
     fontSize: 20,
   },

@@ -16,13 +16,14 @@ import PropTypes from 'prop-types';
 import firebase from 'firebase';
 import bugsnag from '@bugsnag/expo';
 import { Actions } from 'react-native-router-flux';
-import COLORS from '../components/Colors';
+import Colors from '../components/Colors';
 import {
   loadUser, createGroupSession, loadGroupSession, updateGroupSession,
 } from '../components/Functions';
 import TextField from '../components/TextField';
 import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
+import MasterStyles from '../components/MasterStyles';
 
 export default class CreateGroupSessionPage extends Component {
   constructor(props) {
@@ -192,8 +193,8 @@ export default class CreateGroupSessionPage extends Component {
       startTimePicker = (
         <DatePickerIOS
           mode="datetime"
-          itemStyle={{ color: COLORS.PRIMARY }}
-          textColor={COLORS.PRIMARY}
+          itemStyle={{ color: Colors.Primary }}
+          textColor={Colors.Primary}
           style={styles.datepicker}
           minuteInterval={5}
           minimumDate={minimumDate}
@@ -244,7 +245,7 @@ export default class CreateGroupSessionPage extends Component {
       );
     }
     return (
-      <View style={styles.container}>
+      <View style={MasterStyles.flexStartContainer}>
         <View style={styles.nameContainer}>
           <Text style={styles.trainerName}>Group Session</Text>
           <BackButton />
@@ -313,16 +314,9 @@ CreateGroupSessionPage.defaultProps = {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    backgroundColor: COLORS.WHITE,
-  },
   trainerName: {
     fontSize: 30,
-    color: COLORS.WHITE,
+    color: Colors.White,
     fontWeight: '500',
   },
   nameContainer: {
@@ -330,7 +324,7 @@ const styles = StyleSheet.create({
     width: '100%',
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
-    backgroundColor: COLORS.PRIMARY,
+    backgroundColor: Colors.Primary,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -351,7 +345,7 @@ const styles = StyleSheet.create({
   bookButton: {
     borderRadius: 5,
     paddingVertical: 15,
-    backgroundColor: COLORS.SECONDARY,
+    backgroundColor: Colors.Secondary,
     width: '80%',
     marginTop: 10,
   },
@@ -365,18 +359,18 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '500',
     textAlign: 'center',
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
     paddingBottom: 10,
   },
   buttonText: {
     textAlign: 'center',
-    color: COLORS.WHITE,
+    color: Colors.White,
     fontWeight: '700',
   },
   datepicker: {
     height: 200,
     width: '100%',
     borderWidth: 1,
-    borderColor: COLORS.PRIMARY,
+    borderColor: Colors.Primary,
   },
 });

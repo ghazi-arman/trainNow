@@ -7,12 +7,13 @@ import firebase from 'firebase';
 import bugsnag from '@bugsnag/expo';
 import PropTypes from 'prop-types';
 import { Actions } from 'react-native-router-flux';
-import COLORS from '../components/Colors';
+import Colors from '../components/Colors';
 import {
   getLocation, loadGroupSession, dateToString, startGroupSession,
 } from '../components/Functions';
 import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
+import MasterStyles from '../components/MasterStyles';
 
 export default class GroupSessionPage extends Component {
   constructor(props) {
@@ -35,7 +36,7 @@ export default class GroupSessionPage extends Component {
       } catch (error) {
         this.bugsnagClient.notify(error);
         Alert.alert('There was an error when trying to load the current session.');
-        this.goToMap();
+        Actions.MapPage();
       }
     }, 1000);
   }
@@ -68,8 +69,6 @@ export default class GroupSessionPage extends Component {
   sendMessage = () => {
     Linking.openURL(`sms:${this.state.session.trainerPhone}`);
   }
-
-  goToMap = () => Actions.reset('MapPage');
 
   render() {
     if (!this.state.session || !this.state.userRegion) {
@@ -214,7 +213,7 @@ export default class GroupSessionPage extends Component {
       }
     }
     return (
-      <View style={styles.container}>
+      <View style={MasterStyles.spacedContainer}>
         <View style={styles.nameContainer}>
           <BackButton />
           <Text style={styles.header}>Your Session</Text>
@@ -246,27 +245,20 @@ const styles = StyleSheet.create({
   bookDetails: {
     fontSize: 18,
     fontWeight: '500',
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
     textAlign: 'center',
   },
   smallText: {
     marginTop: 5,
     fontSize: 15,
     fontWeight: '300',
-    color: COLORS.SECONDARY,
+    color: Colors.Secondary,
     textAlign: 'center',
   },
   header: {
     fontSize: 30,
     fontWeight: '700',
-    color: COLORS.PRIMARY,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.WHITE,
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    color: Colors.Primary,
   },
   nameContainer: {
     flex: 1,
@@ -302,7 +294,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     borderRadius: 5,
-    backgroundColor: COLORS.SECONDARY,
+    backgroundColor: Colors.Secondary,
     paddingVertical: 15,
     width: '100%',
     paddingTop: 15,
@@ -311,7 +303,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     textAlign: 'center',
-    color: COLORS.WHITE,
+    color: Colors.White,
     fontWeight: '700',
   },
 });

@@ -2,15 +2,24 @@ import React from 'react';
 import {
   Text, StyleSheet,
 } from 'react-native';
+import PropTypes from 'prop-types';
 import { Actions } from 'react-native-router-flux';
 import { FontAwesome } from '@expo/vector-icons';
-import COLORS from './Colors';
+import Colors from './Colors';
 
-const BackButton = () => (
-  <Text style={styles.backButton} onPress={Actions.pop}>
+const BackButton = (props) => (
+  <Text style={styles.backButton} onPress={props.onPress}>
     <FontAwesome name="arrow-left" size={35} />
   </Text>
 );
+
+BackButton.propTypes = {
+  onPress: PropTypes.func,
+};
+
+BackButton.defaultProps = {
+  onPress: Actions.pop,
+};
 
 const styles = StyleSheet.create({
   backButton: {
@@ -18,7 +27,7 @@ const styles = StyleSheet.create({
     left: 10,
     bottom: 10,
     fontSize: 35,
-    color: COLORS.SECONDARY,
+    color: Colors.Secondary,
   },
 });
 

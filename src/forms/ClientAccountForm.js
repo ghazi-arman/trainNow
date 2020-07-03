@@ -6,10 +6,11 @@ import firebase from 'firebase';
 import * as Permissions from 'expo-permissions';
 import * as ImagePicker from 'expo-image-picker';
 import bugsnag from '@bugsnag/expo';
-import COLORS from '../components/Colors';
+import Colors from '../components/Colors';
 import TextField from '../components/TextField';
 import { loadUser } from '../components/Functions';
 import LoadingWheel from '../components/LoadingWheel';
+import MasterStyles from '../components/MasterStyles';
 
 export default class ClientAccountForm extends Component {
   constructor(props) {
@@ -127,7 +128,7 @@ export default class ClientAccountForm extends Component {
     }
 
     return (
-      <View style={styles.container}>
+      <View style={MasterStyles.spacedContainer}>
         <View style={styles.imageContainer}>
           <Image source={{ uri: this.state.image }} style={styles.imageHolder} />
         </View>
@@ -149,23 +150,16 @@ export default class ClientAccountForm extends Component {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    width: '95%',
-    flexDirection: 'column',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-  },
   buttonContainer: {
     borderRadius: 5,
-    width: 200,
-    backgroundColor: COLORS.SECONDARY,
+    width: '80%',
+    backgroundColor: Colors.Secondary,
     paddingVertical: 15,
     marginTop: 10,
   },
   buttonText: {
     textAlign: 'center',
-    color: COLORS.WHITE,
+    color: Colors.White,
     fontWeight: '700',
   },
   imageContainer: {
@@ -177,6 +171,6 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderWidth: 1,
-    borderColor: COLORS.PRIMARY,
+    borderColor: Colors.Primary,
   },
 });

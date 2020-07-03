@@ -26,10 +26,11 @@ import {
   loadTrainer,
   loadClient,
 } from '../components/Functions';
-import COLORS from '../components/Colors';
+import Colors from '../components/Colors';
 import Constants from '../components/Constants';
 import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
+import MasterStyles from '../components/MasterStyles';
 
 export default class BookingPage extends Component {
   constructor(props) {
@@ -215,8 +216,8 @@ export default class BookingPage extends Component {
       picker = (
         <DatePickerIOS
           mode="datetime"
-          itemStyle={{ color: COLORS.PRIMARY }}
-          textColor={COLORS.PRIMARY}
+          itemStyle={{ color: Colors.Primary }}
+          textColor={Colors.Primary}
           style={styles.datePicker}
           minuteInterval={5}
           minimumDate={new Date(new Date().getTime() + this.state.trainer.offset * 60000)}
@@ -247,7 +248,7 @@ export default class BookingPage extends Component {
       );
     }
     return (
-      <View style={styles.container}>
+      <View style={MasterStyles.flexStartContainer}>
         <View style={styles.nameContainer}>
           <BackButton />
           <Text style={styles.trainerName}>{this.state.trainer.name}</Text>
@@ -262,7 +263,7 @@ export default class BookingPage extends Component {
             <Text style={styles.formLabel}>Session Duration</Text>
             <Picker
               style={styles.picker}
-              itemStyle={{ height: 70, color: COLORS.PRIMARY }}
+              itemStyle={{ height: 70, color: Colors.Primary }}
               selectedValue={this.state.bookDuration}
               onValueChange={(itemValue) => this.setState({ bookDuration: itemValue })}
             >
@@ -290,23 +291,16 @@ BookingPage.propTypes = {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    backgroundColor: COLORS.WHITE,
-  },
   trainerName: {
     fontSize: 30,
-    color: COLORS.WHITE,
+    color: Colors.White,
     fontWeight: '500',
     textAlign: 'center',
   },
   nameContainer: {
     flex: 1,
     width: '100%',
-    backgroundColor: COLORS.PRIMARY,
+    backgroundColor: Colors.Primary,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -315,7 +309,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '500',
     textAlign: 'center',
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
     marginBottom: 15,
   },
   formContainer: {
@@ -335,23 +329,23 @@ const styles = StyleSheet.create({
     height: 200,
     width: '100%',
     borderWidth: 1,
-    borderColor: COLORS.PRIMARY,
+    borderColor: Colors.Primary,
   },
   picker: {
     height: 70,
     width: '100%',
     borderWidth: 1,
-    borderColor: COLORS.PRIMARY,
+    borderColor: Colors.Primary,
   },
   bookButton: {
     paddingVertical: 15,
-    backgroundColor: COLORS.SECONDARY,
+    backgroundColor: Colors.Secondary,
     width: '80%',
     borderRadius: 5,
   },
   buttonText: {
     textAlign: 'center',
-    color: COLORS.WHITE,
+    color: Colors.White,
     fontSize: 20,
     fontWeight: '700',
   },

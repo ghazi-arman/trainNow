@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { FontAwesome } from '@expo/vector-icons';
-import COLORS from './Colors';
+import Colors from './Colors';
 
 const TextField = (props) => (
   <View style={props.rowStyle}>
@@ -34,12 +34,12 @@ const styles = StyleSheet.create({
     borderWidth: 0,
     backgroundColor: 'transparent',
     borderBottomWidth: 1,
-    borderColor: COLORS.PRIMARY,
+    borderColor: Colors.Primary,
     width: '85%',
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
   },
   icon: {
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
     fontSize: 30,
     marginRight: 10,
     marginTop: 13,
@@ -79,7 +79,7 @@ TextField.defaultProps = {
   style: styles.input,
   iconStyle: styles.icon,
   secure: false,
-  color: COLORS.PRIMARY,
+  color: Colors.Primary,
   autoCorrect: false,
   keyboard: 'default',
   returnKeyType: 'done',

@@ -15,13 +15,14 @@ import MapView from 'react-native-maps';
 import PropTypes from 'prop-types';
 import bugsnag from '@bugsnag/expo';
 import { Actions } from 'react-native-router-flux';
-import COLORS from '../components/Colors';
+import Colors from '../components/Colors';
 import {
   loadGym, renderStars, dateToString, joinGroupSession, loadUser,
 } from '../components/Functions';
 import Constants from '../components/Constants';
 import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
+import MasterStyles from '../components/MasterStyles';
 
 const markerImg = require('../images/marker.png');
 const profileImg = require('../images/profile.png');
@@ -372,7 +373,7 @@ export default class GymPage extends Component {
       );
     }
     return (
-      <View style={styles.container}>
+      <View style={MasterStyles.centeredContainer}>
         <View style={styles.nameContainer}>
           <BackButton />
           <Text style={styles.gymName}>{this.state.gym.name}</Text>
@@ -400,22 +401,15 @@ GymPage.propTypes = {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: COLORS.WHITE,
-  },
   gymName: {
     fontSize: 30,
-    color: COLORS.WHITE,
+    color: Colors.White,
     fontWeight: '500',
     textAlign: 'center',
   },
   subTitle: {
     fontSize: 30,
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
     fontWeight: '500',
     textAlign: 'center',
     margin: 10,
@@ -423,7 +417,7 @@ const styles = StyleSheet.create({
   nameContainer: {
     flex: 2,
     width: '100%',
-    backgroundColor: COLORS.PRIMARY,
+    backgroundColor: Colors.Primary,
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
@@ -445,7 +439,7 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   trainerContainer: {
-    backgroundColor: COLORS.WHITE,
+    backgroundColor: Colors.White,
     width: '95%',
     minHeight: 100,
     flexDirection: 'column',
@@ -453,7 +447,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 5,
     borderWidth: 1,
-    borderColor: COLORS.PRIMARY,
+    borderColor: Colors.Primary,
     marginTop: 10,
     shadowColor: '#000',
     shadowOffset: {
@@ -484,7 +478,7 @@ const styles = StyleSheet.create({
   info: {
     fontSize: 16,
     fontWeight: '500',
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
     margin: 5,
   },
   buttonRow: {
@@ -528,28 +522,28 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 22,
     fontWeight: '600',
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
   },
   rate: {
     fontSize: 16,
     fontWeight: '500',
-    color: COLORS.WHITE,
+    color: Colors.White,
   },
   smallText: {
     fontSize: 20,
-    color: COLORS.WHITE,
+    color: Colors.White,
     fontWeight: '400',
     marginTop: 5,
   },
   toggledButton: {
-    backgroundColor: COLORS.SECONDARY,
+    backgroundColor: Colors.Secondary,
   },
   menuTab: {
     width: '50%',
     padding: 5,
-    backgroundColor: COLORS.PRIMARY,
+    backgroundColor: Colors.Primary,
     borderWidth: 1,
-    borderColor: COLORS.WHITE,
+    borderColor: Colors.White,
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
@@ -558,7 +552,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     width: '40%',
     height: 48,
-    backgroundColor: COLORS.SECONDARY,
+    backgroundColor: Colors.Secondary,
     flexDirection: 'column',
     justifyContent: 'center',
     margin: 10,
@@ -567,7 +561,7 @@ const styles = StyleSheet.create({
   fullButtonContainer: {
     width: '80%',
     height: 48,
-    backgroundColor: COLORS.SECONDARY,
+    backgroundColor: Colors.Secondary,
     flexDirection: 'column',
     justifyContent: 'center',
     margin: 10,
@@ -575,17 +569,17 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     textAlign: 'center',
-    color: COLORS.WHITE,
+    color: Colors.White,
     fontWeight: '700',
   },
   active: {
-    color: COLORS.SECONDARY,
+    color: Colors.Secondary,
   },
   away: {
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
   },
   icon: {
-    color: COLORS.SECONDARY,
+    color: Colors.Secondary,
     fontSize: 15,
   },
 });

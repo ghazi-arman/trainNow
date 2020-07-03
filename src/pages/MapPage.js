@@ -11,7 +11,7 @@ import Drawer from 'react-native-drawer';
 import bugsnag from '@bugsnag/expo';
 import SideMenu from '../components/SideMenu';
 import ManagedSideMenu from '../components/ManagedSideMenu';
-import COLORS from '../components/Colors';
+import Colors from '../components/Colors';
 import {
   loadUser,
   getLocation,
@@ -26,6 +26,7 @@ import {
 } from '../components/Functions';
 import Constants from '../components/Constants';
 import LoadingWheel from '../components/LoadingWheel';
+import MasterStyles from '../components/MasterStyles';
 
 const markerImg = require('../images/marker.png');
 
@@ -39,6 +40,7 @@ export default class MapPage extends Component {
       currentSession: null,
       unread: false,
       menuOpen: false,
+      alertPresent: false,
     };
     this.bugsnagClient = bugsnag();
   }
@@ -112,7 +114,8 @@ export default class MapPage extends Component {
       return <LoadingWheel />;
     }
 
-    if (this.state.unread) {
+    if (this.state.unread && !this.state.alertPresent) {
+      this.state.alertPresent = true;
       Alert.alert(
         `Hello ${this.state.user.name}`,
         'You have a new session!',
@@ -167,7 +170,7 @@ export default class MapPage extends Component {
         tapToClose
         onClose={() => this.setState({ menuOpen: false })}
       >
-        <View style={styles.container}>
+        <View style={MasterStyles.flexStartContainer}>
           <MapView
             ref={(mapView) => { this.map = mapView; }}
             style={styles.map}
@@ -202,13 +205,6 @@ export default class MapPage extends Component {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-  },
   map: {
     height: '100%',
     width: '100%',
@@ -221,14 +217,14 @@ const styles = StyleSheet.create({
     height: 60,
   },
   menuIcon: {
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
   },
   buttonContainer: {
     position: 'absolute',
     top: 30,
     width: '40%',
     height: 48,
-    backgroundColor: COLORS.SECONDARY,
+    backgroundColor: Colors.Secondary,
     flexDirection: 'column',
     justifyContent: 'center',
     margin: 10,
@@ -236,7 +232,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     textAlign: 'center',
-    color: COLORS.WHITE,
+    color: Colors.White,
     fontWeight: '700',
     fontSize: 16,
   },

@@ -6,7 +6,7 @@ import { Agenda } from 'react-native-calendars';
 import bugsnag from '@bugsnag/expo';
 import PropTypes from 'prop-types';
 import { Actions } from 'react-native-router-flux';
-import COLORS from '../components/Colors';
+import Colors from '../components/Colors';
 import {
   dateToString,
   loadAcceptedSchedule,
@@ -16,6 +16,7 @@ import {
 } from '../components/Functions';
 import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
+import MasterStyles from '../components/MasterStyles';
 
 export default class SchedulePage extends Component {
   constructor(props) {
@@ -71,7 +72,7 @@ export default class SchedulePage extends Component {
     }
     const events = this.renderAgendaEvents();
     return (
-      <View style={styles.container}>
+      <View style={MasterStyles.flexStartContainer}>
         <View style={styles.nameContainer}>
           <BackButton />
           <Text style={styles.trainerName}>
@@ -101,23 +102,16 @@ SchedulePage.propTypes = {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    backgroundColor: COLORS.WHITE,
-  },
   trainerName: {
     fontSize: 30,
-    color: COLORS.WHITE,
+    color: Colors.White,
     fontWeight: '500',
     textAlign: 'center',
   },
   nameContainer: {
     flex: 1,
     width: '100%',
-    backgroundColor: COLORS.PRIMARY,
+    backgroundColor: Colors.Primary,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -133,7 +127,7 @@ const styles = StyleSheet.create({
   agendaItem: {
     height: 100,
     width: '90%',
-    backgroundColor: COLORS.SECONDARY,
+    backgroundColor: Colors.Secondary,
     textAlign: 'left',
     flexDirection: 'column',
     justifyContent: 'space-around',
@@ -141,12 +135,12 @@ const styles = StyleSheet.create({
     margin: 10,
   },
   agendaItemHeader: {
-    color: COLORS.WHITE,
+    color: Colors.White,
     fontSize: 20,
     fontWeight: '300',
   },
   agendaItemText: {
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
     fontSize: 15,
   },
 });

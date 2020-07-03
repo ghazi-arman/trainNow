@@ -22,10 +22,11 @@ import {
   cancelGroupSession,
   leaveGroupSession,
 } from '../components/Functions';
-import COLORS from '../components/Colors';
+import Colors from '../components/Colors';
 import Constants from '../components/Constants';
 import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
+import MasterStyles from '../components/MasterStyles';
 
 
 export default class CalendarPage extends Component {
@@ -388,7 +389,7 @@ export default class CalendarPage extends Component {
           }}
           >
             <TouchableOpacity
-              style={[styles.scheduleButton, { backgroundColor: COLORS.PRIMARY }]}
+              style={[styles.scheduleButton, { backgroundColor: Colors.Primary }]}
               onPress={() => Actions.GroupSessionPage({ session: session.key })}
             >
               <Text style={styles.buttonText}>Enter Session</Text>
@@ -598,9 +599,9 @@ export default class CalendarPage extends Component {
       </View>
     );
     return (
-      <View style={styles.container}>
+      <View style={MasterStyles.flexStartContainer}>
         <View style={styles.headerContainer}>
-          <BackButton />
+          <BackButton onPress={Actions.MapPage} />
           <Text style={styles.title}> Calendar </Text>
         </View>
         {navBar}
@@ -611,13 +612,6 @@ export default class CalendarPage extends Component {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.WHITE,
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-  },
   sessionContainer: {
     flex: 7,
     width: '100%',
@@ -640,7 +634,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 35,
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
     fontWeight: '700',
     textAlign: 'center',
   },
@@ -653,24 +647,24 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     width: '50%',
-    backgroundColor: COLORS.PRIMARY,
+    backgroundColor: Colors.Primary,
     borderWidth: 1,
-    borderColor: COLORS.SECONDARY,
+    borderColor: Colors.Secondary,
   },
   inactiveTab: {
     width: '50%',
-    backgroundColor: COLORS.WHITE,
+    backgroundColor: Colors.White,
     borderWidth: 1,
-    borderColor: COLORS.SECONDARY,
+    borderColor: Colors.Secondary,
   },
   navText: {
     fontSize: 25,
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
     textAlign: 'center',
   },
   activeText: {
     fontSize: 25,
-    color: COLORS.WHITE,
+    color: Colors.White,
     textAlign: 'center',
   },
   trainerView: {
@@ -686,7 +680,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
   },
   rateView: {
     width: '20%',
@@ -697,14 +691,14 @@ const styles = StyleSheet.create({
     width: 100,
     padding: 10,
     height: 48,
-    backgroundColor: COLORS.SECONDARY,
+    backgroundColor: Colors.Secondary,
     flexDirection: 'column',
     justifyContent: 'center',
   },
   activeButton: {
     borderRadius: 5,
     padding: 15,
-    backgroundColor: COLORS.SECONDARY,
+    backgroundColor: Colors.Secondary,
     flexDirection: 'column',
     justifyContent: 'center',
     marginTop: 20,
@@ -713,7 +707,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     padding: 15,
     width: '80%',
-    backgroundColor: COLORS.SECONDARY,
+    backgroundColor: Colors.Secondary,
     flexDirection: 'column',
     justifyContent: 'center',
     marginTop: 15,
@@ -723,19 +717,19 @@ const styles = StyleSheet.create({
     width: 100,
     padding: 10,
     height: 48,
-    backgroundColor: COLORS.RED,
+    backgroundColor: Colors.Red,
     flexDirection: 'column',
     justifyContent: 'center',
   },
   buttonText: {
     textAlign: 'center',
-    color: COLORS.WHITE,
+    color: Colors.White,
     fontWeight: '700',
     fontSize: 20,
   },
   statusText: {
     textAlign: 'center',
-    color: COLORS.SECONDARY,
+    color: Colors.Secondary,
     fontWeight: '700',
     fontSize: 25,
     marginTop: 20,

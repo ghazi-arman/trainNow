@@ -17,10 +17,11 @@ import firebase from 'firebase';
 import { FontAwesome } from '@expo/vector-icons';
 import bugsnag from '@bugsnag/expo';
 import { STRIPE_KEY, FB_URL } from 'react-native-dotenv';
-import COLORS from '../components/Colors';
+import Colors from '../components/Colors';
 import TextField from '../components/TextField';
 import Constants from '../components/Constants';
 import LoadingWheel from '../components/LoadingWheel';
+import MasterStyles from '../components/MasterStyles';
 
 const stripe = require('stripe-client')(STRIPE_KEY);
 const defaultProfilePic = require('../images/profile.png');
@@ -481,8 +482,8 @@ export default class SignupForm extends Component {
           <View style={styles.inputRow}>
             <Text style={styles.hints}>Are you signing up as a trainer? </Text>
             <Switch
-              trackColor={COLORS.PRIMARY}
-              _thumbColor={COLORS.SECONDARY}
+              trackColor={Colors.Primary}
+              _thumbColor={Colors.Secondary}
               value={this.state.trainer}
               onValueChange={(trainer) => this.setState({ trainer })}
             />
@@ -505,7 +506,7 @@ export default class SignupForm extends Component {
             </Text>
             <Picker
               style={styles.picker}
-              itemStyle={{ height: 45, color: COLORS.PRIMARY }}
+              itemStyle={{ height: 45, color: Colors.Primary }}
               selectedValue={this.state.gym}
               onValueChange={(itemValue) => this.setState({ gym: itemValue })}
             >
@@ -636,7 +637,7 @@ export default class SignupForm extends Component {
     }
 
     return (
-      <View style={styles.formContainer}>
+      <View style={MasterStyles.centeredContainer}>
         {page1}
         {page2}
         {page3}
@@ -653,12 +654,6 @@ export default class SignupForm extends Component {
 }
 
 const styles = StyleSheet.create({
-  formContainer: {
-    height: '100%',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   container: {
     height: '80%',
     flexDirection: 'column',
@@ -675,11 +670,11 @@ const styles = StyleSheet.create({
   picker: {
     height: 45,
     borderWidth: 1,
-    borderColor: COLORS.PRIMARY,
+    borderColor: Colors.Primary,
     width: '90%',
   },
   buttonContainer: {
-    backgroundColor: COLORS.SECONDARY,
+    backgroundColor: Colors.Secondary,
     paddingVertical: 15,
     width: '40%',
     borderRadius: 5,
@@ -693,7 +688,7 @@ const styles = StyleSheet.create({
   },
   pictureButton: {
     padding: 10,
-    backgroundColor: COLORS.PRIMARY,
+    backgroundColor: Colors.Primary,
     height: 50,
     flexDirection: 'column',
     justifyContent: 'center',
@@ -710,7 +705,7 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 20,
     textAlign: 'center',
-    color: COLORS.WHITE,
+    color: Colors.White,
     fontWeight: '700',
   },
   imageContainer: {
@@ -725,26 +720,26 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
-    borderColor: COLORS.PRIMARY,
+    borderColor: Colors.Primary,
     marginBottom: 10,
   },
   icon: {
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
     fontSize: 30,
     marginRight: 10,
     marginTop: 13,
   },
   hints: {
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
     marginBottom: 10,
     marginRight: 10,
   },
   agreement: {
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
     textAlign: 'center',
   },
   link: {
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
     textAlign: 'center',
     textDecorationLine: 'underline',
   },

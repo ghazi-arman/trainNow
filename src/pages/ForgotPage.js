@@ -4,13 +4,14 @@ import {
 } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import ForgotForm from '../forms/ForgotForm';
-import COLORS from '../components/Colors';
+import Colors from '../components/Colors';
+import MasterStyles from '../components/MasterStyles';
 
 const logo = require('../images/logo.png');
 
 export default function ForgotPage() {
   return (
-    <KeyboardAvoidingView behavior="padding" style={styles.container}>
+    <KeyboardAvoidingView behavior="padding" style={MasterStyles.spacedContainer}>
       <View style={styles.logoContainer}>
         <Image style={styles.logo} source={logo} />
       </View>
@@ -29,13 +30,6 @@ export default function ForgotPage() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    backgroundColor: COLORS.WHITE,
-  },
   logoContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -65,7 +59,7 @@ const styles = StyleSheet.create({
     height: '20%',
   },
   linkText: {
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
     fontSize: 16,
     fontWeight: '500',
   },

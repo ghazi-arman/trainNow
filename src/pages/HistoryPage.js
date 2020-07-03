@@ -14,13 +14,14 @@ import { FontAwesome } from '@expo/vector-icons';
 import Modal from 'react-native-modal';
 import { Actions } from 'react-native-router-flux';
 import bugsnag from '@bugsnag/expo';
-import COLORS from '../components/Colors';
+import Colors from '../components/Colors';
 import {
   loadSessions, renderStars, reportSession, timeToString,
 } from '../components/Functions';
 import Constants from '../components/Constants';
 import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
+import MasterStyles from '../components/MasterStyles';
 
 export default class HistoryPage extends Component {
   constructor(props) {
@@ -180,10 +181,10 @@ export default class HistoryPage extends Component {
       return <LoadingWheel />;
     }
     return (
-      <View style={styles.container}>
+      <View style={MasterStyles.flexStartContainer}>
         <View style={styles.nameContainer}>
           <BackButton />
-          <Text style={styles.header}>Trainer History</Text>
+          <Text style={styles.header}>Past Sessions</Text>
         </View>
         <View style={styles.historyContainer}>
           <ScrollView contentContainerStyle={styles.center} showsVerticalScrollIndicator={false}>
@@ -204,7 +205,7 @@ export default class HistoryPage extends Component {
               style={styles.input}
               returnKeyType="done"
               multiline
-              placeholderTextColor={COLORS.PRIMARY}
+              placeholderTextColor={Colors.Primary}
               onChangeText={(report) => this.setState({ report })}
               value={this.state.report}
             />
@@ -223,32 +224,24 @@ export default class HistoryPage extends Component {
 
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    width: '100%',
-    backgroundColor: COLORS.WHITE,
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-  },
   reportModal: {
     flex: 0.6,
     flexDirection: 'column',
     justifyContent: 'space-around',
     alignItems: 'center',
-    backgroundColor: COLORS.WHITE,
+    backgroundColor: Colors.White,
     borderRadius: 10,
   },
   nameContainer: {
-    height: '10%',
+    flex: 1,
     width: '100%',
     flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'flex-end',
+    alignItems: 'center',
   },
   historyContainer: {
+    flex: 6,
     width: '100%',
-    height: '80%',
     flexDirection: 'column',
     justifyContent: 'flex-start',
     alignItems: 'center',
@@ -261,7 +254,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 5,
     borderWidth: 1,
-    borderColor: COLORS.PRIMARY,
+    borderColor: Colors.Primary,
     marginTop: 20,
     padding: 10,
   },
@@ -280,26 +273,26 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 30,
     fontWeight: '700',
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
   },
   titleText: {
     textAlign: 'center',
     fontSize: 25,
     fontWeight: '600',
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
   },
   smallText: {
     fontSize: 20,
     fontWeight: '400',
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
   },
   timeText: {
     fontSize: 15,
     fontWeight: '400',
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
   },
   icon: {
-    color: COLORS.SECONDARY,
+    color: Colors.Secondary,
     fontSize: 15,
   },
   closeButton: {
@@ -307,7 +300,7 @@ const styles = StyleSheet.create({
     top: 0,
     right: 0,
     fontSize: 35,
-    color: COLORS.RED,
+    color: Colors.Red,
   },
   buttonText: {
     fontSize: 20,
@@ -317,14 +310,14 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     borderRadius: 5,
-    backgroundColor: COLORS.SECONDARY,
+    backgroundColor: Colors.Secondary,
     padding: 15,
     flexDirection: 'column',
     justifyContent: 'center',
   },
   submitButton: {
     borderRadius: 5,
-    backgroundColor: COLORS.SECONDARY,
+    backgroundColor: Colors.Secondary,
     paddingVertical: 15,
     width: '80%',
   },
@@ -333,7 +326,7 @@ const styles = StyleSheet.create({
     width: '80%',
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: COLORS.PRIMARY,
-    color: COLORS.PRIMARY,
+    borderColor: Colors.Primary,
+    color: Colors.Primary,
   },
 });

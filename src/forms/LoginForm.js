@@ -5,10 +5,11 @@ import {
 import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
 import bugsnag from '@bugsnag/expo';
-import COLORS from '../components/Colors';
+import Colors from '../components/Colors';
 import Constants from '../components/Constants';
 import TextField from '../components/TextField';
 import LoadingWheel from '../components/LoadingWheel';
+import MasterStyles from '../components/MasterStyles';
 
 export default class LoginForm extends Component {
   constructor(props) {
@@ -98,7 +99,7 @@ export default class LoginForm extends Component {
     }
 
     return (
-      <View style={styles.formContainer}>
+      <View style={MasterStyles.centeredContainer}>
         <TextField
           icon="user"
           placeholder="Email"
@@ -124,14 +125,8 @@ export default class LoginForm extends Component {
 }
 
 const styles = StyleSheet.create({
-  formContainer: {
-    width: '100%',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   buttonContainer: {
-    backgroundColor: COLORS.SECONDARY,
+    backgroundColor: Colors.Secondary,
     paddingVertical: 15,
     marginTop: 20,
     borderRadius: 5,
@@ -140,7 +135,7 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 20,
     textAlign: 'center',
-    color: COLORS.WHITE,
+    color: Colors.White,
     fontWeight: '700',
   },
 });

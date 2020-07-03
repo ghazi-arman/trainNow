@@ -6,7 +6,7 @@ import firebase from 'firebase';
 import { FontAwesome } from '@expo/vector-icons';
 import { Actions } from 'react-native-router-flux';
 import bugsnag from '@bugsnag/expo';
-import COLORS from '../components/Colors';
+import Colors from '../components/Colors';
 import {
   loadRecentClients,
   loadUser,
@@ -18,6 +18,7 @@ import {
 import Constants from '../components/Constants';
 import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
+import MasterStyles from '../components/MasterStyles';
 
 export default class ClientPage extends Component {
   constructor(props) {
@@ -305,7 +306,7 @@ export default class ClientPage extends Component {
       );
     }
     return (
-      <View style={styles.container}>
+      <View style={MasterStyles.flexStartContainer}>
         <View style={styles.nameContainer}>
           <BackButton />
           <Text style={styles.title}>Trainers</Text>
@@ -318,16 +319,9 @@ export default class ClientPage extends Component {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.WHITE,
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-  },
   title: {
     fontSize: 34,
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
     fontWeight: '700',
   },
   nameContainer: {
@@ -348,27 +342,27 @@ const styles = StyleSheet.create({
   activeTab: {
     width: '33%',
     paddingVertical: 20,
-    backgroundColor: COLORS.PRIMARY,
+    backgroundColor: Colors.Primary,
     borderWidth: 1,
-    borderColor: COLORS.SECONDARY,
+    borderColor: Colors.Secondary,
   },
   inactiveTab: {
     width: '33%',
     paddingVertical: 20,
-    backgroundColor: COLORS.WHITE,
+    backgroundColor: Colors.White,
     borderWidth: 1,
-    borderColor: COLORS.SECONDARY,
+    borderColor: Colors.Secondary,
   },
   navText: {
     fontSize: 23,
     fontWeight: '600',
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
     textAlign: 'center',
   },
   activeText: {
     fontSize: 23,
     fontWeight: '600',
-    color: COLORS.WHITE,
+    color: Colors.White,
     textAlign: 'center',
   },
   centeredRow: {
@@ -388,12 +382,12 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 18,
-    color: COLORS.WHITE,
+    color: Colors.White,
     textAlign: 'center',
   },
   requestButton: {
     borderRadius: 5,
-    backgroundColor: COLORS.SECONDARY,
+    backgroundColor: Colors.Secondary,
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
@@ -401,7 +395,7 @@ const styles = StyleSheet.create({
   },
   denyButton: {
     borderRadius: 5,
-    backgroundColor: COLORS.RED,
+    backgroundColor: Colors.Red,
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
@@ -410,7 +404,7 @@ const styles = StyleSheet.create({
   },
   acceptButton: {
     borderRadius: 5,
-    backgroundColor: COLORS.SECONDARY,
+    backgroundColor: Colors.Secondary,
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
@@ -425,6 +419,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     width: '50%',
     textAlign: 'center',
-    color: COLORS.PRIMARY,
+    color: Colors.Primary,
   },
 });
