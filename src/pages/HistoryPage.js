@@ -41,8 +41,9 @@ export default class HistoryPage extends Component {
       this.bugsnagClient.notify(error);
       Alert.alert('There was an error loading the history page. Please try again later.');
       Actions.MapPage();
+    }
   }
-  
+
   hideReportModal = () => this.setState({ reportModal: false, report: '' });
 
   reportSession = async (session) => {

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 import {
   StyleSheet, Text, View, Image, KeyboardAvoidingView, TouchableOpacity,
 } from 'react-native';
@@ -9,27 +9,24 @@ import MasterStyles from '../components/MasterStyles';
 
 const logo = require('../images/logo.png');
 
-export default class ManagerSignupPage extends Component {
-
-  render() {
-    return (
-      <View style={MasterStyles.spacedContainer}>
-        <View style={styles.logoContainer}>
-          <Image style={styles.logo} source={logo} />
-        </View>
-        <KeyboardAvoidingView style={styles.formContainer} behavior="padding">
-          <ManagerSignupForm />
-        </KeyboardAvoidingView>
-        <View style={styles.linkContainer}>
-          <View style={styles.textContain}>
-            <TouchableOpacity onPressIn={Actions.LoginPage}>
-              <Text style={styles.linkText}>Have an Account?</Text>
-            </TouchableOpacity>
-          </View>
+export default function ManagerSignupPage() {
+  return (
+    <View style={MasterStyles.spacedContainer}>
+      <View style={styles.logoContainer}>
+        <Image style={styles.logo} source={logo} />
+      </View>
+      <KeyboardAvoidingView style={styles.formContainer} behavior="padding">
+        <ManagerSignupForm />
+      </KeyboardAvoidingView>
+      <View style={styles.linkContainer}>
+        <View style={styles.textContain}>
+          <TouchableOpacity onPressIn={Actions.LoginPage}>
+            <Text style={styles.linkText}>Have an Account?</Text>
+          </TouchableOpacity>
         </View>
       </View>
-    );
-  }
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
