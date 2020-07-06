@@ -4,4 +4,6 @@ export default {
   Secondary: '#1BD6A7',
   Green: '#1B5E20',
   Red: '#B71C1C',
+  Black: '#000',
+  Gray: '#d3d3d3',
 };

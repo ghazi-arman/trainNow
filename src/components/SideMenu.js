@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {
-  StyleSheet, Text, View, TouchableOpacity, Alert, Linking,
+  StyleSheet, Text, View, TouchableOpacity, Alert, Linking, Image,
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import firebase from 'firebase';
@@ -9,6 +9,7 @@ import Colors from './Colors';
 import Constants from './Constants';
 import { loadUser, renderStars } from './Functions';
 import LoadingWheel from './LoadingWheel';
+import defaultProfilePic from '../images/profile.png';
 
 export default class SideMenu extends Component {
   constructor(props) {
@@ -17,11 +18,16 @@ export default class SideMenu extends Component {
   }
 
   async componentDidMount() {
-    const user = await loadUser(firebase.auth().currentUser.uid);
-    this.setState({ user });
+    const userId = firebase.auth().currentUser.uid;
+    const user = await loadUser(userId);
+    try {
+      const image = await firebase.storage().ref().child(userId).getDownloadURL();
+      this.setState({ user, image });
+    } catch (error) {
+      this.setState({ user, image: Image.resolveAssetSource(defaultProfilePic).uri });
+    }
   }
 
-  // user log out confirm
   logout = () => {
     Alert.alert(
       'Are you sure you wish to sign out?',
@@ -43,97 +49,60 @@ export default class SideMenu extends Component {
   }
 
   render() {
-    if (!this.state.user) {
+    if (!this.state.user || !this.state.image) {
       return <LoadingWheel />;
-    }
-    let clientLink;
-    let active;
-    if (this.state.user.type === Constants.trainerType) {
-      clientLink = (
-        <TouchableOpacity onPress={Actions.ClientPage}>
-          <Text style={styles.icon}>
-            <FontAwesome name="users" size={30} />
-            {' '}
-            <Text style={styles.menuLink}> Clients</Text>
-          </Text>
-        </TouchableOpacity>
-      );
-      if (this.state.user.active) {
-        active = (<Text style={{ fontSize: 20, color: Colors.White }}>Active</Text>);
-      } else {
-        active = (<Text style={{ fontSize: 20, color: Colors.Red }}>Away</Text>);
-      }
-    } else {
-      clientLink = (
-        <TouchableOpacity onPress={Actions.TrainerPage}>
-          <Text style={styles.icon}>
-            <FontAwesome name="users" size={30} />
-            {' '}
-            <Text style={styles.menuLink}>Trainers</Text>
-          </Text>
-        </TouchableOpacity>
-      );
     }
 
     return (
       <View style={styles.container}>
         <View style={styles.nameContainer}>
-          <Text style={{ fontSize: 25, color: Colors.White }}>{this.state.user.name}</Text>
+          <Image style={styles.profilePicture} source={{ uri: this.state.image }} />
+          <Text style={styles.name}>{this.state.user.name}</Text>
           <Text style={styles.stars}>{renderStars(this.state.user.rating)}</Text>
-          {active}
         </View>
-        <TouchableOpacity onPress={Actions.MapPage}>
-          <Text style={styles.icon}>
-            <FontAwesome name="compass" size={30} />
-            {' '}
-            <Text style={styles.menuLink}>Map</Text>
+        <TouchableOpacity style={styles.menuRow} onPress={Actions.MapPage}>
+          <FontAwesome style={styles.icon} name="compass" color={Colors.Primary} size={30} />
+          <Text style={styles.menuLink}>Map</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.menuRow}
+          onPress={() => Actions.SettingsPage({ userType: this.state.user.type })}
+        >
+          <FontAwesome style={styles.icon} name="gear" color={Colors.Primary} size={30} />
+          <Text style={styles.menuLink}>Settings</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.menuRow} onPress={Actions.CalendarPage}>
+          <FontAwesome style={styles.icon} name="calendar" color={Colors.Primary} size={30} />
+          <Text style={styles.menuLink}>Calendar</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.menuRow} onPress={Actions.HistoryPage}>
+          <FontAwesome style={styles.icon} name="list" color={Colors.Primary} size={30} />
+          <Text style={styles.menuLink}>History</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.menuRow}
+          onPress={
+            this.state.user.type === Constants.trainerType
+              ? Actions.ClientPage
+              : Actions.TrainerPage
+          }
+        >
+          <FontAwesome style={styles.icon} name="users" color={Colors.Primary} size={30} />
+          <Text style={styles.menuLink}>
+            {this.state.user.type === Constants.trainerType ? 'Clients' : 'Trainers'}
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity>
-          <Text
-            style={styles.icon}
-            onPress={() => Actions.SettingsPage({ userType: this.state.user.type })}
-          >
-            <FontAwesome name="gear" size={30} />
-            {' '}
-            <Text style={styles.menuLink}>Settings</Text>
-          </Text>
+        <TouchableOpacity style={styles.menuRow} onPress={Actions.PaymentPage}>
+          <FontAwesome style={styles.icon} name="credit-card" color={Colors.Primary} size={30} />
+          <Text style={styles.menuLink}>Payments</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={Actions.CalendarPage}>
-          <Text style={styles.icon}>
-            <FontAwesome name="calendar" size={30} />
-            {' '}
-            <Text style={styles.menuLink}>Calendar</Text>
-          </Text>
+        <TouchableOpacity style={styles.menuRow} onPress={() => Linking.openURL(Constants.faqUrl)}>
+          <FontAwesome style={styles.icon} name="book" color={Colors.Primary} size={30} />
+          <Text style={styles.menuLink}>FAQ</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={Actions.HistoryPage}>
-          <Text style={styles.icon}>
-            <FontAwesome name="list" size={30} />
-            {' '}
-            <Text style={styles.menuLink}>History</Text>
-          </Text>
-        </TouchableOpacity>
-        {clientLink}
-        <TouchableOpacity onPress={Actions.PaymentPage}>
-          <Text style={styles.icon}>
-            <FontAwesome name="credit-card" size={30} />
-            {' '}
-            <Text style={styles.menuLink}>Payments</Text>
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => Linking.openURL(Constants.faqUrl)}>
-          <Text style={styles.icon}>
-            <FontAwesome name="book" size={30} />
-            {' '}
-            <Text style={styles.menuLink}>FAQ</Text>
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={this.logout}>
-          <Text style={styles.icon}>
-            <FontAwesome name="power-off" size={30} />
-            {' '}
-            <Text style={styles.menuLink}>Sign Out</Text>
-          </Text>
+        <TouchableOpacity style={styles.menuRow} onPress={this.logout}>
+          <FontAwesome style={styles.icon} name="power-off" color={Colors.Primary} size={30} />
+          <Text style={styles.menuLink}>Sign Out</Text>
         </TouchableOpacity>
       </View>
     );
@@ -153,22 +122,43 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.Secondary,
+    backgroundColor: Colors.White,
+    borderWidth: 0,
+    borderBottomWidth: 1,
+    borderColor: Colors.Gray,
     paddingBottom: 20,
     paddingTop: 40,
   },
-  icon: {
-    fontSize: 30,
-    color: Colors.Primary,
-    marginLeft: 10,
-    padding: 10,
+  menuRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    padding: 5,
+    marginLeft: 5,
+  },
+  profilePicture: {
+    height: 75,
+    width: 75,
+    borderRadius: 37,
+  },
+  name: {
+    color: Colors.Black,
+    fontWeight: '800',
+    fontSize: 25,
+    paddingVertical: 10,
   },
   menuLink: {
-    fontSize: 30,
+    fontSize: 15,
+    fontWeight: '600',
     color: Colors.Primary,
+    marginLeft: 10,
+  },
+  icon: {
+    width: 35,
+    height: 35,
   },
   stars: {
-    color: Colors.White,
+    color: Colors.Primary,
     fontSize: 15,
   },
 });

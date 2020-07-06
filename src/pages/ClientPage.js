@@ -309,7 +309,7 @@ export default class ClientPage extends Component {
       <View style={MasterStyles.flexStartContainer}>
         <View style={styles.nameContainer}>
           <BackButton />
-          <Text style={styles.title}>Trainers</Text>
+          <Text style={styles.title}>Clients</Text>
         </View>
         {navBar}
         {content}

@@ -91,6 +91,7 @@ export default class GroupSessionPage extends Component {
       description = (
         <Text style={styles.bookDetails}>
           You are hosting the
+          {' '}
           {this.state.session.name}
           {' '}
           class
