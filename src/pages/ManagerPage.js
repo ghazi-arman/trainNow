@@ -157,7 +157,7 @@ export default class ManagerPage extends Component {
       const trainer = this.state.gym.pendingtrainers[key];
       trainer.key = key;
       return (
-        <View key={trainer.name} style={styles.clientRow}>
+        <View key={trainer.name} style={styles.trainerRow}>
           <Text style={styles.nameText}>{trainer.name}</Text>
           <TouchableOpacity style={styles.denyButton} onPress={() => this.denyTrainer(key)}>
             <Text style={styles.buttonText}><FontAwesome name="close" size={18} /></Text>
@@ -178,7 +178,7 @@ export default class ManagerPage extends Component {
       const trainer = this.state.gym.trainers[key];
       trainer.key = key;
       return (
-        <View key={trainer.name} style={styles.clientRow}>
+        <View key={trainer.name} style={styles.trainerRow}>
           <Text style={styles.nameText}>
             {trainer.name}
             {' '}
@@ -389,13 +389,6 @@ ManagerPage.propTypes = {
 };
 
 const styles = StyleSheet.create({
-  trainerContainer: {
-    flex: 0.5,
-    width: '90%',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-  },
   title: {
     marginTop: 30,
     fontSize: 34,
@@ -408,34 +401,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-  },
-  navigationBar: {
-    width: '100%',
-    height: 100,
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    marginTop: 5,
-  },
-  activeTab: {
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '50%',
-    height: 60,
-    backgroundColor: Colors.Primary,
-    borderWidth: 1,
-    borderColor: Colors.Secondary,
-  },
-  inactiveTab: {
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '50%',
-    height: 60,
-    backgroundColor: Colors.White,
-    borderWidth: 1,
-    borderColor: Colors.Secondary,
   },
   navText: {
     fontSize: 25,
@@ -453,11 +418,11 @@ const styles = StyleSheet.create({
     color: Colors.White,
     textAlign: 'center',
   },
-  clientRow: {
+  trainerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    width: '100%',
+    width: '95%',
     marginTop: 10,
   },
   button: {

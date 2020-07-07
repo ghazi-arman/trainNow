@@ -100,46 +100,51 @@ export default class TrainerPage extends Component {
     }
   }
 
-  renderRequests = () => (
-    this.state.clientRequests.map((request) => (
-      <View key={request.trainer}>
-        <View style={styles.centeredRow}>
-          <Text style={styles.navText}>{request.trainerName}</Text>
+  renderRequests = () => {
+    if (!this.state.clientRequests || !this.state.clientRequests.length) {
+      return <Text style={styles.mediumText}>None</Text>;
+    }
+    return (
+      this.state.clientRequests.map((request) => (
+        <View key={request.trainer}>
+          <View style={styles.centeredRow}>
+            <Text style={styles.nameText}>{request.trainerName}</Text>
+          </View>
+          <View style={styles.centeredRow}>
+            <TouchableOpacity
+              style={styles.denyButton}
+              onPress={() => this.denyRequest(request.key, request.trainer)}
+            >
+              <Text style={styles.buttonText}>
+                <FontAwesome name="close" size={18} />
+                {' '}
+                Deny
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.acceptButton}
+              onPress={() => this.acceptRequest(
+                request.key,
+                request.trainer,
+                request.trainerName,
+                request.gym,
+              )}
+            >
+              <Text style={styles.buttonText}>
+                <FontAwesome name="check" size={18} />
+                {' '}
+                Accept
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
-        <View style={styles.centeredRow}>
-          <TouchableOpacity
-            style={styles.denyButton}
-            onPress={() => this.denyRequest(request.key, request.trainer)}
-          >
-            <Text style={styles.buttonText}>
-              <FontAwesome name="close" size={18} />
-              {' '}
-              Deny
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.acceptButton}
-            onPress={() => this.acceptRequest(
-              request.key,
-              request.trainer,
-              request.trainerName,
-              request.gym,
-            )}
-          >
-            <Text style={styles.buttonText}>
-              <FontAwesome name="check" size={18} />
-              {' '}
-              Accept
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    ))
-  )
+      ))
+    );
+  }
 
   renderTrainers = () => {
     if (!this.state.user.trainers) {
-      return null;
+      return <Text style={styles.mediumText}>None</Text>;
     }
     return Object.keys(this.state.user.trainers).map((key) => {
       const trainer = this.state.user.trainers[key];
@@ -168,16 +173,29 @@ export default class TrainerPage extends Component {
     });
   }
 
-  renderRecent = () => (
-    this.state.recentTrainers.map((trainer) => {
+  renderRecent = () => {
+    if (!this.state.recentTrainers || !this.state.recentTrainers.length) {
+      return <Text style={styles.mediumText}>None</Text>;
+    }
+
+    const recentTrainers = this.state.recentTrainers.filter((trainer) => {
       const clientRequests = this.state.clientRequests.filter(
         (request) => request.trainer === trainer.key,
       );
-      if (clientRequests.length > 0
-        || (this.state.user.trainers && this.state.user.trainers[trainer.key])) {
-        return null;
+      if (
+        clientRequests.length > 0
+        || (this.state.user.trainers && this.state.user.trainers[trainer.key])
+      ) {
+        return false;
       }
+      return true;
+    });
 
+    if (!recentTrainers || !recentTrainers.length) {
+      return <Text style={styles.mediumText}>None</Text>;
+    }
+
+    return recentTrainers.map((trainer) => {
       let button;
       if (this.state.user.requests && this.state.user.requests[trainer.key]) {
         button = (
@@ -209,8 +227,8 @@ export default class TrainerPage extends Component {
           {button}
         </View>
       );
-    })
-  )
+    });
+  }
 
   render() {
     if (
@@ -221,74 +239,21 @@ export default class TrainerPage extends Component {
     ) {
       return <LoadingWheel />;
     }
-    let navBar = null;
-    let content = null;
-    if (this.state.currentTab === 'requests') {
-      navBar = (
-        <View style={styles.navigationBar}>
-          <TouchableOpacity style={styles.activeTab} onPress={() => this.setState({ currentTab: 'requests' })}>
-            <Text style={styles.activeText}>Requests</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({ currentTab: 'recent' })}>
-            <Text style={styles.navText}>Recent</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({ currentTab: 'trainers' })}>
-            <Text style={styles.navText}>Trainers</Text>
-          </TouchableOpacity>
-        </View>
-      );
-      content = (
-        <ScrollView showsVerticalScrollIndicator={false}>
-          {this.renderRequests()}
-        </ScrollView>
-      );
-    } else if (this.state.currentTab === 'recent') {
-      navBar = (
-        <View style={styles.navigationBar}>
-          <TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({ currentTab: 'requests' })}>
-            <Text style={styles.navText}>Requests</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.activeTab} onPress={() => this.setState({ currentTab: 'recent' })}>
-            <Text style={styles.activeText}>Recent</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({ currentTab: 'trainers' })}>
-            <Text style={styles.navText}>Trainers</Text>
-          </TouchableOpacity>
-        </View>
-      );
-      content = (
-        <ScrollView showsVerticalScrollIndicator={false}>
-          {this.renderRecent()}
-        </ScrollView>
-      );
-    } else {
-      navBar = (
-        <View style={styles.navigationBar}>
-          <TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({ currentTab: 'requests' })}>
-            <Text style={styles.navText}>Requests</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.inactiveTab} onPress={() => this.setState({ currentTab: 'recent' })}>
-            <Text style={styles.navText}>Recent</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.activeTab} onPress={() => this.setState({ currentTab: 'trainers' })}>
-            <Text style={styles.activeText}>Trainers</Text>
-          </TouchableOpacity>
-        </View>
-      );
-      content = (
-        <ScrollView showsVerticalScrollIndicator={false}>
-          {this.renderTrainers()}
-        </ScrollView>
-      );
-    }
+
     return (
       <View style={MasterStyles.flexStartContainer}>
         <View style={styles.nameContainer}>
           <BackButton />
           <Text style={styles.title}>Trainers</Text>
         </View>
-        {navBar}
-        {content}
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <Text style={styles.subTitle}>Trainer Requests</Text>
+          {this.renderRequests()}
+          <Text style={styles.subTitle}>Recent Trainers</Text>
+          {this.renderRecent()}
+          <Text style={styles.subTitle}>Trainers</Text>
+          {this.renderTrainers()}
+        </ScrollView>
       </View>
     );
   }
@@ -296,17 +261,22 @@ export default class TrainerPage extends Component {
 
 const styles = StyleSheet.create({
   title: {
-    fontSize: 34,
+    fontSize: 35,
     color: Colors.Primary,
     fontWeight: '700',
   },
-  navigationBar: {
-    width: '100%',
-    height: 100,
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    marginTop: 5,
+  subTitle: {
+    fontSize: 25,
+    color: Colors.Primary,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginVertical: 5,
+  },
+  mediumText: {
+    fontSize: 25,
+    color: Colors.Primary,
+    textAlign: 'center',
+    marginBottom: 10,
   },
   nameContainer: {
     height: '10%',
@@ -314,32 +284,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'flex-end',
-  },
-  activeTab: {
-    width: '33%',
-    paddingVertical: 20,
-    backgroundColor: Colors.Primary,
-    borderWidth: 1,
-    borderColor: Colors.Secondary,
-  },
-  inactiveTab: {
-    width: '33%',
-    paddingVertical: 20,
-    backgroundColor: Colors.White,
-    borderWidth: 1,
-    borderColor: Colors.Secondary,
-  },
-  navText: {
-    fontSize: 23,
-    fontWeight: '600',
-    color: Colors.Primary,
-    textAlign: 'center',
-  },
-  activeText: {
-    fontSize: 23,
-    fontWeight: '600',
-    color: Colors.White,
-    textAlign: 'center',
   },
   centeredRow: {
     flexDirection: 'row',

@@ -261,7 +261,7 @@ export default class CalendarPage extends Component {
   renderUpcomingSessions = () => {
     const userKey = firebase.auth().currentUser.uid;
     if (!this.state.upcomingSessions.length && !this.state.groupSessions.length) {
-      return (<Text style={styles.navText}>None</Text>);
+      return <Text style={styles.mediumText}>None</Text>;
     }
 
     const upcomingSessions = this.state.upcomingSessions.map((session) => {
@@ -405,7 +405,7 @@ export default class CalendarPage extends Component {
   renderPendingSessions = () => {
     const userKey = firebase.auth().currentUser.uid;
     if (!this.state.pendingSessions.length) {
-      return (<Text style={styles.navText}>None</Text>);
+      return <Text style={styles.mediumText}>None</Text>;
     }
 
     return this.state.pendingSessions.map((session) => {
@@ -564,48 +564,25 @@ export default class CalendarPage extends Component {
         </TouchableOpacity>
       );
     }
-    const sessionHolder = this.state.currentTab === 'pending'
-      ? this.renderPendingSessions()
-      : this.renderUpcomingSessions();
-    const content = (
-      <View style={styles.sessionContainer}>
-        <ScrollView contentContainerStyle={styles.center} showsVerticalScrollIndicator={false}>
-          {sessionHolder}
-          {activeStatus}
-          {viewScheduleButton}
-          {addScheduleButton}
-          {groupSessionButton}
-        </ScrollView>
-      </View>
-    );
-    const pendingTabStyle = this.state.currentTab === 'pending' ? styles.activeTab : styles.inactiveTab;
-    const upcomingTabStyle = this.state.currentTab === 'accepted' ? styles.activeTab : styles.inactiveTab;
-    const pendingTabText = this.state.currentTab === 'pending' ? styles.activeText : styles.navText;
-    const upcomingTabText = this.state.currentTab === 'accepted' ? styles.activeText : styles.navText;
-    const navBar = (
-      <View style={styles.navigationBar}>
-        <TouchableOpacity
-          style={pendingTabStyle}
-          onPress={() => this.setState({ currentTab: 'pending' })}
-        >
-          <Text style={pendingTabText}>Awaiting Responses</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={upcomingTabStyle}
-          onPress={() => this.setState({ currentTab: 'accepted' })}
-        >
-          <Text style={upcomingTabText}>Upcoming Sessions</Text>
-        </TouchableOpacity>
-      </View>
-    );
+
     return (
       <View style={MasterStyles.flexStartContainer}>
         <View style={styles.headerContainer}>
           <BackButton onPress={Actions.MapPage} />
-          <Text style={styles.title}> Calendar </Text>
+          <Text style={styles.title}>Calendar</Text>
         </View>
-        {navBar}
-        {content}
+        <View style={styles.sessionContainer}>
+          <ScrollView contentContainerStyle={styles.center} showsVerticalScrollIndicator={false}>
+            <Text style={styles.subTitle}>Pending Sessions</Text>
+            {this.renderPendingSessions()}
+            <Text style={styles.subTitle}>Upcoming Sessions</Text>
+            {this.renderUpcomingSessions()}
+            {activeStatus}
+            {viewScheduleButton}
+            {addScheduleButton}
+            {groupSessionButton}
+          </ScrollView>
+        </View>
       </View>
     );
   }
@@ -638,34 +615,18 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textAlign: 'center',
   },
-  navigationBar: {
-    width: '100%',
-    height: 100,
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-  },
-  activeTab: {
-    width: '50%',
-    backgroundColor: Colors.Primary,
-    borderWidth: 1,
-    borderColor: Colors.Secondary,
-  },
-  inactiveTab: {
-    width: '50%',
-    backgroundColor: Colors.White,
-    borderWidth: 1,
-    borderColor: Colors.Secondary,
-  },
-  navText: {
+  mediumText: {
     fontSize: 25,
     color: Colors.Primary,
     textAlign: 'center',
+    marginBottom: 10,
   },
-  activeText: {
-    fontSize: 25,
-    color: Colors.White,
+  subTitle: {
+    fontSize: 30,
+    fontWeight: '700',
+    color: Colors.Primary,
     textAlign: 'center',
+    marginBottom: 10,
   },
   trainerView: {
     width: '33%',

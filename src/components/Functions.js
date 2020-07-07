@@ -955,12 +955,14 @@ export async function rateGroupSession(sessionKey, rating, userType) {
   session = await loadGroupSession(sessionKey);
   await firebase.database().ref(`/pastSessions/${userId}/${sessionKey}`).set({ session });
   let allRatingsCompleted = true;
-  Object.keys(session.clients).forEach((key) => {
-    const client = session.clients[key];
-    if (!client.rating) {
-      allRatingsCompleted = false;
-    }
-  });
+  if (session.clients) {
+    Object.keys(session.clients).forEach((key) => {
+      const client = session.clients[key];
+      if (!client.rating) {
+        allRatingsCompleted = false;
+      }
+    });
+  }
   if (allRatingsCompleted && session.trainerRating) {
     firebase.database().ref(`/groupSessions/${sessionKey}`).remove();
     firebase.database().ref(`/gyms/${session.gymKey}/groupSessions/${sessionKey}`).remove();

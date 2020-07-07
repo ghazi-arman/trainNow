@@ -116,10 +116,6 @@ export default class PaymentPage extends Component {
           onPress: async () => {
             try {
               const lastCard = this.state.cards.length === 1;
-              if (lastCard) {
-                Alert.alert('You can only remove your default card by deleting your account.');
-                return;
-              }
               await deleteCard(stripeId, cardId, lastCard);
               const cards = await loadCards(stripeId);
               this.setState({ cards });
@@ -285,7 +281,7 @@ export default class PaymentPage extends Component {
     return (
       <KeyboardAvoidingView behavior="padding" style={MasterStyles.flexStartContainer}>
         <View style={styles.nameContainer}>
-          <BackButton />
+          <BackButton onPress={Actions.MapPage} />
           <Text style={styles.title}>Payments</Text>
         </View>
         {balanceDiv}

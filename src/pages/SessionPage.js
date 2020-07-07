@@ -126,6 +126,7 @@ export default class SessionPage extends Component {
       description = (
         <Text style={styles.bookDetails}>
           You are training
+          {' '}
           {this.state.session.clientName}
           !
         </Text>

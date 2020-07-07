@@ -41,7 +41,7 @@ export default class ClientPage extends Component {
       } catch (error) {
         this.bugsnagClient.notify(error);
         Alert.alert('There was an error loading the client page. Please try again later');
-        this.goToMap();
+        Actions.MapPage();
       }
     }
   }
@@ -96,8 +96,8 @@ export default class ClientPage extends Component {
   }
 
   renderRequests = () => {
-    if (!this.state.trainerRequests || !Array.isArray(this.state.trainerRequests)) {
-      return null;
+    if (!this.state.trainerRequests || !this.state.trainerRequests.length) {
+      return <Text style={styles.mediumText}>None</Text>;
     }
     return this.state.trainerRequests.map((request) => (
       <View key={request.client}>
@@ -132,7 +132,7 @@ export default class ClientPage extends Component {
 
   renderClients = () => {
     if (!this.state.user.clients) {
-      return null;
+      return <Text style={styles.mediumText}>None</Text>;
     }
     return Object.keys(this.state.user.clients).map((key) => {
       const client = this.state.user.clients[key];
@@ -161,52 +161,62 @@ export default class ClientPage extends Component {
     });
   }
 
-  renderRecent = () => this.state.recentClients.map((client) => {
-    // if this client currently has requested the trainer or is already a regular client
-    if (
-      (Array.isArray(this.state.trainerRequests)
-      && this.state.trainerRequests.filter((request) => (request.client === client.key)).length > 0)
-      || (this.state.user.clients && this.state.user.clients[client.key])
-    ) {
-      return null;
+  renderRecent = () => {
+    if (!this.state.recentClients || !this.state.recentClients.length) {
+      return <Text style={styles.mediumText}>None</Text>;
     }
 
-    let button;
-    if (this.state.user.requests && this.state.user.requests[client.key]) {
-      button = (
-        <TouchableOpacity style={styles.requestButton} disabled>
-          <Text style={styles.buttonText}>
-            <FontAwesome name="hourglass" size={18} />
-            {' '}
-            Pending
-          </Text>
-        </TouchableOpacity>
+    const recentClients = this.state.recentClients.filter((client) => {
+      const trainerRequests = this.state.trainerRequests.filter(
+        (request) => request.client === client.key,
       );
-    } else {
-      button = (
-        <TouchableOpacity
-          style={styles.requestButton}
-          onPress={() => this.sendClientRequest(client.key)}
-        >
-          <Text style={styles.buttonText}>
-            <FontAwesome name="user-plus" size={18} />
-            {' '}
-            Add
-            {' '}
-          </Text>
-        </TouchableOpacity>
-      );
-    }
-    return (
-      <View key={client.key} style={styles.clientRow}>
-        <Text style={styles.nameText}>{client.name}</Text>
-        {button}
-      </View>
-    );
-  })
+      if (
+        trainerRequests.length > 0
+        || (this.state.user.clients && this.state.user.clients[client.key])
+      ) {
+        return false;
+      }
+      return true;
+    });
 
-  goToMap = () => {
-    Actions.MapPage();
+    if (!recentClients || !recentClients.length) {
+      return <Text style={styles.mediumText}>None</Text>;
+    }
+
+    return recentClients.map((client) => {
+      let button;
+      if (this.state.user.requests && this.state.user.requests[client.key]) {
+        button = (
+          <TouchableOpacity style={styles.requestButton} disabled>
+            <Text style={styles.buttonText}>
+              <FontAwesome name="hourglass" size={18} />
+              {' '}
+              Pending
+            </Text>
+          </TouchableOpacity>
+        );
+      } else {
+        button = (
+          <TouchableOpacity
+            style={styles.requestButton}
+            onPress={() => this.sendClientRequest(client.key)}
+          >
+            <Text style={styles.buttonText}>
+              <FontAwesome name="user-plus" size={18} />
+              {' '}
+              Add
+              {' '}
+            </Text>
+          </TouchableOpacity>
+        );
+      }
+      return (
+        <View key={client.key} style={styles.clientRow}>
+          <Text style={styles.nameText}>{client.name}</Text>
+          {button}
+        </View>
+      );
+    });
   }
 
   render() {
@@ -218,101 +228,20 @@ export default class ClientPage extends Component {
     ) {
       return <LoadingWheel />;
     }
-    let navBar;
-    let content;
-    if (this.state.currentTab === 'requests') {
-      navBar = (
-        <View style={styles.navigationBar}>
-          <TouchableOpacity
-            style={styles.activeTab}
-            onPress={() => this.setState({ currentTab: 'requests' })}
-          >
-            <Text style={styles.activeText}>Requests</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.inactiveTab}
-            onPress={() => this.setState({ currentTab: 'recent' })}
-          >
-            <Text style={styles.navText}>Recent</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.inactiveTab}
-            onPress={() => this.setState({ currentTab: 'clients' })}
-          >
-            <Text style={styles.navText}>Clients</Text>
-          </TouchableOpacity>
-        </View>
-      );
-      content = (
-        <ScrollView showsVerticalScrollIndicator={false}>
-          {this.renderRequests()}
-        </ScrollView>
-      );
-    } else if (this.state.currentTab === 'recent') {
-      navBar = (
-        <View style={styles.navigationBar}>
-          <TouchableOpacity
-            style={styles.inactiveTab}
-            onPress={() => this.setState({ currentTab: 'requests' })}
-          >
-            <Text style={styles.navText}>Requests</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.activeTab}
-            onPress={() => this.setState({ currentTab: 'recent' })}
-          >
-            <Text style={styles.activeText}>Recent</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.inactiveTab}
-            onPress={() => this.setState({ currentTab: 'clients' })}
-          >
-            <Text style={styles.navText}>Clients</Text>
-          </TouchableOpacity>
-        </View>
-      );
-      content = (
-        <ScrollView showsVerticalScrollIndicator={false}>
-          {this.renderRecent()}
-        </ScrollView>
-      );
-    } else {
-      navBar = (
-        <View style={styles.navigationBar}>
-          <TouchableOpacity
-            style={styles.inactiveTab}
-            onPress={() => this.setState({ currentTab: 'requests' })}
-          >
-            <Text style={styles.navText}>Requests</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.inactiveTab}
-            onPress={() => this.setState({ currentTab: 'recent' })}
-          >
-            <Text style={styles.navText}>Recent</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.activeTab}
-            onPress={() => this.setState({ currentTab: 'clients' })}
-          >
-            <Text style={styles.activeText}>Clients</Text>
-          </TouchableOpacity>
-        </View>
-      );
-      content = (
-        <ScrollView showsVerticalScrollIndicator={false}>
-          {this.renderClients()}
-        </ScrollView>
-      );
-    }
     return (
       <View style={MasterStyles.flexStartContainer}>
         <View style={styles.nameContainer}>
           <BackButton />
           <Text style={styles.title}>Clients</Text>
         </View>
-        {navBar}
-        {content}
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <Text style={styles.subTitle}>Client Requests</Text>
+          {this.renderRequests()}
+          <Text style={styles.subTitle}>Recent Clients</Text>
+          {this.renderRecent()}
+          <Text style={styles.subTitle}>Clients</Text>
+          {this.renderClients()}
+        </ScrollView>
       </View>
     );
   }
@@ -320,9 +249,22 @@ export default class ClientPage extends Component {
 
 const styles = StyleSheet.create({
   title: {
-    fontSize: 34,
+    fontSize: 35,
     color: Colors.Primary,
     fontWeight: '700',
+  },
+  subTitle: {
+    fontSize: 25,
+    color: Colors.Primary,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  mediumText: {
+    fontSize: 20,
+    color: Colors.Primary,
+    textAlign: 'center',
+    marginBottom: 10,
   },
   nameContainer: {
     height: '10%',
@@ -330,40 +272,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'flex-end',
-  },
-  navigationBar: {
-    width: '100%',
-    height: 100,
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    marginTop: 5,
-  },
-  activeTab: {
-    width: '33%',
-    paddingVertical: 20,
-    backgroundColor: Colors.Primary,
-    borderWidth: 1,
-    borderColor: Colors.Secondary,
-  },
-  inactiveTab: {
-    width: '33%',
-    paddingVertical: 20,
-    backgroundColor: Colors.White,
-    borderWidth: 1,
-    borderColor: Colors.Secondary,
-  },
-  navText: {
-    fontSize: 23,
-    fontWeight: '600',
-    color: Colors.Primary,
-    textAlign: 'center',
-  },
-  activeText: {
-    fontSize: 23,
-    fontWeight: '600',
-    color: Colors.White,
-    textAlign: 'center',
   },
   centeredRow: {
     flexDirection: 'row',
@@ -410,9 +318,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 15,
     margin: 5,
-  },
-  icon: {
-    fontSize: 15,
   },
   nameText: {
     fontSize: 18,

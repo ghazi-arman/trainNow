@@ -18,6 +18,7 @@ export default StyleSheet.create({
   },
   flexStartContainer: {
     flex: 1,
+    width: '100%',
     flexDirection: 'column',
     justifyContent: 'flex-start',
     alignItems: 'center',
