@@ -146,23 +146,27 @@ export default class ManagerSignupForm extends Component {
 
   goNext = async () => {
     if (this.state.page === 1) {
-      if (!this.state.name || !this.state.name.trim().length) {
+      if (!this.state.name.trim()) {
         Alert.alert('Please enter a name!');
         return;
       }
-      if (!this.state.email || !this.state.email.trim().length) {
+      if (this.state.name.trim().split(' ').length !== 2) {
+        Alert.alert('Please enter a first and last name (no middle name).');
+        return;
+      }
+      if (!this.state.email.trim()) {
         Alert.alert('Please enter an email!');
         return;
       }
-      if (!this.state.password || this.state.password.trim().length < 6) {
+      if (!this.state.password.trim() || this.state.password.trim().length < 6) {
         Alert.alert('Please enter a password at least 6 characters long!');
         return;
       }
-      if (!this.state.confirmPass || this.state.password !== this.state.confirmPass) {
+      if (this.state.password !== this.state.confirmPassword) {
         Alert.alert('Passwords must match!');
         return;
       }
-      if (!this.state.phone || this.state.phone.trim().length < 10) {
+      if (!this.state.phone.trim() || this.state.phone.trim().length < 10) {
         Alert.alert('Please enter a valid phone number');
       }
 
@@ -179,24 +183,28 @@ export default class ManagerSignupForm extends Component {
       }
       this.setState({ page: 2 });
     } else if (this.state.page === 2) {
-      if (!this.state.companyName.length) {
+      if (!this.state.companyName.trim()) {
         Alert.alert('Please enter a company name');
         return;
       }
-      if (!this.state.gymKey.length) {
+      if (!this.state.gymKey.trim()) {
         Alert.alert('Please enter a gym Key!');
         return;
       }
-      if (!this.state.ssn.length) {
+      if (!this.state.ssn.trim()) {
         Alert.alert('Please enter your Social Security Number!');
         return;
       }
-      if (!this.state.taxId.length) {
+      if (!this.state.taxId.trim()) {
         Alert.alert('Please enter your Company Tax ID!');
         return;
       }
-      if (!this.state.birthDay.length) {
-        Alert.alert('Please fill out your birthday!');
+      if (
+        !this.state.birthDay.trim()
+        || this.state.birthDay.trim().length < 8
+        || this.state.birthDay.trim().split('/').length !== 3
+      ) {
+        Alert.alert('Please enter a valid formatted birthday (mm/dd/yyyy)!');
         return;
       }
 
@@ -258,8 +266,8 @@ export default class ManagerSignupForm extends Component {
             icon="lock"
             placeholder="Confirm Password"
             secure
-            onChange={(confirmPass) => this.setState({ confirmPass })}
-            value={this.state.confirmPass}
+            onChange={(confirmPassword) => this.setState({ confirmPassword })}
+            value={this.state.confirmPassword}
           />
           <TextField
             icon="phone"

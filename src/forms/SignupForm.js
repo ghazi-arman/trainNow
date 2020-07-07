@@ -326,11 +326,15 @@ export default class SignupForm extends Component {
 
   goNext = async () => {
     if (this.state.page === 1) {
-      if (!this.state.name) {
+      if (!this.state.name.trim()) {
         Alert.alert('Please enter a name!');
         return;
       }
-      if (!this.state.email) {
+      if (this.state.name.trim().split(' ').length !== 2) {
+        Alert.alert('Please enter a first and last name (no middle name).');
+        return;
+      }
+      if (!this.state.email.trim()) {
         Alert.alert('Please enter an email!');
         return;
       }
@@ -338,11 +342,11 @@ export default class SignupForm extends Component {
         Alert.alert('Please enter a password at least 6 characters long!');
         return;
       }
-      if (!this.state.confirmPass || this.state.password !== this.state.confirmPass) {
+      if (this.state.password !== this.state.confirmPassword) {
         Alert.alert('Passwords must match!');
         return;
       }
-      if (!this.state.phone || this.state.phone.length < 10) {
+      if (!this.state.phone.trim() || this.state.phone.trim().length < 10) {
         Alert.alert('Please enter a valid phone number');
         return;
       }
@@ -368,11 +372,11 @@ export default class SignupForm extends Component {
         Alert.alert('Please select a gym!');
         return;
       }
-      if (!this.state.cert) {
+      if (!this.state.cert.trim()) {
         Alert.alert('Please enter your certifications!');
         return;
       }
-      if (!this.state.bio) {
+      if (!this.state.bio.trim()) {
         Alert.alert('Please fill out your bio!');
         return;
       }
@@ -383,30 +387,34 @@ export default class SignupForm extends Component {
           Alert.alert('Please enter your rate (has to be $25+)!');
           return;
         }
-        if (!this.state.ssn || this.state.ssn.length < 9) {
+        if (!this.state.ssn.trim() || this.state.ssn.trim().length < 9) {
           Alert.alert('Please enter a valid Social Security Number!');
           return;
         }
-        if (!this.state.birthDay || this.state.birthDay.length < 8) {
-          Alert.alert('Please enter a valid formatted birthday!');
+        if (
+          !this.state.birthDay.trim()
+          || this.state.birthDay.trim().length < 8
+          || this.state.birthDay.trim().split('/').length !== 3
+        ) {
+          Alert.alert('Please enter a valid formatted birthday (mm/dd/yyyy)!');
           return;
         }
         this.setState({ page: 3 });
       }
     } else {
-      if (!this.state.address) {
+      if (!this.state.address.trim()) {
         Alert.alert('Please enter an address!');
         return;
       }
-      if (!this.state.city) {
+      if (!this.state.city.trim()) {
         Alert.alert('Please enter a city!');
         return;
       }
-      if (!this.state.zip || this.state.zip.length !== 5) {
+      if (!this.state.zip.trim() || this.state.zip.trim().length !== 5) {
         Alert.alert('Please enter a valid 5 digit zip code!');
         return;
       }
-      if (!this.state.state || this.state.state.length !== 2) {
+      if (!this.state.state.trim() || this.state.state.trim().length !== 2) {
         Alert.alert('Please enter a valid state Abbreviation!');
         return;
       }
@@ -469,8 +477,8 @@ export default class SignupForm extends Component {
             icon="lock"
             placeholder="Confirm Password"
             secure
-            onChange={(confirmPass) => this.setState({ confirmPass })}
-            value={this.state.confirmPass}
+            onChange={(confirmPassword) => this.setState({ confirmPassword })}
+            value={this.state.confirmPassword}
           />
           <TextField
             icon="phone"

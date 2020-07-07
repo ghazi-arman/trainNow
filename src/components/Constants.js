@@ -6,8 +6,8 @@ export default {
   independentType: 'independent',
   groupSessionType: 'group',
   personalSessionType: 'personal',
-  newClientPercentage: 0.20,
-  regularClientPercentage: 0.1,
+  newClientPercentage: 0.15,
+  regularClientPercentage: 0.05,
   groupSessionPercentage: 0.15,
   faqUrl: 'https://trainnow.fit/faq',
 };
