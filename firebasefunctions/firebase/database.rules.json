@@ -6,7 +6,7 @@
         ".read": "auth.uid === $uid",
         "$field": {
           ".read": "($field === 'stripeId' && auth.uid === $uid) || root.child('users').child(auth.uid).exists()",
-        	".write": "auth.uid === $uid || $field === 'pendingschedule' || $field === 'schedule' || $field === 'rating' || $field === 'sessions' || $field === 'clients' || $field === 'trainers' || $field === 'requests' || root.child('users').child($uid).child('managerKey').val() === auth.uid"
+        	".write": "auth.uid === $uid || $field === 'pendingschedule' || $field === 'schedule' || $field === 'rating' || $field === 'sessions' || $field === 'clients' || $field === 'trainers' || $field === 'requests' || $field === 'sentRequests' || root.child('users').child($uid).child('managerKey').val() === auth.uid"
         }
       }
     },
@@ -27,32 +27,32 @@
     "pendingSessions": {
       ".read": "root.child('users').child(auth.uid).exists()",
       "$sessionKey": {
-        ".write": "(data.child('client').val() === auth.uid || data.child('trainer').val() === auth.uid || newData.child('client').val() == auth.uid || newData.child('trainer').val() == auth.uid) && (!newData.child('clientStripe').exists() || root.child('users').child(newData.child('client').val()).child('stripeId').val() === newData.child('clientStripe').val()) && (!newData.child('trainerStripe').exists() || root.child('users').child(newData.child('trainer').val()).child('stripeId').val() === newData.child('trainerStripe').val())",
+        ".write": "(data.child('clientKey').val() === auth.uid || data.child('trainerKey').val() === auth.uid || newData.child('clientKey').val() == auth.uid || newData.child('trainerKey').val() == auth.uid) && (!newData.child('clientStripe').exists() || root.child('users').child(newData.child('clientKey').val()).child('stripeId').val() === newData.child('clientStripe').val()) && (!newData.child('trainerStripe').exists() || root.child('users').child(newData.child('trainerKey').val()).child('stripeId').val() === newData.child('trainerStripe').val())",
         "$field": {
-        	".write": "($field === 'trainerStripe' && (root.child('users').child(newData.child('trainer').val()).child('stripeId').val() === newData.child('trainerStripe').val())) || ($field === 'clientStripe' && (root.child('users').child(newData.child('client').val()).child('stripeId').val() === newData.child('clientStripe').val())) || ($field === 'rate' && (!data.exists() || !newData.exists()))"
+        	".write": "($field === 'trainerStripe' && (root.child('users').child(newData.child('trainerKey').val()).child('stripeId').val() === newData.child('trainerStripe').val())) || ($field === 'clientStripe' && (root.child('users').child(newData.child('clientKey').val()).child('stripeId').val() === newData.child('clientStripe').val())) || ($field === 'rate' && (!data.exists() || !newData.exists()))"
         }
       },
-      ".indexOn": ["trainer", "client"]
+      ".indexOn": ["trainerKey", "clientKey"]
     },
     "trainSessions": {
       ".read": "root.child('users').child(auth.uid).exists()",
       "$sessionKey": {
-        ".write": "(data.child('client').val() === auth.uid || data.child('trainer').val() === auth.uid || newData.child('client').val() == auth.uid || newData.child('trainer').val() == auth.uid) && (!newData.child('clientStripe').exists() || root.child('users').child(newData.child('client').val()).child('stripeId').val() === newData.child('clientStripe').val()) && (!newData.child('trainerStripe').exists() || root.child('users').child(newData.child('trainer').val()).child('stripeId').val() === newData.child('trainerStripe').val())",
+        ".write": "(data.child('clientKey').val() === auth.uid || data.child('trainerKey').val() === auth.uid || newData.child('clientKey').val() == auth.uid || newData.child('trainerKey').val() == auth.uid) && (!newData.child('clientStripe').exists() || root.child('users').child(newData.child('clientKey').val()).child('stripeId').val() === newData.child('clientStripe').val()) && (!newData.child('trainerStripe').exists() || root.child('users').child(newData.child('trainerKey').val()).child('stripeId').val() === newData.child('trainerStripe').val())",
         "$field": {
-          ".write": "($field === 'rate' && (!data.exists() || !newData.exists())) || ($field === 'clientStripe' && (!data.exists() || !newData.exists()) && root.child('users').child(newData.child('client').val()).child('stripeId').val() === newData.child('clientStripe').val()) || (($field === 'clientReady' || $field === 'clientEnd') && root.child('trainSessions').child($sessionKey).child('client').val() === auth.uid) || ($field === 'trainerStripe' && (!data.exists() || !newData.exists()) && root.child('users').child(newData.child('trainer').val()).child('stripeId').val() === newData.child('trainerStripe').val()) || (($field === 'trainerReady' || $field === 'trainerEnd') && root.child('trainSessions').child($sessionKey).child('client').val() == auth.uid)"
+          ".write": "($field === 'rate' && (!data.exists() || !newData.exists())) || ($field === 'clientStripe' && (!data.exists() || !newData.exists()) && root.child('users').child(newData.child('clientKey').val()).child('stripeId').val() === newData.child('clientStripe').val()) || (($field === 'clientReady' || $field === 'clientEnd') && root.child('trainSessions').child($sessionKey).child('clientKey').val() === auth.uid) || ($field === 'trainerStripe' && (!data.exists() || !newData.exists()) && root.child('users').child(newData.child('trainerKey').val()).child('stripeId').val() === newData.child('trainerStripe').val()) || (($field === 'trainerReady' || $field === 'trainerEnd') && root.child('trainSessions').child($sessionKey).child('clientKey').val() == auth.uid)"
         }
       },
-      ".indexOn": ["trainer", "client"]
+      ".indexOn": ["trainerKey", "clientKey"]
     },
     "groupSessions": {
       ".read": "root.child('users').child(auth.uid).exists()",
       "$sessionKey": {
-        ".write": "(data.child('trainer').val() === auth.uid || newData.child('trainer').val() === auth.uid || data.child('clients').child(auth.uid).exists()) && (!newData.child('trainerStripe').exists() || root.child('users').child(newData.child('trainer').val()).child('stripeId').val() === newData.child('trainerStripe').val())",
+        ".write": "(data.child('trainerKey').val() === auth.uid || newData.child('trainerKey').val() === auth.uid || data.child('clients').child(auth.uid).exists()) && (!newData.child('trainerStripe').exists() || root.child('users').child(newData.child('trainerKey').val()).child('stripeId').val() === newData.child('trainerStripe').val())",
         "$field": {
-          ".write": "$field !== 'trainerStripe' || root.child('users').child(newData.child('trainer').val()).child('stripeId').val() === newData.child('trainerStripe').val()"
+          ".write": "$field !== 'trainerStripe' || root.child('users').child(newData.child('trainerKey').val()).child('stripeId').val() === newData.child('trainerStripe').val()"
         }
       },
-      ".indexOn": ["trainer", "client", "clientCount"]
+      ".indexOn": ["trainerKey", "clientCount"]
     },
     "pastSessions": {
       "$uid": {
@@ -61,7 +61,7 @@
         "$sessionKey": {
           "$session": {
             "$field": {
-        			".write": "($field === 'clientRating' && root.child('pastSessions').child($uid).child($sessionKey).child('session').child('client').val() === auth.uid) || ($field === 'trainerRating' && root.child('pastSessions').child($uid).child($sessionKey).child('session').child('trainer').val() === auth.uid)"
+        			".write": "($field === 'clientRating' && root.child('pastSessions').child($uid).child($sessionKey).child('session').child('clientKey').val() === auth.uid) || ($field === 'trainerRating' && root.child('pastSessions').child($uid).child($sessionKey).child('session').child('trainerKey').val() === auth.uid)"
             }  
           }
       	}
@@ -78,25 +78,7 @@
     "cancelSessions": {
     	".read": false,
       "$uid": {
-        ".write": "auth.uid === $uid",
-      }
-    },
-    "trainerRequests": {
-      ".read": "root.child('users').child(auth.uid).exists()",
-      "$uid": {
-      	".write": "auth.uid === $uid || (root.child('users').child(auth.uid).exists() && !data.exists())",
-        "$requestKey": {
-          ".write": "auth.uid === $uid || (root.child('users').child(auth.uid).exists() && !data.exists())"
-        }    
-      }
-    },
-    "clientRequests": {
-      ".read": "root.child('users').child(auth.uid).exists()",
-      "$uid": {
-      	".write": "auth.uid === $uid || (root.child('users').child(auth.uid).exists() && !data.exists())",
-        "$requestKey": {
-          ".write": "auth.uid === $uid || (root.child('users').child(auth.uid).exists() && !data.exists())"
-        }
+        ".write": "auth.uid === $uid"
       }
     }
   }

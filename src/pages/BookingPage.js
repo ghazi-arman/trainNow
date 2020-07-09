@@ -127,7 +127,7 @@ export default class BookingPage extends Component {
     const price = (this.state.trainer.rate * minutesTrained).toFixed(2);
     const { trainer } = this.state;
     const { client } = this.state;
-    const trainerIsRegular = (await firebase.database().ref(`/users/${client.key}/trainers/${trainer.key}`)
+    const trainerIsRegular = (await firebase.database().ref(`/users/${client.userKey}/trainers/${trainer.userKey}`)
       .once('value'))
       .val();
     const regular = trainerIsRegular !== null;

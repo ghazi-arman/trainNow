@@ -49,7 +49,7 @@ export default class HistoryPage extends Component {
   reportSession = async (session) => {
     this.hideReportModal();
     const userId = firebase.auth().currentUser.uid;
-    const reporter = (userId === session.client ? session.client : session.trainer);
+    const reporter = (userId === session.clientKey ? session.clientKey : session.trainerKey);
     reportSession(session, reporter, this.state.report);
     setTimeout(() => Alert.alert('Session Reported!'), 1000);
   }
@@ -71,7 +71,7 @@ export default class HistoryPage extends Component {
       let stars;
 
       if (session.type === Constants.personalSessionType) {
-        if (session.trainer !== firebase.auth().currentUser.uid) {
+        if (session.trainerKey !== firebase.auth().currentUser.uid) {
           rateView = (
             <View style={styles.sessionRow}>
               <Text style={styles.smallText}>
@@ -106,7 +106,7 @@ export default class HistoryPage extends Component {
           );
           stars = renderStars(session.trainerRating);
         }
-      } else if (session.trainer !== firebase.auth().currentUser.uid) {
+      } else if (session.trainerKey !== firebase.auth().currentUser.uid) {
         rateView = (
           <View style={styles.sessionRow}>
             <Text style={styles.smallText}>
@@ -148,10 +148,16 @@ export default class HistoryPage extends Component {
       return (
         <View style={styles.sessionContainer} key={session.key}>
           <View style={styles.sessionRow}>{client}</View>
-          <View style={styles.sessionRow}><Text style={styles.icon}>{stars}</Text></View>
-          <View style={styles.sessionRow}><Text style={styles.smallText}>{session.gym}</Text></View>
+          <View style={styles.sessionRow}>
+            <Text style={styles.icon}>{stars}</Text>
+          </View>
+          <View style={styles.sessionRow}>
+            <Text style={styles.smallText}>{session.gymName}</Text>
+          </View>
           {rateView}
-          <View style={styles.sessionRow}><Text style={styles.smallText}>{day}</Text></View>
+          <View style={styles.sessionRow}>
+            <Text style={styles.smallText}>{day}</Text>
+          </View>
           <View style={styles.sessionRow}>
             <Text style={styles.timeText}>
               {startDate}

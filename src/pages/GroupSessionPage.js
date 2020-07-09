@@ -87,7 +87,7 @@ export default class GroupSessionPage extends Component {
     let length;
     const user = firebase.auth().currentUser;
 
-    if (this.state.session.trainer === user.uid) {
+    if (this.state.session.trainerKey === user.uid) {
       description = (
         <Text style={styles.bookDetails}>
           You are hosting the
@@ -134,8 +134,8 @@ export default class GroupSessionPage extends Component {
         showsUserLocation
       >
         <MapView.Marker
-          ref={this.state.session.trainer}
-          key={this.state.session.trainer}
+          ref={this.state.session.trainerKey}
+          key={this.state.session.trainerKey}
           coordinate={this.state.session.location}
         />
       </MapView>
@@ -174,7 +174,7 @@ export default class GroupSessionPage extends Component {
         );
       }
 
-      if (this.state.session.trainer === firebase.auth().currentUser.uid) {
+      if (this.state.session.trainerKey === firebase.auth().currentUser.uid) {
         button = (
           <TouchableOpacity
             style={styles.buttonContainer}
@@ -200,7 +200,7 @@ export default class GroupSessionPage extends Component {
           min left
         </Text>
       );
-      if (this.state.session.trainer === firebase.auth().currentUser.uid) {
+      if (this.state.session.trainerKey === firebase.auth().currentUser.uid) {
         button = (
           <TouchableOpacity
             style={styles.buttonContainer}

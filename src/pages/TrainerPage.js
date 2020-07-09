@@ -14,11 +14,10 @@ import bugsnag from '@bugsnag/expo';
 import Colors from '../components/Colors';
 import {
   loadUser,
-  loadRecentTrainers,
-  loadClientRequests,
-  acceptClientRequest,
-  sendTrainerRequest,
-  denyClientRequest,
+  sendRequest,
+  acceptRequest,
+  denyRequest,
+  loadRecentUsers,
 } from '../components/Functions';
 import Constants from '../components/Constants';
 import BackButton from '../components/BackButton';
@@ -36,13 +35,12 @@ export default class TrainerPage extends Component {
   }
 
   async componentDidMount() {
-    if (!this.state.user || !this.state.recentTrainers || !this.state.clientRequests) {
+    if (!this.state.user || !this.state.recentTrainers) {
       try {
         const userId = firebase.auth().currentUser.uid;
         const user = await loadUser(userId);
-        const recentTrainers = await loadRecentTrainers(userId);
-        const clientRequests = await loadClientRequests(userId);
-        this.setState({ user, recentTrainers, clientRequests });
+        const recentTrainers = await loadRecentUsers(userId, Constants.trainerType);
+        this.setState({ user, recentTrainers });
       } catch (error) {
         this.bugsnagClient.notify(error);
         Alert.alert('There was an error loading the trainer page. Please try again later.');
@@ -51,69 +49,74 @@ export default class TrainerPage extends Component {
     }
   }
 
-  sendTrainerRequest = async (trainerKey, clientName, gymKey) => {
+  sendRequest = async (trainer) => {
     if (this.state.pressed) {
       return;
     }
     try {
       this.setState({ pressed: true });
       const userId = firebase.auth().currentUser.uid;
-      await sendTrainerRequest(trainerKey, clientName, userId, gymKey);
+      await sendRequest(userId, trainer.userKey, trainer.gymKey);
       Alert.alert('Request was sent to the trainer.');
-      const user = await loadUser(userId);
-      this.setState({ user, pressed: false });
     } catch (error) {
-      this.setState({ pressed: false });
       this.bugsnagClient.notify(error);
       Alert.alert('There was an error sending the request.');
+    } finally {
+      const user = await loadUser(firebase.auth().currentUser.uid);
+      this.setState({ user, pressed: false });
     }
   }
 
-  denyRequest = async (requestKey, trainerKey) => {
+  denyRequest = async (request) => {
+    if (this.state.pressed) {
+      return;
+    }
     try {
+      this.setState({ pressed: true });
       const userId = firebase.auth().currentUser.uid;
-      await denyClientRequest(requestKey, userId, trainerKey);
-      const clientRequests = await loadClientRequests(userId);
-      this.setState({ clientRequests });
+      await denyRequest(userId, request.userKey, request.key);
     } catch (error) {
       this.bugsnagClient.notify(error);
       Alert.alert('There was an error denying the request.');
+    } finally {
+      const user = await loadUser(firebase.auth().currentUser.uid);
+      this.setState({ user, pressed: false });
     }
   }
 
-  acceptRequest = async (requestKey, trainerKey, trainerName, gymKey) => {
+  acceptRequest = async (request) => {
+    if (this.state.pressed) {
+      return;
+    }
     try {
-      await acceptClientRequest(
-        requestKey,
-        trainerKey,
-        trainerName,
-        firebase.auth().currentUser.uid,
-        this.state.user.name,
-        gymKey,
-      );
-      const clientRequests = await loadClientRequests(firebase.auth().currentUser.uid);
-      const user = await loadUser(firebase.auth().currentUser.uid);
-      this.setState({ clientRequests, user });
+      this.setState({ pressed: true });
+      const userId = firebase.auth().currentUser.uid;
+      await acceptRequest(userId, this.state.user.type, request);
     } catch (error) {
       this.bugsnagClient.notify(error);
       Alert.alert('There was an error accepting the request.');
+    } finally {
+      const user = await loadUser(firebase.auth().currentUser.uid);
+      this.setState({ user, pressed: false });
     }
   }
 
   renderRequests = () => {
-    if (!this.state.clientRequests || !this.state.clientRequests.length) {
+    if (!this.state.user.requests) {
       return <Text style={styles.mediumText}>None</Text>;
     }
-    return (
-      this.state.clientRequests.map((request) => (
-        <View key={request.trainer}>
+    return Object.keys(this.state.user.requests).map((key) => {
+      const request = this.state.user.requests[key];
+      request.key = key;
+      return (
+        <View key={request.key}>
           <View style={styles.centeredRow}>
-            <Text style={styles.nameText}>{request.trainerName}</Text>
+            <Text style={styles.nameText}>{request.name}</Text>
           </View>
           <View style={styles.centeredRow}>
             <TouchableOpacity
               style={styles.denyButton}
-              onPress={() => this.denyRequest(request.key, request.trainer)}
+              onPress={() => this.denyRequest(request)}
             >
               <Text style={styles.buttonText}>
                 <FontAwesome name="close" size={18} />
@@ -123,12 +126,7 @@ export default class TrainerPage extends Component {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.acceptButton}
-              onPress={() => this.acceptRequest(
-                request.key,
-                request.trainer,
-                request.trainerName,
-                request.gym,
-              )}
+              onPress={() => this.acceptRequest(request)}
             >
               <Text style={styles.buttonText}>
                 <FontAwesome name="check" size={18} />
@@ -138,8 +136,8 @@ export default class TrainerPage extends Component {
             </TouchableOpacity>
           </View>
         </View>
-      ))
-    );
+      );
+    });
   }
 
   renderTrainers = () => {
@@ -149,15 +147,15 @@ export default class TrainerPage extends Component {
     return Object.keys(this.state.user.trainers).map((key) => {
       const trainer = this.state.user.trainers[key];
       return (
-        <View key={trainer.trainer} style={styles.clientRow}>
-          <Text style={styles.nameText}>{trainer.trainerName}</Text>
+        <View key={trainer.userKey} style={styles.clientRow}>
+          <Text style={styles.nameText}>{trainer.name}</Text>
           <TouchableOpacity
             style={styles.requestButton}
             onPress={() => {
               Actions.BookingPage({
-                clientKey: this.state.user.key,
-                trainerKey: trainer.trainer,
-                gymKey: trainer.gym,
+                clientKey: this.state.userKey,
+                trainerKey: trainer.userKey,
+                gymKey: trainer.gymKey,
                 bookedBy: Constants.clientType,
               });
             }}
@@ -178,26 +176,9 @@ export default class TrainerPage extends Component {
       return <Text style={styles.mediumText}>None</Text>;
     }
 
-    const recentTrainers = this.state.recentTrainers.filter((trainer) => {
-      const clientRequests = this.state.clientRequests.filter(
-        (request) => request.trainer === trainer.key,
-      );
-      if (
-        clientRequests.length > 0
-        || (this.state.user.trainers && this.state.user.trainers[trainer.key])
-      ) {
-        return false;
-      }
-      return true;
-    });
-
-    if (!recentTrainers || !recentTrainers.length) {
-      return <Text style={styles.mediumText}>None</Text>;
-    }
-
-    return recentTrainers.map((trainer) => {
+    return this.state.recentTrainers.map((trainer) => {
       let button;
-      if (this.state.user.requests && this.state.user.requests[trainer.key]) {
+      if (this.state.user.sentRequests && this.state.user.sentRequests[trainer.userKey]) {
         button = (
           <TouchableOpacity style={styles.requestButton} disabled>
             <Text style={styles.buttonText}>
@@ -211,7 +192,7 @@ export default class TrainerPage extends Component {
         button = (
           <TouchableOpacity
             style={styles.requestButton}
-            onPress={() => this.sendTrainerRequest(trainer.key, this.state.user.name, trainer.gym)}
+            onPress={() => this.sendRequest(trainer)}
           >
             <Text style={styles.buttonText}>
               <FontAwesome name="user-plus" size={18} />
@@ -222,7 +203,7 @@ export default class TrainerPage extends Component {
         );
       }
       return (
-        <View key={trainer.key} style={styles.clientRow}>
+        <View key={trainer.userKey} style={styles.clientRow}>
           <Text style={styles.nameText}>{trainer.name}</Text>
           {button}
         </View>
@@ -231,12 +212,7 @@ export default class TrainerPage extends Component {
   }
 
   render() {
-    if (
-      !this.state.user
-      || !this.state.clientRequests
-      || !this.state.recentTrainers
-      || this.state.pressed
-    ) {
+    if (!this.state.user || !this.state.recentTrainers || this.state.pressed) {
       return <LoadingWheel />;
     }
 
@@ -330,9 +306,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 15,
     margin: 5,
-  },
-  icon: {
-    fontSize: 15,
   },
   nameText: {
     fontSize: 18,

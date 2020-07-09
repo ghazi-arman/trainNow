@@ -10,4 +10,5 @@ export default {
   regularClientPercentage: 0.05,
   groupSessionPercentage: 0.15,
   faqUrl: 'https://trainnow.fit/faq',
+  requiredDistanceToGymMeters: 10000,
 };

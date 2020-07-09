@@ -43,7 +43,7 @@ export default class GroupSessionRatingPage extends Component {
     }
     this.setState({ pressed: true });
     try {
-      if (this.state.session.trainer !== firebase.auth().currentUser.uid) {
+      if (this.state.session.trainerKey !== firebase.auth().currentUser.uid) {
         const total = (this.state.session.cost * 100).toFixed(0);
         const payout = (total - (total * Constants.groupSessionPercentage)).toFixed(0);
         await chargeCard(
@@ -110,7 +110,7 @@ export default class GroupSessionRatingPage extends Component {
     let cost = null;
     let stars = null;
     let button = null;
-    if (this.state.session.trainer === userId) {
+    if (this.state.session.trainerKey === userId) {
       if (this.state.session.trainerType === Constants.independentType) {
         cost = (
           <Text style={styles.bookDetails}>

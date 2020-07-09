@@ -31,7 +31,7 @@ export default class CardPage extends Component {
       } catch (error) {
         this.bugsnagClient.notify(error);
         Alert.alert('There was an error loading the card page.');
-        Actions.ManagerPage({ gymKey: this.state.user.gym });
+        Actions.pop();
       }
     }
   }

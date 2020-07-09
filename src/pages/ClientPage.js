@@ -8,12 +8,11 @@ import { Actions } from 'react-native-router-flux';
 import bugsnag from '@bugsnag/expo';
 import Colors from '../components/Colors';
 import {
-  loadRecentClients,
+  loadRecentUsers,
   loadUser,
-  sendClientRequest,
-  loadTrainerRequests,
-  acceptTrainerRequest,
-  denyTrainerRequest,
+  sendRequest,
+  acceptRequest,
+  denyRequest,
 } from '../components/Functions';
 import Constants from '../components/Constants';
 import BackButton from '../components/BackButton';
@@ -31,13 +30,12 @@ export default class ClientPage extends Component {
   }
 
   async componentDidMount() {
-    if (!this.state.user || !this.state.recentClients || !this.state.trainerRequests) {
+    if (!this.state.user || !this.state.recentClients) {
       try {
         const userId = firebase.auth().currentUser.uid;
-        const recentClients = await loadRecentClients(userId);
-        const trainerRequests = await loadTrainerRequests(userId);
         const user = await loadUser(userId);
-        this.setState({ recentClients, trainerRequests, user });
+        const recentClients = await loadRecentUsers(userId, Constants.clientType);
+        this.setState({ recentClients, user });
       } catch (error) {
         this.bugsnagClient.notify(error);
         Alert.alert('There was an error loading the client page. Please try again later');
@@ -46,88 +44,95 @@ export default class ClientPage extends Component {
     }
   }
 
-  sendClientRequest = async (clientKey) => {
+  sendRequest = async (client) => {
     if (this.state.pressed) {
       return;
     }
     try {
       this.setState({ pressed: true });
       const userId = firebase.auth().currentUser.uid;
-      await sendClientRequest(clientKey, userId, this.state.user.name, this.state.user.gym);
+      await sendRequest(userId, client.userKey, client.gymKey);
       Alert.alert('Request was sent to the client.');
-      const user = await loadUser(firebase.auth().currentUser.uid);
-      this.setState({ user, pressed: false });
     } catch (error) {
-      this.setState({ pressed: false });
       this.bugsnagClient.notify(error);
       Alert.alert('There was an error sending the client a request.');
+    } finally {
+      const user = await loadUser(firebase.auth().currentUser.uid);
+      this.setState({ user, pressed: false });
     }
   }
 
-  denyRequest = async (requestKey, clientKey) => {
+  denyRequest = async (request) => {
+    if (this.state.pressed) {
+      return;
+    }
     try {
-      await denyTrainerRequest(requestKey, clientKey, firebase.auth().currentUser.uid);
-      const trainerRequests = loadTrainerRequests(firebase.auth().currentUser.uid);
-      this.setState({ trainerRequests });
+      this.setState({ pressed: true });
+      const userId = firebase.auth().currentUser.uid;
+      await denyRequest(userId, request.userKey, request.key);
     } catch (error) {
       this.bugsnagClient.notify(error);
       Alert.alert('There was an error denying that request.');
+    } finally {
+      const user = await loadUser(firebase.auth().currentUser.uid);
+      this.setState({ user, pressed: false });
     }
   }
 
-  acceptRequest = async (requestKey, clientKey, clientName) => {
+  acceptRequest = async (request) => {
+    if (this.state.pressed) {
+      return;
+    }
     try {
+      this.setState({ pressed: true });
       const userId = firebase.auth().currentUser.uid;
-      await acceptTrainerRequest(
-        requestKey,
-        userId,
-        this.state.user.name,
-        clientKey,
-        clientName,
-        this.state.user.gym,
-      );
-      const trainerRequests = await loadTrainerRequests(firebase.auth().currentUser.uid);
-      const user = await loadUser(firebase.auth().currentUser.uid);
-      this.setState({ trainerRequests, user });
+      await acceptRequest(userId, this.state.user.type, request);
     } catch (error) {
       this.bugsnagClient.notify(error);
       Alert.alert('There was an error accepting that request.');
+    } finally {
+      const user = await loadUser(firebase.auth().currentUser.uid);
+      this.setState({ user, pressed: false });
     }
   }
 
   renderRequests = () => {
-    if (!this.state.trainerRequests || !this.state.trainerRequests.length) {
+    if (!this.state.user.requests) {
       return <Text style={styles.mediumText}>None</Text>;
     }
-    return this.state.trainerRequests.map((request) => (
-      <View key={request.client}>
-        <View style={styles.centeredRow}>
-          <Text style={styles.nameText}>{request.clientName}</Text>
+    return Object.keys(this.state.user.requests).map((key) => {
+      const request = this.state.user.requests[key];
+      request.key = key;
+      return (
+        <View key={request.key}>
+          <View style={styles.centeredRow}>
+            <Text style={styles.nameText}>{request.name}</Text>
+          </View>
+          <View style={styles.centeredRow}>
+            <TouchableOpacity
+              style={styles.denyButton}
+              onPress={() => this.denyRequest(request)}
+            >
+              <Text style={styles.buttonText}>
+                <FontAwesome name="close" size={18} />
+                {' '}
+                Deny
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.acceptButton}
+              onPress={() => this.acceptRequest(request)}
+            >
+              <Text style={styles.buttonText}>
+                <FontAwesome name="check" size={18} />
+                {' '}
+                Accept
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
-        <View style={styles.centeredRow}>
-          <TouchableOpacity
-            style={styles.denyButton}
-            onPress={() => this.denyRequest(request.key, request.client)}
-          >
-            <Text style={styles.buttonText}>
-              <FontAwesome name="close" size={18} />
-              {' '}
-              Deny
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.acceptButton}
-            onPress={() => this.acceptRequest(request.key, request.client, request.clientName)}
-          >
-            <Text style={styles.buttonText}>
-              <FontAwesome name="check" size={18} />
-              {' '}
-              Accept
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    ));
+      );
+    });
   }
 
   renderClients = () => {
@@ -138,14 +143,14 @@ export default class ClientPage extends Component {
       const client = this.state.user.clients[key];
       return (
         <View key={key} style={styles.clientRow}>
-          <Text style={styles.nameText}>{client.clientName}</Text>
+          <Text style={styles.nameText}>{client.name}</Text>
           <TouchableOpacity
             style={styles.requestButton}
             onPress={() => {
               Actions.BookingPage({
-                clientKey: client.client,
-                gymKey: this.state.user.gym,
-                trainerKey: this.state.user.key,
+                clientKey: client.userKey,
+                gymKey: client.gymKey,
+                trainerKey: this.state.user.userKey,
                 bookedBy: Constants.trainerType,
               });
             }}
@@ -166,26 +171,9 @@ export default class ClientPage extends Component {
       return <Text style={styles.mediumText}>None</Text>;
     }
 
-    const recentClients = this.state.recentClients.filter((client) => {
-      const trainerRequests = this.state.trainerRequests.filter(
-        (request) => request.client === client.key,
-      );
-      if (
-        trainerRequests.length > 0
-        || (this.state.user.clients && this.state.user.clients[client.key])
-      ) {
-        return false;
-      }
-      return true;
-    });
-
-    if (!recentClients || !recentClients.length) {
-      return <Text style={styles.mediumText}>None</Text>;
-    }
-
-    return recentClients.map((client) => {
+    return this.state.recentClients.map((client) => {
       let button;
-      if (this.state.user.requests && this.state.user.requests[client.key]) {
+      if (this.state.user.sentRequests && this.state.user.sentRequests[client.userKey]) {
         button = (
           <TouchableOpacity style={styles.requestButton} disabled>
             <Text style={styles.buttonText}>
@@ -199,7 +187,7 @@ export default class ClientPage extends Component {
         button = (
           <TouchableOpacity
             style={styles.requestButton}
-            onPress={() => this.sendClientRequest(client.key)}
+            onPress={() => this.sendRequest(client)}
           >
             <Text style={styles.buttonText}>
               <FontAwesome name="user-plus" size={18} />
@@ -211,7 +199,7 @@ export default class ClientPage extends Component {
         );
       }
       return (
-        <View key={client.key} style={styles.clientRow}>
+        <View key={client.userKey} style={styles.clientRow}>
           <Text style={styles.nameText}>{client.name}</Text>
           {button}
         </View>
@@ -220,12 +208,7 @@ export default class ClientPage extends Component {
   }
 
   render() {
-    if (
-      !this.state.user
-      || !this.state.trainerRequests
-      || !this.state.recentClients
-      || this.state.pressed
-    ) {
+    if (!this.state.user || !this.state.recentClients || this.state.pressed) {
       return <LoadingWheel />;
     }
     return (

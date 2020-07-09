@@ -155,7 +155,7 @@ export default class ManagerPage extends Component {
     }
     return Object.keys(this.state.gym.pendingtrainers).map((key) => {
       const trainer = this.state.gym.pendingtrainers[key];
-      trainer.key = key;
+      trainer.userKey = key;
       return (
         <View key={trainer.name} style={styles.trainerRow}>
           <Text style={styles.nameText}>{trainer.name}</Text>
@@ -176,7 +176,7 @@ export default class ManagerPage extends Component {
     }
     return Object.keys(this.state.gym.trainers).map((key) => {
       const trainer = this.state.gym.trainers[key];
-      trainer.key = key;
+      trainer.userKey = key;
       return (
         <View key={trainer.name} style={styles.trainerRow}>
           <Text style={styles.nameText}>
@@ -305,8 +305,8 @@ export default class ManagerPage extends Component {
         Alert.alert('Please enter your rate (has to be $25+)!');
         return;
       }
-      await firebase.database().ref(`/users/${this.state.selectedTrainer.key}/`).update({ rate: parseInt(this.state.rate, 10) });
-      await firebase.database().ref(`/gyms/${this.props.gymKey}/trainers/${this.state.selectedTrainer.key}`).update({ rate: parseInt(this.state.rate, 10) });
+      await firebase.database().ref(`/users/${this.state.selectedTrainer.userKey}/`).update({ rate: parseInt(this.state.rate, 10) });
+      await firebase.database().ref(`/gyms/${this.props.gymKey}/trainers/${this.state.selectedTrainer.userKey}`).update({ rate: parseInt(this.state.rate, 10) });
       const gym = await loadGym(this.props.gymKey);
       this.setState({ gym });
       Alert.alert('Rate updated.');

@@ -104,7 +104,7 @@ export default class GymPage extends Component {
         return;
       }
 
-      if (userId === session.trainer) {
+      if (userId === session.trainerKey) {
         Alert.alert('You cannot join you own group session.');
         return;
       }
@@ -138,7 +138,7 @@ export default class GymPage extends Component {
     });
 
     const sessionsList = sessions.map((session) => {
-      const trainerImage = this.state.gym.trainers[session.trainer].uri;
+      const trainerImage = this.state.gym.trainers[session.trainerKey].uri;
       let imageHolder;
       if (!trainerImage) {
         imageHolder = (
@@ -223,7 +223,7 @@ export default class GymPage extends Component {
     const trainers = [];
     Object.keys(this.state.gym.trainers).forEach((key) => {
       const trainer = this.state.gym.trainers[key];
-      trainer.key = key;
+      trainer.userKey = key;
       trainers.push(trainer);
     });
 
@@ -272,7 +272,7 @@ export default class GymPage extends Component {
       }
 
       let infoArea;
-      if (this.state.trainer === trainer.key) {
+      if (this.state.trainer === trainer.userKey) {
         infoArea = (
           <View style={styles.infoArea}>
             <Text style={styles.info}>{trainer.bio}</Text>
@@ -286,8 +286,8 @@ export default class GymPage extends Component {
                 style={styles.buttonContainer}
                 onPress={() => {
                   Actions.BookingPage({
-                    clientKey: this.state.user.key,
-                    trainerKey: trainer.key,
+                    clientKey: this.state.user.userKey,
+                    trainerKey: trainer.userKey,
                     gymKey: this.props.gymKey,
                     bookedBy: Constants.clientType,
                   });
@@ -297,7 +297,7 @@ export default class GymPage extends Component {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.buttonContainer}
-                onPress={() => { Actions.SchedulePage({ trainerKey: trainer.key }); }}
+                onPress={() => { Actions.SchedulePage({ trainerKey: trainer.userKey }); }}
               >
                 <Text style={styles.buttonText}>Schedule</Text>
               </TouchableOpacity>
@@ -311,8 +311,8 @@ export default class GymPage extends Component {
       // DOM Element for a trainer in gym modal
       return (
         <TouchableWithoutFeedback
-          key={trainer.key}
-          onPress={() => { this.setState({ trainer: this.setTrainer(trainer.key) }); }}
+          key={trainer.userKey}
+          onPress={() => { this.setState({ trainer: this.setTrainer(trainer.userKey) }); }}
         >
           <View style={styles.trainerContainer}>
             <View style={styles.trainerRow}>

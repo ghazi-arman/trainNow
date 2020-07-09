@@ -64,7 +64,7 @@ export default class SessionPage extends Component {
     const sessionRef = firebase.database().ref(`/trainSessions/${this.state.session.key}`);
     const session = await loadSession(this.state.session.key);
 
-    if (session.trainer === user.uid) {
+    if (session.trainerKey === user.uid) {
       if (session.clientEnd) {
         sessionRef.update({ trainerEnd: true, end: new Date() });
         clearInterval(this.interval);
@@ -90,7 +90,7 @@ export default class SessionPage extends Component {
   }
 
   sendMessage = () => {
-    if (this.state.session.trainer === firebase.auth().currentUser.uid) {
+    if (this.state.session.trainerKey === firebase.auth().currentUser.uid) {
       Linking.openURL(`sms:${this.state.session.clientPhone}`);
     } else {
       Linking.openURL(`sms:${this.state.session.trainerPhone}`);
@@ -114,7 +114,7 @@ export default class SessionPage extends Component {
     let length;
     const user = firebase.auth().currentUser;
 
-    if (this.state.session.client === user.uid) {
+    if (this.state.session.clientKey === user.uid) {
       description = (
         <Text style={styles.bookDetails}>
           {this.state.session.trainerName}
@@ -160,8 +160,8 @@ export default class SessionPage extends Component {
         showsUserLocation
       >
         <MapView.Marker
-          ref={this.state.session.trainer}
-          key={this.state.session.trainer}
+          ref={this.state.session.trainerKey}
+          key={this.state.session.trainerKey}
           coordinate={this.state.session.location}
         />
       </MapView>
@@ -191,7 +191,7 @@ export default class SessionPage extends Component {
       );
 
       // Gives info about whether trainer/client is ready or en route
-      if (this.state.session.clientReady && user.uid === this.state.session.trainer) {
+      if (this.state.session.clientReady && user.uid === this.state.session.trainerKey) {
         ready = (
           <Text style={styles.smallText}>
             {this.state.session.clientName}
@@ -199,7 +199,7 @@ export default class SessionPage extends Component {
             is ready!
           </Text>
         );
-      } else if (this.state.session.trainerReady && user.uid === this.state.session.client) {
+      } else if (this.state.session.trainerReady && user.uid === this.state.session.clientKey) {
         ready = (
           <Text style={styles.smallText}>
             {this.state.session.trainerName}
@@ -207,7 +207,7 @@ export default class SessionPage extends Component {
             is ready!
           </Text>
         );
-      } else if (user.uid === this.state.session.client) {
+      } else if (user.uid === this.state.session.clientKey) {
         ready = (
           <Text style={styles.smallText}>
             {this.state.session.trainerName}
@@ -226,9 +226,9 @@ export default class SessionPage extends Component {
       }
 
       // Gives info about if user is ready or not
-      if (this.state.session.clientReady && user.uid === this.state.session.client) {
+      if (this.state.session.clientReady && user.uid === this.state.session.clientKey) {
         ownReady = <Text style={styles.smallText}>You are ready!</Text>;
-      } else if (this.state.session.trainerReady && user.uid === this.state.session.trainer) {
+      } else if (this.state.session.trainerReady && user.uid === this.state.session.trainerKey) {
         ownReady = <Text style={styles.smallText}>You are ready!</Text>;
       }
     } else {
@@ -261,7 +261,7 @@ export default class SessionPage extends Component {
       );
 
       // Gives info about whether trainer/client is ready or en route
-      if (this.state.session.clientEnd && user.uid === this.state.session.trainer) {
+      if (this.state.session.clientEnd && user.uid === this.state.session.trainerKey) {
         ready = (
           <Text style={styles.smallText}>
             {this.state.session.clientName}
@@ -269,7 +269,7 @@ export default class SessionPage extends Component {
             has ended!
           </Text>
         );
-      } else if (this.state.session.trainerEnd && user.uid === this.state.session.client) {
+      } else if (this.state.session.trainerEnd && user.uid === this.state.session.clientKey) {
         ready = (
           <Text style={styles.smallText}>
             {this.state.session.trainerName}
@@ -279,7 +279,7 @@ export default class SessionPage extends Component {
         );
       }
 
-      if (this.state.session.clientEnd && user.uid === this.state.session.client) {
+      if (this.state.session.clientEnd && user.uid === this.state.session.clientKey) {
         ownEnd = (
           <Text style={styles.smallText}>
             Waiting for
@@ -288,7 +288,7 @@ export default class SessionPage extends Component {
             to end!
           </Text>
         );
-      } else if (this.state.session.trainerEnd && user.uid === this.state.session.trainer) {
+      } else if (this.state.session.trainerEnd && user.uid === this.state.session.trainerKey) {
         ownEnd = (
           <Text style={styles.smallText}>
             Waiting for

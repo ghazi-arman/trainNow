@@ -61,8 +61,8 @@ export default class CalendarPage extends Component {
 
   acceptSession = async (session) => {
     // Pulls schedules for trainers and conflicts to check for overlaps
-    const trainerSchedule = await loadAcceptedSchedule(session.trainer);
-    const clientSchedule = await loadAcceptedSchedule(session.client);
+    const trainerSchedule = await loadAcceptedSchedule(session.trainerKey);
+    const clientSchedule = await loadAcceptedSchedule(session.clientKey);
     const endTime = new Date(new Date(session.start).getTime() + (60000 * session.duration));
     let timeConflict = false;
 
@@ -267,7 +267,7 @@ export default class CalendarPage extends Component {
     const upcomingSessions = this.state.upcomingSessions.map((session) => {
       const displayDate = dateToString(session.start);
       let name;
-      if (session.client === userKey) {
+      if (session.clientKey === userKey) {
         name = (
           <View style={styles.trainerView}>
             <Text style={styles.trainerInfo}>
@@ -414,8 +414,8 @@ export default class CalendarPage extends Component {
       let button2;
       let name;
       if (
-        (session.client === userKey && session.sentBy === Constants.clientType)
-        || (session.trainer === userKey && session.sentBy === Constants.trainerType)
+        (session.clientKey === userKey && session.sentBy === Constants.clientType)
+        || (session.trainerKey === userKey && session.sentBy === Constants.trainerType)
       ) {
         button = (
           <TouchableOpacity
@@ -425,7 +425,7 @@ export default class CalendarPage extends Component {
             <Text style={styles.buttonText}>Cancel</Text>
           </TouchableOpacity>
         );
-        if (session.client === userKey) {
+        if (session.clientKey === userKey) {
           name = (
             <View style={styles.trainerView}>
               <Text style={styles.trainerInfo}>
@@ -459,7 +459,7 @@ export default class CalendarPage extends Component {
             <Text style={styles.buttonText}>Reject</Text>
           </TouchableOpacity>
         );
-        if (session.client === userKey) {
+        if (session.clientKey === userKey) {
           name = (
             <View style={styles.trainerView}>
               <Text style={styles.trainerInfo}>

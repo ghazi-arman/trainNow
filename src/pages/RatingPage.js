@@ -126,7 +126,7 @@ export default class RatingPage extends Component {
     const payout = (total - total * percentage).toFixed(2);
 
     let cost = null;
-    if (this.state.session.trainer === userId) {
+    if (this.state.session.trainerKey === userId) {
       if (this.state.session.trainerType === Constants.independentType) {
         cost = (
           <Text style={styles.bookDetails}>

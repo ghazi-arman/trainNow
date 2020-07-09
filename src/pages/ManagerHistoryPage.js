@@ -71,7 +71,7 @@ export default class ManagerHistoryPage extends Component {
       let client;
       let stars;
       if (session.type === Constants.personalSessionType) {
-        if (session.trainer !== firebase.auth().currentUser.uid) {
+        if (session.trainerKey !== firebase.auth().currentUser.uid) {
           rateView = (
             <View style={styles.sessionRow}>
               <Text style={styles.smallText}>
@@ -106,7 +106,7 @@ export default class ManagerHistoryPage extends Component {
           );
           stars = renderStars(session.trainerRating);
         }
-      } else if (session.trainer !== firebase.auth().currentUser.uid) {
+      } else if (session.trainerKey !== firebase.auth().currentUser.uid) {
         rateView = (
           <View style={styles.sessionRow}>
             <Text style={styles.smallText}>
@@ -148,10 +148,16 @@ export default class ManagerHistoryPage extends Component {
       return (
         <View style={styles.sessionContainer} key={session.key}>
           <View style={styles.sessionRow}>{client}</View>
-          <View style={styles.sessionRow}><Text style={styles.icon}>{stars}</Text></View>
-          <View style={styles.sessionRow}><Text style={styles.smallText}>{session.gym}</Text></View>
+          <View style={styles.sessionRow}>
+            <Text style={styles.icon}>{stars}</Text>
+          </View>
+          <View style={styles.sessionRow}>
+            <Text style={styles.smallText}>{session.gymName}</Text>
+          </View>
           {rateView}
-          <View style={styles.sessionRow}><Text style={styles.smallText}>{day}</Text></View>
+          <View style={styles.sessionRow}>
+            <Text style={styles.smallText}>{day}</Text>
+          </View>
           <View style={styles.sessionRow}>
             <Text style={styles.timeText}>
               {startDate}
