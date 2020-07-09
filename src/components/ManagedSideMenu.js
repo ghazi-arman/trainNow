@@ -138,6 +138,7 @@ const styles = StyleSheet.create({
   icon: {
     width: 35,
     height: 35,
+    textAlign: 'center',
   },
   stars: {
     color: Colors.Primary,

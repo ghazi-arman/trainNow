@@ -1,5 +1,4 @@
 import { StyleSheet } from 'react-native';
-import Colors from './Colors';
 
 export default StyleSheet.create({
   centeredContainer: {
@@ -22,6 +21,5 @@ export default StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'flex-start',
     alignItems: 'center',
-    backgroundColor: Colors.White,
   },
 });

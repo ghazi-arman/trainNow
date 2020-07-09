@@ -25,6 +25,7 @@ import {
   loadAcceptedSchedule,
   loadTrainer,
   loadClient,
+  loadGym,
 } from '../components/Functions';
 import Colors from '../components/Colors';
 import Constants from '../components/Constants';
@@ -43,7 +44,7 @@ export default class BookingPage extends Component {
   }
 
   async componentDidMount() {
-    if (!this.state.trainer || !this.state.client) {
+    if (!this.state.trainer || !this.state.client || !this.state.gym) {
       try {
         // Load trainer and user logged in
         const trainer = this.props.bookedBy === Constants.trainerType
@@ -52,10 +53,12 @@ export default class BookingPage extends Component {
         const client = this.props.bookedBy === Constants.clientType
           ? await loadUser(this.props.clientKey)
           : await loadClient(this.props.clientKey);
+        const gym = await loadGym(this.props.gymKey);
         this.setState({
           trainer,
           client,
           bookDate: new Date(new Date().getTime() + trainer.offset * 60000),
+          gym,
         });
       } catch (error) {
         this.bugsnagClient.notify(error);
@@ -207,7 +210,7 @@ export default class BookingPage extends Component {
   }
 
   render() {
-    if (!this.state.trainer || !this.state.client || this.state.pressed) {
+    if (!this.state.trainer || !this.state.client || this.state.pressed || !this.state.gym) {
       return <LoadingWheel />;
     }
     let picker;
@@ -252,6 +255,7 @@ export default class BookingPage extends Component {
         <View style={styles.nameContainer}>
           <BackButton />
           <Text style={styles.trainerName}>{this.state.trainer.name}</Text>
+          <Text style={styles.gymName}>{this.state.gym.name}</Text>
         </View>
         <View style={styles.formContainer}>
           <View style={styles.inputRow}>
@@ -297,11 +301,18 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textAlign: 'center',
   },
+  gymName: {
+    fontSize: 20,
+    color: Colors.White,
+    fontWeight: '500',
+    textAlign: 'center',
+    marginTop: 5,
+  },
   nameContainer: {
     flex: 1,
     width: '100%',
     backgroundColor: Colors.Primary,
-    flexDirection: 'row',
+    flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
   },

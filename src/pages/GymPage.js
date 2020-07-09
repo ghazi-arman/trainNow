@@ -17,7 +17,7 @@ import bugsnag from '@bugsnag/expo';
 import { Actions } from 'react-native-router-flux';
 import Colors from '../components/Colors';
 import {
-  loadGym, renderStars, dateToString, joinGroupSession, loadUser,
+  loadGym, renderStars, dateToString, joinGroupSession, loadUser, joinGym, leaveGym,
 } from '../components/Functions';
 import Constants from '../components/Constants';
 import BackButton from '../components/BackButton';
@@ -357,6 +357,20 @@ export default class GymPage extends Component {
     </MapView>
   )
 
+  joinGym = async () => {
+    await joinGym(firebase.auth().currentUser.uid, this.props.gymKey);
+    const gym = await loadGym(this.props.gymKey);
+    const user = await loadUser(firebase.auth().currentUser.uid);
+    this.setState({ gym, user });
+  }
+
+  leaveGym = async () => {
+    await leaveGym(firebase.auth().currentUser.uid, this.props.gymKey);
+    const gym = await loadGym(this.props.gymKey);
+    const user = await loadUser(firebase.auth().currentUser.uid);
+    this.setState({ gym, user });
+  }
+
   render() {
     if (!this.state.gym) {
       return <LoadingWheel />;
@@ -372,6 +386,29 @@ export default class GymPage extends Component {
         </Text>
       );
     }
+    let joinOrLeaveGymButton;
+    if (this.state.gym.type === Constants.independentType) {
+      if (
+        this.state.user.trainerType === Constants.independentType
+        && !this.state.user.gyms[this.props.gymKey]
+      ) {
+        joinOrLeaveGymButton = (
+          <TouchableOpacity style={styles.fullButtonContainer} onPress={this.joinGym}>
+            <Text style={styles.buttonText}>Join Gym</Text>
+          </TouchableOpacity>
+        );
+      }
+      if (
+        this.state.user.trainerType === Constants.independentType
+        && this.state.user.gyms[this.props.gymKey]
+      ) {
+        joinOrLeaveGymButton = (
+          <TouchableOpacity style={styles.fullButtonContainer} onPress={this.leaveGym}>
+            <Text style={styles.buttonText}>Leave Gym</Text>
+          </TouchableOpacity>
+        );
+      }
+    }
     return (
       <View style={MasterStyles.centeredContainer}>
         <View style={styles.nameContainer}>
@@ -384,11 +421,15 @@ export default class GymPage extends Component {
           {this.loadMap()}
         </View>
         <View style={styles.trainersContainer}>
-          <ScrollView showsVerticalScrollIndicator={false}>
+          <ScrollView
+            contentContainerStyle={[MasterStyles.flexStartContainer, { paddingVertical: 20 }]}
+            showsVerticalScrollIndicator={false}
+          >
             <Text style={styles.subTitle}>Trainers</Text>
             {this.renderTrainers()}
             <Text style={styles.subTitle}>Sessions</Text>
             {this.renderSessions()}
+            {joinOrLeaveGymButton}
           </ScrollView>
         </View>
       </View>
@@ -412,7 +453,6 @@ const styles = StyleSheet.create({
     color: Colors.Primary,
     fontWeight: '500',
     textAlign: 'center',
-    margin: 10,
   },
   nameContainer: {
     flex: 2,
@@ -435,8 +475,6 @@ const styles = StyleSheet.create({
     width: '95%',
     flexDirection: 'row',
     justifyContent: 'center',
-    paddingLeft: 22,
-    paddingBottom: 10,
   },
   trainerContainer: {
     backgroundColor: Colors.White,
@@ -448,7 +486,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     borderWidth: 1,
     borderColor: Colors.Primary,
-    marginTop: 10,
+    marginVertical: 5,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -555,8 +593,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.Secondary,
     flexDirection: 'column',
     justifyContent: 'center',
-    margin: 10,
     borderRadius: 5,
+    margin: 10,
   },
   fullButtonContainer: {
     width: '80%',
@@ -564,8 +602,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.Secondary,
     flexDirection: 'column',
     justifyContent: 'center',
-    margin: 10,
     borderRadius: 5,
+    margin: 10,
   },
   buttonText: {
     textAlign: 'center',

@@ -7,7 +7,6 @@ import * as Permissions from 'expo-permissions';
 import * as ImagePicker from 'expo-image-picker';
 import bugsnag from '@bugsnag/expo';
 import Colors from '../components/Colors';
-import TextField from '../components/TextField';
 import { loadUser } from '../components/Functions';
 import LoadingWheel from '../components/LoadingWheel';
 import MasterStyles from '../components/MasterStyles';
@@ -30,12 +29,12 @@ export default class ClientAccountForm extends Component {
       user = await loadUser(userId);
       const image = await firebase.storage().ref().child(userId).getDownloadURL();
       this.setState({
-        image, user, name: user.name, imageUploaded: true,
+        image, user, imageUploaded: true,
       });
     } catch (error) {
       // if image is not found in firebase ignore image and load user
       if (error.code === 'storage/object-not-found') {
-        this.setState({ user, name: user.name, imageUploaded: true });
+        this.setState({ user, imageUploaded: true });
         return;
       }
       this.bugsnagClient.notify(error);
@@ -88,12 +87,6 @@ export default class ClientAccountForm extends Component {
   }
 
   updateAccount = () => {
-    // Input validation
-    if (!this.state.name || !this.state.name.length) {
-      Alert.alert('Please enter a name!');
-      return;
-    }
-
     if (this.state.pressed) {
       return;
     }
@@ -102,10 +95,6 @@ export default class ClientAccountForm extends Component {
     try {
       // Update info in users table
       const user = firebase.auth().currentUser;
-      firebase.database().ref('users').child(user.uid).update({
-        name: this.state.name,
-      });
-
       // Upload image to firebase
       if (this.state.imageToUpload) {
         this.uploadImage(this.state.imageToUpload, user.uid);
@@ -132,12 +121,6 @@ export default class ClientAccountForm extends Component {
         <View style={styles.imageContainer}>
           <Image source={{ uri: this.state.image }} style={styles.imageHolder} />
         </View>
-        <TextField
-          icon="user"
-          placeholder="Name"
-          onChange={(name) => this.setState({ name, change: true })}
-          value={this.state.name}
-        />
         <TouchableOpacity style={styles.buttonContainer} onPressIn={this.pickImage}>
           <Text style={styles.buttonText}> Update Image </Text>
         </TouchableOpacity>

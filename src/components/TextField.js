@@ -43,6 +43,8 @@ const styles = StyleSheet.create({
     fontSize: 30,
     marginRight: 10,
     marginTop: 13,
+    width: 35,
+    textAlign: 'center',
   },
   inputRow: {
     width: '100%',

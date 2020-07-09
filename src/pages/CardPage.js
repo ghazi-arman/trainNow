@@ -119,7 +119,7 @@ export default class CardPage extends Component {
           cardAdded: true,
         });
         if (this.state.user.type === Constants.managerType) {
-          Actions.ManagerPage({ gymKey: this.state.user.gym });
+          Actions.ManagerPage({ gymKey: this.state.user.gymKey });
           return;
         }
         Actions.PaymentPage();

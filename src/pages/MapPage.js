@@ -193,8 +193,8 @@ export default class MapPage extends Component {
             ))}
           </MapView>
           <TouchableOpacity style={styles.menuButton}>
-            <Text style={styles.menuIcon} onPress={this.toggleMenu}>
-              <FontAwesome name="bars" size={50} />
+            <Text onPress={this.toggleMenu}>
+              <FontAwesome name="bars" color={Colors.Primary} size={50} />
             </Text>
           </TouchableOpacity>
           {alertBox}
@@ -215,9 +215,6 @@ const styles = StyleSheet.create({
     left: 20,
     width: 60,
     height: 60,
-  },
-  menuIcon: {
-    color: Colors.Primary,
   },
   buttonContainer: {
     position: 'absolute',

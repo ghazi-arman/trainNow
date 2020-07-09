@@ -23,34 +23,30 @@ export default class TrainerAccountForm extends Component {
   }
 
   async componentDidMount() {
-    let trainer;
+    let user;
     try {
       const userId = firebase.auth().currentUser.uid;
-      trainer = await loadUser(userId);
+      user = await loadUser(userId);
       const image = await firebase.storage().ref().child(userId).getDownloadURL();
       this.setState({
         image,
-        trainer,
-        name: trainer.name,
-        rate: String(trainer.rate),
-        cert: trainer.cert,
-        bio: trainer.bio,
-        gym: trainer.gym,
-        active: trainer.active,
-        offset: String(trainer.offset),
+        user,
+        rate: String(user.rate),
+        cert: user.cert,
+        bio: user.bio,
+        active: user.active,
+        offset: String(user.offset),
         imageUploaded: true,
       });
     } catch (error) {
       if (error.code === 'storage/object-not-found') {
         this.setState({
-          trainer,
-          name: trainer.name,
-          rate: String(trainer.rate),
-          cert: trainer.cert,
-          bio: trainer.bio,
-          gym: trainer.gym,
-          active: trainer.active,
-          offset: String(trainer.offset),
+          user,
+          rate: String(user.rate),
+          cert: user.cert,
+          bio: user.bio,
+          active: user.active,
+          offset: String(user.offset),
           imageUploaded: true,
         });
         return;
@@ -97,7 +93,7 @@ export default class TrainerAccountForm extends Component {
       await firebase.storage().ref().child(uid).put(blob);
     } catch (error) {
       this.bugsnagClient.metaData = {
-        trainer: this.state.trainer,
+        user: this.state.user,
       };
       this.bugsnagClient.notify(error);
       Alert.alert('There was an error uploading the image.');
@@ -105,11 +101,6 @@ export default class TrainerAccountForm extends Component {
   }
 
   updateAccount = async () => {
-    // Input validation
-    if (!this.state.name || !this.state.name.length) {
-      Alert.alert('Please enter a name!');
-      return;
-    }
     if (!this.state.rate || !this.state.rate.length || parseInt(this.state.rate, 10) < 25) {
       Alert.alert('Please enter a rate over $25!');
       return;
@@ -131,18 +122,18 @@ export default class TrainerAccountForm extends Component {
     try {
       const userId = firebase.auth().currentUser.uid;
       // gym table updated
-      firebase.database().ref(`/gyms/${this.state.gym}/trainers/${userId}`).update({
-        name: this.state.name,
-        cert: this.state.cert,
-        rate: parseInt(this.state.rate, 10),
-        bio: this.state.bio,
-        active: this.state.active,
-        offset: parseInt(this.state.offset, 10),
+      Object.keys(this.state.user.gyms).forEach((gymKey) => {
+        firebase.database().ref(`/gyms/${gymKey}/trainers/${userId}`).update({
+          cert: this.state.cert,
+          rate: parseInt(this.state.rate, 10),
+          bio: this.state.bio,
+          active: this.state.active,
+          offset: parseInt(this.state.offset, 10),
+        });
       });
 
       // user table updated
       firebase.database().ref('users').child(userId).update({
-        name: this.state.name,
         cert: this.state.cert,
         rate: parseInt(this.state.rate, 10),
         bio: this.state.bio,
@@ -159,7 +150,7 @@ export default class TrainerAccountForm extends Component {
       Alert.alert('Updated');
     } catch (error) {
       this.bugsnagClient.metaData = {
-        trainer: this.state.trainer,
+        user: this.state.user,
       };
       this.bugsnagClient.notify(error);
       Alert.alert('There was an error updating your account info. Please try again.');
@@ -167,12 +158,12 @@ export default class TrainerAccountForm extends Component {
   }
 
   render() {
-    if (!this.state.trainer || !this.state.imageUploaded) {
+    if (!this.state.user || !this.state.imageUploaded) {
       return <LoadingWheel />;
     }
 
     let rateField = null;
-    if (this.state.trainer.trainerType === Constants.independentType) {
+    if (this.state.user.trainerType === Constants.independentType) {
       rateField = (
         <TextField
           icon="dollar"
@@ -199,12 +190,6 @@ export default class TrainerAccountForm extends Component {
         <View style={styles.imageContainer}>
           <Image source={{ uri: this.state.image }} style={styles.imageHolder} />
         </View>
-        <TextField
-          icon="user"
-          placeholder="Name"
-          onChange={(name) => this.setState({ name, change: true })}
-          value={this.state.name}
-        />
         {rateField}
         <TextField
           icon="vcard"

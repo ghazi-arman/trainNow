@@ -217,7 +217,10 @@ export default class ClientPage extends Component {
           <BackButton />
           <Text style={styles.title}>Clients</Text>
         </View>
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={MasterStyles.flexStartContainer}
+          showsVerticalScrollIndicator={false}
+        >
           <Text style={styles.subTitle}>Client Requests</Text>
           {this.renderRequests()}
           <Text style={styles.subTitle}>Recent Clients</Text>
@@ -262,7 +265,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '90%',
     marginTop: 10,
-    paddingLeft: 27,
   },
   clientRow: {
     flexDirection: 'row',

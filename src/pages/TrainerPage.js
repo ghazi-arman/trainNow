@@ -153,7 +153,7 @@ export default class TrainerPage extends Component {
             style={styles.requestButton}
             onPress={() => {
               Actions.BookingPage({
-                clientKey: this.state.userKey,
+                clientKey: this.state.user.userKey,
                 trainerKey: trainer.userKey,
                 gymKey: trainer.gymKey,
                 bookedBy: Constants.clientType,
@@ -222,7 +222,10 @@ export default class TrainerPage extends Component {
           <BackButton />
           <Text style={styles.title}>Trainers</Text>
         </View>
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={MasterStyles.flexStartContainer}
+          showsVerticalScrollIndicator={false}
+        >
           <Text style={styles.subTitle}>Trainer Requests</Text>
           {this.renderRequests()}
           <Text style={styles.subTitle}>Recent Trainers</Text>
@@ -267,7 +270,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '90%',
     marginTop: 10,
-    paddingLeft: 27,
   },
   clientRow: {
     flexDirection: 'row',

@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
+  Picker,
   Platform,
   KeyboardAvoidingView,
 } from 'react-native';
@@ -50,6 +51,7 @@ export default class CreateGroupSessionPage extends Component {
             bio: session.bio,
             capacity: session.capacity,
             cost: String(session.cost),
+            gymKey: session.gymKey,
           });
         } else {
           this.setState({ user });
@@ -120,6 +122,7 @@ export default class CreateGroupSessionPage extends Component {
         this.state.bio,
         this.state.capacity,
         this.state.cost,
+        this.state.gymKey,
       );
       Alert.alert('Session successfully created.');
       Actions.CalendarPage();
@@ -164,6 +167,11 @@ export default class CreateGroupSessionPage extends Component {
       }
       if (!this.state.name) {
         Alert.alert('Please enter a session name');
+        return;
+      }
+      if (!this.state.gymKey || this.state.gymKey === 'none') {
+        Alert.alert('Please select a gym');
+        return;
       }
       await updateGroupSession(
         this.state.user,
@@ -174,6 +182,7 @@ export default class CreateGroupSessionPage extends Component {
         this.state.bio,
         this.state.capacity,
         this.state.cost,
+        this.state.gymKey,
       );
       Alert.alert('Session successfully updated.');
       Actions.CalendarPage();
@@ -293,6 +302,25 @@ export default class CreateGroupSessionPage extends Component {
               />
             </View>
             <View style={styles.inputRow}>
+              <Text style={styles.formLabel}>Gym</Text>
+              <Picker
+                style={styles.picker}
+                itemStyle={{ height: 45, color: Colors.Primary }}
+                selectedValue={this.state.gymKey}
+                onValueChange={(itemValue) => this.setState({ gymKey: itemValue })}
+              >
+                <Picker.Item label="Pick a Gym (Scroll)" value="none" key="0" />
+                {Object.keys(this.state.user.gyms).map(
+                  (key) => {
+                    const gym = this.state.user.gyms[key];
+                    return (
+                      <Picker.Item label={gym.name} value={key} key={key} />
+                    );
+                  },
+                )}
+              </Picker>
+            </View>
+            <View style={styles.inputRow}>
               <Text style={styles.formLabel}>Start Time</Text>
               {startDatePicker}
               {startTimePicker}
@@ -372,5 +400,12 @@ const styles = StyleSheet.create({
     width: '100%',
     borderWidth: 1,
     borderColor: Colors.Primary,
+  },
+  picker: {
+    height: 45,
+    borderWidth: 1,
+    borderColor: Colors.Primary,
+    width: '100%',
+    marginBottom: 10,
   },
 });

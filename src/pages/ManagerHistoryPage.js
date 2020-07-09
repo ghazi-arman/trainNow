@@ -191,7 +191,10 @@ export default class ManagerHistoryPage extends Component {
           <Text style={styles.header}>Past Sessions</Text>
         </View>
         <View style={styles.historyContainer}>
-          <ScrollView showsVerticalScrollIndicator={false}>
+          <ScrollView
+            contentContainerStyle={MasterStyles.flexStartContainer}
+            showsVerticalScrollIndicator={false}
+          >
             {this.renderSessions()}
           </ScrollView>
         </View>
@@ -240,7 +243,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   historyContainer: {
-    paddingLeft: 27,
     width: '100%',
     flex: 6,
     flexDirection: 'column',

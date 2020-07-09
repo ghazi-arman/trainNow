@@ -16,14 +16,13 @@ import * as ImagePicker from 'expo-image-picker';
 import firebase from 'firebase';
 import { FontAwesome } from '@expo/vector-icons';
 import bugsnag from '@bugsnag/expo';
-import { STRIPE_KEY, FB_URL } from 'react-native-dotenv';
+import { FB_URL } from 'react-native-dotenv';
 import Colors from '../components/Colors';
 import TextField from '../components/TextField';
 import Constants from '../components/Constants';
 import LoadingWheel from '../components/LoadingWheel';
 import MasterStyles from '../components/MasterStyles';
 
-const stripe = require('stripe-client')(STRIPE_KEY);
 const defaultProfilePic = require('../images/profile.png');
 
 export default class SignupForm extends Component {
@@ -111,28 +110,13 @@ export default class SignupForm extends Component {
     const firstName = this.state.name.split(' ')[0];
     const lastName = this.state.name.split(' ')[1];
     let user;
-    let token;
     let response;
 
     if (this.state.trainer) {
       const gymKey = this.state.gyms[this.state.gym].key;
       const gymType = this.state.gyms[this.state.gym].type;
+      const gymName = this.state.gyms[this.state.gym].name;
       if (gymType === Constants.independentType) {
-        const ssn = {
-          pii: {
-            personal_id_number: parseInt(this.state.ssn, 10),
-          },
-        };
-
-        try {
-          // Create token from social security number
-          token = await stripe.createToken(ssn);
-        } catch (error) {
-          Alert.alert('Invalid Social Security Number entered. Please check your info and try again!');
-          this.setState({ pressed: false });
-          this.bugsnagClient.notify(error);
-          return;
-        }
         const month = this.state.birthDay.split('/')[0];
         const day = this.state.birthDay.split('/')[1];
         const year = this.state.birthDay.split('/')[2];
@@ -151,7 +135,7 @@ export default class SignupForm extends Component {
                 phone: this.state.phone,
                 firstName,
                 lastName,
-                token: token.id,
+                ssn: this.state.ssn,
                 day,
                 month,
                 year,
@@ -200,7 +184,6 @@ export default class SignupForm extends Component {
           trainerType: gymType,
           pending,
           name: this.state.name,
-          gym: gymKey,
           cert: this.state.cert,
           rate: parseInt(this.state.rate, 10),
           bio: this.state.bio,
@@ -209,6 +192,12 @@ export default class SignupForm extends Component {
           rating: 0,
           sessions: 0,
           offset: 0,
+        });
+
+        firebase.database().ref(`/users/${user.user.uid}/gyms/${gymKey}`).set({
+          name: gymName,
+          type: gymType,
+          primary: true,
         });
 
         if (gymType === Constants.managedType) {
@@ -387,8 +376,8 @@ export default class SignupForm extends Component {
           Alert.alert('Please enter your rate (has to be $25+)!');
           return;
         }
-        if (!this.state.ssn.trim() || this.state.ssn.trim().length < 9) {
-          Alert.alert('Please enter a valid Social Security Number!');
+        if (!this.state.ssn.trim() || this.state.ssn.trim().length !== 4) {
+          Alert.alert('Please enter a valid Social Security Number! Just the last four digits.');
           return;
         }
         if (
@@ -547,7 +536,7 @@ export default class SignupForm extends Component {
           />
           <TextField
             icon="user"
-            placeholder="SSN (For Stripe Account)"
+            placeholder="Last 4  of Social Security # (For Stripe Verification)"
             keyboard="number-pad"
             onChange={(ssn) => this.setState({ ssn })}
             value={this.state.ssn}
@@ -736,6 +725,8 @@ const styles = StyleSheet.create({
     fontSize: 30,
     marginRight: 10,
     marginTop: 13,
+    width: 35,
+    textAlign: 'center',
   },
   hints: {
     color: Colors.Primary,

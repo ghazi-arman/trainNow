@@ -62,7 +62,7 @@ export default class LoginForm extends Component {
         return;
       }
       if (user.type === Constants.managerType && !user.pending) {
-        Actions.ManagerPage({ gymKey: user.gym });
+        Actions.ManagerPage({ gymKey: user.gymKey });
         return;
       }
       if (user.type === Constants.trainerType) {

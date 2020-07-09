@@ -181,9 +181,9 @@ const createTrainer = async (req, res) => {
     individual: {
       first_name: body.firstName,
       last_name: body.lastName,
-      id_number: body.token,
       email: body.email,
       phone: body.phone,
+      ssn_last_4: body.ssn,
       dob: {
         day: body.day,
         month: body.month,

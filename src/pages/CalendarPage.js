@@ -509,8 +509,10 @@ export default class CalendarPage extends Component {
   goActive = async () => {
     const userId = firebase.auth().currentUser.uid;
     await firebase.database().ref('users').child(userId).update({ active: true });
-    await firebase.database().ref(`/gyms/${this.state.user.gym}/trainers/${userId}`).update({
-      active: true,
+    Object.keys(this.state.user.gyms).forEach((gymKey) => {
+      firebase.database().ref(`/gyms/${gymKey}/trainers/${userId}`).update({
+        active: true,
+      });
     });
     Alert.alert('You are active now');
     this.state.user.active = true;

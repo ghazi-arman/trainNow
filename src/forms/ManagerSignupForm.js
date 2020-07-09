@@ -115,7 +115,7 @@ export default class ManagerSignupForm extends Component {
         firebase.database().ref('users').child(user.user.uid).set({
           type: Constants.managerType,
           name: this.state.name,
-          gym: this.state.gymKey,
+          gymKey: this.state.gymKey,
           phone: this.state.phone,
           stripeId: response.body.trainer.account,
           pending: true,
