@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import {
   StyleSheet, Text, View, TouchableOpacity, Alert, Linking, Image,
 } from 'react-native';
+import PropTypes from 'prop-types';
 import { FontAwesome } from '@expo/vector-icons';
 import firebase from 'firebase';
 import { Actions } from 'react-native-router-flux';
@@ -60,7 +61,7 @@ export default class SideMenu extends Component {
           <Text style={styles.name}>{this.state.user.name}</Text>
           <Text style={styles.stars}>{renderStars(this.state.user.rating)}</Text>
         </View>
-        <TouchableOpacity style={styles.menuRow} onPress={Actions.MapPage}>
+        <TouchableOpacity style={styles.menuRow} onPress={this.props.toggleMenu}>
           <FontAwesome style={styles.icon} name="compass" color={Colors.Primary} size={30} />
           <Text style={styles.menuLink}>Map</Text>
         </TouchableOpacity>
@@ -108,6 +109,10 @@ export default class SideMenu extends Component {
     );
   }
 }
+
+SideMenu.propTypes = {
+  toggleMenu: PropTypes.func.isRequired,
+};
 
 const styles = StyleSheet.create({
   container: {

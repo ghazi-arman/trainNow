@@ -156,9 +156,9 @@ export default class MapPage extends Component {
     }
 
     if (this.state.user.trainerType !== Constants.managedType) {
-      menu = <SideMenu />;
+      menu = <SideMenu toggleMenu={this.toggleMenu} />;
     } else {
-      menu = <ManagedSideMenu />;
+      menu = <ManagedSideMenu toggleMenu={this.toggleMenu} />;
     }
 
     return (

@@ -17,7 +17,6 @@ export default class ForgotForm extends Component {
   }
 
   submit = async () => {
-    // Prevents multiple form submissions
     if (this.state.pressed) {
       return;
     }
@@ -26,7 +25,6 @@ export default class ForgotForm extends Component {
     try {
       await firebase.auth().sendPasswordResetEmail(this.state.email);
       Alert.alert('A password reset email has been sent!');
-      this.setState({ pressed: false });
     } catch (error) {
       if (error.code === 'auth/user-not-found') {
         Alert.alert('There is no account associated with this email');
@@ -34,6 +32,8 @@ export default class ForgotForm extends Component {
       }
       Alert.alert('There was an error when sending the email. Please try again.');
       this.bugsnagClient.notify(error);
+    } finally {
+      this.setState({ pressed: false });
     }
   }
 
