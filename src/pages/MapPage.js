@@ -21,7 +21,7 @@ import {
   checkForUnreadSessions,
   markSessionsAsRead,
   loadPendingSessions,
-  loadUpcomingSessions,
+  loadAcceptedSessions,
   loadCurrentGroupSession,
 } from '../components/Functions';
 import Constants from '../components/Constants';
@@ -72,13 +72,13 @@ export default class MapPage extends Component {
       try {
         const userId = firebase.auth().currentUser.uid;
         const user = await loadUser(userId);
-        await goToPendingRating(user.type, userId);
+        await goToPendingRating(userId, user.type);
         const gyms = await loadGyms();
-        const currentSession = await loadCurrentSession(user.type, userId);
-        const currentGroupSession = await loadCurrentGroupSession(user.type, userId);
-        const unread = await checkForUnreadSessions(user.type, userId);
+        const currentSession = await loadCurrentSession(userId, user.type);
+        const currentGroupSession = await loadCurrentGroupSession(userId, user.type);
+        const unread = await checkForUnreadSessions(userId, user.type);
         const pendingSessions = await loadPendingSessions(userId, user.type);
-        const acceptSessions = await loadUpcomingSessions(userId, user.type);
+        const acceptSessions = await loadAcceptedSessions(userId, user.type);
         this.setState({
           gyms, user, currentSession, unread, pendingSessions, acceptSessions, currentGroupSession,
         });

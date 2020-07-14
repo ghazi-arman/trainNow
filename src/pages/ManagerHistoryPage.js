@@ -18,7 +18,7 @@ import bugsnag from '@bugsnag/expo';
 import Colors from '../components/Colors';
 import Constants from '../components/Constants';
 import {
-  loadSessions, renderStars, reportSession, timeToString,
+  loadSessions, renderStars, reportSession, dateToTime,
 } from '../components/Functions';
 import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
@@ -57,8 +57,8 @@ export default class ManagerHistoryPage extends Component {
   renderSessions = () => {
     this.state.sessions.sort((a, b) => (new Date(b.start) - new Date(a.start)));
     return this.state.sessions.map((session) => {
-      const startDate = timeToString(session.start);
-      const endDate = timeToString(session.end);
+      const startDate = dateToTime(session.start);
+      const endDate = dateToTime(session.end);
       const day = `${new Date(session.start).getMonth() + 1} / ${new Date(session.start).getDate()}`;
       const minutes = Math.floor(((new Date(session.end) - new Date(session.start)) / 1000) / 60);
       const rate = (minutes * (session.rate / 60)).toFixed(2);

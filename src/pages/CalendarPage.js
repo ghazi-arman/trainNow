@@ -9,13 +9,13 @@ import {
   dateToString,
   timeOverlapCheck,
   loadUser,
-  loadUpcomingSessions,
+  loadAcceptedSessions,
   loadPendingSessions,
   loadAcceptedSchedule,
   createSession,
   sendMessage,
   cancelPendingSession,
-  cancelUpcomingSession,
+  cancelAcceptedSession,
   markSessionsAsRead,
   goToPendingRating,
   loadGroupSessions,
@@ -43,9 +43,9 @@ export default class CalendarPage extends Component {
       try {
         const userId = firebase.auth().currentUser.uid;
         const user = await loadUser(userId);
-        await goToPendingRating(user.type, firebase.auth().currentUser.uid);
+        await goToPendingRating(firebase.auth().currentUser.uid, user.type);
         const pendingSessions = await loadPendingSessions(userId, user.type);
-        const upcomingSessions = await loadUpcomingSessions(userId, user.type);
+        const upcomingSessions = await loadAcceptedSessions(userId, user.type);
         const groupSessions = await loadGroupSessions(userId, user.type);
         await markSessionsAsRead(pendingSessions, upcomingSessions, user.type);
         this.setState({
@@ -178,7 +178,7 @@ export default class CalendarPage extends Component {
   }
 
   // Cancel upcoming session as a client
-  cancelUpcomingSession = async (session) => {
+  cancelAcceptedSession = async (session) => {
     if (new Date(session.start) <= new Date()) {
       Alert.alert('You cannot cancel a session after it has started!');
       return;
@@ -193,7 +193,7 @@ export default class CalendarPage extends Component {
           onPress: async () => {
             // cancels accepted session
             try {
-              await cancelUpcomingSession(session);
+              await cancelAcceptedSession(session);
               this.state.upcomingSessions.splice(this.state.upcomingSessions.indexOf(session), 1);
               this.forceUpdate();
             } catch (error) {
@@ -307,7 +307,7 @@ export default class CalendarPage extends Component {
           <View style={{ flexDirection: 'row', justifyContent: 'space-around', height: 50 }}>
             <TouchableOpacity
               style={styles.denyContainer}
-              onPress={() => this.cancelUpcomingSession(session)}
+              onPress={() => this.cancelAcceptedSession(session)}
             >
               <Text style={styles.buttonText}>Cancel</Text>
             </TouchableOpacity>

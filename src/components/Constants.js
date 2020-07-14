@@ -1,3 +1,5 @@
+import { REQUIRED_DISTANCE_METERS } from 'react-native-dotenv';
+
 export default {
   trainerType: 'trainer',
   clientType: 'client',
@@ -10,5 +12,5 @@ export default {
   regularClientPercentage: 0.05,
   groupSessionPercentage: 0.15,
   faqUrl: 'https://trainnow.fit/faq',
-  requiredDistanceToGymMeters: 10000,
+  requiredDistanceToGymMeters: REQUIRED_DISTANCE_METERS,
 };
