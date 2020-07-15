@@ -22,7 +22,8 @@
             }
           }
         }
-      }
+      },
+      ".indexOn": ["name"]
     },
     "pendingSessions": {
       ".read": "root.child('users').child(auth.uid).exists()",

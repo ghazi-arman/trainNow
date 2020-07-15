@@ -23,9 +23,8 @@ import Constants from '../components/Constants';
 import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
 import MasterStyles from '../components/MasterStyles';
-
-const markerImg = require('../images/marker.png');
-const profileImg = require('../images/profile.png');
+import markerImg from '../images/marker.png';
+import profileImg from '../images/profile.png';
 
 export default class GymPage extends Component {
   constructor(props) {

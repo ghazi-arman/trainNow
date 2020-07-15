@@ -22,8 +22,7 @@ import TextField from '../components/TextField';
 import Constants from '../components/Constants';
 import LoadingWheel from '../components/LoadingWheel';
 import MasterStyles from '../components/MasterStyles';
-
-const defaultProfilePic = require('../images/profile.png');
+import defaultProfilePic from '../images/profile.png';
 
 export default class SignupForm extends Component {
   constructor(props) {

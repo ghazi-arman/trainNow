@@ -11,8 +11,7 @@ import { Actions } from 'react-native-router-flux';
 import SignupForm from '../forms/SignupForm';
 import Colors from '../components/Colors';
 import MasterStyles from '../components/MasterStyles';
-
-const logo = require('../images/logo.png');
+import logo from '../images/logo.png';
 
 export default function SignupPage() {
   return (

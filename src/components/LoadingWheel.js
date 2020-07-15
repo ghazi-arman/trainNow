@@ -3,8 +3,7 @@ import {
   StyleSheet, Image, View,
 } from 'react-native';
 import MasterStyles from './MasterStyles';
-
-const loading = require('../images/loading.gif');
+import loading from '../images/loading.gif';
 
 const LoadingWheel = () => (
   <View style={MasterStyles.centeredContainer}>
