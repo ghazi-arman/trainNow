@@ -678,12 +678,10 @@ export async function loadSessions(userKey) {
  * @returns {Location} location object of the user's location
  */
 export async function getLocation() {
-  let location;
-  if (Platform.OS === 'ios') {
-    location = await Location.getCurrentPositionAsync();
-  } else {
-    location = await Location.getCurrentPositionAsync({ enableHighAccuracy: true });
-  }
+  const location = Platform.OS === 'ios'
+    ? await Location.getCurrentPositionAsync()
+    : await Location.getCurrentPositionAsync({ enableHighAccuracy: true });
+
   return {
     latitude: Number(JSON.stringify(location.coords.latitude)),
     longitude: Number(JSON.stringify(location.coords.longitude)),
@@ -704,6 +702,19 @@ export async function loadGyms() {
       gym.key = gymValue.key;
       gyms.push(gym);
     });
+  });
+  return gyms;
+}
+
+/**
+ * Sorts all the gyms passed through based on their proximity to the location passsed in.
+ * @param {Array[Gym]} gyms array of gyms to be sorted
+ * @param {Location} userRegion location object of the user
+ * @returns {Array[Gym]} sorted array of gyms
+ */
+export function sortGymsByLocation(gyms, userRegion) {
+  gyms.sort((a, b) => {
+    return geolib.getDistance(a.location, userRegion) - geolib.getDistance(b.location, userRegion);
   });
   return gyms;
 }

@@ -701,7 +701,7 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 20,
     textAlign: 'center',
-    color: Colors.White,
+    color: Colors.LightGray,
     fontWeight: '700',
   },
   imageContainer: {

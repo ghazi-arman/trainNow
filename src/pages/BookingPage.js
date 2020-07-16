@@ -297,13 +297,13 @@ BookingPage.propTypes = {
 const styles = StyleSheet.create({
   trainerName: {
     fontSize: 30,
-    color: Colors.White,
+    color: Colors.LightGray,
     fontWeight: '500',
     textAlign: 'center',
   },
   gymName: {
     fontSize: 20,
-    color: Colors.White,
+    color: Colors.LightGray,
     fontWeight: '500',
     textAlign: 'center',
     marginTop: 5,
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     textAlign: 'center',
-    color: Colors.White,
+    color: Colors.LightGray,
     fontSize: 20,
     fontWeight: '700',
   },

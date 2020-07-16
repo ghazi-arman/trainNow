@@ -104,7 +104,7 @@ SchedulePage.propTypes = {
 const styles = StyleSheet.create({
   trainerName: {
     fontSize: 30,
-    color: Colors.White,
+    color: Colors.LightGray,
     fontWeight: '500',
     textAlign: 'center',
   },
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
     margin: 10,
   },
   agendaItemHeader: {
-    color: Colors.White,
+    color: Colors.LightGray,
     fontSize: 20,
     fontWeight: '300',
   },

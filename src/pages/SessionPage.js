@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: Colors.White,
+    backgroundColor: Colors.LightGray,
     flexDirection: 'column',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -398,7 +398,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     textAlign: 'center',
-    color: Colors.White,
+    color: Colors.LightGray,
     fontWeight: '700',
   },
 });

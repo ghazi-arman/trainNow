@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'space-around',
     alignItems: 'center',
-    backgroundColor: Colors.White,
+    backgroundColor: Colors.LightGray,
     borderRadius: 10,
   },
   historyContainer: {

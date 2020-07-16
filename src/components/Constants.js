@@ -13,4 +13,5 @@ export default {
   groupSessionPercentage: 0.15,
   faqUrl: 'https://trainnow.fit/faq',
   requiredDistanceToGymMeters: REQUIRED_DISTANCE_METERS,
+  metersToMilesMultiplier: 0.000621371,
 };

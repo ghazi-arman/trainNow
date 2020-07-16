@@ -105,6 +105,9 @@ export default class ManagerPage extends Component {
     } catch (error) {
       this.bugsnagClient.notify(error);
       Alert.alert('There was an error when trying to deny that trainer.');
+    } finally {
+      const gym = await loadGym(this.props.gymKey);
+      this.setState({ gym });
     }
   }
 
@@ -120,11 +123,13 @@ export default class ManagerPage extends Component {
             try {
               await firebase.database().ref('users').child(trainerKey).update({ deleted: true });
               await firebase.database().ref(`/gyms/${this.props.gymKey}/trainers/`).child(trainerKey).remove();
-              delete this.state.gym.trainers[trainerKey];
               Alert.alert('Trainer removed from gym.');
             } catch (error) {
               this.bugsnagClient.notify(error);
               Alert.alert('There was an error when trying to delete that trainer.');
+            } finally {
+              const gym = await loadGym(this.props.gymKey);
+              this.setState({ gym });
             }
           },
         },
@@ -139,13 +144,13 @@ export default class ManagerPage extends Component {
         firebase.database().ref(`/gyms/${this.props.gymKey}/trainers/`).child(trainerKey).set(snapshot.val());
       });
       await firebase.database().ref(`/gyms/${this.props.gymKey}/pendingtrainers/`).child(trainerKey).remove();
-      delete this.state.gym.pendingtrainers[trainerKey];
-      const gym = await loadGym(this.props.gymKey);
-      this.setState({ gym });
       Alert.alert('Trainer added to gym. Please set the trainer rate immediately as it defaults to 50.');
     } catch (error) {
       this.bugsnagClient.notify(error);
       Alert.alert('There was an error when accepting that trainer.');
+    } finally {
+      const gym = await loadGym(this.props.gymKey);
+      this.setState({ gym });
     }
   }
 
@@ -261,8 +266,8 @@ export default class ManagerPage extends Component {
             style={styles.defaultButton}
             onPress={() => this.setDefaultTrainerCard(this.state.user.stripeId, currCard.id)}
           >
-            <Text style={{ color: Colors.White }}>
-              <FontAwesome name="check" size={15} />
+            <Text>
+              <FontAwesome name="check" size={15} color={Colors.LightGray} />
             </Text>
           </TouchableOpacity>
         );
@@ -290,8 +295,8 @@ export default class ManagerPage extends Component {
               defaultCard,
             )}
           >
-            <Text style={{ color: Colors.White }}>
-              <FontAwesome name="remove" size={15} />
+            <Text>
+              <FontAwesome name="remove" size={15} color={Colors.LightGray} />
             </Text>
           </TouchableOpacity>
         </View>
@@ -415,7 +420,7 @@ const styles = StyleSheet.create({
   },
   activeText: {
     fontSize: 25,
-    color: Colors.White,
+    color: Colors.LightGray,
     textAlign: 'center',
   },
   trainerRow: {
@@ -457,12 +462,12 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 15,
-    color: Colors.White,
+    color: Colors.LightGray,
     textAlign: 'center',
   },
   largeText: {
     fontSize: 30,
-    color: Colors.White,
+    color: Colors.LightGray,
     textAlign: 'center',
   },
   denyButton: {
@@ -511,7 +516,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'space-around',
     alignItems: 'center',
-    backgroundColor: Colors.White,
+    backgroundColor: Colors.LightGray,
     borderRadius: 10,
     padding: 20,
   },

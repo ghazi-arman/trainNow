@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 18,
-    color: Colors.White,
+    color: Colors.LightGray,
     textAlign: 'center',
   },
   requestButton: {

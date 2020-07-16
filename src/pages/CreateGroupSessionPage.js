@@ -344,7 +344,7 @@ CreateGroupSessionPage.defaultProps = {
 const styles = StyleSheet.create({
   trainerName: {
     fontSize: 30,
-    color: Colors.White,
+    color: Colors.LightGray,
     fontWeight: '500',
   },
   nameContainer: {
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     textAlign: 'center',
-    color: Colors.White,
+    color: Colors.LightGray,
     fontWeight: '700',
   },
   datepicker: {

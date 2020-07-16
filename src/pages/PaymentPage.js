@@ -183,8 +183,8 @@ export default class PaymentPage extends Component {
               style={styles.defaultButton}
               onPress={() => this.setDefaultTrainerCard(this.state.user.stripeId, currCard.id)}
             >
-              <Text style={{ color: Colors.White }}>
-                <FontAwesome name="check" size={15} />
+              <Text>
+                <FontAwesome name="check" size={15} color={Colors.LightGray} />
               </Text>
             </TouchableOpacity>
           );
@@ -197,8 +197,8 @@ export default class PaymentPage extends Component {
               currCard.id, defaultCard,
             )}
           >
-            <Text style={{ color: Colors.White }}>
-              <FontAwesome name="remove" size={15} />
+            <Text>
+              <FontAwesome name="remove" size={15} color={Colors.LightGray} />
             </Text>
           </TouchableOpacity>
         );
@@ -211,8 +211,8 @@ export default class PaymentPage extends Component {
               style={styles.defaultButton}
               onPress={() => this.setDefaultCard(this.state.user.stripeId, currCard.id)}
             >
-              <Text style={{ color: Colors.White }}>
-                <FontAwesome name="check" size={15} />
+              <Text>
+                <FontAwesome name="check" size={15} color={Colors.LightGray} />
               </Text>
             </TouchableOpacity>
           );
@@ -222,8 +222,8 @@ export default class PaymentPage extends Component {
             style={styles.deleteButton}
             onPress={() => this.deleteCard(this.state.user.stripeId, currCard.id)}
           >
-            <Text style={{ color: Colors.White }}>
-              <FontAwesome name="remove" size={15} />
+            <Text>
+              <FontAwesome name="remove" size={15} color={Colors.LightGray} />
             </Text>
           </TouchableOpacity>
         );

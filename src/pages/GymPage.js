@@ -443,7 +443,7 @@ GymPage.propTypes = {
 const styles = StyleSheet.create({
   gymName: {
     fontSize: 30,
-    color: Colors.White,
+    color: Colors.LightGray,
     fontWeight: '500',
     textAlign: 'center',
   },
@@ -476,7 +476,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   trainerContainer: {
-    backgroundColor: Colors.White,
+    backgroundColor: Colors.LightGray,
     width: '95%',
     minHeight: 100,
     flexDirection: 'column',
@@ -486,14 +486,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.Primary,
     marginVertical: 5,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 3,
-    },
+    shadowColor: Colors.Black,
     shadowOpacity: 0.27,
     shadowRadius: 4.65,
-    elevation: 6,
   },
   trainerRow: {
     width: '90%',
@@ -564,11 +559,11 @@ const styles = StyleSheet.create({
   rate: {
     fontSize: 16,
     fontWeight: '500',
-    color: Colors.White,
+    color: Colors.LightGray,
   },
   smallText: {
     fontSize: 20,
-    color: Colors.White,
+    color: Colors.LightGray,
     fontWeight: '400',
     marginTop: 5,
   },
@@ -580,7 +575,7 @@ const styles = StyleSheet.create({
     padding: 5,
     backgroundColor: Colors.Primary,
     borderWidth: 1,
-    borderColor: Colors.White,
+    borderColor: Colors.LightGray,
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
@@ -606,7 +601,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     textAlign: 'center',
-    color: Colors.White,
+    color: Colors.LightGray,
     fontWeight: '700',
   },
   active: {

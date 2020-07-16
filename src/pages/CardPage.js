@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'space-around',
     alignItems: 'center',
-    backgroundColor: Colors.White,
+    backgroundColor: Colors.LightGray,
     padding: 20,
   },
   submitButton: {
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 20,
     textAlign: 'center',
-    color: Colors.White,
+    color: Colors.LightGray,
     fontWeight: '700',
   },
   title: {
