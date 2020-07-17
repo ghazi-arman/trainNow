@@ -28,7 +28,6 @@ import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
 import MasterStyles from '../components/MasterStyles';
 
-
 export default class CalendarPage extends Component {
   constructor(props) {
     super(props);

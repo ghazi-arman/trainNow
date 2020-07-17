@@ -31,12 +31,12 @@ export default class LoginForm extends Component {
     }
 
     // Input validation
-    if (!this.state.email || !this.state.email.length) {
-      Alert.alert('Please enter an email!');
+    if (!this.state.email) {
+      Alert.alert('Please enter an email.');
       return;
     }
-    if (!this.state.password || this.state.password.length < 6) {
-      Alert.alert('Password must be more than six characters!');
+    if (!this.state.password) {
+      Alert.alert('Please enter a password.');
       return;
     }
 

@@ -12,7 +12,7 @@ import { loadUser, renderStars } from './Functions';
 import LoadingWheel from './LoadingWheel';
 import defaultProfilePic from '../images/profile.png';
 
-export default class SideMenu extends Component {
+export default class Menu extends Component {
   constructor(props) {
     super(props);
     this.state = {};
@@ -110,7 +110,7 @@ export default class SideMenu extends Component {
   }
 }
 
-SideMenu.propTypes = {
+Menu.propTypes = {
   toggleMenu: PropTypes.func.isRequired,
 };
 

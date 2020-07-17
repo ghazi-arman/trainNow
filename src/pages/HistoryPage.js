@@ -226,7 +226,6 @@ export default class HistoryPage extends Component {
   }
 }
 
-
 const styles = StyleSheet.create({
   reportModal: {
     flex: 0.6,

@@ -12,7 +12,7 @@ import { loadUser, renderStars } from './Functions';
 import LoadingWheel from './LoadingWheel';
 import defaultProfilePic from '../images/profile.png';
 
-export default class ManagedSideMenu extends Component {
+export default class ManagedMenu extends Component {
   constructor(props) {
     super(props);
     this.state = {};
@@ -93,7 +93,7 @@ export default class ManagedSideMenu extends Component {
   }
 }
 
-ManagedSideMenu.propTypes = {
+ManagedMenu.propTypes = {
   toggleMenu: PropTypes.func.isRequired,
 };
 

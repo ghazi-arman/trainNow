@@ -712,10 +712,10 @@ export async function loadGyms() {
  * @param {Location} userRegion location object of the user
  * @returns {Array[Gym]} sorted array of gyms
  */
-export function sortGymsByLocation(gyms, userRegion) {
-  gyms.sort((a, b) => {
-    return geolib.getDistance(a.location, userRegion) - geolib.getDistance(b.location, userRegion);
-  });
+export function sortGymsByLocation(gyms, region) {
+  gyms.sort(
+    (a, b) => geolib.getDistance(a.location, region) - geolib.getDistance(b.location, region),
+  );
   return gyms;
 }
 
@@ -1380,7 +1380,6 @@ export async function createGroupSession(
     type: Constants.groupSessionType,
   });
 }
-
 
 /**
  * Updates the group session in the groupSessions table and the gyms table for the specified gym.

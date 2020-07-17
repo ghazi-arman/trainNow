@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {
-  Image, StyleSheet, Text, View, Alert, TouchableOpacity, ScrollView, TouchableWithoutFeedback
+  Image, StyleSheet, Text, View, Alert, TouchableOpacity,
 } from 'react-native';
 import * as Permissions from 'expo-permissions';
 import MapView from 'react-native-maps';
@@ -9,9 +9,8 @@ import { Actions } from 'react-native-router-flux';
 import { FontAwesome } from '@expo/vector-icons';
 import Drawer from 'react-native-drawer';
 import bugsnag from '@bugsnag/expo';
-import geolib from 'geolib';
-import SideMenu from '../components/SideMenu';
-import ManagedSideMenu from '../components/ManagedSideMenu';
+import Menu from '../components/Menu';
+import ManagedMenu from '../components/ManagedMenu';
 import Colors from '../components/Colors';
 import {
   loadUser,
@@ -24,11 +23,11 @@ import {
   loadPendingSessions,
   loadAcceptedSessions,
   loadCurrentGroupSession,
-  sortGymsByLocation
 } from '../components/Functions';
 import Constants from '../components/Constants';
 import LoadingWheel from '../components/LoadingWheel';
 import MasterStyles from '../components/MasterStyles';
+import GymModal from '../components/GymModal';
 import markerImg from '../images/marker.png';
 
 export default class MapPage extends Component {
@@ -39,16 +38,17 @@ export default class MapPage extends Component {
       currentSession: null,
       unread: false,
       menuOpen: false,
+      selectedTab: 'trainers',
     };
     this.bugsnagClient = bugsnag();
   }
 
-  async componentDidMount() {    
-    if (!this.state.userRegion || !this.state.mapRegion) {
+  async componentDidMount() {
+    if (!this.state.userRegion) {
       const { status, permissions } = await Permissions.askAsync(Permissions.LOCATION);
       if (permissions && status === 'granted') {
         const location = await getLocation();
-        this.setState({ userRegion: location, mapRegion: location });
+        this.setState({ userRegion: location });
       } else {
         Alert.alert('You must allow this app to access your location before you can proceed. Please change your settings and restart the application.',
           '',
@@ -72,6 +72,7 @@ export default class MapPage extends Component {
         const user = await loadUser(userId);
         await goToPendingRating(userId, user.type);
         const gyms = await loadGyms();
+        const markers = this.renderMarkers(gyms);
         const currentSession = await loadCurrentSession(userId, user.type);
         const currentGroupSession = await loadCurrentGroupSession(userId, user.type);
         const unread = await checkForUnreadSessions(userId, user.type);
@@ -85,6 +86,7 @@ export default class MapPage extends Component {
           pendingSessions,
           acceptSessions,
           currentGroupSession,
+          markers,
         });
       } catch (error) {
         this.bugsnagClient.notify(error);
@@ -92,12 +94,6 @@ export default class MapPage extends Component {
       }
     }
   }
-
-  handleMapRegionChange = (mapRegion) => {
-    if (this.state.regionSet) {
-      this.setState({ mapRegion });
-    }
-  };
 
   setLocation = () => {
     if (this.state.userRegion) {
@@ -113,33 +109,21 @@ export default class MapPage extends Component {
     }
   }
 
-  renderGyms = () => {
-    const sortedGyms = sortGymsByLocation(this.state.gyms, this.state.userRegion);
-    return sortedGyms.map((gym) => {
-      return (
-        <View style={styles.gymContainer} key={gym.key}>
-          <Image style={styles.gymImage} source={markerImg} />
-          <TouchableWithoutFeedback onPress={() => this.setState({ selectedGym: gym })}>
-            <View style={styles.nameContainer} >
-              <Text style={styles.gymName}>{gym.name}</Text>
-              <Text style={styles.distance}>
-                {(geolib.getDistance(
-                  gym.location,
-                  this.state.userRegion
-                ) * Constants.metersToMilesMultiplier).toFixed(2)} miles away
-              </Text>
-            </View>
-          </TouchableWithoutFeedback>
-          <View style={styles.linkContainer}>
-            <Text style={styles.link}>Details</Text>
-          </View>
-        </View>
-      );
-    });
-  }
+  renderMarkers = (gyms) => gyms.map((marker) => (
+    <MapView.Marker
+      ref={(currentMarker) => { this.marker = currentMarker; }}
+      key={marker.key}
+      coordinate={marker.location}
+      onPress={() => Actions.GymPage({ gymKey: marker.key })}
+    >
+      <Image source={markerImg} style={{ width: 50, height: 50 }} />
+    </MapView.Marker>
+  ))
+
+  selectGym = (selectedGym) => this.setState({ selectedGym });
 
   render() {
-    if (!this.state.mapRegion || !this.state.gyms || !this.state.user) {
+    if (!this.state.gyms || !this.state.user || !this.state.markers || !this.state.userRegion) {
       return <LoadingWheel />;
     }
 
@@ -181,24 +165,27 @@ export default class MapPage extends Component {
       );
     }
 
-    let gymModal;
+    let gymInfo;
     let menuOrBackButton;
     if (this.state.selectedGym) {
       menuOrBackButton = (
-        <TouchableOpacity style={styles.menuButton} onPress={() => this.setState({ selectedGym: null})}>
+        <TouchableOpacity
+          style={styles.menuButton}
+          onPress={() => this.setState({ selectedGym: null })}
+        >
           <Text>
             <FontAwesome name="arrow-left" color={Colors.Black} size={30} />
           </Text>
         </TouchableOpacity>
       );
-      gymModal = (
-        <View style={styles.gymModal}>
+      gymInfo = (
+        <View style={styles.gymInfo}>
           <Text style={[styles.title]}>{this.state.selectedGym.name}</Text>
-          <Text style={[styles.link, {fontSize: 18}]}>Details</Text>
+          <Text style={[styles.link, { fontSize: 18 }]}>Details</Text>
         </View>
       );
     } else {
-      gymModal = null;
+      gymInfo = null;
       menuOrBackButton = (
         <TouchableOpacity style={styles.menuButton} onPress={this.toggleMenu}>
           <Text>
@@ -209,9 +196,9 @@ export default class MapPage extends Component {
     }
 
     const menu = this.state.user.trainerType !== Constants.managedType
-      ? <SideMenu toggleMenu={this.toggleMenu} />
-      : <ManagedSideMenu toggleMenu={this.toggleMenu} />;
-    
+      ? <Menu toggleMenu={this.toggleMenu} />
+      : <ManagedMenu toggleMenu={this.toggleMenu} />;
+
     return (
       <Drawer
         open={this.state.menuOpen}
@@ -225,32 +212,21 @@ export default class MapPage extends Component {
           <MapView
             ref={(mapView) => { this.map = mapView; }}
             style={styles.map}
-            onRegionChange={this.handleMapRegionChange}
-            region={this.state.mapRegion}
+            initialRegion={this.state.userRegion}
             showsUserLocation
-            onMapReady={() => {
-              this.setState({ regionSet: true });
-            }}
           >
-            {this.state.gyms.map((marker) => (
-              <MapView.Marker
-                ref={(currentMarker) => { this.marker = currentMarker; }}
-                key={marker.key}
-                coordinate={marker.location}
-                onPress={() => Actions.GymPage({ gymKey: marker.key })}
-              >
-                <Image source={markerImg} style={{ width: 50, height: 50 }} />
-              </MapView.Marker>
-            ))}
+            {this.state.markers}
           </MapView>
           {alertBox}
           {menuOrBackButton}
-          {gymModal}
+          {gymInfo}
           <View style={styles.gymsContainer}>
-            <Text style={styles.title}>Find a gym near you</Text>
-            <ScrollView contentContainerStyle={MasterStyles.flexStartContainer}>
-              {this.renderGyms()}
-            </ScrollView>
+            <GymModal
+              gyms={this.state.gyms}
+              selectedGym={this.state.selectedGym}
+              userRegion={this.state.userRegion}
+              selectGym={this.selectGym}
+            />
           </View>
         </View>
       </Drawer>
@@ -293,18 +269,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 16,
   },
-  gymModal: {
-    position: 'absolute',
-    top: 100,
-    backgroundColor: Colors.White,
-    width: '90%',
-    borderRadius: 10,
-    height: 50,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
   gymsContainer: {
     position: 'absolute',
     bottom: 0,
@@ -320,43 +284,22 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.27,
     shadowRadius: 4.65,
   },
-  gymContainer: {
+  gymInfo: {
+    position: 'absolute',
+    top: 100,
+    backgroundColor: Colors.White,
+    width: '90%',
+    borderRadius: 10,
+    height: 50,
     flexDirection: 'row',
-    justifyContent: 'flex-start',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    width: '100%',
-    marginTop: 20,
-  },
-  nameContainer: {
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-    width: '90%'
-  },
-  gymName: {
-    fontWeight: '500',
-    fontSize: 14,
-    color: Colors.Black,
-  },
-  distance: {
-    fontWeight: '400',
-    fontSize: 12,
-    color: Colors.DarkGray,
+    paddingHorizontal: 20,
   },
   link: {
     fontWeight: '500',
     fontSize: 14,
     color: Colors.Purple,
-  },
-  linkContainer: {
-    position: "absolute",
-    right: 0,
-  },
-  gymImage: {
-    height: 40,
-    width: 40,
-    borderRadius: 20,
-    marginRight: 5,
   },
   title: {
     fontWeight: '600',

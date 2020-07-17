@@ -1,7 +1,8 @@
 import bugsnag from '@bugsnag/expo';
 import React, { Component } from 'react';
 import firebase from 'firebase';
-import { ScreenOrientation, AppLoading } from 'expo';
+import { AppLoading } from 'expo';
+import * as ScreenOrientation from 'expo-screen-orientation';
 import * as Font from 'expo-font';
 import {
   API_KEY,
@@ -12,6 +13,9 @@ import {
   MESSAGING_SENDER_ID,
 } from 'react-native-dotenv';
 import Routes from './Routes';
+
+// eslint-disable-next-line
+console.disableYellowBox = true;
 
 const fontFile = require('./fonts/fontawesome-5.9.0/fonts/FontAwesome5FreeSolid.otf');
 
@@ -42,7 +46,7 @@ export default class App extends Component {
     bugsnag();
 
     // Keep screen in portrait mode and load font for Icons
-    ScreenOrientation.lockAsync(ScreenOrientation.Orientation.PORTRAIT_UP);
+    await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
     await Font.loadAsync({
       FontAwesome5FreeSolid: fontFile,
     });
