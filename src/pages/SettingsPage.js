@@ -45,7 +45,7 @@ export default class SettingsPage extends Component {
     return (
       <View style={MasterStyles.spacedContainer}>
         <View style={styles.nameContainer}>
-          <BackButton />
+          <BackButton onPress={this.goToMap} />
           <Text style={styles.title}>Settings</Text>
         </View>
         <KeyboardAvoidingView style={styles.formContainer} behavior="padding">

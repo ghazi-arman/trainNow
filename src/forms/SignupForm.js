@@ -172,6 +172,7 @@ export default class SignupForm extends Component {
           active: false,
           bio: this.state.bio,
           cert: this.state.cert,
+          specialities: this.state.specialities,
           name: this.state.name,
           rate: parseInt(this.state.rate, 10),
           rating: 0,
@@ -184,6 +185,7 @@ export default class SignupForm extends Component {
           pending,
           name: this.state.name,
           cert: this.state.cert,
+          specialities: this.state.specialities,
           rate: parseInt(this.state.rate, 10),
           bio: this.state.bio,
           phone: this.state.phone,
@@ -364,6 +366,10 @@ export default class SignupForm extends Component {
         Alert.alert('Please enter your certifications!');
         return;
       }
+      if (!this.state.specialities.trim()) {
+        Alert.alert('Please enter your specialities!');
+        return;
+      }
       if (!this.state.bio.trim()) {
         Alert.alert('Please fill out your bio!');
         return;
@@ -426,13 +432,13 @@ export default class SignupForm extends Component {
     let prevButton;
 
     prevButton = (
-      <TouchableOpacity style={styles.buttonContainer} onPressIn={this.goBack}>
+      <TouchableOpacity style={styles.button} onPressIn={this.goBack}>
         <Text style={styles.buttonText}>Previous</Text>
       </TouchableOpacity>
     );
 
     nextButton = (
-      <TouchableOpacity style={styles.buttonContainer} onPressIn={this.goNext}>
+      <TouchableOpacity style={styles.button} onPressIn={this.goNext}>
         <Text style={styles.buttonText}>Next</Text>
       </TouchableOpacity>
     );
@@ -524,24 +530,34 @@ export default class SignupForm extends Component {
             icon="info"
             multiline
             placeholder="Enter your bio here (specialities, schedule, experience, etc.)"
+            maxLength={250}
             onChange={(bio) => this.setState({ bio })}
             value={this.state.bio}
           />
           <TextField
             icon="vcard"
             placeholder="Certifications"
+            maxLength={100}
             onChange={(cert) => this.setState({ cert })}
             value={this.state.cert}
+          />
+          <TextField
+            icon="book"
+            placeholder="Specialties"
+            maxLength={100}
+            onChange={(specialities) => this.setState({ specialities })}
+            value={this.state.specialities}
           />
           <TextField
             icon="user"
             placeholder="Last 4  of Social Security # (For Stripe Verification)"
             keyboard="number-pad"
+            maxLength={4}
             onChange={(ssn) => this.setState({ ssn })}
             value={this.state.ssn}
           />
           <TextField
-            icon="user"
+            icon="calendar"
             placeholder="Birth Date (mm/dd/yyyy)"
             onChange={(birthDay) => this.setState({ birthDay })}
             value={this.state.birthDay}
@@ -600,7 +616,7 @@ export default class SignupForm extends Component {
       submitButton = (
         <TouchableOpacity
           ref={(btn) => { this.btn = btn; }}
-          style={styles.buttonContainer}
+          style={styles.button}
           onPressIn={this.signUp}
         >
           <Text style={styles.buttonText}> Signup </Text>
@@ -669,7 +685,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.Primary,
     width: '90%',
   },
-  buttonContainer: {
+  button: {
     backgroundColor: Colors.Secondary,
     paddingVertical: 15,
     width: '40%',

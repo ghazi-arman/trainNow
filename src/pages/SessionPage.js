@@ -134,7 +134,7 @@ export default class SessionPage extends Component {
     }
     const mapButton = (
       <TouchableOpacity
-        style={styles.buttonContainer}
+        style={styles.button}
         onPress={this.openMaps}
       >
         <Text style={styles.buttonText}> Open in Maps </Text>
@@ -142,7 +142,7 @@ export default class SessionPage extends Component {
     );
     const textButton = (
       <TouchableOpacity
-        style={styles.buttonContainer}
+        style={styles.button}
         onPress={this.sendMessage}
       >
         <Text style={styles.buttonText}> Send Message </Text>
@@ -183,7 +183,7 @@ export default class SessionPage extends Component {
       );
       button = (
         <TouchableOpacity
-          style={styles.buttonContainer}
+          style={styles.button}
           onPress={this.startSession}
         >
           <Text style={styles.buttonText}> Start Session </Text>
@@ -249,7 +249,7 @@ export default class SessionPage extends Component {
       );
       button = (
         <TouchableOpacity
-          style={styles.buttonContainer}
+          style={styles.button}
           onPressIn={this.endSession}
         >
           <Text
@@ -387,7 +387,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  buttonContainer: {
+  button: {
     borderRadius: 5,
     backgroundColor: Colors.Secondary,
     paddingVertical: 15,

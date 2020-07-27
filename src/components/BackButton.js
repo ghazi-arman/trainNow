@@ -1,16 +1,17 @@
 import React from 'react';
 import {
-  Text, StyleSheet,
+  TouchableOpacity, StyleSheet, Dimensions,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { Actions } from 'react-native-router-flux';
 import { FontAwesome } from '@expo/vector-icons';
 import Colors from './Colors';
+import MasterStyles from './MasterStyles';
 
 const BackButton = (props) => (
-  <Text style={styles.backButton} onPress={props.onPress}>
-    <FontAwesome name="arrow-left" size={35} />
-  </Text>
+  <TouchableOpacity style={[styles.button, MasterStyles.shadow]} onPress={props.onPress}>
+    <FontAwesome name="arrow-left" color={Colors.Black} size={25} />
+  </TouchableOpacity>
 );
 
 BackButton.propTypes = {
@@ -22,12 +23,18 @@ BackButton.defaultProps = {
 };
 
 const styles = StyleSheet.create({
-  backButton: {
+  button: {
     position: 'absolute',
-    left: 10,
-    bottom: 10,
-    fontSize: 35,
-    color: Colors.Secondary,
+    top: Dimensions.get('window').height / 20,
+    left: 20,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.White,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.Black,
   },
 });
 

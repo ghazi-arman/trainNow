@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import Colors from './Colors';
 
 export default StyleSheet.create({
   centeredContainer: {
@@ -21,5 +22,15 @@ export default StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'flex-start',
     alignItems: 'center',
+  },
+  shadow: {
+    shadowColor: Colors.Black,
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.22,
+    shadowRadius: 2.22,
+    elevation: 3,
   },
 });

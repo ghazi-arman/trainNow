@@ -116,7 +116,7 @@ export default class LoginForm extends Component {
           onSubmitEditing={() => this.login()}
           value={this.state.password}
         />
-        <TouchableOpacity style={styles.buttonContainer} onPressIn={this.login}>
+        <TouchableOpacity style={styles.button} onPressIn={this.login}>
           <Text style={styles.buttonText}> Login </Text>
         </TouchableOpacity>
       </View>
@@ -125,7 +125,7 @@ export default class LoginForm extends Component {
 }
 
 const styles = StyleSheet.create({
-  buttonContainer: {
+  button: {
     backgroundColor: Colors.Secondary,
     paddingVertical: 15,
     marginTop: 20,

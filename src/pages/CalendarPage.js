@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
 import {
-  StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert,
+  StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert, Image,
 } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
 import bugsnag from '@bugsnag/expo';
+import { FontAwesome } from '@expo/vector-icons';
 import {
   dateToString,
   timeOverlapCheck,
@@ -27,6 +28,7 @@ import Constants from '../components/Constants';
 import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
 import MasterStyles from '../components/MasterStyles';
+import profileImage from '../images/profile.png';
 
 export default class CalendarPage extends Component {
   constructor(props) {
@@ -44,8 +46,11 @@ export default class CalendarPage extends Component {
         const user = await loadUser(userId);
         await goToPendingRating(firebase.auth().currentUser.uid, user.type);
         const pendingSessions = await loadPendingSessions(userId, user.type);
+        this.loadImages(pendingSessions, 'pendingSessions');
         const upcomingSessions = await loadAcceptedSessions(userId, user.type);
+        this.loadImages(upcomingSessions, 'upcomingSessions');
         const groupSessions = await loadGroupSessions(userId, user.type);
+        this.loadImages(groupSessions, 'groupSessions');
         await markSessionsAsRead(pendingSessions, upcomingSessions, user.type);
         this.setState({
           user, pendingSessions, upcomingSessions, groupSessions,
@@ -56,6 +61,45 @@ export default class CalendarPage extends Component {
         Actions.reset('MapPage');
       }
     }
+  }
+
+  loadImages = (sessions, sessionType) => {
+    const updatedSessions = sessions;
+    Object.keys(updatedSessions).map(async (key) => {
+      let trainerImage;
+      try {
+        trainerImage = await firebase.storage().ref()
+          .child(updatedSessions[key].trainerKey).getDownloadURL();
+      } catch {
+        trainerImage = Image.resolveAssetSource(profileImage).uri;
+      } finally {
+        updatedSessions[key].trainerImage = trainerImage;
+        this.setState({ [sessionType]: updatedSessions });
+      }
+      let clientImage;
+      try {
+        clientImage = await firebase.storage().ref()
+          .child(sessions[key].clientKey).getDownloadURL();
+      } catch {
+        clientImage = Image.resolveAssetSource(profileImage).uri;
+      } finally {
+        updatedSessions[key].clientImage = clientImage;
+        this.setState({ [sessionType]: updatedSessions });
+      }
+    });
+  }
+
+  goActive = async () => {
+    const userId = firebase.auth().currentUser.uid;
+    await firebase.database().ref('users').child(userId).update({ active: true });
+    Object.keys(this.state.user.gyms).forEach((gymKey) => {
+      firebase.database().ref(`/gyms/${gymKey}/trainers/${userId}`).update({
+        active: true,
+      });
+    });
+    Alert.alert('You are active now');
+    this.state.user.active = true;
+    this.forceUpdate();
   }
 
   acceptSession = async (session) => {
@@ -257,64 +301,120 @@ export default class CalendarPage extends Component {
     );
   }
 
+  renderPendingSessions = () => {
+    const userKey = firebase.auth().currentUser.uid;
+    if (!this.state.pendingSessions.length) {
+      return null;
+    }
+
+    const pendingSessions = this.state.pendingSessions.map((session) => {
+      let button;
+      let button2;
+      let name;
+      const image = session.clientKey === userKey ? session.trainerImage : session.clientImage;
+      if (
+        (session.clientKey === userKey && session.sentBy === Constants.clientType)
+        || (session.trainerKey === userKey && session.sentBy === Constants.trainerType)
+      ) {
+        button = (
+          <TouchableOpacity
+            style={[styles.button, MasterStyles.shadow]}
+            onPress={() => this.cancelSession(session)}
+          >
+            <Text style={[styles.buttonText, { color: Colors.Red }]}>Cancel</Text>
+          </TouchableOpacity>
+        );
+        name = session.clientKey === userKey ? session.trainerName : session.clientName;
+      } else {
+        button = (
+          <TouchableOpacity
+            style={[styles.button, MasterStyles.shadow]}
+            onPress={() => this.acceptSession(session)}
+          >
+            <Text style={[styles.buttonText, { color: Colors.Green }]}>Accept</Text>
+          </TouchableOpacity>
+        );
+        button2 = (
+          <TouchableOpacity
+            style={[styles.button, MasterStyles.shadow]}
+            onPress={() => this.cancelSession(session)}
+          >
+            <Text style={[styles.buttonText, { color: Colors.Red }]}>Reject</Text>
+          </TouchableOpacity>
+        );
+        name = session.clientKey === userKey ? session.clientName : session.trainerName;
+      }
+      return (
+        <View style={styles.sessionContainer} key={session.key}>
+          <View style={styles.sessionInfo}>
+            <Image
+              style={styles.profileImage}
+              source={{ uri: image || Image.resolveAssetSource(profileImage).uri }}
+            />
+          </View>
+          <View style={styles.sessionInfo}>
+            <Text style={styles.name}>{name}</Text>
+            <Text style={styles.details}>
+              {session.duration}
+              {' '}
+              minutes
+            </Text>
+            <Text style={styles.details}>{dateToString(session.start)}</Text>
+            <Text style={styles.details}>{session.gymName}</Text>
+          </View>
+          <View style={styles.buttonColumn}>
+            {button2}
+            {button}
+          </View>
+        </View>
+      );
+    });
+
+    return ([
+      <Text style={styles.subTitle}>Pending Sessions</Text>,
+      pendingSessions,
+    ]);
+  }
+
   renderUpcomingSessions = () => {
     const userKey = firebase.auth().currentUser.uid;
     if (!this.state.upcomingSessions.length && !this.state.groupSessions.length) {
-      return <Text style={styles.mediumText}>None</Text>;
+      return null;
     }
 
     const upcomingSessions = this.state.upcomingSessions.map((session) => {
-      const displayDate = dateToString(session.start);
-      let name;
-      if (session.clientKey === userKey) {
-        name = (
-          <View style={styles.trainerView}>
-            <Text style={styles.trainerInfo}>
-              {session.trainerName}
-            </Text>
-          </View>
-        );
-      } else {
-        name = (
-          <View style={styles.trainerView}>
-            <Text style={styles.trainerInfo}>
-              {session.clientName}
-            </Text>
-          </View>
-        );
-      }
+      const name = session.clientKey === userKey ? session.trainerName : session.clientName;
+      const image = session.clientKey === userKey ? session.trainerImage : session.clientImage;
       return (
-        <View
-          style={{ flexDirection: 'column', justifyContent: 'flex-start', width: '100%' }}
-          key={session.key}
-        >
-          <View style={{ flexDirection: 'row', justifyContent: 'space-around', height: 50 }}>
-            {name}
-            <View style={styles.rateView}>
-              <Text style={styles.trainerInfo}>
-                {session.duration}
-                {' '}
-                min
-              </Text>
-            </View>
-            <View style={styles.timeView}>
-              <Text style={styles.trainerInfo}>
-                {displayDate}
-              </Text>
-            </View>
+        <View style={styles.sessionContainer} key={session.key}>
+          <View style={styles.sessionInfo}>
+            <Image
+              style={styles.profileImage}
+              source={{ uri: image || Image.resolveAssetSource(profileImage).uri }}
+            />
           </View>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-around', height: 50 }}>
+          <View style={styles.sessionInfo}>
+            <Text style={styles.name}>{name}</Text>
+            <Text style={styles.details}>
+              {session.duration}
+              {' '}
+              minutes
+            </Text>
+            <Text style={styles.details}>{dateToString(session.start)}</Text>
+            <Text style={styles.details}>{session.gymName}</Text>
+          </View>
+          <View style={styles.buttonColumn}>
             <TouchableOpacity
-              style={styles.denyContainer}
+              style={[styles.button, MasterStyles.shadow]}
               onPress={() => this.cancelAcceptedSession(session)}
             >
-              <Text style={styles.buttonText}>Cancel</Text>
+              <Text style={[styles.buttonText, { color: Colors.Red }]}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.buttonContainer}
+              style={[styles.button, MasterStyles.shadow]}
               onPress={() => Actions.SessionPage({ session: session.key })}
             >
-              <Text style={styles.buttonText}>Enter</Text>
+              <Text style={[styles.buttonText, { color: Colors.Green }]}>Enter</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -322,378 +422,232 @@ export default class CalendarPage extends Component {
     });
 
     const groupSessions = this.state.groupSessions.map((session) => {
-      const displayDate = dateToString(session.start);
-      let cancelButtonText = 'Leave';
-      let editButton = null;
-      if (this.state.user.type === Constants.trainerType) {
-        editButton = (
+      const cancelButtonText = this.state.user.type === Constants.trainerType ? 'Delete' : 'Leave';
+      const editButton = this.state.user.type === Constants.trainerType
+        ? (
           <TouchableOpacity
-            style={styles.buttonContainer}
+            style={[styles.button, MasterStyles.shadow]}
             onPress={() => Actions.CreateGroupSessionPage({ sessionKey: session.key })}
           >
-            <Text style={styles.buttonText}>Edit</Text>
+            <Text style={[styles.buttonText, { color: Colors.Black }]}>Edit</Text>
           </TouchableOpacity>
-        );
-        cancelButtonText = 'Delete';
-      }
+        )
+        : null;
+      const image = session.trainerKey === userKey ? session.clientImage : session.trainerImage;
+      const name = session.trainerKey === userKey ? null : session.trainerName;
       return (
-        <View
-          style={{ flexDirection: 'column', justifyContent: 'flex-start', width: '100%' }}
-          key={session.key}
-        >
-          <View style={{ flexDirection: 'row', justifyContent: 'space-around', height: 40 }}>
-            <View style={styles.trainerView}>
-              <Text style={styles.trainerInfo}>{session.name}</Text>
-            </View>
-            <View style={styles.rateView}>
-              <Text style={styles.trainerInfo}>
-                {session.duration}
-                {' '}
-                min
-              </Text>
-            </View>
-            <View style={styles.timeView}>
-              <Text style={styles.trainerInfo}>
-                {displayDate}
-              </Text>
-            </View>
+        <View style={[styles.sessionContainer, { height: 170 }]} key={session.key}>
+          <View style={styles.sessionInfo}>
+            <Image
+              style={styles.profileImage}
+              source={{ uri: image || Image.resolveAssetSource(profileImage).uri }}
+            />
           </View>
-          <View style={{
-            flexDirection: 'row', justifyContent: 'center', height: 40, marginBottom: 10,
-          }}
-          >
-            <View style={{ width: '100%', height: 40 }}>
-              <Text style={styles.trainerInfo}>
-                {session.clientCount}
-                {' '}
-                /
-                {' '}
-                {session.capacity}
-                {' '}
-                clients joined
-              </Text>
-            </View>
+          <View style={styles.sessionInfo}>
+            <Text style={styles.name}>{session.name}</Text>
+            { name ? <Text style={styles.details}>{name}</Text> : null }
+            <Text style={styles.details}>
+              {session.clientCount}
+              {' '}
+              /
+              {' '}
+              {session.capacity}
+            </Text>
+            <Text style={styles.details}>
+              {session.duration}
+              {' '}
+              minutes
+            </Text>
+            <Text style={styles.details}>{dateToString(session.start)}</Text>
+            <Text style={styles.details}>{session.gymName}</Text>
           </View>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-around', height: 50 }}>
+          <View style={styles.buttonColumn}>
             <TouchableOpacity
-              style={styles.denyContainer}
+              style={[styles.button, MasterStyles.shadow]}
               onPress={() => this.cancelGroupSession(session)}
             >
-              <Text style={styles.buttonText}>{cancelButtonText}</Text>
+              <Text style={[styles.buttonText, { color: Colors.Red }]}>{cancelButtonText}</Text>
             </TouchableOpacity>
             {editButton}
-          </View>
-          <View style={{
-            flexDirection: 'row', justifyContent: 'space-around', marginBottom: 20,
-          }}
-          >
             <TouchableOpacity
-              style={[styles.scheduleButton, { backgroundColor: Colors.Primary }]}
+              style={[styles.button, MasterStyles.shadow]}
               onPress={() => Actions.GroupSessionPage({ session: session.key })}
             >
-              <Text style={styles.buttonText}>Enter Session</Text>
+              <Text style={[styles.buttonText, { color: Colors.Green }]}>Enter</Text>
             </TouchableOpacity>
           </View>
         </View>
       );
     });
 
-    return upcomingSessions.concat(groupSessions);
-  }
-
-  renderPendingSessions = () => {
-    const userKey = firebase.auth().currentUser.uid;
-    if (!this.state.pendingSessions.length) {
-      return <Text style={styles.mediumText}>None</Text>;
-    }
-
-    return this.state.pendingSessions.map((session) => {
-      const displayDate = dateToString(session.start);
-      let button;
-      let button2;
-      let name;
-      if (
-        (session.clientKey === userKey && session.sentBy === Constants.clientType)
-        || (session.trainerKey === userKey && session.sentBy === Constants.trainerType)
-      ) {
-        button = (
-          <TouchableOpacity
-            style={styles.denyContainer}
-            onPress={() => this.cancelSession(session)}
-          >
-            <Text style={styles.buttonText}>Cancel</Text>
-          </TouchableOpacity>
-        );
-        if (session.clientKey === userKey) {
-          name = (
-            <View style={styles.trainerView}>
-              <Text style={styles.trainerInfo}>
-                {session.trainerName}
-              </Text>
-            </View>
-          );
-        } else {
-          name = (
-            <View style={styles.trainerView}>
-              <Text style={styles.trainerInfo}>
-                {session.clientName}
-              </Text>
-            </View>
-          );
-        }
-      } else {
-        button = (
-          <TouchableOpacity
-            style={styles.buttonContainer}
-            onPress={() => this.acceptSession(session)}
-          >
-            <Text style={styles.buttonText}>Accept</Text>
-          </TouchableOpacity>
-        );
-        button2 = (
-          <TouchableOpacity
-            style={styles.denyContainer}
-            onPress={() => this.cancelSession(session)}
-          >
-            <Text style={styles.buttonText}>Reject</Text>
-          </TouchableOpacity>
-        );
-        if (session.clientKey === userKey) {
-          name = (
-            <View style={styles.trainerView}>
-              <Text style={styles.trainerInfo}>
-                {session.trainerName}
-              </Text>
-            </View>
-          );
-        } else {
-          name = (
-            <View style={styles.trainerView}>
-              <Text style={styles.trainerInfo}>
-                {session.clientName}
-              </Text>
-            </View>
-          );
-        }
-      }
-      return (
-        <View
-          style={{ flexDirection: 'column', justifyContent: 'flex-start', width: '100%' }}
-          key={session.key}
-        >
-          <View style={{ flexDirection: 'row', justifyContent: 'space-around', height: 50 }}>
-            {name}
-            <View style={styles.rateView}>
-              <Text style={styles.trainerInfo}>
-                {session.duration}
-                {' '}
-                min
-              </Text>
-            </View>
-            <View style={styles.timeView}>
-              <Text style={styles.trainerInfo}>
-                {displayDate}
-              </Text>
-            </View>
-          </View>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-around', height: 50 }}>
-            {button2}
-            {button}
-          </View>
-        </View>
-      );
-    });
-  }
-
-  goActive = async () => {
-    const userId = firebase.auth().currentUser.uid;
-    await firebase.database().ref('users').child(userId).update({ active: true });
-    Object.keys(this.state.user.gyms).forEach((gymKey) => {
-      firebase.database().ref(`/gyms/${gymKey}/trainers/${userId}`).update({
-        active: true,
-      });
-    });
-    Alert.alert('You are active now');
-    this.state.user.active = true;
-    this.forceUpdate();
+    return ([
+      <Text style={styles.subTitle}>Upcoming Sessions</Text>,
+      upcomingSessions,
+      groupSessions,
+    ]);
   }
 
   render() {
-    if (!this.state.upcomingSessions || !this.state.user || !this.state.pendingSessions) {
+    if (!this.state.user || !this.state.upcomingSessions || !this.state.pendingSessions) {
       return <LoadingWheel />;
     }
     const userId = firebase.auth().currentUser.uid;
-    let activeStatus;
-    let viewScheduleButton;
-    let addScheduleButton;
-    let groupSessionButton;
-    if (this.state.user.type === Constants.trainerType) {
-      if (this.state.user.active) {
-        activeStatus = (<Text style={styles.statusText}>Currently Active</Text>);
-      } else {
-        activeStatus = (
-          <TouchableOpacity
-            style={styles.activeButton}
-            onPress={() => this.goActive()}
-          >
-            <Text style={styles.buttonText}>Go Active</Text>
-          </TouchableOpacity>
-        );
-      }
-      viewScheduleButton = (
-        <TouchableOpacity
-          style={styles.scheduleButton}
-          onPress={Actions.SchedulerPage}
-        >
-          <Text style={styles.buttonText}>Set Schedule</Text>
-        </TouchableOpacity>
-      );
-      addScheduleButton = (
-        <TouchableOpacity
-          style={styles.scheduleButton}
-          onPress={() => Actions.SchedulePage({ trainerKey: userId })}
-        >
-          <Text style={styles.buttonText}>View Schedule</Text>
-        </TouchableOpacity>
-      );
-      groupSessionButton = (
-        <TouchableOpacity
-          style={styles.scheduleButton}
-          onPress={Actions.CreateGroupSessionPage}
-        >
-          <Text style={styles.buttonText}>Create Group Session</Text>
-        </TouchableOpacity>
-      );
-    }
-
     return (
       <View style={MasterStyles.flexStartContainer}>
         <View style={styles.headerContainer}>
           <BackButton onPress={Actions.MapPage} />
+        </View>
+        <ScrollView
+          style={{ width: '100%' }}
+          contentContainerStyle={styles.container}
+          showsVerticalScrollIndicator={false}
+        >
           <Text style={styles.title}>Calendar</Text>
-        </View>
-        <View style={styles.sessionContainer}>
-          <ScrollView contentContainerStyle={styles.center} showsVerticalScrollIndicator={false}>
-            <Text style={styles.subTitle}>Pending Sessions</Text>
-            {this.renderPendingSessions()}
-            <Text style={styles.subTitle}>Upcoming Sessions</Text>
-            {this.renderUpcomingSessions()}
-            {activeStatus}
-            {viewScheduleButton}
-            {addScheduleButton}
-            {groupSessionButton}
-          </ScrollView>
-        </View>
+          {this.state.user.type === Constants.trainerType
+            ? (
+              <View style={styles.buttonRow}>
+                <View style={styles.buttonBox}>
+                  <TouchableOpacity style={styles.centered} onPress={Actions.SchedulerPage}>
+                    <FontAwesome style={styles.icon} name="calendar" color={Colors.Primary} size={30} />
+                    <Text>Set Schedule</Text>
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.buttonBox}>
+                  <TouchableOpacity
+                    style={styles.centered}
+                    onPress={() => Actions.SchedulePage({ trainerKey: userId })}
+                  >
+                    <FontAwesome style={styles.icon} name="search" color={Colors.Primary} size={30} />
+                    <Text>View Schedule</Text>
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.buttonBox}>
+                  <TouchableOpacity
+                    style={styles.centered}
+                    onPress={Actions.CreateGroupSessionPage}
+                  >
+                    <FontAwesome style={styles.icon} name="plus" color={Colors.Primary} size={30} />
+                    <Text>Create Session</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )
+            : null}
+          {this.renderPendingSessions()}
+          {this.renderUpcomingSessions()}
+        </ScrollView>
       </View>
     );
   }
 }
 
 const styles = StyleSheet.create({
-  sessionContainer: {
-    flex: 7,
-    width: '100%',
+  container: {
     flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+  },
+  sessionContainer: {
+    height: 150,
+    flexDirection: 'row',
     justifyContent: 'flex-start',
     alignItems: 'center',
+    paddingHorizontal: 5,
+    paddingVertical: 20,
+    backgroundColor: Colors.LightGray,
+    width: '100%',
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: Colors.Gray,
+    marginVertical: 10,
   },
-  center: {
+  sessionInfo: {
+    height: '100%',
     flexDirection: 'column',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
+  },
+  buttonColumn: {
+    height: '100%',
+    position: 'absolute',
+    right: 15,
+    flexDirection: 'column',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 10,
+  },
+  profileImage: {
+    height: 50,
+    width: 50,
+    borderRadius: 25,
+    marginHorizontal: 10,
+  },
+  name: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 10,
+  },
+  details: {
+    fontSize: 15,
+    color: Colors.DarkGray,
+    marginBottom: 5,
   },
   headerContainer: {
-    flex: 1,
+    height: '10%',
     width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'flex-end',
   },
   title: {
-    fontSize: 35,
-    color: Colors.Primary,
+    fontSize: 30,
+    color: Colors.Black,
     fontWeight: '700',
     textAlign: 'center',
-  },
-  mediumText: {
-    fontSize: 25,
-    color: Colors.Primary,
-    textAlign: 'center',
-    marginBottom: 10,
+    margin: 10,
   },
   subTitle: {
-    fontSize: 30,
+    fontSize: 25,
     fontWeight: '700',
-    color: Colors.Primary,
-    textAlign: 'center',
-    marginBottom: 10,
+    color: Colors.Black,
+    margin: 10,
   },
-  trainerView: {
-    width: '33%',
-    height: 50,
-  },
-  timeView: {
-    width: '37%',
-    height: 50,
-  },
-  trainerInfo: {
-    paddingVertical: 18,
-    textAlign: 'center',
-    fontSize: 18,
-    fontWeight: '700',
-    color: Colors.Primary,
-  },
-  rateView: {
-    width: '20%',
-    height: 50,
-  },
-  buttonContainer: {
-    borderRadius: 5,
+  button: {
+    borderRadius: 10,
     width: 100,
-    padding: 10,
-    height: 48,
-    backgroundColor: Colors.Secondary,
-    flexDirection: 'column',
-    justifyContent: 'center',
-  },
-  activeButton: {
-    borderRadius: 5,
-    padding: 15,
-    backgroundColor: Colors.Secondary,
-    flexDirection: 'column',
-    justifyContent: 'center',
-    marginTop: 20,
-  },
-  scheduleButton: {
-    borderRadius: 5,
-    padding: 15,
-    width: '80%',
-    backgroundColor: Colors.Secondary,
-    flexDirection: 'column',
-    justifyContent: 'center',
-    marginTop: 15,
-  },
-  denyContainer: {
-    borderRadius: 5,
-    width: 100,
-    padding: 10,
-    height: 48,
-    backgroundColor: Colors.Red,
+    height: 30,
+    backgroundColor: Colors.White,
     flexDirection: 'column',
     justifyContent: 'center',
   },
   buttonText: {
     textAlign: 'center',
-    color: Colors.LightGray,
+    color: Colors.Black,
     fontWeight: '700',
-    fontSize: 20,
+    fontSize: 15,
   },
-  statusText: {
+  buttonRow: {
+    width: '100%',
+    height: 100,
+    backgroundColor: Colors.LightGray,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: Colors.Gray,
+  },
+  buttonBox: {
+    width: '33%',
+    height: '90%',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  icon: {
+    height: 40,
+    width: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
     textAlign: 'center',
-    color: Colors.Secondary,
-    fontWeight: '700',
-    fontSize: 25,
-    marginTop: 20,
   },
 });

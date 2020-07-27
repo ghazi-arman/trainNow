@@ -5,13 +5,14 @@ import {
 import PropTypes from 'prop-types';
 import geolib from 'geolib';
 import firebase from 'firebase';
+import { Actions } from 'react-native-router-flux';
 import Colors from './Colors';
 import Constants from './Constants';
 import LoadingWheel from './LoadingWheel';
 import { sortGymsByLocation } from './Functions';
 import MasterStyles from './MasterStyles';
-import gymImg from '../images/gym.png';
-import profileImg from '../images/profile.png';
+import gymImage from '../images/gym.png';
+import profileImage from '../images/profile.png';
 
 export default class GymModal extends Component {
   constructor(props) {
@@ -20,11 +21,10 @@ export default class GymModal extends Component {
       selectedTab: 'trainers',
       selectedGym: this.props.selectedGym,
     };
+    this.selectGym = this.selectGym.bind(this);
   }
 
-  static getDerivedStateFromProps(props) {
-    return { selectedGym: props.selectedGym };
-  }
+  static getDerivedStateFromProps = (props) => ({ selectedGym: props.selectedGym })
 
   renderGyms = () => {
     const sortedGyms = sortGymsByLocation(this.props.gyms, this.props.userRegion);
@@ -34,7 +34,7 @@ export default class GymModal extends Component {
         <ScrollView contentContainerStyle={MasterStyles.flexStartContainer}>
           {sortedGyms.map((gym) => (
             <View style={styles.gymContainer} key={gym.key}>
-              <Image style={styles.gymImage} source={gymImg} />
+              <Image style={styles.gymImage} source={gymImage} />
               <TouchableWithoutFeedback onPress={() => this.selectGym(gym)}>
                 <View style={styles.nameContainer}>
                   <Text style={styles.gymName}>{gym.name}</Text>
@@ -49,7 +49,7 @@ export default class GymModal extends Component {
                 </View>
               </TouchableWithoutFeedback>
               <View style={styles.linkContainer}>
-                <Text style={styles.link}>Details</Text>
+                <Text style={styles.link} onPress={() => this.selectGym(gym)}>Details</Text>
               </View>
             </View>
           ))}
@@ -66,7 +66,10 @@ export default class GymModal extends Component {
       const trainer = this.state.selectedGym.trainers[key];
       return (
         <View style={styles.gymContainer} key={key}>
-          <Image style={styles.gymImage} source={{ uri: trainer.uri }} />
+          <Image
+            style={styles.gymImage}
+            source={{ uri: trainer.uri ? trainer.uri : Image.resolveAssetSource(profileImage).uri }}
+          />
           <View style={styles.nameContainer}>
             <Text style={styles.gymName}>{trainer.name}</Text>
             <Text style={styles.distance}>
@@ -76,7 +79,15 @@ export default class GymModal extends Component {
             </Text>
           </View>
           <View style={styles.linkContainer}>
-            <Text style={styles.link}>Details</Text>
+            <Text
+              style={styles.link}
+              onPress={() => Actions.TrainerPage({
+                trainerKey: key,
+                gymKey: this.state.selectedGym.key,
+              })}
+            >
+              Details
+            </Text>
           </View>
         </View>
       );
@@ -108,7 +119,12 @@ export default class GymModal extends Component {
             </Text>
           </View>
           <View style={styles.linkContainer}>
-            <Text style={styles.link}>Details</Text>
+            <Text
+              style={styles.link}
+              onPress={() => Actions.GroupSessionDetailsPage({ sessionKey: key })}
+            >
+              Details
+            </Text>
           </View>
         </View>
       );
@@ -152,12 +168,10 @@ export default class GymModal extends Component {
       Object.keys(selectedGym.trainers).map(async (key) => {
         try {
           const url = await firebase.storage().ref().child(key).getDownloadURL();
-          // eslint-disable-next-line
           selectedGym.trainers[key].uri = url;
           this.setState({ selectedGym });
         } catch (error) {
-          // eslint-disable-next-line
-          selectedGym.trainers[key].uri = Image.resolveAssetSource(profileImg).uri;
+          selectedGym.trainers[key].uri = Image.resolveAssetSource(profileImage).uri;
           this.setState({ selectedGym });
         }
       });
@@ -251,7 +265,7 @@ const styles = StyleSheet.create({
   link: {
     fontWeight: '500',
     fontSize: 14,
-    color: Colors.Purple,
+    color: Colors.Primary,
   },
   title: {
     fontWeight: '600',

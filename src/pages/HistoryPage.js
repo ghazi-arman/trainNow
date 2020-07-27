@@ -3,39 +3,32 @@ import {
   StyleSheet,
   Text,
   View,
-  KeyboardAvoidingView,
   ScrollView,
-  TouchableOpacity,
   Alert,
-  TextInput,
+  Image,
 } from 'react-native';
 import firebase from 'firebase';
-import { FontAwesome } from '@expo/vector-icons';
-import Modal from 'react-native-modal';
 import { Actions } from 'react-native-router-flux';
 import bugsnag from '@bugsnag/expo';
 import Colors from '../components/Colors';
-import {
-  loadSessions, renderStars, reportSession, dateToTime,
-} from '../components/Functions';
+import { loadSessions, dateToString } from '../components/Functions';
 import Constants from '../components/Constants';
 import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
 import MasterStyles from '../components/MasterStyles';
+import profileImage from '../images/profile.png';
 
 export default class HistoryPage extends Component {
   constructor(props) {
     super(props);
-    this.state = {
-      reportModal: false,
-      report: '',
-    };
+    this.state = {};
     this.bugsnagClient = bugsnag();
   }
 
   async componentDidMount() {
     try {
       const sessions = await loadSessions(firebase.auth().currentUser.uid);
+      this.loadImages(sessions);
       this.setState({ sessions });
     } catch (error) {
       this.bugsnagClient.notify(error);
@@ -44,136 +37,72 @@ export default class HistoryPage extends Component {
     }
   }
 
-  hideReportModal = () => this.setState({ reportModal: false, report: '' });
-
-  reportSession = async (session) => {
-    this.hideReportModal();
-    const userId = firebase.auth().currentUser.uid;
-    const reporter = (userId === session.clientKey ? session.clientKey : session.trainerKey);
-    reportSession(session, reporter, this.state.report);
-    setTimeout(() => Alert.alert('Session Reported!'), 1000);
+  loadImages = (sessions) => {
+    const updatedSessions = sessions;
+    Object.keys(updatedSessions).map(async (key) => {
+      let trainerImage;
+      try {
+        trainerImage = await firebase.storage().ref()
+          .child(updatedSessions[key].trainerKey).getDownloadURL();
+      } catch {
+        trainerImage = Image.resolveAssetSource(profileImage).uri;
+      } finally {
+        updatedSessions[key].trainerImage = trainerImage;
+        this.setState({ sessions: updatedSessions });
+      }
+      let clientImage;
+      try {
+        clientImage = await firebase.storage().ref()
+          .child(sessions[key].clientKey).getDownloadURL();
+      } catch {
+        clientImage = Image.resolveAssetSource(profileImage).uri;
+      } finally {
+        updatedSessions[key].clientImage = clientImage;
+        this.setState({ sessions: updatedSessions });
+      }
+    });
   }
 
   renderSessions = () => {
     this.state.sessions.sort((a, b) => (new Date(b.start) - new Date(a.start)));
     return this.state.sessions.map((session) => {
-      const startDate = dateToTime(session.start);
-      const endDate = dateToTime(session.end);
-      const day = `${new Date(session.start).getMonth() + 1}/${new Date(session.start).getDate()}`;
-      const minutes = Math.floor(((new Date(session.end) - new Date(session.start)) / 1000) / 60);
-      const rate = (minutes * (session.rate / 60)).toFixed(2);
-      const percentage = session.regular
-        ? Constants.regularClientPercentage
-        : Constants.newClientPercentage;
-      let payout = (rate - rate * percentage).toFixed(2);
-      let rateView;
-      let client;
-      let stars;
+      const date = dateToString(session.start);
+      let name;
+      let link;
+
+      const image = session.trainerKey === firebase.auth().currentUser.uid
+        ? session.clientImage
+        : session.trainerImage;
 
       if (session.type === Constants.personalSessionType) {
-        if (session.trainerKey !== firebase.auth().currentUser.uid) {
-          rateView = (
-            <View style={styles.sessionRow}>
-              <Text style={styles.smallText}>
-                $
-                {rate}
-              </Text>
-            </View>
-          );
-          client = (
-            <Text style={styles.titleText}>
-              Trained by
-              {' '}
-              {session.trainerName}
-            </Text>
-          );
-          stars = renderStars(session.clientRating);
-        } else {
-          rateView = (
-            <View style={styles.sessionRow}>
-              <Text style={styles.smallText}>
-                $
-                {payout}
-              </Text>
-            </View>
-          );
-          client = (
-            <Text style={styles.titleText}>
-              You trained
-              {' '}
-              {session.clientName}
-            </Text>
-          );
-          stars = renderStars(session.trainerRating);
-        }
-      } else if (session.trainerKey !== firebase.auth().currentUser.uid) {
-        rateView = (
-          <View style={styles.sessionRow}>
-            <Text style={styles.smallText}>
-              $
-              {session.cost}
-            </Text>
-          </View>
-        );
-        client = (
-          <Text style={styles.titleText}>
-            Trained by
-            {session.trainerName}
-          </Text>
-        );
-        stars = renderStars(session.clients[firebase.auth().currentUser.uid].rating);
+        name = session.trainerKey !== firebase.auth().currentUser.uid
+          ? session.trainerName
+          : session.clientName;
+        link = () => Actions.SessionDetailsPage({ session, managerView: false });
       } else {
-        // eslint-disable-next-line
-        payout = ((session.cost - session.cost * Constants.groupSessionPercentage) * session.clientCount)
-          .toFixed(2);
-        rateView = (
-          <View style={styles.sessionRow}>
-            <Text style={styles.smallText}>
-              $
-              {payout}
-            </Text>
-          </View>
-        );
-        client = (
-          <Text style={styles.titleText}>
-            You trained
-            {session.clientCount}
-            {' '}
-            clients
-          </Text>
-        );
-        stars = renderStars(session.trainerRating);
+        name = session.trainerKey !== firebase.auth().currentUser.uid
+          ? session.trainerName
+          : session.name;
+        link = () => Actions.PastGroupSessionDetailsPage({ session, managerView: false });
       }
 
       return (
         <View style={styles.sessionContainer} key={session.key}>
-          <View style={styles.sessionRow}>{client}</View>
-          <View style={styles.sessionRow}>
-            <Text style={styles.icon}>{stars}</Text>
+          <Image
+            style={styles.profileImage}
+            source={{ uri: image || Image.resolveAssetSource(profileImage).uri }}
+          />
+          <View style={styles.sessionBox}>
+            <Text style={styles.name}>{name}</Text>
+            <Text style={styles.date}>{date}</Text>
           </View>
-          <View style={styles.sessionRow}>
-            <Text style={styles.smallText}>{session.gymName}</Text>
-          </View>
-          {rateView}
-          <View style={styles.sessionRow}>
-            <Text style={styles.smallText}>{day}</Text>
-          </View>
-          <View style={styles.sessionRow}>
-            <Text style={styles.timeText}>
-              {startDate}
-              {' '}
-              to
-              {' '}
-              {endDate}
-            </Text>
-          </View>
-          <View style={styles.sessionRow}>
-            <TouchableOpacity
-              style={styles.buttonContainer}
-              onPress={() => this.setState({ reportModal: true, reportSession: session })}
+          <View style={[styles.sessionBox, { position: 'absolute', right: 10 }]}>
+            <Text
+              style={styles.details}
+              onPress={link}
             >
-              <Text style={styles.buttonText}>Report Session</Text>
-            </TouchableOpacity>
+              View Details
+            </Text>
           </View>
         </View>
       );
@@ -188,148 +117,71 @@ export default class HistoryPage extends Component {
       <View style={MasterStyles.flexStartContainer}>
         <View style={styles.nameContainer}>
           <BackButton />
-          <Text style={styles.header}>Past Sessions</Text>
         </View>
-        <View style={styles.historyContainer}>
-          <ScrollView contentContainerStyle={styles.center} showsVerticalScrollIndicator={false}>
-            {this.renderSessions()}
-          </ScrollView>
-        </View>
-        <Modal
-          isVisible={this.state.reportModal}
-          onBackdropPress={this.hideReportModal}
+        <ScrollView
+          style={{ height: '80%', width: '100%' }}
+          contentContainerStyle={styles.container}
+          showsVerticalScrollIndicator={false}
         >
-          <KeyboardAvoidingView behavior="padding" style={styles.reportModal}>
-            <Text style={styles.closeButton} onPress={this.hideReportModal}>
-              <FontAwesome name="close" size={35} />
-            </Text>
-            <Text style={styles.header}>Report Session</Text>
-            <TextInput
-              placeholder="What was the problem?"
-              style={styles.input}
-              returnKeyType="done"
-              multiline
-              placeholderTextColor={Colors.Primary}
-              onChangeText={(report) => this.setState({ report })}
-              value={this.state.report}
-            />
-            <TouchableOpacity
-              style={styles.submitButton}
-              onPress={() => this.reportSession(this.state.reportSession)}
-            >
-              <Text style={styles.buttonText}>Report Session</Text>
-            </TouchableOpacity>
-          </KeyboardAvoidingView>
-        </Modal>
+          <Text style={styles.header}>Past Sessions</Text>
+          {this.renderSessions()}
+        </ScrollView>
       </View>
     );
   }
 }
 
 const styles = StyleSheet.create({
-  reportModal: {
-    flex: 0.6,
-    flexDirection: 'column',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    backgroundColor: Colors.LightGray,
-    borderRadius: 10,
-  },
   nameContainer: {
-    flex: 1,
+    height: '10%',
     width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
-  historyContainer: {
-    flex: 6,
-    width: '100%',
+  container: {
     flexDirection: 'column',
     justifyContent: 'flex-start',
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   sessionContainer: {
-    width: '90%',
-    backgroundColor: '#f6f5f5',
-    flexDirection: 'column',
+    width: '100%',
+    backgroundColor: Colors.LightGray,
+    flexDirection: 'row',
     justifyContent: 'flex-start',
     alignItems: 'center',
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: Colors.Primary,
-    marginTop: 20,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: Colors.Gray,
     padding: 10,
   },
-  center: {
+  sessionBox: {
     flexDirection: 'column',
-    alignItems: 'center',
-  },
-  sessionRow: {
-    width: '100%',
-    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 5,
   },
   header: {
     textAlign: 'center',
-    fontSize: 30,
-    fontWeight: '700',
-    color: Colors.Primary,
-  },
-  titleText: {
-    textAlign: 'center',
     fontSize: 25,
+    fontWeight: '700',
+    color: Colors.Black,
+    margin: 10,
+  },
+  profileImage: {
+    height: 40,
+    width: 40,
+    borderRadius: 20,
+    margin: 5,
+  },
+  name: {
+    fontSize: 15,
     fontWeight: '600',
-    color: Colors.Primary,
+    color: Colors.Black,
   },
-  smallText: {
-    fontSize: 20,
-    fontWeight: '400',
-    color: Colors.Primary,
+  date: {
+    fontSize: 13,
+    color: Colors.DarkGray,
   },
-  timeText: {
+  details: {
     fontSize: 15,
-    fontWeight: '400',
-    color: Colors.Primary,
-  },
-  icon: {
-    color: Colors.Secondary,
-    fontSize: 15,
-  },
-  closeButton: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    fontSize: 35,
-    color: Colors.Red,
-  },
-  buttonText: {
-    fontSize: 20,
-    textAlign: 'center',
-    color: '#f6f5f5',
-    fontWeight: '500',
-  },
-  buttonContainer: {
-    borderRadius: 5,
-    backgroundColor: Colors.Secondary,
-    padding: 15,
-    flexDirection: 'column',
-    justifyContent: 'center',
-  },
-  submitButton: {
-    borderRadius: 5,
-    backgroundColor: Colors.Secondary,
-    paddingVertical: 15,
-    width: '80%',
-  },
-  input: {
-    height: '50%',
-    width: '80%',
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: Colors.Primary,
     color: Colors.Primary,
   },
 });

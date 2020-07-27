@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {
-  Image, StyleSheet, Text, View, Alert, TouchableOpacity,
+  Image, StyleSheet, Text, View, Alert, TouchableOpacity, Dimensions, Linking, Platform,
 } from 'react-native';
 import * as Permissions from 'expo-permissions';
 import MapView from 'react-native-maps';
@@ -28,17 +28,18 @@ import Constants from '../components/Constants';
 import LoadingWheel from '../components/LoadingWheel';
 import MasterStyles from '../components/MasterStyles';
 import GymModal from '../components/GymModal';
-import markerImg from '../images/marker.png';
+import markerImage from '../images/marker.png';
+import profileImage from '../images/profile.png';
 
 export default class MapPage extends Component {
   constructor(props) {
     super(props);
     this.state = {
       selectedGym: null,
+      viewDetails: false,
       currentSession: null,
       unread: false,
       menuOpen: false,
-      selectedTab: 'trainers',
     };
     this.bugsnagClient = bugsnag();
   }
@@ -72,7 +73,6 @@ export default class MapPage extends Component {
         const user = await loadUser(userId);
         await goToPendingRating(userId, user.type);
         const gyms = await loadGyms();
-        const markers = this.renderMarkers(gyms);
         const currentSession = await loadCurrentSession(userId, user.type);
         const currentGroupSession = await loadCurrentGroupSession(userId, user.type);
         const unread = await checkForUnreadSessions(userId, user.type);
@@ -86,7 +86,6 @@ export default class MapPage extends Component {
           pendingSessions,
           acceptSessions,
           currentGroupSession,
-          markers,
         });
       } catch (error) {
         this.bugsnagClient.notify(error);
@@ -109,21 +108,43 @@ export default class MapPage extends Component {
     }
   }
 
-  renderMarkers = (gyms) => gyms.map((marker) => (
+  renderMarkers = () => this.state.gyms.map((gym) => (
     <MapView.Marker
       ref={(currentMarker) => { this.marker = currentMarker; }}
-      key={marker.key}
-      coordinate={marker.location}
-      onPress={() => Actions.GymPage({ gymKey: marker.key })}
+      key={gym.key}
+      coordinate={gym.location}
+      onPress={() => this.selectGym(gym)}
     >
-      <Image source={markerImg} style={{ width: 50, height: 50 }} />
+      <Image source={markerImage} style={{ width: 50, height: 50 }} />
     </MapView.Marker>
   ))
 
-  selectGym = (selectedGym) => this.setState({ selectedGym });
+  selectGym = (selectedGym) => {
+    const gym = selectedGym;
+    if (gym.trainers) {
+      Object.keys(gym.trainers).map(async (key) => {
+        try {
+          gym.trainers[key].uri = await firebase.storage().ref().child(key).getDownloadURL();
+        } catch (error) {
+          gym.trainers[key].uri = Image.resolveAssetSource(profileImage).uri;
+        } finally {
+          this.setState({ selectedGym: gym });
+        }
+      });
+    }
+    this.setState({ selectedGym: gym });
+  };
+
+  openMaps = () => {
+    if (Platform.OS === 'ios') {
+      Linking.openURL(`https://maps.apple.com/?ll=${this.state.selectedGym.location.latitude},${this.state.selectedGym.location.longitude}`);
+    } else {
+      Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${this.state.selectedGym.location.latitude},${this.state.selectedGym.location.longitude}`);
+    }
+  }
 
   render() {
-    if (!this.state.gyms || !this.state.user || !this.state.markers || !this.state.userRegion) {
+    if (!this.state.gyms || !this.state.user || !this.state.userRegion) {
       return <LoadingWheel />;
     }
 
@@ -146,19 +167,19 @@ export default class MapPage extends Component {
       );
     }
 
-    let alertBoxFunction = null;
+    let alertFunction = null;
     let alertBox;
     if (this.state.currentSession) {
-      alertBoxFunction = Actions.SessionPage({ session: this.state.currentSession });
+      alertFunction = () => Actions.SessionPage({ session: this.state.currentSession });
     } else if (this.state.currentGroupSession) {
-      alertBoxFunction = Actions.GroupSessionPage({ session: this.state.currentGroupSession });
+      alertFunction = () => Actions.GroupSessionPage({ session: this.state.currentGroupSession });
     }
 
-    if (alertBoxFunction !== null) {
+    if (alertFunction) {
       alertBox = (
         <TouchableOpacity
-          style={styles.buttonContainer}
-          onPress={() => alertBoxFunction}
+          style={[styles.button, MasterStyles.shadow]}
+          onPress={alertFunction}
         >
           <Text style={styles.buttonText}>Enter Session!</Text>
         </TouchableOpacity>
@@ -170,26 +191,70 @@ export default class MapPage extends Component {
     if (this.state.selectedGym) {
       menuOrBackButton = (
         <TouchableOpacity
-          style={styles.menuButton}
+          style={[styles.menuButton, MasterStyles.shadow]}
           onPress={() => this.setState({ selectedGym: null })}
         >
           <Text>
-            <FontAwesome name="arrow-left" color={Colors.Black} size={30} />
+            <FontAwesome name="arrow-left" color={Colors.Black} size={25} />
           </Text>
         </TouchableOpacity>
       );
-      gymInfo = (
-        <View style={styles.gymInfo}>
-          <Text style={[styles.title]}>{this.state.selectedGym.name}</Text>
-          <Text style={[styles.link, { fontSize: 18 }]}>Details</Text>
-        </View>
-      );
+      if (!this.state.viewDetails) {
+        gymInfo = (
+          <View style={styles.gymInfo}>
+            <Text style={[styles.title]}>{this.state.selectedGym.name}</Text>
+            <Text
+              style={[styles.link, { fontSize: 18 }]}
+              onPress={() => { this.setState({ viewDetails: true }); }}
+            >
+              Details
+            </Text>
+          </View>
+        );
+      } else {
+        gymInfo = (
+          <View style={styles.expandedGymInfo}>
+            <View style={styles.gymNameRow}>
+              <Text style={[styles.title]}>{this.state.selectedGym.name}</Text>
+              <Text
+                style={[styles.link, { fontSize: 18 }]}
+                onPress={() => { this.setState({ viewDetails: false }); }}
+              >
+                Minimize
+              </Text>
+            </View>
+            {this.state.selectedGym.address ? (
+              <Text
+                style={[styles.link, { fontSize: 15, marginBottom: 5 }]}
+                onPress={this.openMaps}
+              >
+                {this.state.selectedGym.address}
+              </Text>
+            ) : null}
+            {this.state.selectedGym.website ? (
+              <Text
+                style={[styles.link, { fontSize: 15, marginBottom: 5 }]}
+                onPress={() => Linking.openUrl(this.state.selectedGym.website)}
+              >
+                Website
+              </Text>
+            ) : null}
+            <Text style={styles.gymDetails}>
+              Hours:
+              {this.state.selectedGym.hours}
+            </Text>
+          </View>
+        );
+      }
     } else {
       gymInfo = null;
       menuOrBackButton = (
-        <TouchableOpacity style={styles.menuButton} onPress={this.toggleMenu}>
+        <TouchableOpacity
+          style={[styles.menuButton, MasterStyles.shadow]}
+          onPress={this.toggleMenu}
+        >
           <Text>
-            <FontAwesome name="bars" color={Colors.Black} size={30} />
+            <FontAwesome name="bars" color={Colors.Black} size={25} />
           </Text>
         </TouchableOpacity>
       );
@@ -215,12 +280,12 @@ export default class MapPage extends Component {
             initialRegion={this.state.userRegion}
             showsUserLocation
           >
-            {this.state.markers}
+            {this.renderMarkers()}
           </MapView>
           {alertBox}
           {menuOrBackButton}
           {gymInfo}
-          <View style={styles.gymsContainer}>
+          <View style={[styles.gymsContainer, MasterStyles.shadow]}>
             <GymModal
               gyms={this.state.gyms}
               selectedGym={this.state.selectedGym}
@@ -243,29 +308,32 @@ const styles = StyleSheet.create({
   },
   menuButton: {
     position: 'absolute',
-    top: 30,
+    top: Dimensions.get('window').height / 20,
     left: 20,
-    width: 50,
-    height: 50,
+    width: 40,
+    height: 40,
     backgroundColor: Colors.White,
+    borderWidth: 1,
+    borderColor: Colors.Black,
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  buttonContainer: {
+  button: {
     position: 'absolute',
-    top: 30,
+    top: Dimensions.get('window').height / 20,
     width: '40%',
-    height: 48,
-    backgroundColor: Colors.Secondary,
+    height: 40,
+    backgroundColor: Colors.White,
     flexDirection: 'column',
     justifyContent: 'center',
-    margin: 10,
-    borderRadius: 5,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.Black,
   },
   buttonText: {
     textAlign: 'center',
-    color: Colors.LightGray,
+    color: Colors.Primary,
     fontWeight: '700',
     fontSize: 16,
   },
@@ -280,9 +348,25 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'flex-start',
     marginBottom: 20,
-    shadowColor: Colors.Black,
-    shadowOpacity: 0.27,
-    shadowRadius: 4.65,
+  },
+  expandedGymInfo: {
+    position: 'absolute',
+    top: 100,
+    backgroundColor: Colors.White,
+    width: '90%',
+    borderRadius: 10,
+    height: 150,
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    paddingHorizontal: 20,
+  },
+  gymNameRow: {
+    height: 50,
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   gymInfo: {
     position: 'absolute',
@@ -299,11 +383,16 @@ const styles = StyleSheet.create({
   link: {
     fontWeight: '500',
     fontSize: 14,
-    color: Colors.Purple,
+    color: Colors.Primary,
   },
   title: {
     fontWeight: '600',
     fontSize: 20,
     textAlign: 'left',
+  },
+  gymDetails: {
+    fontSize: 15,
+    marginBottom: 5,
+    color: Colors.DarkGray,
   },
 });

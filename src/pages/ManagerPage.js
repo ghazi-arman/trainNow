@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {
-  StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, KeyboardAvoidingView,
+  StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, KeyboardAvoidingView, Dimensions,
 } from 'react-native';
 import firebase from 'firebase';
 import Modal from 'react-native-modal';
@@ -162,14 +162,22 @@ export default class ManagerPage extends Component {
       const trainer = this.state.gym.pendingtrainers[key];
       trainer.userKey = key;
       return (
-        <View key={trainer.name} style={styles.trainerRow}>
-          <Text style={styles.nameText}>{trainer.name}</Text>
-          <TouchableOpacity style={styles.denyButton} onPress={() => this.denyTrainer(key)}>
-            <Text style={styles.buttonText}><FontAwesome name="close" size={18} /></Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.acceptButton} onPress={() => this.acceptTrainer(key)}>
-            <Text style={styles.buttonText}><FontAwesome name="check" size={18} /></Text>
-          </TouchableOpacity>
+        <View key={trainer.name} style={styles.containerRow}>
+          <Text style={styles.name}>{trainer.name}</Text>
+          <View style={styles.buttonRow}>
+            <TouchableOpacity
+              style={[styles.denyButton, MasterStyles.shadow]}
+              onPress={() => this.denyTrainer(key)}
+            >
+              <Text style={styles.buttonText}><FontAwesome name="close" size={18} /></Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.acceptButton, MasterStyles.shadow]}
+              onPress={() => this.acceptTrainer(key)}
+            >
+              <Text style={styles.buttonText}><FontAwesome name="check" size={18} /></Text>
+            </TouchableOpacity>
+          </View>
         </View>
       );
     });
@@ -183,37 +191,38 @@ export default class ManagerPage extends Component {
       const trainer = this.state.gym.trainers[key];
       trainer.userKey = key;
       return (
-        <View key={trainer.name} style={styles.trainerRow}>
-          <Text style={styles.nameText}>
-            {trainer.name}
-            {' '}
-            - $
-            {trainer.rate}
-          </Text>
-          <TouchableOpacity
-            style={styles.denyButton}
-            onPress={() => this.deleteTrainer(key)}
-          >
-            <Text style={styles.buttonText}>
-              <FontAwesome name="close" size={18} />
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.acceptButton}
-            onPress={() => this.setState({ selectedTrainer: trainer, rateModal: true })}
-          >
-            <Text style={styles.buttonText}>
-              <FontAwesome name="dollar" size={18} />
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.historyButton}
-            onPress={() => Actions.ManagerHistoryPage({ userKey: key })}
-          >
-            <Text style={styles.buttonText}>
-              <FontAwesome name="calendar" size={18} />
-            </Text>
-          </TouchableOpacity>
+        <View key={trainer.name} style={styles.containerRow}>
+          <Text style={styles.name}>{trainer.name}</Text>
+          <View style={styles.buttonRow}>
+            <TouchableOpacity
+              style={[styles.denyButton, MasterStyles.shadow]}
+              onPress={() => this.deleteTrainer(key)}
+            >
+              <Text style={styles.buttonText}>
+                <FontAwesome name="close" size={18} />
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.acceptButton, MasterStyles.shadow]}
+              onPress={() => this.setState({
+                selectedTrainer: trainer,
+                rateModal: true,
+                rate: String(trainer.rate),
+              })}
+            >
+              <Text style={styles.buttonText}>
+                <FontAwesome name="dollar" size={18} />
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.historyButton, MasterStyles.shadow]}
+              onPress={() => Actions.ManagerHistoryPage({ userKey: key })}
+            >
+              <Text style={styles.buttonText}>
+                <FontAwesome name="calendar" size={18} />
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       );
     });
@@ -256,14 +265,14 @@ export default class ManagerPage extends Component {
       if (currCard.default_for_currency) {
         defaultButton = (
           <Text style={styles.greenIcon}>
-            <FontAwesome name="check-circle" size={20} />
+            <FontAwesome name="check-circle" size={30} />
           </Text>
         );
         defaultCard = true;
       } else {
         defaultButton = (
           <TouchableOpacity
-            style={styles.defaultButton}
+            style={[styles.defaultButton, MasterStyles.shadow]}
             onPress={() => this.setDefaultTrainerCard(this.state.user.stripeId, currCard.id)}
           >
             <Text>
@@ -273,32 +282,34 @@ export default class ManagerPage extends Component {
         );
       }
       return (
-        <View style={styles.cardRow} key={currCard.id}>
+        <View style={styles.containerRow} key={currCard.id}>
           <Text style={styles.icon}>{getCardIcon(currCard.brand)}</Text>
-          <Text>
+          <Text style={{ width: '30%' }}>
             ••••••
             {currCard.last4}
           </Text>
-          {defaultButton}
-          <Text>
+          <Text style={{ width: '15%' }}>
             {currCard.exp_month.toString()}
             {' '}
             /
             {' '}
             {currCard.exp_year.toString().substring(2, 4)}
           </Text>
-          <TouchableOpacity
-            style={styles.deleteButton}
-            onPress={() => this.deleteTrainerCard(
-              this.state.user.stripeId,
-              currCard.id,
-              defaultCard,
-            )}
-          >
-            <Text>
-              <FontAwesome name="remove" size={15} color={Colors.LightGray} />
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.buttonRow}>
+            {defaultButton}
+            <TouchableOpacity
+              style={[styles.deleteButton, MasterStyles.shadow]}
+              onPress={() => this.deleteTrainerCard(
+                this.state.user.stripeId,
+                currCard.id,
+                defaultCard,
+              )}
+            >
+              <Text>
+                <FontAwesome name="remove" size={15} color={Colors.LightGray} />
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       );
     });
@@ -335,34 +346,29 @@ export default class ManagerPage extends Component {
     return (
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={MasterStyles.flexStartContainer}
+        contentContainerStyle={[MasterStyles.flexStartContainer, styles.container]}
       >
-        <Text style={styles.logoutButton} onPress={this.logout}>
-          <FontAwesome name="power-off" size={35} />
-        </Text>
+        <View style={styles.buttonContainer}>
+          <Text style={styles.logoutButton} onPress={this.logout}>
+            <FontAwesome name="power-off" size={35} />
+          </Text>
+        </View>
         <Text style={styles.title}>Pending</Text>
         {this.renderPending()}
         <Text style={styles.title}>Trainers</Text>
         {this.renderTrainers()}
-        <Text style={styles.balanceText}>
+        <Text style={styles.title}>
           $
+          {' '}
           {balanceFormatted}
         </Text>
         {this.renderCards()}
-        <TouchableOpacity style={styles.button} onPress={Actions.CardPage}>
-          <Text style={styles.activeText}>
-            <FontAwesome name="credit-card" size={25} />
-            {' '}
-            Add Card
-            {' '}
-          </Text>
-        </TouchableOpacity>
-        <Text style={{
-          fontSize: 20, textAlign: 'center', color: Colors.Primary, marginTop: 10,
-        }}
-        >
-          Funds will be transfered daily
-        </Text>
+        <View style={styles.paymentButtonRow}>
+          <TouchableOpacity style={[styles.button, MasterStyles.shadow]} onPress={Actions.CardPage}>
+            <Text style={styles.paymentButtonText}>Add Card</Text>
+          </TouchableOpacity>
+          <Text style={styles.paymentDetails}>* Funds transfered daily</Text>
+        </View>
         <Modal
           isVisible={this.state.rateModal}
           onBackdropPress={this.hideRateModal}
@@ -394,17 +400,34 @@ ManagerPage.propTypes = {
 };
 
 const styles = StyleSheet.create({
+  container: {
+    alignItems: 'flex-start',
+    flex: null,
+    paddingBottom: 75,
+  },
+  buttonContainer: {
+    height: '7%',
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+  },
   title: {
+    margin: 15,
     marginTop: 30,
-    fontSize: 34,
-    color: Colors.Primary,
+    fontSize: 30,
+    color: Colors.Black,
     fontWeight: '700',
   },
-  cardRow: {
-    width: '95%',
-    marginTop: 10,
+  containerRow: {
+    width: '100%',
+    height: 80,
+    padding: 10,
+    backgroundColor: Colors.LightGray,
+    borderWidth: 1,
+    borderColor: Colors.Gray,
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'flex-start',
     alignItems: 'center',
   },
   navText: {
@@ -412,33 +435,24 @@ const styles = StyleSheet.create({
     color: Colors.Primary,
     textAlign: 'center',
   },
-  balanceText: {
-    fontSize: 30,
-    marginTop: 30,
+  paymentButtonText: {
+    fontSize: 20,
     color: Colors.Primary,
     textAlign: 'center',
   },
-  activeText: {
-    fontSize: 25,
-    color: Colors.LightGray,
-    textAlign: 'center',
-  },
-  trainerRow: {
+  buttonRow: {
+    width: '50%',
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     alignItems: 'center',
-    width: '95%',
-    marginTop: 10,
   },
   button: {
-    backgroundColor: Colors.Secondary,
+    backgroundColor: Colors.White,
     flexDirection: 'column',
     justifyContent: 'center',
-    width: '50%',
-    paddingVertical: 15,
-    marginTop: 30,
-    borderRadius: 5,
-    marginBottom: 15,
+    height: 50,
+    width: '45%',
+    borderRadius: 10,
   },
   defaultButton: {
     backgroundColor: Colors.Green,
@@ -447,18 +461,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: 30,
     height: 30,
+    borderRadius: 10,
+    marginHorizontal: 10,
   },
   greenIcon: {
     fontSize: 20,
     color: Colors.Green,
+    width: 30,
+    height: 30,
+    marginHorizontal: 10,
+    textAlign: 'center',
   },
   deleteButton: {
     backgroundColor: Colors.Red,
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
+    borderRadius: 10,
     width: 30,
     height: 30,
+    marginHorizontal: 10,
   },
   buttonText: {
     fontSize: 15,
@@ -477,6 +499,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: 30,
     height: 30,
+    borderRadius: 10,
+    marginHorizontal: 10,
   },
   historyButton: {
     backgroundColor: Colors.Primary,
@@ -485,6 +509,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: 30,
     height: 30,
+    borderRadius: 10,
+    marginHorizontal: 10,
   },
   acceptButton: {
     backgroundColor: Colors.Green,
@@ -493,15 +519,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: 30,
     height: 30,
+    borderRadius: 10,
+    marginHorizontal: 10,
   },
   icon: {
     fontSize: 15,
   },
-  nameText: {
+  name: {
     fontSize: 18,
+    padding: 10,
     fontWeight: '500',
     width: '50%',
-    textAlign: 'center',
     color: Colors.Primary,
   },
   closeButton: {
@@ -536,9 +564,23 @@ const styles = StyleSheet.create({
   },
   logoutButton: {
     position: 'absolute',
-    top: 45,
+    top: Dimensions.get('window').height / 20,
     left: 20,
     fontSize: 35,
     color: Colors.Secondary,
+  },
+  paymentButtonRow: {
+    paddingHorizontal: 10,
+    marginTop: 20,
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-end',
+  },
+  paymentDetails: {
+    width: '50%',
+    fontSize: 15,
+    textAlign: 'center',
+    color: Colors.Primary,
   },
 });

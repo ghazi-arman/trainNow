@@ -76,7 +76,7 @@ export default class ManagedMenu extends Component {
           <FontAwesome style={styles.icon} name="calendar" color={Colors.Primary} size={30} />
           <Text style={styles.menuLink}>Calendar</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuRow} onPress={Actions.ClientPage}>
+        <TouchableOpacity style={styles.menuRow} onPress={Actions.ClientsPage}>
           <FontAwesome style={styles.icon} name="users" color={Colors.Primary} size={30} />
           <Text style={styles.menuLink}>Clients</Text>
         </TouchableOpacity>
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
   menuLink: {
     fontSize: 15,
     fontWeight: '600',
-    color: Colors.Primary,
+    color: Colors.Black,
     marginLeft: 10,
   },
   icon: {

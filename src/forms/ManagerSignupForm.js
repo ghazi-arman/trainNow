@@ -227,13 +227,13 @@ export default class ManagerSignupForm extends Component {
     let nextButton;
 
     prevButton = (
-      <TouchableOpacity style={styles.buttonContainer} onPressIn={this.goBack}>
+      <TouchableOpacity style={styles.button} onPressIn={this.goBack}>
         <Text style={styles.buttonText}>Previous</Text>
       </TouchableOpacity>
     );
 
     nextButton = (
-      <TouchableOpacity style={styles.buttonContainer} onPressIn={this.goNext}>
+      <TouchableOpacity style={styles.button} onPressIn={this.goNext}>
         <Text style={styles.buttonText}>Next</Text>
       </TouchableOpacity>
     );
@@ -349,7 +349,7 @@ export default class ManagerSignupForm extends Component {
       submitButton = (
         <TouchableOpacity
           ref={(btn) => { this.btn = btn; }}
-          style={styles.buttonContainer}
+          style={styles.button}
           onPressIn={this.onSignUpPress}
         >
           <Text style={styles.buttonText}> Signup </Text>
@@ -399,7 +399,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     alignItems: 'center',
   },
-  buttonContainer: {
+  button: {
     backgroundColor: Colors.Secondary,
     paddingVertical: 15,
     width: '40%',

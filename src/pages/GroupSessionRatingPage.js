@@ -130,7 +130,7 @@ export default class GroupSessionRatingPage extends Component {
     stars = this.renderStars(this.state.rating);
     button = (
       <View style={styles.buttonContain}>
-        <TouchableOpacity style={styles.buttonContainer} onPressIn={this.rateSession}>
+        <TouchableOpacity style={styles.button} onPressIn={this.rateSession}>
           <Text style={styles.buttonText}>Rate Session</Text>
         </TouchableOpacity>
       </View>
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  buttonContainer: {
+  button: {
     borderRadius: 5,
     backgroundColor: Colors.Secondary,
     paddingVertical: 15,

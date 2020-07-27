@@ -100,7 +100,7 @@ export default class GroupSessionPage extends Component {
     } else {
       textButton = (
         <TouchableOpacity
-          style={styles.buttonContainer}
+          style={styles.button}
           onPress={this.sendMessage}
         >
           <Text style={styles.buttonText}> Send Message </Text>
@@ -116,7 +116,7 @@ export default class GroupSessionPage extends Component {
     }
     const mapButton = (
       <TouchableOpacity
-        style={styles.buttonContainer}
+        style={styles.button}
         onPress={this.openMaps}
       >
         <Text style={styles.buttonText}> Open in Maps </Text>
@@ -177,7 +177,7 @@ export default class GroupSessionPage extends Component {
       if (this.state.session.trainerKey === firebase.auth().currentUser.uid) {
         button = (
           <TouchableOpacity
-            style={styles.buttonContainer}
+            style={styles.button}
             onPress={this.startSession}
           >
             <Text style={styles.buttonText}> Start Session </Text>
@@ -203,7 +203,7 @@ export default class GroupSessionPage extends Component {
       if (this.state.session.trainerKey === firebase.auth().currentUser.uid) {
         button = (
           <TouchableOpacity
-            style={styles.buttonContainer}
+            style={styles.button}
             onPressIn={this.endSession}
           >
             <Text style={styles.buttonText}>
@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  buttonContainer: {
+  button: {
     borderRadius: 5,
     backgroundColor: Colors.Secondary,
     paddingVertical: 15,

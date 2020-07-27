@@ -10,6 +10,7 @@ import Colors from '../components/Colors';
 import { loadUser } from '../components/Functions';
 import LoadingWheel from '../components/LoadingWheel';
 import MasterStyles from '../components/MasterStyles';
+import profileImage from '../images/profile.png';
 
 export default class ClientAccountForm extends Component {
   constructor(props) {
@@ -22,27 +23,19 @@ export default class ClientAccountForm extends Component {
   }
 
   async componentDidMount() {
-    let user;
+    const userId = firebase.auth().currentUser.uid;
+    const user = await loadUser(userId);
+    let image;
     try {
-      // pull user info and profile image from firebase
-      const userId = firebase.auth().currentUser.uid;
-      user = await loadUser(userId);
-      const image = await firebase.storage().ref().child(userId).getDownloadURL();
-      this.setState({
-        image, user, imageUploaded: true,
-      });
+      image = await firebase.storage().ref().child(userId).getDownloadURL();
     } catch (error) {
-      // if image is not found in firebase ignore image and load user
-      if (error.code === 'storage/object-not-found') {
-        this.setState({ user, imageUploaded: true });
-        return;
-      }
-      this.bugsnagClient.notify(error);
+      image = Image.resolveAssetSource(profileImage).uri;
+    } finally {
+      this.setState({ image, user, imageUploaded: true });
     }
   }
 
   pickImage = async () => {
-    // Ask for image permissions from phone
     const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
     if (status === 'granted') {
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -50,7 +43,6 @@ export default class ClientAccountForm extends Component {
         aspect: [4, 3],
       });
 
-      // Upload image to state for updateAccount call
       if (!result.cancelled) {
         this.setState({ imageToUpload: result.uri, image: result.uri, change: true });
       }
@@ -121,10 +113,10 @@ export default class ClientAccountForm extends Component {
         <View style={styles.imageContainer}>
           <Image source={{ uri: this.state.image }} style={styles.imageHolder} />
         </View>
-        <TouchableOpacity style={styles.buttonContainer} onPressIn={this.pickImage}>
+        <TouchableOpacity style={styles.button} onPressIn={this.pickImage}>
           <Text style={styles.buttonText}> Update Image </Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.buttonContainer} onPressIn={this.updateAccount}>
+        <TouchableOpacity style={styles.button} onPressIn={this.updateAccount}>
           <Text style={styles.buttonText}> Save Changes </Text>
         </TouchableOpacity>
       </View>
@@ -133,7 +125,7 @@ export default class ClientAccountForm extends Component {
 }
 
 const styles = StyleSheet.create({
-  buttonContainer: {
+  button: {
     borderRadius: 5,
     width: '80%',
     backgroundColor: Colors.Secondary,
@@ -153,6 +145,7 @@ const styles = StyleSheet.create({
   imageHolder: {
     width: 200,
     height: 200,
+    borderRadius: 100,
     borderWidth: 1,
     borderColor: Colors.Primary,
   },

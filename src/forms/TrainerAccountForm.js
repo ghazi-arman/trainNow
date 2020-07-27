@@ -12,6 +12,7 @@ import { loadUser } from '../components/Functions';
 import Constants from '../components/Constants';
 import LoadingWheel from '../components/LoadingWheel';
 import MasterStyles from '../components/MasterStyles';
+import profileImage from '../images/profile.png';
 
 export default class TrainerAccountForm extends Component {
   constructor(props) {
@@ -23,35 +24,25 @@ export default class TrainerAccountForm extends Component {
   }
 
   async componentDidMount() {
-    let user;
+    const userId = firebase.auth().currentUser.uid;
+    const user = await loadUser(userId);
+    let image;
     try {
-      const userId = firebase.auth().currentUser.uid;
-      user = await loadUser(userId);
-      const image = await firebase.storage().ref().child(userId).getDownloadURL();
+      image = await firebase.storage().ref().child(userId).getDownloadURL();
+    } catch (error) {
+      image = Image.resolveAssetSource(profileImage).uri;
+    } finally {
       this.setState({
-        image,
         user,
+        image,
         rate: String(user.rate),
         cert: user.cert,
+        specialities: user.specialities,
         bio: user.bio,
         active: user.active,
         offset: String(user.offset),
         imageUploaded: true,
       });
-    } catch (error) {
-      if (error.code === 'storage/object-not-found') {
-        this.setState({
-          user,
-          rate: String(user.rate),
-          cert: user.cert,
-          bio: user.bio,
-          active: user.active,
-          offset: String(user.offset),
-          imageUploaded: true,
-        });
-        return;
-      }
-      this.bugsnagClient.notify(error);
     }
   }
 
@@ -109,6 +100,10 @@ export default class TrainerAccountForm extends Component {
       Alert.alert('Please enter your certifications!');
       return;
     }
+    if (!this.state.cert || !this.state.cert.length) {
+      Alert.alert('Please enter your specialities!');
+      return;
+    }
     if (!this.state.bio || !this.state.bio.length) {
       Alert.alert('Please enter your bio!');
       return;
@@ -125,6 +120,7 @@ export default class TrainerAccountForm extends Component {
       Object.keys(this.state.user.gyms).forEach((gymKey) => {
         firebase.database().ref(`/gyms/${gymKey}/trainers/${userId}`).update({
           cert: this.state.cert,
+          specialities: this.state.specialities,
           rate: parseInt(this.state.rate, 10),
           bio: this.state.bio,
           active: this.state.active,
@@ -135,6 +131,7 @@ export default class TrainerAccountForm extends Component {
       // user table updated
       firebase.database().ref('users').child(userId).update({
         cert: this.state.cert,
+        specialities: this.state.specialities,
         rate: parseInt(this.state.rate, 10),
         bio: this.state.bio,
         active: this.state.active,
@@ -194,12 +191,21 @@ export default class TrainerAccountForm extends Component {
         <TextField
           icon="vcard"
           placeholder="Certifications"
+          maxLength={100}
           onChange={(cert) => this.setState({ cert, change: true })}
           value={this.state.cert}
         />
         <TextField
+          icon="book"
+          placeholder="Specialities"
+          maxLength={100}
+          onChange={(specialities) => this.setState({ specialities, change: true })}
+          value={this.state.specialities}
+        />
+        <TextField
           icon="info"
           placeholder="Bio"
+          maxLength={250}
           onChange={(bio) => this.setState({ bio, change: true })}
           value={this.state.bio}
         />
@@ -209,10 +215,10 @@ export default class TrainerAccountForm extends Component {
           onChange={(offset) => this.setState({ offset, change: true })}
           value={this.state.offset}
         />
-        <TouchableOpacity style={styles.buttonContainer} onPressIn={this.pickImage}>
+        <TouchableOpacity style={styles.button} onPressIn={this.pickImage}>
           <Text style={styles.buttonText}> Update Image </Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.buttonContainer} onPressIn={this.updateAccount}>
+        <TouchableOpacity style={styles.button} onPressIn={this.updateAccount}>
           <Text style={styles.buttonText}> Save Changes </Text>
         </TouchableOpacity>
       </View>
@@ -228,7 +234,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 5,
   },
-  buttonContainer: {
+  button: {
     borderRadius: 5,
     width: 200,
     backgroundColor: Colors.Secondary,
@@ -253,6 +259,7 @@ const styles = StyleSheet.create({
   imageHolder: {
     width: 200,
     height: 200,
+    borderRadius: 100,
     borderWidth: 1,
     borderColor: Colors.Primary,
   },

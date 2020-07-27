@@ -51,7 +51,7 @@ export default class ForgotForm extends Component {
           onChange={(email) => this.setState({ email })}
           value={this.state.email}
         />
-        <TouchableOpacity style={styles.buttonContainer} onPressIn={this.submit}>
+        <TouchableOpacity style={styles.button} onPressIn={this.submit}>
           <Text style={styles.buttonText}> Submit </Text>
         </TouchableOpacity>
       </View>
@@ -60,7 +60,7 @@ export default class ForgotForm extends Component {
 }
 
 const styles = StyleSheet.create({
-  buttonContainer: {
+  button: {
     backgroundColor: Colors.Secondary,
     paddingVertical: 15,
     marginTop: 20,

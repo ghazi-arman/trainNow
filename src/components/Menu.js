@@ -84,8 +84,8 @@ export default class Menu extends Component {
           style={styles.menuRow}
           onPress={
             this.state.user.type === Constants.trainerType
-              ? Actions.ClientPage
-              : Actions.TrainerPage
+              ? Actions.ClientsPage
+              : Actions.TrainersPage
           }
         >
           <FontAwesome style={styles.icon} name="users" color={Colors.Primary} size={30} />
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
   menuLink: {
     fontSize: 15,
     fontWeight: '600',
-    color: Colors.Primary,
+    color: Colors.Black,
     marginLeft: 10,
   },
   icon: {

@@ -25,6 +25,7 @@ const TextField = (props) => (
       keyboardType={props.keyboard}
       onSubmitEditing={props.onSubmitEditing}
       editable={props.editable}
+      maxLength={props.maxLength}
     />
   </View>
 );
@@ -36,7 +37,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: Colors.Primary,
     width: '85%',
-    color: Colors.Primary,
+    color: Colors.Black,
   },
   icon: {
     color: Colors.Primary,
@@ -74,6 +75,7 @@ TextField.propTypes = {
   editable: PropTypes.bool,
   onSubmitEditing: PropTypes.func,
   onChange: PropTypes.func.isRequired,
+  maxLength: PropTypes.number,
 };
 
 TextField.defaultProps = {
@@ -81,7 +83,7 @@ TextField.defaultProps = {
   style: styles.input,
   iconStyle: styles.icon,
   secure: false,
-  color: Colors.Primary,
+  color: Colors.Black,
   autoCorrect: false,
   keyboard: 'default',
   returnKeyType: 'done',
@@ -90,4 +92,5 @@ TextField.defaultProps = {
   editable: true,
   onSubmitEditing: null,
   value: null,
+  maxLength: null,
 };

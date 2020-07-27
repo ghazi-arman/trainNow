@@ -147,6 +147,7 @@ export async function loadTrainer(userKey) {
   const bio = await firebase.database().ref(`/users/${userKey}/bio`).once('value');
   const cardAdded = await firebase.database().ref(`/users/${userKey}/cardAdded`).once('value');
   const cert = await firebase.database().ref(`/users/${userKey}/cert`).once('value');
+  const specialities = await firebase.database().ref(`/users/${userKey}/specialities`).once('value');
   const clients = await firebase.database().ref(`/users/${userKey}/clients`).once('value');
   const gyms = await firebase.database().ref(`/users/${userKey}/gyms`).once('value');
   const name = await firebase.database().ref(`/users/${userKey}/name`).once('value');
@@ -164,6 +165,7 @@ export async function loadTrainer(userKey) {
     bio: bio.val(),
     cardAdded: cardAdded.val(),
     cert: cert.val(),
+    specialities: specialities.val(),
     clients: clients.val(),
     gyms: gyms.val(),
     name: name.val(),
