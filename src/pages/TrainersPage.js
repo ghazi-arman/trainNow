@@ -181,7 +181,7 @@ export default class TrainersPage extends Component {
       );
     });
     return ([
-      <Text style={styles.subTitle}>Trainer Requests</Text>,
+      <Text style={styles.subTitle} key={0}>Trainer Requests</Text>,
       requests,
     ]);
   }
@@ -227,7 +227,7 @@ export default class TrainersPage extends Component {
       );
     });
     return ([
-      <Text style={styles.subTitle}>Recent Trainers</Text>,
+      <Text style={styles.subTitle} key={0}>Recent Trainers</Text>,
       recentTrainers,
     ]);
   }
@@ -270,7 +270,7 @@ export default class TrainersPage extends Component {
     });
 
     return ([
-      <Text style={styles.subTitle}>Trainers</Text>,
+      <Text style={styles.subTitle} key={0}>Trainers</Text>,
       trainers,
     ]);
   }
@@ -281,21 +281,16 @@ export default class TrainersPage extends Component {
     }
 
     return (
-      <View style={MasterStyles.flexStartContainer}>
-        <View style={styles.buttonContainer}>
-          <BackButton />
-        </View>
-        <ScrollView
-          style={{ width: '100%' }}
-          contentContainerStyle={styles.container}
-          showsVerticalScrollIndicator={false}
-        >
-          <Text style={styles.title}>Trainers</Text>
-          {this.renderRequests()}
-          {this.renderRecent()}
-          {this.renderTrainers()}
-        </ScrollView>
-      </View>
+      <ScrollView
+        style={{ width: '100%' }}
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+      >
+        <BackButton />
+        {this.renderRequests()}
+        {this.renderRecent()}
+        {this.renderTrainers()}
+      </ScrollView>
     );
   }
 }
@@ -306,11 +301,6 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'flex-start',
-  },
-  title: {
-    fontSize: 30,
-    fontWeight: '700',
-    margin: 10,
   },
   subTitle: {
     fontSize: 25,

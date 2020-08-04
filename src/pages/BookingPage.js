@@ -231,7 +231,7 @@ export default class BookingPage extends Component {
     } else {
       picker = (
         <TouchableOpacity
-          style={styles.bookButton}
+          style={[styles.button, MasterStyles.shadow]}
           onPress={() => this.openDatePicker()}
         >
           <Text style={styles.buttonText}>
@@ -241,7 +241,7 @@ export default class BookingPage extends Component {
       );
       timePicker = (
         <TouchableOpacity
-          style={[styles.bookButton, { marginTop: 20 }]}
+          style={[styles.button, { marginTop: 20 }, MasterStyles.shadow]}
           onPress={() => this.openTimePicker()}
         >
           <Text style={styles.buttonText}>
@@ -253,21 +253,21 @@ export default class BookingPage extends Component {
     return (
       <View style={MasterStyles.flexStartContainer}>
         <View style={styles.nameContainer}>
-          <BackButton />
+          <BackButton style={styles.backButton} />
           <Text style={styles.trainerName}>{this.state.trainer.name}</Text>
           <Text style={styles.gymName}>{this.state.gym.name}</Text>
         </View>
         <View style={styles.formContainer}>
           <View style={styles.inputRow}>
-            <Text style={styles.formLabel}>Session Time</Text>
+            <Text style={styles.formLabel}>Time</Text>
             {picker}
             {timePicker}
           </View>
           <View style={styles.inputRow}>
-            <Text style={styles.formLabel}>Session Duration</Text>
+            <Text style={styles.formLabel}>Duration</Text>
             <Picker
               style={styles.picker}
-              itemStyle={{ height: 70, color: Colors.Primary }}
+              itemStyle={{ height: 70 }}
               selectedValue={this.state.bookDuration}
               onValueChange={(itemValue) => this.setState({ bookDuration: itemValue })}
             >
@@ -276,9 +276,12 @@ export default class BookingPage extends Component {
               <Picker.Item label="2 hours" value="120" />
             </Picker>
           </View>
-          <TouchableOpacity style={styles.bookButton} onPress={() => this.bookTrainer()}>
+          <TouchableOpacity
+            style={[styles.button, MasterStyles.shadow]}
+            onPress={this.bookTrainer}
+          >
             <Text style={styles.buttonText}>
-              Schedule Session
+              Book Session
             </Text>
           </TouchableOpacity>
         </View>
@@ -306,58 +309,70 @@ const styles = StyleSheet.create({
     color: Colors.LightGray,
     fontWeight: '500',
     textAlign: 'center',
-    marginTop: 5,
   },
   nameContainer: {
-    flex: 1,
+    height: '15%',
     width: '100%',
     backgroundColor: Colors.Primary,
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
   },
+  backButton: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    margin: 0,
+  },
   formLabel: {
     fontSize: 20,
-    fontWeight: '500',
-    textAlign: 'center',
+    margin: 10,
+    fontWeight: '600',
     color: Colors.Primary,
     marginBottom: 15,
   },
   formContainer: {
     flexDirection: 'column',
-    justifyContent: 'space-around',
+    justifyContent: 'flex-start',
     alignItems: 'center',
-    flex: 6,
-    width: '95%',
+    height: '85%',
+    width: '100%',
   },
   inputRow: {
     width: '100%',
     flexDirection: 'column',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   datePicker: {
+    backgroundColor: Colors.LightGray,
     height: 200,
     width: '100%',
-    borderWidth: 1,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
     borderColor: Colors.Primary,
   },
   picker: {
+    backgroundColor: Colors.LightGray,
     height: 70,
     width: '100%',
-    borderWidth: 1,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
     borderColor: Colors.Primary,
   },
-  bookButton: {
-    paddingVertical: 15,
-    backgroundColor: Colors.Secondary,
+  button: {
+    borderRadius: 10,
     width: '80%',
-    borderRadius: 5,
+    height: 50,
+    marginTop: 30,
+    backgroundColor: Colors.White,
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   buttonText: {
-    textAlign: 'center',
-    color: Colors.LightGray,
+    color: Colors.Primary,
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: '600',
   },
 });

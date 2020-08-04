@@ -174,8 +174,11 @@ export default class TrainerAccountForm extends Component {
 
     return (
       <View style={MasterStyles.spacedContainer}>
+        <View style={styles.imageContainer}>
+          <Image source={{ uri: this.state.image }} style={styles.imageHolder} />
+        </View>
         <View style={styles.switchRow}>
-          <Text style={styles.hints}>Active? </Text>
+          <Text style={styles.hints}>Active</Text>
           <Switch
             trackColor={Colors.Primary}
             _thumbColor={Colors.Secondary}
@@ -183,9 +186,6 @@ export default class TrainerAccountForm extends Component {
             value={this.state.active}
             onValueChange={(active) => this.setState({ active, change: true })}
           />
-        </View>
-        <View style={styles.imageContainer}>
-          <Image source={{ uri: this.state.image }} style={styles.imageHolder} />
         </View>
         {rateField}
         <TextField
@@ -216,10 +216,10 @@ export default class TrainerAccountForm extends Component {
           value={this.state.offset}
         />
         <TouchableOpacity style={styles.button} onPressIn={this.pickImage}>
-          <Text style={styles.buttonText}> Update Image </Text>
+          <Text style={styles.buttonText}>Update Image</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.button} onPressIn={this.updateAccount}>
-          <Text style={styles.buttonText}> Save Changes </Text>
+          <Text style={styles.buttonText}>Save Changes</Text>
         </TouchableOpacity>
       </View>
     );
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 5,
+    margin: 10,
   },
   button: {
     borderRadius: 5,

@@ -8,9 +8,9 @@ import Colors from './Colors';
 
 const TextField = (props) => (
   <View style={props.rowStyle}>
-    <Text style={props.iconStyle}>
-      <FontAwesome name={props.icon} size={30} />
-    </Text>
+    <View style={styles.icon}>
+      <FontAwesome name={props.icon} size={30} color={Colors.Primary} />
+    </View>
     <TextInput
       placeholder={props.placeholder}
       returnKeyType={props.returnKeyType}
@@ -37,15 +37,14 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: Colors.Primary,
     width: '85%',
-    color: Colors.Black,
+    color: Colors.Primary,
   },
   icon: {
-    color: Colors.Primary,
-    fontSize: 30,
-    marginRight: 10,
-    marginTop: 13,
-    width: 35,
-    textAlign: 'center',
+    height: 40,
+    width: '15%',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'flex-end',
   },
   inputRow: {
     width: '100%',
@@ -83,7 +82,7 @@ TextField.defaultProps = {
   style: styles.input,
   iconStyle: styles.icon,
   secure: false,
-  color: Colors.Black,
+  color: Colors.Primary,
   autoCorrect: false,
   keyboard: 'default',
   returnKeyType: 'done',

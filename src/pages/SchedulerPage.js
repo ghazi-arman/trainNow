@@ -167,14 +167,14 @@ export default class SchedulerPage extends Component {
       );
     }
     return (
-      <View style={MasterStyles.flexStartContainer}>
+      <View style={[MasterStyles.flexStartContainer, { flex: null }]}>
         <View style={styles.nameContainer}>
-          <Text style={styles.trainerName}>Add Availability</Text>
-          <BackButton />
+          <BackButton style={styles.backButton} />
+          <Text style={styles.header}>Add Availability</Text>
         </View>
         <View style={styles.formContainer}>
           <ScrollView
-            style={{ width: '90%' }}
+            style={{ width: '100%' }}
             contentContainerStyle={styles.center}
             showsVerticalScrollIndicator={false}
           >
@@ -189,7 +189,7 @@ export default class SchedulerPage extends Component {
               {endTimePicker}
             </View>
             <TouchableOpacity
-              style={styles.bookButton}
+              style={[styles.button, MasterStyles.shadow]}
               onPressIn={() => this.addSession(this.state.startDate, this.state.endDate)}
             >
               <Text style={styles.buttonText}> Add Availability</Text>
@@ -202,45 +202,53 @@ export default class SchedulerPage extends Component {
 }
 
 const styles = StyleSheet.create({
-  trainerName: {
-    fontSize: 30,
+  header: {
+    fontSize: 25,
     color: Colors.LightGray,
     fontWeight: '500',
   },
   nameContainer: {
-    flex: 1,
+    height: '15%',
     width: '100%',
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
     backgroundColor: Colors.Primary,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
   },
+  backButton: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    margin: 0,
+  },
   formContainer: {
-    flex: 6,
+    height: '85%',
     width: '100%',
     flexDirection: 'column',
     justifyContent: 'flex-start',
     alignItems: 'center',
+    marginBottom: 20,
   },
   center: {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  bookButton: {
-    paddingVertical: 15,
-    borderRadius: 5,
-    backgroundColor: Colors.Secondary,
+  button: {
+    borderRadius: 10,
     width: '80%',
-    marginTop: 10,
+    height: 50,
+    margin: 30,
+    backgroundColor: Colors.White,
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   inputRow: {
     width: '100%',
     flexDirection: 'column',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     paddingTop: 10,
     paddingBottom: 10,
   },
@@ -249,17 +257,19 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textAlign: 'center',
     color: Colors.Primary,
-    paddingBottom: 10,
+    margin: 10,
   },
   buttonText: {
+    fontSize: 15,
     textAlign: 'center',
-    color: Colors.LightGray,
-    fontWeight: '700',
+    color: Colors.Primary,
+    fontWeight: '600',
   },
   datepicker: {
     height: 200,
     width: '100%',
-    borderWidth: 1,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
     borderColor: Colors.Primary,
   },
 });

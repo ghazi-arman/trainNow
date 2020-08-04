@@ -9,24 +9,16 @@ import Colors from './Colors';
 import MasterStyles from './MasterStyles';
 
 const BackButton = (props) => (
-  <TouchableOpacity style={[styles.button, MasterStyles.shadow]} onPress={props.onPress}>
+  <TouchableOpacity style={[styles.button, MasterStyles.shadow, props.style]} onPress={props.onPress}>
     <FontAwesome name="arrow-left" color={Colors.Black} size={25} />
   </TouchableOpacity>
 );
 
-BackButton.propTypes = {
-  onPress: PropTypes.func,
-};
-
-BackButton.defaultProps = {
-  onPress: Actions.pop,
-};
-
 const styles = StyleSheet.create({
   button: {
-    position: 'absolute',
-    top: Dimensions.get('window').height / 20,
-    left: 20,
+    marginTop: Dimensions.get('window').height / 20,
+    marginBottom: 10,
+    marginHorizontal: 15,
     width: 40,
     height: 40,
     justifyContent: 'center',
@@ -37,5 +29,15 @@ const styles = StyleSheet.create({
     borderColor: Colors.Black,
   },
 });
+
+BackButton.propTypes = {
+  onPress: PropTypes.func,
+  style: PropTypes.object
+};
+
+BackButton.defaultProps = {
+  onPress: Actions.pop,
+  style: null,
+};
 
 export default BackButton;

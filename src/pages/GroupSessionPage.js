@@ -90,20 +90,18 @@ export default class GroupSessionPage extends Component {
     if (this.state.session.trainerKey === user.uid) {
       description = (
         <Text style={styles.bookDetails}>
-          You are hosting the
+          You are hosting
           {' '}
           {this.state.session.name}
-          {' '}
-          class
         </Text>
       );
     } else {
       textButton = (
         <TouchableOpacity
-          style={styles.button}
+          style={[styles.button, MasterStyles.shadow]}
           onPress={this.sendMessage}
         >
-          <Text style={styles.buttonText}> Send Message </Text>
+          <Text style={styles.buttonText}>Send Message</Text>
         </TouchableOpacity>
       );
       description = (
@@ -114,32 +112,6 @@ export default class GroupSessionPage extends Component {
         </Text>
       );
     }
-    const mapButton = (
-      <TouchableOpacity
-        style={styles.button}
-        onPress={this.openMaps}
-      >
-        <Text style={styles.buttonText}> Open in Maps </Text>
-      </TouchableOpacity>
-    );
-
-    const map = (
-      <MapView
-        pitchEnabled={false}
-        rotateEnabled={false}
-        scrollEnabled={false}
-        zoomEnabled={false}
-        style={styles.mapContainer}
-        region={this.state.mapRegion}
-        showsUserLocation
-      >
-        <MapView.Marker
-          ref={this.state.session.trainerKey}
-          key={this.state.session.trainerKey}
-          coordinate={this.state.session.location}
-        />
-      </MapView>
-    );
 
     if (!this.state.session.started) {
       time = (
@@ -177,7 +149,7 @@ export default class GroupSessionPage extends Component {
       if (this.state.session.trainerKey === firebase.auth().currentUser.uid) {
         button = (
           <TouchableOpacity
-            style={styles.button}
+            style={[styles.button, MasterStyles.shadow]}
             onPress={this.startSession}
           >
             <Text style={styles.buttonText}> Start Session </Text>
@@ -203,7 +175,7 @@ export default class GroupSessionPage extends Component {
       if (this.state.session.trainerKey === firebase.auth().currentUser.uid) {
         button = (
           <TouchableOpacity
-            style={styles.button}
+            style={[styles.button, MasterStyles.shadow]}
             onPressIn={this.endSession}
           >
             <Text style={styles.buttonText}>
@@ -216,22 +188,36 @@ export default class GroupSessionPage extends Component {
     return (
       <View style={MasterStyles.spacedContainer}>
         <View style={styles.nameContainer}>
-          <BackButton />
-          <Text style={styles.header}>Your Session</Text>
+          <BackButton style={styles.backButton} />
         </View>
         <View style={styles.formContainer}>
-          <View style={styles.infoContainer}>
-            {description}
-            {time}
-            {length}
-            {ready}
-          </View>
-          {map}
-          <View style={styles.buttonContain}>
-            {button}
-            {mapButton}
-            {textButton}
-          </View>
+          {description}
+          {time}
+          {length}
+          {ready}
+          <MapView
+            pitchEnabled={false}
+            rotateEnabled={false}
+            scrollEnabled={false}
+            zoomEnabled={false}
+            style={styles.mapContainer}
+            region={this.state.mapRegion}
+            showsUserLocation
+          >
+            <MapView.Marker
+              ref={this.state.session.trainerKey}
+              key={this.state.session.trainerKey}
+              coordinate={this.state.session.location}
+            />
+          </MapView>
+          {button}
+          <TouchableOpacity
+            style={[styles.button, MasterStyles.shadow]}
+            onPress={this.openMaps}
+          >
+            <Text style={styles.buttonText}> Open in Maps </Text>
+          </TouchableOpacity>
+          {textButton}
         </View>
       </View>
     );
@@ -248,9 +234,16 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.Primary,
     textAlign: 'center',
+    margin: 5,
+  },
+  backButton: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    margin: 0,
   },
   smallText: {
-    marginTop: 5,
+    margin: 5,
     fontSize: 15,
     fontWeight: '300',
     color: Colors.Secondary,
@@ -262,49 +255,37 @@ const styles = StyleSheet.create({
     color: Colors.Primary,
   },
   nameContainer: {
-    flex: 1,
+    height: '12%',
     width: '100%',
     flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'flex-end',
+    alignItems: 'center',
   },
   formContainer: {
-    flex: 8,
-    width: '95%',
+    height: '88%',
+    width: '100%',
     flexDirection: 'column',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
   },
   mapContainer: {
-    width: '95%',
-    flex: 10,
-  },
-  buttonContain: {
-    width: '50%',
-    flex: 8,
-    flexDirection: 'column',
-    justifyContent: 'space-evenly',
-    alignItems: 'center',
-  },
-  infoContainer: {
-    height: '35%',
-    width: '80%',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: '100%',
+    height: '30%',
   },
   button: {
-    borderRadius: 5,
-    backgroundColor: Colors.Secondary,
-    paddingVertical: 15,
-    width: '100%',
-    paddingTop: 15,
-    flexDirection: 'row',
+    borderRadius: 10,
+    width: '80%',
+    height: 40,
+    marginTop: 15,
+    backgroundColor: Colors.White,
+    flexDirection: 'column',
     justifyContent: 'center',
+    alignItems: 'center',
   },
   buttonText: {
+    fontSize: 15,
     textAlign: 'center',
-    color: Colors.LightGray,
+    color: Colors.Primary,
     fontWeight: '700',
   },
 });

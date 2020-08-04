@@ -481,7 +481,7 @@ export default class CalendarPage extends Component {
     });
 
     return ([
-      <Text style={styles.subTitle}>Upcoming Sessions</Text>,
+      <Text style={styles.subTitle} key={0}>Upcoming Sessions</Text>,
       upcomingSessions,
       groupSessions,
     ]);
@@ -494,14 +494,12 @@ export default class CalendarPage extends Component {
     const userId = firebase.auth().currentUser.uid;
     return (
       <View style={MasterStyles.flexStartContainer}>
-        <View style={styles.headerContainer}>
-          <BackButton onPress={Actions.MapPage} />
-        </View>
         <ScrollView
           style={{ width: '100%' }}
           contentContainerStyle={styles.container}
           showsVerticalScrollIndicator={false}
         >
+          <BackButton onPress={Actions.MapPage} />
           <Text style={styles.title}>Calendar</Text>
           {this.state.user.type === Constants.trainerType
             ? (
@@ -559,7 +557,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderBottomWidth: 1,
     borderColor: Colors.Gray,
-    marginVertical: 10,
+    marginBottom: 10,
   },
   sessionInfo: {
     height: '100%',
@@ -590,22 +588,20 @@ const styles = StyleSheet.create({
     color: Colors.DarkGray,
     marginBottom: 5,
   },
-  headerContainer: {
-    height: '10%',
-    width: '100%',
-  },
   title: {
     fontSize: 30,
     color: Colors.Black,
     fontWeight: '700',
     textAlign: 'center',
-    margin: 10,
+    marginHorizontal: 15,
+    marginBottom: 5,
   },
   subTitle: {
     fontSize: 25,
     fontWeight: '700',
     color: Colors.Black,
-    margin: 10,
+    marginHorizontal: 15,
+    marginVertical: 10,
   },
   button: {
     borderRadius: 10,

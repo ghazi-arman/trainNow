@@ -39,7 +39,7 @@ export default class TrainerPage extends Component {
 
     return (
       <ScrollView contentContainerStyle={[MasterStyles.flexStartContainer, styles.container]}>
-        <BackButton />
+        <BackButton style={styles.backButton} />
         <Image style={styles.profileImage} source={{ uri: this.state.image }} />
         <Text style={styles.name}>{this.state.trainer.name}</Text>
         <View style={styles.infoContainer}>
@@ -106,6 +106,12 @@ const styles = StyleSheet.create({
   container: {
     flex: null,
     paddingBottom: 50,
+  },
+  backButton: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    margin: 0,
   },
   profileImage: {
     height: 100,

@@ -17,7 +17,9 @@ import Constants from '../components/Constants';
 export default class PastGroupSessionDetailsPage extends Component {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {
+      report: '',
+    };
     this.bugsnagClient = bugsnag();
   }
 
@@ -57,79 +59,76 @@ export default class PastGroupSessionDetailsPage extends Component {
     const payout = (total - total * Constants.groupSessionPercentage).toFixed(2);
 
     return (
-      <View style={[MasterStyles.container, { height: '100%' }]}>
-        <View style={styles.buttonContainer}>
-          <BackButton />
+      <ScrollView contentContainerStyle={styles.container}>
+        <BackButton />
+        <Text style={styles.title}>{this.props.session.name}</Text>
+        <View style={styles.infoContainer}>
+          <View style={styles.textRow}>
+            <Text style={styles.bold}>Name:</Text>
+            <Text style={styles.details}>{name}</Text>
+          </View>
+          <View style={styles.textRow}>
+            <Text style={styles.bold}>Time:</Text>
+            <Text style={styles.details}>{dateToString(this.props.session.start)}</Text>
+          </View>
+          <View style={styles.textRow}>
+            <Text style={styles.bold}>Gym:</Text>
+            <Text style={styles.details}>{this.props.session.gymName}</Text>
+          </View>
+          <View style={styles.textRow}>
+            <Text style={styles.bold}>Rating:</Text>
+            <Text style={[styles.details, { color: Colors.Primary }]}>{renderStars(rating)}</Text>
+          </View>
+          <View style={styles.textRow}>
+            <Text style={styles.bold}>
+              {this.props.session.trainerKey === userId ? 'Earned:' : 'Cost:'}
+            </Text>
+            <Text style={styles.details}>
+              $
+              {this.props.session.trainerKey === userId ? payout : total}
+            </Text>
+          </View>
         </View>
-        <ScrollView contentContainerStyle={styles.container}>
-          <Text style={styles.title}>{this.props.session.name}</Text>
-          <View style={styles.infoContainer}>
-            <View style={styles.textRow}>
-              <Text style={styles.bold}>Name:</Text>
-              <Text style={styles.details}>{name}</Text>
-            </View>
-            <View style={styles.textRow}>
-              <Text style={styles.bold}>Time:</Text>
-              <Text style={styles.details}>{dateToString(this.props.session.start)}</Text>
-            </View>
-            <View style={styles.textRow}>
-              <Text style={styles.bold}>Gym:</Text>
-              <Text style={styles.details}>{this.props.session.gymName}</Text>
-            </View>
-            <View style={styles.textRow}>
-              <Text style={styles.bold}>Rating:</Text>
-              <Text style={[styles.details, { color: Colors.Primary }]}>{renderStars(rating)}</Text>
-            </View>
-            <View style={styles.textRow}>
-              <Text style={styles.bold}>
-                {this.props.session.trainerKey === userId ? 'Earned:' : 'Cost:'}
-              </Text>
-              <Text style={styles.details}>
-                $
-                {this.props.session.trainerKey === userId ? payout : total}
-              </Text>
-            </View>
-          </View>
-          <View style={styles.mapContainer}>
-            <MapView
-              style={styles.map}
-              region={{
-                latitude: this.props.session.location.latitude,
-                longitude: this.props.session.location.longitude,
-                latitudeDelta: 0.0422,
-                longitudeDelta: 0.0221,
-              }}
-              pitchEnabled={false}
-              rotateEnabled={false}
-              scrollEnabled={false}
-              zoomEnabled={false}
+        <View style={styles.mapContainer}>
+          <MapView
+            style={styles.map}
+            region={{
+              latitude: this.props.session.location.latitude,
+              longitude: this.props.session.location.longitude,
+              latitudeDelta: 0.0422,
+              longitudeDelta: 0.0221,
+            }}
+            pitchEnabled={false}
+            rotateEnabled={false}
+            scrollEnabled={false}
+            zoomEnabled={false}
+          >
+            <MapView.Marker
+              key={this.props.session.key}
+              coordinate={this.props.session.location}
             >
-              <MapView.Marker
-                key={this.props.session.key}
-                coordinate={this.props.session.location}
-              >
-                <Image source={markerImage} style={{ width: 50, height: 50 }} />
-              </MapView.Marker>
-            </MapView>
-          </View>
-          <Text style={styles.subTitle}>Report Session</Text>
-          <View style={styles.reportContainer}>
-            <TextInput
-              style={styles.input}
-              multiline
-              placeholder="What happened?"
-              onChange={(report) => this.setState({ report })}
-              value={this.state.report}
-            />
-            <TouchableOpacity
-              style={[styles.button, MasterStyles.shadow]}
-              onPress={this.reportSession}
-            >
-              <Text style={styles.buttonText}>Report</Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-      </View>
+              <Image source={markerImage} style={{ width: 50, height: 50 }} />
+            </MapView.Marker>
+          </MapView>
+        </View>
+        <Text style={styles.subTitle}>Report Session</Text>
+        <View style={styles.reportContainer}>
+          <TextInput
+            style={styles.input}
+            multiline
+            placeholder="What happened?"
+            placeholderTextColor={Colors.DarkGray}
+            onChange={(report) => this.setState({ report })}
+            value={this.state.report}
+          />
+          <TouchableOpacity
+            style={[styles.button, MasterStyles.shadow]}
+            onPress={this.reportSession}
+          >
+            <Text style={styles.buttonText}>Report</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     );
   }
 }
@@ -145,10 +144,6 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'flex-start',
-  },
-  buttonContainer: {
-    height: 100,
-    width: '100%',
   },
   title: {
     marginHorizontal: 15,

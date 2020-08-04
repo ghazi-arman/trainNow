@@ -45,7 +45,7 @@ export default class SettingsPage extends Component {
     return (
       <View style={MasterStyles.spacedContainer}>
         <View style={styles.nameContainer}>
-          <BackButton onPress={this.goToMap} />
+          <BackButton style={styles.backButton} onPress={this.goToMap} />
           <Text style={styles.title}>Settings</Text>
         </View>
         <KeyboardAvoidingView style={styles.formContainer} behavior="padding">
@@ -69,12 +69,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   nameContainer: {
-    flex: 1,
+    height: '15%',
     width: '100%',
     flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'flex-end',
-    marginBottom: 10,
+    alignItems: 'center',
+  },
+  backButton: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    margin: 0,
   },
   title: {
     fontSize: 34,
@@ -82,7 +87,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   formContainer: {
-    flex: 7,
+    height: '85%',
     width: '90%',
     flexDirection: 'column',
     alignItems: 'center',

@@ -74,7 +74,7 @@ export default class SchedulePage extends Component {
     return (
       <View style={MasterStyles.flexStartContainer}>
         <View style={styles.nameContainer}>
-          <BackButton />
+          <BackButton style={styles.backButton} />
           <Text style={styles.trainerName}>
             {' '}
             {this.state.trainer.name}
@@ -109,15 +109,21 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   nameContainer: {
-    flex: 1,
+    height: '15%',
     width: '100%',
     backgroundColor: Colors.Primary,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
   },
+  backButton: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    margin: 0,
+  },
   calendarContainer: {
-    flex: 6,
+    height: '85%',
     width: '100%',
   },
   calendar: {

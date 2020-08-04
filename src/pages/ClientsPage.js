@@ -261,7 +261,7 @@ export default class ClientsPage extends Component {
       );
     });
     return ([
-      <Text style={styles.subTitle}>Clients</Text>,
+      <Text style={styles.subTitle} key={0}>Clients</Text>,
       clients,
     ]);
   }
@@ -271,21 +271,16 @@ export default class ClientsPage extends Component {
       return <LoadingWheel />;
     }
     return (
-      <View style={MasterStyles.flexStartContainer}>
-        <View style={styles.buttonContainer}>
-          <BackButton />
-        </View>
-        <ScrollView
-          style={{ width: '100%' }}
-          contentContainerStyle={styles.container}
-          showsVerticalScrollIndicator={false}
-        >
-          <Text style={styles.title}>Clients</Text>
-          {this.renderRequests()}
-          {this.renderRecent()}
-          {this.renderClients()}
-        </ScrollView>
-      </View>
+      <ScrollView
+        style={{ width: '100%' }}
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+      >
+        <BackButton />
+        {this.renderRequests()}
+        {this.renderRecent()}
+        {this.renderClients()}
+      </ScrollView>
     );
   }
 }
@@ -296,11 +291,6 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'flex-start',
-  },
-  title: {
-    fontSize: 30,
-    fontWeight: '700',
-    margin: 10,
   },
   subTitle: {
     fontSize: 25,

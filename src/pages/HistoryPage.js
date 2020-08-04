@@ -15,7 +15,6 @@ import { loadSessions, dateToString } from '../components/Functions';
 import Constants from '../components/Constants';
 import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
-import MasterStyles from '../components/MasterStyles';
 import profileImage from '../images/profile.png';
 
 export default class HistoryPage extends Component {
@@ -114,28 +113,20 @@ export default class HistoryPage extends Component {
       return <LoadingWheel />;
     }
     return (
-      <View style={MasterStyles.flexStartContainer}>
-        <View style={styles.nameContainer}>
-          <BackButton />
-        </View>
-        <ScrollView
-          style={{ height: '80%', width: '100%' }}
-          contentContainerStyle={styles.container}
-          showsVerticalScrollIndicator={false}
-        >
-          <Text style={styles.header}>Past Sessions</Text>
-          {this.renderSessions()}
-        </ScrollView>
-      </View>
+      <ScrollView
+        style={{ height: '80%', width: '100%' }}
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+      >
+        <BackButton />
+        <Text style={styles.header}>Past Sessions</Text>
+        {this.renderSessions()}
+      </ScrollView>
     );
   }
 }
 
 const styles = StyleSheet.create({
-  nameContainer: {
-    height: '10%',
-    width: '100%',
-  },
   container: {
     flexDirection: 'column',
     justifyContent: 'flex-start',
@@ -163,7 +154,8 @@ const styles = StyleSheet.create({
     fontSize: 25,
     fontWeight: '700',
     color: Colors.Black,
-    margin: 10,
+    marginHorizontal: 15,
+    marginBottom: 10,
   },
   profileImage: {
     height: 40,

@@ -173,7 +173,7 @@ export default class PaymentPage extends Component {
         if (currCard.default_for_currency) {
           defaultButton = (
             <Text style={styles.greenIcon}>
-              <FontAwesome name="check-circle" size={20} />
+              <FontAwesome name="check-circle" size={30} color={Colors.Green} />
             </Text>
           );
           defaultCard = true;
@@ -204,7 +204,11 @@ export default class PaymentPage extends Component {
         );
       } else {
         if (index === 0) {
-          defaultButton = (<Text style={styles.greenIcon}><FontAwesome name="check-circle" size={20} /></Text>);
+          defaultButton = (
+            <Text style={styles.greenIcon}>
+              <FontAwesome name="check-circle" size={30} color={Colors.Green} />
+            </Text>
+          );
         } else {
           defaultButton = (
             <TouchableOpacity
@@ -270,31 +274,23 @@ export default class PaymentPage extends Component {
         </Text>
       );
       payoutText = (
-        <Text style={{
-          fontSize: 20, textAlign: 'center', color: Colors.Primary, marginTop: 10,
-        }}
-        >
-          Funds will be transfered daily
+        <Text style={{ fontSize: 20, color: Colors.Primary, marginTop: 10 }}>
+          Funds transfered daily
         </Text>
       );
     }
     return (
       <KeyboardAvoidingView behavior="padding" style={MasterStyles.flexStartContainer}>
         <View style={styles.nameContainer}>
-          <BackButton onPress={Actions.MapPage} />
+          <BackButton style={styles.backButton} onPress={Actions.MapPage} />
           <Text style={styles.title}>Payments</Text>
         </View>
         {balanceDiv}
         <View style={styles.cardHolder}>
           {this.renderCards()}
         </View>
-        <TouchableOpacity style={styles.button} onPress={Actions.CardPage}>
-          <Text style={styles.buttonText}>
-            <FontAwesome name="credit-card" size={30} />
-            {' '}
-            Add Card
-            {' '}
-          </Text>
+        <TouchableOpacity style={[styles.button, MasterStyles.shadow]} onPress={Actions.CardPage}>
+          <Text style={styles.buttonText}>Add Card</Text>
         </TouchableOpacity>
         {payoutText}
       </KeyboardAvoidingView>
@@ -313,6 +309,12 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'center',
   },
+  backButton: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    margin: 0,
+  },
   cardRow: {
     width: '95%',
     marginTop: 10,
@@ -321,9 +323,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   nameContainer: {
-    flex: 0.2,
+    height: '15%',
     width: '100%',
-    flexDirection: 'row',
+    flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -338,33 +340,35 @@ const styles = StyleSheet.create({
     paddingBottom: 50,
   },
   buttonText: {
-    fontSize: 30,
-    color: '#f6f5f5',
+    fontSize: 25,
+    fontWeight: '600',
+    color: Colors.Primary,
     textAlign: 'center',
   },
   balanceText: {
     fontSize: 30,
-    color: Colors.Secondary,
+    color: Colors.Primary,
     textAlign: 'center',
   },
   button: {
-    borderRadius: 5,
-    backgroundColor: Colors.Secondary,
+    borderRadius: 10,
+    width: '80%',
+    height: 50,
+    marginTop: 30,
+    backgroundColor: Colors.White,
     flexDirection: 'column',
     justifyContent: 'center',
-    width: 200,
-    height: 50,
-    marginTop: 10,
+    alignItems: 'center',
   },
   icon: {
     fontSize: 15,
   },
   greenIcon: {
-    marginTop: 10,
-    height: 30,
-    width: 30,
     fontSize: 20,
     color: Colors.Green,
+    width: 30,
+    height: 30,
+    marginHorizontal: 5,
     textAlign: 'center',
   },
   deleteButton: {
@@ -372,8 +376,10 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
+    borderRadius: 10,
     width: 30,
     height: 30,
+    marginHorizontal: 5,
   },
   defaultButton: {
     backgroundColor: Colors.Green,
@@ -382,5 +388,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: 30,
     height: 30,
+    borderRadius: 10,
+    marginHorizontal: 5,
   },
 });

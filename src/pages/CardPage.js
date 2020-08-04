@@ -163,11 +163,8 @@ export default class CardPage extends Component {
       return <LoadingWheel />;
     }
     return (
-      <View style={MasterStyles.spacedContainer}>
-        <View style={styles.nameContainer}>
-          <BackButton />
-          <Text style={styles.title}>Add Card</Text>
-        </View>
+      <View style={[MasterStyles.flexStartContainer, {alignItems: 'flex-start'}]}>
+        <BackButton />
         <KeyboardAvoidingView behavior="padding" style={styles.formContainer}>
           <TextField
             icon="user"
@@ -203,7 +200,7 @@ export default class CardPage extends Component {
             onChange={(cvc) => this.setState({ cvc })}
             value={this.state.cvc}
           />
-          <TouchableOpacity style={styles.submitButton} onPressIn={() => this.addCard()}>
+          <TouchableOpacity style={[styles.button, MasterStyles.shadow]} onPress={() => { this.addCard() }}>
             <Text style={styles.buttonText}>
               Add Card
             </Text>
@@ -216,39 +213,26 @@ export default class CardPage extends Component {
 
 const styles = StyleSheet.create({
   formContainer: {
-    flex: 7,
+    height: '100%',
     width: '100%',
     flexDirection: 'column',
-    justifyContent: 'space-around',
+    justifyContent: 'flex-start',
     alignItems: 'center',
-    backgroundColor: Colors.LightGray,
-    padding: 20,
+    padding: 10,
   },
-  submitButton: {
-    borderRadius: 5,
-    backgroundColor: Colors.Secondary,
-    paddingVertical: 15,
+  button: {
+    borderRadius: 10,
     width: '80%',
+    height: 50,
+    marginTop: 30,
+    backgroundColor: Colors.White,
     flexDirection: 'column',
     justifyContent: 'center',
+    alignItems: 'center',
   },
   buttonText: {
     fontSize: 20,
-    textAlign: 'center',
-    color: Colors.LightGray,
-    fontWeight: '700',
-  },
-  title: {
     color: Colors.Primary,
-    fontSize: 34,
-    fontWeight: '700',
-  },
-  nameContainer: {
-    flex: 1,
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'flex-end',
-    marginBottom: 10,
+    fontWeight: '600',
   },
 });

@@ -204,7 +204,7 @@ export default class CreateGroupSessionPage extends Component {
           mode="datetime"
           itemStyle={{ color: Colors.Primary }}
           textColor={Colors.Primary}
-          style={styles.datepicker}
+          style={styles.datePicker}
           minuteInterval={5}
           minimumDate={minimumDate}
           date={this.state.start}
@@ -214,7 +214,7 @@ export default class CreateGroupSessionPage extends Component {
     } else {
       startDatePicker = (
         <TouchableOpacity
-          style={styles.bookButton}
+          style={[styles.button, MasterStyles.shadow]}
           onPressIn={() => this.openDatePicker(true)}
         >
           <Text style={styles.buttonText}>
@@ -224,7 +224,7 @@ export default class CreateGroupSessionPage extends Component {
       );
       startTimePicker = (
         <TouchableOpacity
-          style={[styles.bookButton, { marginTop: 20 }]}
+          style={[styles.button, { marginTop: 20 }, MasterStyles.shadow]}
           onPress={() => this.openTimePicker(true)}
         >
           <Text style={styles.buttonText}>
@@ -233,20 +233,20 @@ export default class CreateGroupSessionPage extends Component {
         </TouchableOpacity>
       );
     }
-    let actionButton;
+    let button;
     if (this.props.sessionKey) {
-      actionButton = (
+      button = (
         <TouchableOpacity
-          style={styles.bookButton}
+          style={[styles.button, MasterStyles.shadow]}
           onPress={this.updateSession}
         >
           <Text style={styles.buttonText}> Update Session </Text>
         </TouchableOpacity>
       );
     } else {
-      actionButton = (
+      button = (
         <TouchableOpacity
-          style={styles.bookButton}
+          style={[styles.button, MasterStyles.shadow]}
           onPress={this.createSession}
         >
           <Text style={styles.buttonText}> Create Session </Text>
@@ -254,81 +254,68 @@ export default class CreateGroupSessionPage extends Component {
       );
     }
     return (
-      <View style={MasterStyles.flexStartContainer}>
-        <View style={styles.nameContainer}>
-          <Text style={styles.trainerName}>Group Session</Text>
-          <BackButton />
-        </View>
-        <KeyboardAvoidingView behavior="padding" style={styles.formContainer}>
-          <ScrollView
-            style={{ width: '90%' }}
-            contentContainerStyle={styles.center}
-            showsVerticalScrollIndicator={false}
+      <KeyboardAvoidingView behavior="padding" style={styles.formContainer}>
+        <ScrollView contentContainerStyle={styles.center} showsVerticalScrollIndicator={false}>
+          <BackButton style={{ marginHorizontal: 5 }} />
+          <TextField
+            icon="vcard"
+            placeholder="Session Name (limit to a few words)"
+            onChange={(name) => this.setState({ name })}
+            value={this.state.name}
+          />
+          <TextField
+            icon="info"
+            multiline
+            placeholder="Enter session description (type, exercises, etc.)"
+            onChange={(bio) => this.setState({ bio })}
+            value={this.state.bio}
+          />
+          <TextField
+            icon="user"
+            placeholder="Maximum Capacity"
+            keyboard="number-pad"
+            onChange={(capacity) => this.setState({ capacity })}
+            value={this.state.capacity}
+          />
+          <TextField
+            icon="clock-o"
+            placeholder="Duration (Minutes)"
+            keyboard="number-pad"
+            onChange={(duration) => this.setState({ duration })}
+            value={this.state.duration}
+          />
+          <TextField
+            icon="dollar"
+            placeholder="Cost"
+            keyboard="number-pad"
+            onChange={(cost) => this.setState({ cost })}
+            value={this.state.cost}
+          />
+          <Text style={styles.formLabel}>Gym</Text>
+          <Picker
+            style={styles.picker}
+            itemStyle={{ height: 45, color: Colors.Primary }}
+            selectedValue={this.state.gymKey}
+            onValueChange={(itemValue) => this.setState({ gymKey: itemValue })}
           >
-            <View style={[styles.inputRow, { paddingTop: 10 }]}>
-              <TextField
-                icon="vcard"
-                placeholder="Session Name (limit to a few words)"
-                onChange={(name) => this.setState({ name })}
-                value={this.state.name}
-              />
-              <TextField
-                icon="info"
-                multiline
-                placeholder="Enter session description (type, exercises, etc.)"
-                onChange={(bio) => this.setState({ bio })}
-                value={this.state.bio}
-              />
-              <TextField
-                icon="user"
-                placeholder="Maximum Capacity"
-                keyboard="number-pad"
-                onChange={(capacity) => this.setState({ capacity })}
-                value={this.state.capacity}
-              />
-              <TextField
-                icon="clock-o"
-                placeholder="Duration (Minutes)"
-                keyboard="number-pad"
-                onChange={(duration) => this.setState({ duration })}
-                value={this.state.duration}
-              />
-              <TextField
-                icon="dollar"
-                placeholder="Cost"
-                keyboard="number-pad"
-                onChange={(cost) => this.setState({ cost })}
-                value={this.state.cost}
-              />
-            </View>
-            <View style={styles.inputRow}>
-              <Text style={styles.formLabel}>Gym</Text>
-              <Picker
-                style={styles.picker}
-                itemStyle={{ height: 45, color: Colors.Primary }}
-                selectedValue={this.state.gymKey}
-                onValueChange={(itemValue) => this.setState({ gymKey: itemValue })}
-              >
-                <Picker.Item label="Pick a Gym (Scroll)" value="none" key="0" />
-                {Object.keys(this.state.user.gyms).map(
-                  (key) => {
-                    const gym = this.state.user.gyms[key];
-                    return (
-                      <Picker.Item label={gym.name} value={key} key={key} />
-                    );
-                  },
-                )}
-              </Picker>
-            </View>
-            <View style={styles.inputRow}>
-              <Text style={styles.formLabel}>Start Time</Text>
-              {startDatePicker}
-              {startTimePicker}
-            </View>
-            {actionButton}
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </View>
+            <Picker.Item label="Pick a Gym (Scroll)" value="none" key="0" />
+            {Object.keys(this.state.user.gyms).map(
+              (key) => {
+                const gym = this.state.user.gyms[key];
+                return (
+                  <Picker.Item label={gym.name} value={key} key={key} />
+                );
+              },
+            )}
+          </Picker>
+          <Text style={styles.formLabel}>Start Time</Text>
+          <View style={styles.buttonContainer}>
+            {startDatePicker}
+            {startTimePicker}
+            {button}
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     );
   }
 }
@@ -342,45 +329,34 @@ CreateGroupSessionPage.defaultProps = {
 };
 
 const styles = StyleSheet.create({
-  trainerName: {
-    fontSize: 30,
-    color: Colors.LightGray,
-    fontWeight: '500',
-  },
-  nameContainer: {
-    flex: 1,
-    width: '100%',
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-    backgroundColor: Colors.Primary,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   formContainer: {
-    flex: 6,
+    height: '100%',
     width: '100%',
     flexDirection: 'column',
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
     alignItems: 'center',
+    padding: 5,
   },
   center: {
     flexDirection: 'column',
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'flex-start',
     paddingBottom: 20,
   },
-  bookButton: {
-    borderRadius: 5,
-    paddingVertical: 15,
-    backgroundColor: Colors.Secondary,
-    width: '80%',
-    marginTop: 10,
-  },
-  inputRow: {
+  buttonContainer: {
     width: '100%',
     flexDirection: 'column',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  button: {
+    borderRadius: 10,
+    width: '80%',
+    height: 50,
+    marginTop: 30,
+    backgroundColor: Colors.White,
+    flexDirection: 'column',
+    justifyContent: 'center',
     alignItems: 'center',
   },
   formLabel: {
@@ -389,21 +365,25 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: Colors.Primary,
     paddingBottom: 10,
+    margin: 5,
   },
   buttonText: {
+    fontSize: 20,
     textAlign: 'center',
-    color: Colors.LightGray,
-    fontWeight: '700',
+    color: Colors.Primary,
+    fontWeight: '600',
   },
-  datepicker: {
+  datePicker: {
     height: 200,
     width: '100%',
-    borderWidth: 1,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
     borderColor: Colors.Primary,
   },
   picker: {
     height: 45,
-    borderWidth: 1,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
     borderColor: Colors.Primary,
     width: '100%',
     marginBottom: 10,
