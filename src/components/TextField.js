@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  TextInput, Text, View, StyleSheet,
+  TextInput, View, StyleSheet,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { FontAwesome } from '@expo/vector-icons';
@@ -60,7 +60,6 @@ export default TextField;
 TextField.propTypes = {
   rowStyle: PropTypes.object,
   style: PropTypes.object,
-  iconStyle: PropTypes.object,
   icon: PropTypes.string.isRequired,
   color: PropTypes.string,
   keyboard: PropTypes.string,
@@ -80,7 +79,6 @@ TextField.propTypes = {
 TextField.defaultProps = {
   rowStyle: styles.inputRow,
   style: styles.input,
-  iconStyle: styles.icon,
   secure: false,
   color: Colors.Primary,
   autoCorrect: false,

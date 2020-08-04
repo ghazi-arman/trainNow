@@ -133,22 +133,6 @@ export default class SessionPage extends Component {
         </Text>
       );
     }
-    const mapButton = (
-      <TouchableOpacity
-        style={[styles.button, MasterStyles.shadow]}
-        onPress={this.openMaps}
-      >
-        <Text style={styles.buttonText}> Open in Maps </Text>
-      </TouchableOpacity>
-    );
-    const textButton = (
-      <TouchableOpacity
-        style={[styles.button, MasterStyles.shadow]}
-        onPress={this.sendMessage}
-      >
-        <Text style={styles.buttonText}> Send Message </Text>
-      </TouchableOpacity>
-    );
 
     if (!this.state.session.started) {
       time = (
@@ -314,7 +298,12 @@ export default class SessionPage extends Component {
           >
             <Text style={styles.buttonText}> Open in Maps </Text>
           </TouchableOpacity>
-          {textButton}
+          <TouchableOpacity
+            style={[styles.button, MasterStyles.shadow]}
+            onPress={this.sendMessage}
+          >
+            <Text style={styles.buttonText}> Send Message </Text>
+          </TouchableOpacity>
           {ownReady}
           {ownEnd}
         </View>

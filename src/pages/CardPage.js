@@ -163,7 +163,7 @@ export default class CardPage extends Component {
       return <LoadingWheel />;
     }
     return (
-      <View style={[MasterStyles.flexStartContainer, {alignItems: 'flex-start'}]}>
+      <View style={[MasterStyles.flexStartContainer, { alignItems: 'flex-start' }]}>
         <BackButton />
         <KeyboardAvoidingView behavior="padding" style={styles.formContainer}>
           <TextField
@@ -200,7 +200,10 @@ export default class CardPage extends Component {
             onChange={(cvc) => this.setState({ cvc })}
             value={this.state.cvc}
           />
-          <TouchableOpacity style={[styles.button, MasterStyles.shadow]} onPress={() => { this.addCard() }}>
+          <TouchableOpacity
+            style={[styles.button, MasterStyles.shadow]}
+            onPress={() => { this.addCard(); }}
+          >
             <Text style={styles.buttonText}>
               Add Card
             </Text>
