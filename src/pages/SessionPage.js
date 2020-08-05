@@ -250,6 +250,7 @@ export default class SessionPage extends Component {
         ownEnd = (
           <Text style={styles.smallText}>
             Waiting for
+            {' '}
             {this.state.session.trainerName}
             {' '}
             to end!
@@ -259,6 +260,7 @@ export default class SessionPage extends Component {
         ownEnd = (
           <Text style={styles.smallText}>
             Waiting for
+            {' '}
             {this.state.session.clientName}
             {' '}
             to end!

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {
-  StyleSheet, Text, View, KeyboardAvoidingView, TouchableOpacity, Alert,
+  StyleSheet, Text, View, TouchableOpacity, Alert,
 } from 'react-native';
 import firebase from 'firebase';
 import { FontAwesome } from '@expo/vector-icons';
@@ -158,11 +158,7 @@ export default class PaymentPage extends Component {
 
   renderCards() {
     if (!this.state.cards || !this.state.cards.length) {
-      return (
-        <Text style={{ marginTop: 10, fontSize: 20, color: Colors.Primary }}>
-          No Cards Added
-        </Text>
-      );
+      return null;
     }
     let index = 0;
     return this.state.cards.map((currCard) => {
@@ -236,19 +232,21 @@ export default class PaymentPage extends Component {
       return (
         <View style={styles.cardRow} key={currCard.id}>
           <Text style={styles.icon}>{getCardIcon(currCard.brand)}</Text>
-          <Text>
+          <Text style={{ width: '30%' }}>
             ••••••
             {currCard.last4}
           </Text>
-          <Text>
+          <Text style={{ width: '15%' }}>
             {currCard.exp_month.toString()}
             {' '}
             /
             {' '}
             {currCard.exp_year.toString().substring(2, 4)}
           </Text>
-          {defaultButton}
-          {deleteButton}
+          <View style={styles.buttonRow}>
+            {defaultButton}
+            {deleteButton}
+          </View>
         </View>
       );
     });
@@ -262,11 +260,7 @@ export default class PaymentPage extends Component {
     let payoutText;
     let balanceFormatted;
     if (this.state.user.type === Constants.trainerType) {
-      if (this.state.balance === 0) {
-        balanceFormatted = '0.00';
-      } else {
-        balanceFormatted = (this.state.balance / 100).toFixed(2);
-      }
+      balanceFormatted = this.state.balance === 0 ? '0.00' : (this.state.balance / 100).toFixed(2);
       balanceDiv = (
         <Text style={styles.balanceText}>
           $
@@ -280,46 +274,38 @@ export default class PaymentPage extends Component {
       );
     }
     return (
-      <KeyboardAvoidingView behavior="padding" style={MasterStyles.flexStartContainer}>
-        <View style={styles.nameContainer}>
-          <BackButton style={styles.backButton} onPress={Actions.MapPage} />
-          <Text style={styles.title}>Payments</Text>
-        </View>
+      <View style={[MasterStyles.flexStartContainer, { alignItems: 'flex-start' }]}>
+        <BackButton style={styles.backButton} onPress={Actions.MapPage} />
+        <Text style={styles.title}>Payments</Text>
         {balanceDiv}
-        <View style={styles.cardHolder}>
-          {this.renderCards()}
+        {this.renderCards()}
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={[styles.button, MasterStyles.shadow]} onPress={Actions.CardPage}>
+            <Text style={styles.buttonText}>Add Card</Text>
+          </TouchableOpacity>
+          {payoutText}
         </View>
-        <TouchableOpacity style={[styles.button, MasterStyles.shadow]} onPress={Actions.CardPage}>
-          <Text style={styles.buttonText}>Add Card</Text>
-        </TouchableOpacity>
-        {payoutText}
-      </KeyboardAvoidingView>
+      </View>
     );
   }
 }
 
 const styles = StyleSheet.create({
-  cardHolder: {
-    flex: 0.5,
-    marginTop: 20,
-    backgroundColor: '#f6f5f5',
-    width: '90%',
-    borderRadius: 10,
-    flexDirection: 'column',
+  cardRow: {
+    width: '100%',
+    height: 80,
+    padding: 10,
+    backgroundColor: Colors.LightGray,
+    borderWidth: 1,
+    borderColor: Colors.Gray,
+    flexDirection: 'row',
     justifyContent: 'flex-start',
     alignItems: 'center',
   },
-  backButton: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    margin: 0,
-  },
-  cardRow: {
-    width: '95%',
-    marginTop: 10,
+  buttonRow: {
+    width: '50%',
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'flex-end',
     alignItems: 'center',
   },
   nameContainer: {
@@ -330,9 +316,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 34,
-    color: Colors.Primary,
-    fontWeight: '700',
+    fontSize: 30,
+    color: Colors.Black,
+    fontWeight: '600',
+    margin: 15,
   },
   form: {
     width: '90%',
@@ -340,15 +327,16 @@ const styles = StyleSheet.create({
     paddingBottom: 50,
   },
   buttonText: {
-    fontSize: 25,
+    fontSize: 20,
     fontWeight: '600',
     color: Colors.Primary,
-    textAlign: 'center',
   },
   balanceText: {
-    fontSize: 30,
+    fontSize: 25,
     color: Colors.Primary,
-    textAlign: 'center',
+    marginHorizontal: 15,
+    marginBottom: 15,
+    fontWeight: '600',
   },
   button: {
     borderRadius: 10,
@@ -360,6 +348,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  buttonContainer: {
+    width: '100%',
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
   icon: {
     fontSize: 15,
   },
@@ -368,7 +361,7 @@ const styles = StyleSheet.create({
     color: Colors.Green,
     width: 30,
     height: 30,
-    marginHorizontal: 5,
+    marginHorizontal: 10,
     textAlign: 'center',
   },
   deleteButton: {
@@ -379,7 +372,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     width: 30,
     height: 30,
-    marginHorizontal: 5,
+    marginHorizontal: 10,
   },
   defaultButton: {
     backgroundColor: Colors.Green,
@@ -389,6 +382,6 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 10,
-    marginHorizontal: 5,
+    marginHorizontal: 10,
   },
 });

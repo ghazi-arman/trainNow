@@ -156,7 +156,7 @@ export default class ManagerPage extends Component {
 
   renderPending = () => {
     if (!this.state.gym.pendingtrainers) {
-      return (<Text style={styles.navText}>None</Text>);
+      return null;
     }
     return Object.keys(this.state.gym.pendingtrainers).map((key) => {
       const trainer = this.state.gym.pendingtrainers[key];
@@ -185,7 +185,7 @@ export default class ManagerPage extends Component {
 
   renderTrainers = () => {
     if (!this.state.gym.trainers) {
-      return (<Text style={styles.navText}>None</Text>);
+      return null;
     }
     return Object.keys(this.state.gym.trainers).map((key) => {
       const trainer = this.state.gym.trainers[key];
@@ -357,7 +357,7 @@ export default class ManagerPage extends Component {
         {this.renderPending()}
         <Text style={styles.title}>Trainers</Text>
         {this.renderTrainers()}
-        <Text style={styles.title}>
+        <Text style={[styles.title, { color: Colors.Primary }]}>
           $
           {' '}
           {balanceFormatted}

@@ -9,7 +9,7 @@ import bugsnag from '@bugsnag/expo';
 import PropTypes from 'prop-types';
 import Colors from '../components/Colors';
 import {
-  loadGroupSession, loadUser, rateGroupSession, dateToString, chargeCard,
+  loadGroupSession, loadUser, rateGroupSession, chargeCard, dateToTime,
 } from '../components/Functions';
 import Constants from '../components/Constants';
 import LoadingWheel from '../components/LoadingWheel';
@@ -101,7 +101,7 @@ export default class GroupSessionRatingPage extends Component {
       return <LoadingWheel />;
     }
     const userId = firebase.auth().currentUser.uid;
-    const displayDate = dateToString(this.state.session.end);
+    const displayDate = dateToTime(this.state.session.end);
     const duration = new Date(this.state.session.end) - new Date(this.state.session.start);
     const minutes = Math.floor((duration / 1000) / 60);
     const total = (this.state.session.cost).toFixed(2);
@@ -109,7 +109,6 @@ export default class GroupSessionRatingPage extends Component {
 
     let cost = null;
     let stars = null;
-    let button = null;
     if (this.state.session.trainerKey === userId) {
       if (this.state.session.trainerType === Constants.independentType) {
         cost = (
@@ -128,18 +127,10 @@ export default class GroupSessionRatingPage extends Component {
       );
     }
     stars = this.renderStars(this.state.rating);
-    button = (
-      <View style={styles.buttonContain}>
-        <TouchableOpacity style={styles.button} onPressIn={this.rateSession}>
-          <Text style={styles.buttonText}>Rate Session</Text>
-        </TouchableOpacity>
-      </View>
-    );
     return (
       <View style={MasterStyles.spacedContainer}>
         <View style={MasterStyles.centeredContainer}>
           <View style={styles.infoContainer}>
-            <Text style={styles.header}>Rate Session!</Text>
             <Text style={styles.bookDetails}>
               Ended:
               {displayDate}
@@ -156,7 +147,14 @@ export default class GroupSessionRatingPage extends Component {
               {stars}
             </View>
           </View>
-          {button}
+          <View style={styles.buttonContain}>
+            <TouchableOpacity
+              style={[styles.button, MasterStyles.shadow]}
+              onPress={this.rateSession}
+            >
+              <Text style={styles.buttonText}>Rate Session</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     );
@@ -171,11 +169,6 @@ const styles = StyleSheet.create({
   bookDetails: {
     fontSize: 25,
     fontWeight: '500',
-    color: Colors.Primary,
-  },
-  header: {
-    fontSize: 35,
-    fontWeight: '700',
     color: Colors.Primary,
   },
   buttonContain: {
@@ -195,15 +188,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   button: {
-    borderRadius: 5,
-    backgroundColor: Colors.Secondary,
-    paddingVertical: 15,
-    width: '100%',
+    borderRadius: 10,
+    width: '80%',
+    height: 50,
+    backgroundColor: Colors.White,
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   buttonText: {
-    textAlign: 'center',
-    color: Colors.LightGray,
-    fontWeight: '700',
+    fontSize: 15,
+    color: Colors.Primary,
+    fontWeight: '600',
   },
   icon: {
     color: Colors.Secondary,

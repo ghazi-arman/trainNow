@@ -9,7 +9,7 @@ import bugsnag from '@bugsnag/expo';
 import PropTypes from 'prop-types';
 import Colors from '../components/Colors';
 import {
-  loadSession, loadUser, rateSession, dateToString, chargeCard,
+  loadSession, loadUser, rateSession, dateToTime, chargeCard,
 } from '../components/Functions';
 import Constants from '../components/Constants';
 import LoadingWheel from '../components/LoadingWheel';
@@ -45,9 +45,9 @@ export default class RatingPage extends Component {
     this.setState({ pressed: true });
     try {
       if (this.state.user.type === Constants.clientType) {
-        const duration = new Date(this.state.session.end) - new Date(this.state.session.start);
-        const minutes = Math.floor((duration / 1000) / 60);
-        const total = (minutes * (this.state.session.rate / 60) * 100).toFixed(0);
+        const total = (
+          parseInt(this.state.session.duration, 10) * (this.state.session.rate / 60) * 100
+        ).toFixed(0);
         let percentage = this.state.session.regular
           ? Constants.regularClientPercentage
           : Constants.newClientPercentage;
@@ -113,10 +113,10 @@ export default class RatingPage extends Component {
       return <LoadingWheel />;
     }
     const userId = firebase.auth().currentUser.uid;
-    const displayDate = dateToString(this.state.session.end);
-    const duration = new Date(this.state.session.end) - new Date(this.state.session.start);
-    const minutes = Math.floor((duration / 1000) / 60);
-    const total = (minutes * (this.state.session.rate / 60)).toFixed(2);
+    const displayDate = dateToTime(this.state.session.end);
+    const total = (
+      parseInt(this.state.session.duration, 10) * (this.state.session.rate / 60)
+    ).toFixed(2);
     let percentage = this.state.session.regular
       ? Constants.regularClientPercentage
       : Constants.newClientPercentage;
@@ -148,15 +148,15 @@ export default class RatingPage extends Component {
       <View style={MasterStyles.spacedContainer}>
         <View style={MasterStyles.centeredContainer}>
           <View style={styles.infoContainer}>
-            <Text style={styles.header}>Rate Session!</Text>
             <Text style={styles.bookDetails}>
               Ended:
+              {' '}
               {displayDate}
             </Text>
             <Text style={styles.bookDetails}>
               Total Time:
               {' '}
-              {minutes}
+              {this.state.session.duration}
               {' '}
               min
             </Text>
@@ -165,11 +165,12 @@ export default class RatingPage extends Component {
               {stars}
             </View>
           </View>
-          <View style={styles.buttonContain}>
-            <TouchableOpacity style={styles.button} onPressIn={this.rateSession}>
-              <Text style={styles.buttonText}>Rate Session</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            style={[styles.button, MasterStyles.shadow]}
+            onPress={this.rateSession}
+          >
+            <Text style={styles.buttonText}>Rate Session</Text>
+          </TouchableOpacity>
         </View>
       </View>
     );
@@ -186,14 +187,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.Primary,
   },
-  header: {
-    fontSize: 35,
-    fontWeight: '700',
-    color: Colors.Primary,
-  },
-  buttonContain: {
-    width: '50%',
-  },
   starContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -208,15 +201,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   button: {
-    borderRadius: 5,
-    backgroundColor: Colors.Secondary,
-    paddingVertical: 15,
-    width: '100%',
+    borderRadius: 10,
+    width: '80%',
+    height: 50,
+    backgroundColor: Colors.White,
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   buttonText: {
-    textAlign: 'center',
-    color: Colors.LightGray,
-    fontWeight: '700',
+    fontSize: 15,
+    color: Colors.Primary,
+    fontWeight: '600',
   },
   icon: {
     color: Colors.Secondary,

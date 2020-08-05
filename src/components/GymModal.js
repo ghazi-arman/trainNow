@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {
-  Image, StyleSheet, Text, View, ScrollView, TouchableWithoutFeedback,
+  Image, StyleSheet, Text, View, ScrollView, TouchableWithoutFeedback, TouchableOpacity,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import geolib from 'geolib';
@@ -9,7 +9,9 @@ import { Actions } from 'react-native-router-flux';
 import Colors from './Colors';
 import Constants from './Constants';
 import LoadingWheel from './LoadingWheel';
-import { sortGymsByLocation } from './Functions';
+import {
+  sortGymsByLocation, joinGym, leaveGym, loadUser,
+} from './Functions';
 import MasterStyles from './MasterStyles';
 import gymImage from '../images/gym.png';
 import profileImage from '../images/profile.png';
@@ -24,7 +26,13 @@ export default class GymModal extends Component {
     this.selectGym = this.selectGym.bind(this);
   }
 
-  static getDerivedStateFromProps = (props) => ({ selectedGym: props.selectedGym })
+  async componentDidMount() {
+    this.setState({ user: this.props.user });
+  }
+
+  static getDerivedStateFromProps = (props) => ({
+    selectedGym: props.selectedGym,
+  });
 
   renderGyms = () => {
     const sortedGyms = sortGymsByLocation(this.props.gyms, this.props.userRegion);
@@ -156,7 +164,7 @@ export default class GymModal extends Component {
           </View>
         </TouchableWithoutFeedback>
       </View>
-      <ScrollView contentContainerStyle={[MasterStyles.flexStartContainer, { width: '90%' }]}>
+      <ScrollView contentContainerStyle={[MasterStyles.flexStartContainer, { width: '90%', flex: null }]}>
         {this.state.selectedTab === 'trainers' ? this.renderTrainers() : this.renderSessions()}
       </ScrollView>
     </View>
@@ -180,13 +188,49 @@ export default class GymModal extends Component {
     this.props.selectGym(gym);
   }
 
+  joinGym = async () => {
+    await joinGym(firebase.auth().currentUser.uid, this.state.selectedGym.key);
+    const user = await loadUser(firebase.auth().currentUser.uid);
+    this.setState({ user });
+  }
+
+  leaveGym = async () => {
+    await leaveGym(firebase.auth().currentUser.uid, this.state.selectedGym.key);
+    const user = await loadUser(firebase.auth().currentUser.uid);
+    this.setState({ user });
+  }
+
   render() {
     if (!this.props.gyms) {
       return <LoadingWheel />;
     }
+    let joinOrLeaveGymButton;
+    if (this.state.selectedGym && this.state.user.type === Constants.trainerType) {
+      if (
+        this.state.user.trainerType === Constants.independentType
+        && !this.state.user.gyms[this.state.selectedGym.key]
+      ) {
+        joinOrLeaveGymButton = (
+          <TouchableOpacity style={[styles.button, MasterStyles.shadow]} onPress={this.joinGym}>
+            <Text style={styles.buttonText}>Join Gym</Text>
+          </TouchableOpacity>
+        );
+      }
+      if (
+        this.state.user.trainerType === Constants.independentType
+        && this.state.user.gyms[this.state.selectedGym.key]
+      ) {
+        joinOrLeaveGymButton = (
+          <TouchableOpacity style={[styles.button, MasterStyles.shadow]} onPress={this.leaveGym}>
+            <Text style={styles.buttonText}>Leave Gym</Text>
+          </TouchableOpacity>
+        );
+      }
+    }
     return (
       <View style={MasterStyles.flexStartContainer}>
         {!this.state.selectedGym ? this.renderGyms() : this.renderTrainersAndSessions()}
+        {joinOrLeaveGymButton}
       </View>
     );
   }
@@ -196,6 +240,7 @@ GymModal.propTypes = {
   gyms: PropTypes.array.isRequired,
   userRegion: PropTypes.object.isRequired,
   selectGym: PropTypes.func.isRequired,
+  user: PropTypes.object.isRequired,
   selectedGym: PropTypes.object,
 };
 
@@ -205,7 +250,7 @@ GymModal.defaultProps = {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    height: '85%',
     width: '100%',
     flexDirection: 'column',
     justifyContent: 'flex-start',
@@ -277,5 +322,20 @@ const styles = StyleSheet.create({
     width: 40,
     borderRadius: 20,
     marginRight: 5,
+  },
+  button: {
+    borderRadius: 10,
+    width: '80%',
+    marginTop: 10,
+    height: 35,
+    backgroundColor: Colors.White,
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: Colors.Primary,
+    fontSize: 20,
+    fontWeight: '600',
   },
 });

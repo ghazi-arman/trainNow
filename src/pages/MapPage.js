@@ -291,6 +291,7 @@ export default class MapPage extends Component {
               selectedGym={this.state.selectedGym}
               userRegion={this.state.userRegion}
               selectGym={this.selectGym}
+              user={this.state.user}
             />
           </View>
         </View>

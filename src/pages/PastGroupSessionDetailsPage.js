@@ -1,6 +1,14 @@
 import React, { Component } from 'react';
 import {
-  View, Image, StyleSheet, Text, TouchableOpacity, ScrollView, Alert, TextInput,
+  View,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+  TextInput,
+  KeyboardAvoidingView,
 } from 'react-native';
 import MapView from 'react-native-maps';
 import PropTypes from 'prop-types';
@@ -112,7 +120,7 @@ export default class PastGroupSessionDetailsPage extends Component {
           </MapView>
         </View>
         <Text style={styles.subTitle}>Report Session</Text>
-        <View style={styles.reportContainer}>
+        <KeyboardAvoidingView behavior="position" contentContainerStyle={styles.reportContainer}>
           <TextInput
             style={styles.input}
             multiline
@@ -127,7 +135,7 @@ export default class PastGroupSessionDetailsPage extends Component {
           >
             <Text style={styles.buttonText}>Report</Text>
           </TouchableOpacity>
-        </View>
+        </KeyboardAvoidingView>
       </ScrollView>
     );
   }
