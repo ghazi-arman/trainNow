@@ -39,7 +39,7 @@ export default class GymModal extends Component {
     return (
       <View style={styles.container}>
         <Text style={styles.title}>Find a gym near you</Text>
-        <ScrollView contentContainerStyle={MasterStyles.flexStartContainer}>
+        <ScrollView contentContainerStyle={[MasterStyles.flexStartContainer, { flex: null }]}>
           {sortedGyms.map((gym) => (
             <View style={styles.gymContainer} key={gym.key}>
               <Image style={styles.gymImage} source={gymImage} />
@@ -298,6 +298,7 @@ const styles = StyleSheet.create({
     right: 0,
   },
   gymName: {
+    maxWidth: '70%',
     fontWeight: '500',
     fontSize: 14,
     color: Colors.Black,

@@ -133,6 +133,12 @@ export default class MapPage extends Component {
       });
     }
     this.setState({ selectedGym: gym });
+    this.map.animateToRegion({
+      latitude: selectedGym.location.latitude - 0.005,
+      longitude: selectedGym.location.longitude,
+      latitudeDelta: 0.0422,
+      longitudeDelta: 0.0221,
+    });
   };
 
   openMaps = () => {
@@ -204,7 +210,7 @@ export default class MapPage extends Component {
           <View style={styles.gymInfo}>
             <Text style={[styles.title]}>{this.state.selectedGym.name}</Text>
             <Text
-              style={[styles.link, { fontSize: 18 }]}
+              style={[styles.link, { fontSize: 15 }]}
               onPress={() => { this.setState({ viewDetails: true }); }}
             >
               Details
@@ -217,15 +223,15 @@ export default class MapPage extends Component {
             <View style={styles.gymNameRow}>
               <Text style={[styles.title]}>{this.state.selectedGym.name}</Text>
               <Text
-                style={[styles.link, { fontSize: 18 }]}
+                style={[styles.link, { fontSize: 15 }]}
                 onPress={() => { this.setState({ viewDetails: false }); }}
               >
-                Minimize
+                Close
               </Text>
             </View>
             {this.state.selectedGym.address ? (
               <Text
-                style={[styles.link, { fontSize: 15, marginBottom: 5 }]}
+                style={[styles.link, { fontSize: 15, marginBottom: 5, color: Colors.Black }]}
                 onPress={this.openMaps}
               >
                 {this.state.selectedGym.address}
@@ -241,6 +247,7 @@ export default class MapPage extends Component {
             ) : null}
             <Text style={styles.gymDetails}>
               Hours:
+              {' '}
               {this.state.selectedGym.hours}
             </Text>
           </View>
@@ -388,7 +395,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontWeight: '600',
-    fontSize: 20,
+    fontSize: 18,
     textAlign: 'left',
   },
   gymDetails: {
