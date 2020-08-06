@@ -49,7 +49,7 @@ export default class SettingsPage extends Component {
           <Text style={styles.title}>Settings</Text>
         </View>
         <KeyboardAvoidingView style={styles.formContainer} behavior="padding">
-          <ScrollView contentContainerStyle={styles.center} showsVerticalScrollIndicator={false}>
+          <ScrollView contentContainerStyle={styles.center}>
             {accountForm}
           </ScrollView>
         </KeyboardAvoidingView>

@@ -274,7 +274,6 @@ export default class ClientsPage extends Component {
       <ScrollView
         style={{ width: '100%' }}
         contentContainerStyle={styles.container}
-        showsVerticalScrollIndicator={false}
       >
         <BackButton />
         {this.renderRequests()}

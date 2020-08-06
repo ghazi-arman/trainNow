@@ -58,7 +58,7 @@ export default class LoginForm extends Component {
       }
       if (user.pending) {
         this.setState({ pressed: false });
-        Alert.alert('Your account is pending');
+        Alert.alert('Your account is pending approval.');
         return;
       }
       if (user.type === Constants.managerType && !user.pending) {

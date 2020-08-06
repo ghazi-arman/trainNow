@@ -117,7 +117,7 @@ export default class SessionPage extends Component {
 
     if (this.state.session.clientKey === user.uid) {
       description = (
-        <Text style={styles.bookDetails}>
+        <Text style={styles.mediumText}>
           {this.state.session.trainerName}
           {' '}
           is training you!
@@ -125,7 +125,7 @@ export default class SessionPage extends Component {
       );
     } else {
       description = (
-        <Text style={styles.bookDetails}>
+        <Text style={styles.mediumText}>
           You are training
           {' '}
           {this.state.session.clientName}
@@ -136,13 +136,13 @@ export default class SessionPage extends Component {
 
     if (!this.state.session.started) {
       time = (
-        <Text style={styles.bookDetails}>
+        <Text style={styles.mediumText}>
           {displayDate}
           {' '}
         </Text>
       );
       length = (
-        <Text style={styles.bookDetails}>
+        <Text style={styles.mediumText}>
           {this.state.session.duration}
           {' '}
           min
@@ -204,9 +204,9 @@ export default class SessionPage extends Component {
       const durationMs = this.state.session.duration * 60000;
       remaining = ((pendingDate.getTime() + durationMs) - new Date().getTime());
       minutes = Math.max(Math.floor((remaining / 1000) / 60), 0);
-      time = <Text style={styles.bookDetails}>{displayDate}</Text>;
+      time = <Text style={styles.mediumText}>{displayDate}</Text>;
       length = (
-        <Text style={styles.bookDetails}>
+        <Text style={styles.mediumText}>
           You have
           {' '}
           {minutes}
@@ -269,15 +269,18 @@ export default class SessionPage extends Component {
       }
     }
     return (
-      <View style={MasterStyles.spacedContainer}>
-        <View style={styles.nameContainer}>
-          <BackButton style={styles.backButton} />
-        </View>
-        <View style={styles.formContainer}>
+      <View style={[MasterStyles.flexStartContainer, {alignItems: 'flex-start'}]}>
+        <BackButton />
+        <Text style={styles.header}>Your Session</Text>
+        <View style={styles.infoContainer}>
           {description}
-          {time}
-          {length}
+          <Text style={styles.mediumText}>
+            {dateToString(this.state.session.start)} ({this.state.session.duration} min)
+          </Text>
           {ready}
+          {ownReady}
+          {ownEnd}
+        </View>
           <MapView
             pitchEnabled={false}
             rotateEnabled={false}
@@ -293,23 +296,16 @@ export default class SessionPage extends Component {
               coordinate={this.state.session.location}
             />
           </MapView>
-          {button}
-          <TouchableOpacity
-            style={[styles.button, MasterStyles.shadow]}
-            onPress={this.openMaps}
-          >
-            <Text style={styles.buttonText}> Open in Maps </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.button, MasterStyles.shadow]}
-            onPress={this.sendMessage}
-          >
-            <Text style={styles.buttonText}> Send Message </Text>
-          </TouchableOpacity>
-          {ownReady}
-          {ownEnd}
+          <View style={styles.buttonRow}>
+            {button}
+            <TouchableOpacity
+              style={[styles.button, MasterStyles.shadow]}
+              onPress={this.openMaps}
+            >
+              <Text style={styles.buttonText}> Open in Maps </Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
     );
   }
 }
@@ -319,58 +315,48 @@ SessionPage.propTypes = {
 };
 
 const styles = StyleSheet.create({
-  bookDetails: {
-    fontSize: 18,
-    fontWeight: '500',
-    color: Colors.Primary,
-    margin: 10,
+  infoContainer: {
+    width: '100%',
+    backgroundColor: Colors.LightGray,
+    padding: 10,
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: Colors.Gray,
   },
-  backButton: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    margin: 0,
+  mediumText: {
+    fontSize: 15,
+    fontWeight: '500',
+    textAlign: 'center',
+    margin: 10,
   },
   smallText: {
     margin: 5,
     fontSize: 15,
-    fontWeight: '300',
-    color: Colors.Secondary,
+    color: Colors.Primary,
     textAlign: 'center',
   },
   header: {
-    fontSize: 30,
+    fontSize: 25,
     fontWeight: '700',
-    color: Colors.Primary,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: Colors.LightGray,
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  nameContainer: {
-    height: '12%',
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'flex-end',
-  },
-  formContainer: {
-    height: '88%',
-    width: '100%',
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
+    margin: 15,
   },
   mapContainer: {
     width: '100%',
     height: '30%',
   },
+  buttonRow: {
+    width: '100%',
+    paddingVertical: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+  },
   button: {
     borderRadius: 10,
-    width: '80%',
+    width: '40%',
     height: 40,
     marginTop: 15,
     backgroundColor: Colors.White,

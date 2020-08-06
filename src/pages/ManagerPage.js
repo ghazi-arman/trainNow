@@ -344,10 +344,7 @@ export default class ManagerPage extends Component {
     const balanceFormatted = this.state.balance === 0 ? '0.00' : (this.state.balance / 100).toFixed(2);
     const trainerName = this.state.selectedTrainer ? this.state.selectedTrainer.name : 'None';
     return (
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={[MasterStyles.flexStartContainer, styles.container]}
-      >
+      <ScrollView contentContainerStyle={[MasterStyles.flexStartContainer, styles.container]}>
         <View style={styles.buttonContainer}>
           <Text style={styles.logoutButton} onPress={this.logout}>
             <FontAwesome name="power-off" size={35} />

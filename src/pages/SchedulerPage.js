@@ -176,7 +176,6 @@ export default class SchedulerPage extends Component {
           <ScrollView
             style={{ width: '100%' }}
             contentContainerStyle={styles.center}
-            showsVerticalScrollIndicator={false}
           >
             <View style={styles.inputRow}>
               <Text style={styles.formLabel}>Start Time</Text>

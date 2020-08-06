@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {
-  StyleSheet, Text, View, TouchableOpacity, Alert, Platform, Linking,
+  StyleSheet, Text, View, TouchableOpacity, Alert, Platform, Linking, Image
 } from 'react-native';
 import MapView from 'react-native-maps';
 import firebase from 'firebase';
@@ -14,6 +14,7 @@ import {
 import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
 import MasterStyles from '../components/MasterStyles';
+import markerImage from '../images/marker.png';
 
 export default class GroupSessionPage extends Component {
   constructor(props) {
@@ -75,37 +76,22 @@ export default class GroupSessionPage extends Component {
       return <LoadingWheel />;
     }
 
-    let displayDate = dateToString(this.state.session.start);
-
     let button;
-    let time;
-    let minutes;
-    let remaining;
     let ready;
-    let textButton;
     let description;
-    let length;
     const user = firebase.auth().currentUser;
 
     if (this.state.session.trainerKey === user.uid) {
       description = (
-        <Text style={styles.bookDetails}>
+        <Text style={styles.mediumText}>
           You are hosting
           {' '}
           {this.state.session.name}
         </Text>
       );
     } else {
-      textButton = (
-        <TouchableOpacity
-          style={[styles.button, MasterStyles.shadow]}
-          onPress={this.sendMessage}
-        >
-          <Text style={styles.buttonText}>Send Message</Text>
-        </TouchableOpacity>
-      );
       description = (
-        <Text style={styles.bookDetails}>
+        <Text style={styles.mediumText}>
           {this.state.session.trainerName}
           {' '}
           is training you!
@@ -114,20 +100,6 @@ export default class GroupSessionPage extends Component {
     }
 
     if (!this.state.session.started) {
-      time = (
-        <Text style={styles.bookDetails}>
-          {displayDate}
-          {' '}
-        </Text>
-      );
-      length = (
-        <Text style={styles.bookDetails}>
-          {this.state.session.duration}
-          {' '}
-          min
-        </Text>
-      );
-
       if (!this.state.session.started) {
         ready = (
           <Text style={styles.smallText}>
@@ -157,21 +129,6 @@ export default class GroupSessionPage extends Component {
         );
       }
     } else {
-      const pendingDate = new Date(this.state.session.start);
-      displayDate = dateToString(this.state.session.start);
-      const bookDurationMs = this.state.session.duration * 60000;
-      remaining = ((pendingDate.getTime() + bookDurationMs) - new Date().getTime());
-      minutes = Math.max(Math.floor((remaining / 1000) / 60), 0);
-      time = <Text style={styles.bookDetails}>{displayDate}</Text>;
-      length = (
-        <Text style={styles.bookDetails}>
-          You have
-          {' '}
-          {minutes}
-          {' '}
-          min left
-        </Text>
-      );
       if (this.state.session.trainerKey === firebase.auth().currentUser.uid) {
         button = (
           <TouchableOpacity
@@ -186,38 +143,41 @@ export default class GroupSessionPage extends Component {
       }
     }
     return (
-      <View style={MasterStyles.spacedContainer}>
-        <View style={styles.nameContainer}>
-          <BackButton style={styles.backButton} />
-        </View>
-        <View style={styles.formContainer}>
+      <View style={[MasterStyles.flexStartContainer, {alignItems: 'flex-start'}]}>
+        <BackButton />
+        <Text style={styles.header}>Your Session</Text>
+        <View style={styles.infoContainer}>
           {description}
-          {time}
-          {length}
+          <Text style={styles.mediumText}>
+            {dateToString(this.state.session.start)} ({this.state.session.duration} min)
+          </Text>
           {ready}
-          <MapView
-            pitchEnabled={false}
-            rotateEnabled={false}
-            scrollEnabled={false}
-            zoomEnabled={false}
-            style={styles.mapContainer}
-            region={this.state.mapRegion}
-            showsUserLocation
+        </View>
+        <MapView
+          pitchEnabled={false}
+          rotateEnabled={false}
+          scrollEnabled={false}
+          zoomEnabled={false}
+          style={styles.mapContainer}
+          region={this.state.mapRegion}
+          showsUserLocation
+        >
+          <MapView.Marker
+            ref={this.state.session.trainerKey}
+            key={this.state.session.trainerKey}
+            coordinate={this.state.session.location}
           >
-            <MapView.Marker
-              ref={this.state.session.trainerKey}
-              key={this.state.session.trainerKey}
-              coordinate={this.state.session.location}
-            />
-          </MapView>
+            <Image source={markerImage} style={{ width: 40, height: 40 }} />
+          </MapView.Marker>
+        </MapView>
+        <View style={styles.buttonRow}>
           {button}
           <TouchableOpacity
             style={[styles.button, MasterStyles.shadow]}
             onPress={this.openMaps}
           >
-            <Text style={styles.buttonText}> Open in Maps </Text>
+            <Text style={styles.buttonText}>Open in Maps</Text>
           </TouchableOpacity>
-          {textButton}
         </View>
       </View>
     );
@@ -229,52 +189,48 @@ GroupSessionPage.propTypes = {
 };
 
 const styles = StyleSheet.create({
-  bookDetails: {
-    fontSize: 18,
-    fontWeight: '500',
-    color: Colors.Primary,
-    textAlign: 'center',
-    margin: 5,
+  infoContainer: {
+    width: '100%',
+    backgroundColor: Colors.LightGray,
+    padding: 10,
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: Colors.Gray,
   },
-  backButton: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    margin: 0,
+  mediumText: {
+    fontSize: 15,
+    fontWeight: '500',
+    textAlign: 'center',
+    margin: 10,
   },
   smallText: {
-    margin: 5,
+    margin: 10,
     fontSize: 15,
-    fontWeight: '300',
-    color: Colors.Secondary,
+    color: Colors.Primary,
     textAlign: 'center',
   },
   header: {
-    fontSize: 30,
+    fontSize: 25,
     fontWeight: '700',
-    color: Colors.Primary,
-  },
-  nameContainer: {
-    height: '12%',
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  formContainer: {
-    height: '88%',
-    width: '100%',
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
+    margin: 15,
   },
   mapContainer: {
     width: '100%',
     height: '30%',
   },
+  buttonRow: {
+    width: '100%',
+    paddingVertical: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+  },
   button: {
     borderRadius: 10,
-    width: '80%',
+    width: '40%',
     height: 40,
     marginTop: 15,
     backgroundColor: Colors.White,
@@ -286,6 +242,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     textAlign: 'center',
     color: Colors.Primary,
-    fontWeight: '700',
+    fontWeight: '500',
   },
 });

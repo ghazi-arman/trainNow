@@ -38,7 +38,7 @@ export default class GymModal extends Component {
     const sortedGyms = sortGymsByLocation(this.props.gyms, this.props.userRegion);
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>Find a gym near you</Text>
+        <Text style={styles.title}>Find a gym/park near you</Text>
         <ScrollView contentContainerStyle={[MasterStyles.flexStartContainer, { flex: null }]}>
           {sortedGyms.map((gym) => (
             <View style={styles.gymContainer} key={gym.key}>
@@ -140,7 +140,7 @@ export default class GymModal extends Component {
   }
 
   renderTrainersAndSessions = () => (
-    <View style={[styles.container, { alignItems: 'center' }]}>
+    <View style={[styles.container, { alignItems: 'center', height: '85%' }]}>
       <View style={styles.navigationBar}>
         <TouchableWithoutFeedback onPress={() => this.setState({ selectedTab: 'trainers' })}>
           <View
@@ -250,7 +250,7 @@ GymModal.defaultProps = {
 
 const styles = StyleSheet.create({
   container: {
-    height: '85%',
+    height: '100%',
     width: '100%',
     flexDirection: 'column',
     justifyContent: 'flex-start',
@@ -326,9 +326,9 @@ const styles = StyleSheet.create({
   },
   button: {
     borderRadius: 10,
-    width: '80%',
+    width: '50%',
     marginTop: 10,
-    height: 35,
+    height: 30,
     backgroundColor: Colors.White,
     flexDirection: 'column',
     justifyContent: 'center',
@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: Colors.Primary,
-    fontSize: 20,
+    fontSize: 15,
     fontWeight: '600',
   },
 });

@@ -116,7 +116,6 @@ export default class HistoryPage extends Component {
       <ScrollView
         style={{ height: '80%', width: '100%' }}
         contentContainerStyle={styles.container}
-        showsVerticalScrollIndicator={false}
       >
         <BackButton />
         <Text style={styles.header}>Past Sessions</Text>

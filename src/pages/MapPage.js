@@ -115,7 +115,7 @@ export default class MapPage extends Component {
       coordinate={gym.location}
       onPress={() => this.selectGym(gym)}
     >
-      <Image source={markerImage} style={{ width: 50, height: 50 }} />
+      <Image source={markerImage} style={{ width: 40, height: 40 }} />
     </MapView.Marker>
   ))
 
@@ -394,8 +394,9 @@ const styles = StyleSheet.create({
     color: Colors.Primary,
   },
   title: {
-    fontWeight: '600',
-    fontSize: 18,
+    width: '80%',
+    fontWeight: '700',
+    fontSize: 15,
     textAlign: 'left',
   },
   gymDetails: {

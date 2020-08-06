@@ -497,7 +497,6 @@ export default class CalendarPage extends Component {
         <ScrollView
           style={{ width: '100%' }}
           contentContainerStyle={styles.container}
-          showsVerticalScrollIndicator={false}
         >
           <BackButton onPress={Actions.MapPage} />
           <Text style={styles.title}>Calendar</Text>
@@ -546,7 +545,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   sessionContainer: {
-    height: 150,
+    minHeight: 150,
     flexDirection: 'row',
     justifyContent: 'flex-start',
     alignItems: 'center',
