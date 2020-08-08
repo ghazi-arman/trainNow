@@ -10,6 +10,7 @@ import {
   TimePickerAndroid,
   Picker,
   Platform,
+  ScrollView,
 } from 'react-native';
 import firebase from 'firebase';
 import PropTypes from 'prop-types';
@@ -31,7 +32,7 @@ import Colors from '../components/Colors';
 import Constants from '../components/Constants';
 import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
-import MasterStyles from '../components/MasterStyles';
+import CommonStyles from '../components/CommonStyles';
 
 export default class BookingPage extends Component {
   constructor(props) {
@@ -231,32 +232,26 @@ export default class BookingPage extends Component {
     } else {
       picker = (
         <TouchableOpacity
-          style={[styles.button, MasterStyles.shadow]}
+          style={CommonStyles.fullButton}
           onPress={() => this.openDatePicker()}
         >
-          <Text style={styles.buttonText}>
-            Choose Date
-          </Text>
+          <Text style={CommonStyles.buttonText}>Choose Date</Text>
         </TouchableOpacity>
       );
       timePicker = (
         <TouchableOpacity
-          style={[styles.button, { marginTop: 20 }, MasterStyles.shadow]}
+          style={[CommonStyles.fullButton, { marginTop: 20 }]}
           onPress={() => this.openTimePicker()}
         >
-          <Text style={styles.buttonText}>
-            Choose Time
-          </Text>
+          <Text style={CommonStyles.buttonText}>Choose Time</Text>
         </TouchableOpacity>
       );
     }
     return (
-      <View style={MasterStyles.flexStartContainer}>
-        <View style={styles.nameContainer}>
-          <BackButton style={styles.backButton} />
-          <Text style={styles.trainerName}>{this.state.trainer.name}</Text>
-          <Text style={styles.gymName}>{this.state.gym.name}</Text>
-        </View>
+      <ScrollView contentContainerStyle={styles.container}>
+        <BackButton />
+        <Text style={styles.trainerName}>{this.state.trainer.name}</Text>
+        <Text style={styles.gymName}>{this.state.gym.name}</Text>
         <View style={styles.formContainer}>
           <View style={styles.inputRow}>
             <Text style={styles.formLabel}>Time</Text>
@@ -276,16 +271,11 @@ export default class BookingPage extends Component {
               <Picker.Item label="2 hours" value="120" />
             </Picker>
           </View>
-          <TouchableOpacity
-            style={[styles.button, MasterStyles.shadow]}
-            onPress={this.bookTrainer}
-          >
-            <Text style={styles.buttonText}>
-              Book Session
-            </Text>
+          <TouchableOpacity style={CommonStyles.fullButton} onPress={this.bookTrainer}>
+            <Text style={CommonStyles.buttonText}>Book Session</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </ScrollView>
     );
   }
 }
@@ -298,31 +288,22 @@ BookingPage.propTypes = {
 };
 
 const styles = StyleSheet.create({
+  container: {
+    ...CommonStyles.flexStartContainer,
+    alignItems: 'flex-start',
+    paddingBottom: 20,
+  },
   trainerName: {
     fontSize: 30,
-    color: Colors.LightGray,
+    marginHorizontal: 15,
     fontWeight: '500',
-    textAlign: 'center',
   },
   gymName: {
     fontSize: 20,
-    color: Colors.LightGray,
+    color: Colors.DarkGray,
+    marginHorizontal: 15,
+    marginVertical: 5,
     fontWeight: '500',
-    textAlign: 'center',
-  },
-  nameContainer: {
-    height: '15%',
-    width: '100%',
-    backgroundColor: Colors.Primary,
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  backButton: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    margin: 0,
   },
   formLabel: {
     fontSize: 20,
@@ -355,24 +336,10 @@ const styles = StyleSheet.create({
   picker: {
     backgroundColor: Colors.LightGray,
     height: 70,
+    marginBottom: 10,
     width: '100%',
     borderTopWidth: 1,
     borderBottomWidth: 1,
     borderColor: Colors.Primary,
-  },
-  button: {
-    borderRadius: 10,
-    width: '80%',
-    height: 50,
-    marginTop: 30,
-    backgroundColor: Colors.White,
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: Colors.Primary,
-    fontSize: 20,
-    fontWeight: '600',
   },
 });

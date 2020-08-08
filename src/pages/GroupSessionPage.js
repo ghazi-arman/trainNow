@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {
-  StyleSheet, Text, View, TouchableOpacity, Alert, Platform, Linking, Image
+  StyleSheet, Text, View, TouchableOpacity, Alert, Platform, Linking, Image,
 } from 'react-native';
 import MapView from 'react-native-maps';
 import firebase from 'firebase';
@@ -13,7 +13,7 @@ import {
 } from '../components/Functions';
 import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
-import MasterStyles from '../components/MasterStyles';
+import CommonStyles from '../components/CommonStyles';
 import markerImage from '../images/marker.png';
 
 export default class GroupSessionPage extends Component {
@@ -121,35 +121,38 @@ export default class GroupSessionPage extends Component {
       if (this.state.session.trainerKey === firebase.auth().currentUser.uid) {
         button = (
           <TouchableOpacity
-            style={[styles.button, MasterStyles.shadow]}
+            style={CommonStyles.halfButton}
             onPress={this.startSession}
           >
-            <Text style={styles.buttonText}> Start Session </Text>
+            <Text style={CommonStyles.buttonText}> Start Session </Text>
           </TouchableOpacity>
         );
       }
-    } else {
-      if (this.state.session.trainerKey === firebase.auth().currentUser.uid) {
-        button = (
-          <TouchableOpacity
-            style={[styles.button, MasterStyles.shadow]}
-            onPressIn={this.endSession}
-          >
-            <Text style={styles.buttonText}>
-              End Session
-            </Text>
-          </TouchableOpacity>
-        );
-      }
+    } else if (this.state.session.trainerKey === firebase.auth().currentUser.uid) {
+      button = (
+        <TouchableOpacity
+          style={CommonStyles.halfButton}
+          onPressIn={this.endSession}
+        >
+          <Text style={CommonStyles.buttonText}>
+            End Session
+          </Text>
+        </TouchableOpacity>
+      );
     }
     return (
-      <View style={[MasterStyles.flexStartContainer, {alignItems: 'flex-start'}]}>
+      <View style={[CommonStyles.flexStartContainer, { alignItems: 'flex-start' }]}>
         <BackButton />
-        <Text style={styles.header}>Your Session</Text>
+        <Text style={styles.title}>Your Session</Text>
         <View style={styles.infoContainer}>
           {description}
           <Text style={styles.mediumText}>
-            {dateToString(this.state.session.start)} ({this.state.session.duration} min)
+            {dateToString(this.state.session.start)}
+            {' '}
+            (
+            {this.state.session.duration}
+            {' '}
+            min)
           </Text>
           {ready}
         </View>
@@ -172,11 +175,8 @@ export default class GroupSessionPage extends Component {
         </MapView>
         <View style={styles.buttonRow}>
           {button}
-          <TouchableOpacity
-            style={[styles.button, MasterStyles.shadow]}
-            onPress={this.openMaps}
-          >
-            <Text style={styles.buttonText}>Open in Maps</Text>
+          <TouchableOpacity style={CommonStyles.halfButton} onPress={this.openMaps}>
+            <Text style={CommonStyles.buttonText}>Open in Maps</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
     color: Colors.Primary,
     textAlign: 'center',
   },
-  header: {
+  title: {
     fontSize: 25,
     fontWeight: '700',
     margin: 15,
@@ -227,21 +227,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-  },
-  button: {
-    borderRadius: 10,
-    width: '40%',
-    height: 40,
-    marginTop: 15,
-    backgroundColor: Colors.White,
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  buttonText: {
-    fontSize: 15,
-    textAlign: 'center',
-    color: Colors.Primary,
-    fontWeight: '500',
   },
 });

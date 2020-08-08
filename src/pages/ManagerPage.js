@@ -20,7 +20,7 @@ import {
   setDefaultTrainerCard,
 } from '../components/Functions';
 import LoadingWheel from '../components/LoadingWheel';
-import MasterStyles from '../components/MasterStyles';
+import CommonStyles from '../components/CommonStyles';
 
 export default class ManagerPage extends Component {
   constructor(props) {
@@ -166,13 +166,13 @@ export default class ManagerPage extends Component {
           <Text style={styles.name}>{trainer.name}</Text>
           <View style={styles.buttonRow}>
             <TouchableOpacity
-              style={[styles.denyButton, MasterStyles.shadow]}
+              style={styles.denyButton}
               onPress={() => this.denyTrainer(key)}
             >
               <Text style={styles.buttonText}><FontAwesome name="close" size={18} /></Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.acceptButton, MasterStyles.shadow]}
+              style={styles.acceptButton}
               onPress={() => this.acceptTrainer(key)}
             >
               <Text style={styles.buttonText}><FontAwesome name="check" size={18} /></Text>
@@ -195,7 +195,7 @@ export default class ManagerPage extends Component {
           <Text style={styles.name}>{trainer.name}</Text>
           <View style={styles.buttonRow}>
             <TouchableOpacity
-              style={[styles.denyButton, MasterStyles.shadow]}
+              style={styles.denyButton}
               onPress={() => this.deleteTrainer(key)}
             >
               <Text style={styles.buttonText}>
@@ -203,7 +203,7 @@ export default class ManagerPage extends Component {
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.acceptButton, MasterStyles.shadow]}
+              style={styles.acceptButton}
               onPress={() => this.setState({
                 selectedTrainer: trainer,
                 rateModal: true,
@@ -215,7 +215,7 @@ export default class ManagerPage extends Component {
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.historyButton, MasterStyles.shadow]}
+              style={styles.historyButton}
               onPress={() => Actions.ManagerHistoryPage({ userKey: key })}
             >
               <Text style={styles.buttonText}>
@@ -272,7 +272,7 @@ export default class ManagerPage extends Component {
       } else {
         defaultButton = (
           <TouchableOpacity
-            style={[styles.defaultButton, MasterStyles.shadow]}
+            style={styles.defaultButton}
             onPress={() => this.setDefaultTrainerCard(this.state.user.stripeId, currCard.id)}
           >
             <Text>
@@ -298,7 +298,7 @@ export default class ManagerPage extends Component {
           <View style={styles.buttonRow}>
             {defaultButton}
             <TouchableOpacity
-              style={[styles.deleteButton, MasterStyles.shadow]}
+              style={styles.deleteButton}
               onPress={() => this.deleteTrainerCard(
                 this.state.user.stripeId,
                 currCard.id,
@@ -344,7 +344,7 @@ export default class ManagerPage extends Component {
     const balanceFormatted = this.state.balance === 0 ? '0.00' : (this.state.balance / 100).toFixed(2);
     const trainerName = this.state.selectedTrainer ? this.state.selectedTrainer.name : 'None';
     return (
-      <ScrollView contentContainerStyle={[MasterStyles.flexStartContainer, styles.container]}>
+      <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.buttonContainer}>
           <Text style={styles.logoutButton} onPress={this.logout}>
             <FontAwesome name="power-off" size={35} />
@@ -361,7 +361,7 @@ export default class ManagerPage extends Component {
         </Text>
         {this.renderCards()}
         <View style={styles.paymentButtonRow}>
-          <TouchableOpacity style={[styles.button, MasterStyles.shadow]} onPress={Actions.CardPage}>
+          <TouchableOpacity style={styles.button} onPress={Actions.CardPage}>
             <Text style={styles.paymentButtonText}>Add Card</Text>
           </TouchableOpacity>
           <Text style={styles.paymentDetails}>* Funds transfered daily</Text>
@@ -374,7 +374,7 @@ export default class ManagerPage extends Component {
             <Text style={styles.closeButton} onPress={this.hideRateModal}>
               <FontAwesome name="close" size={35} />
             </Text>
-            <Text style={styles.header}>{trainerName}</Text>
+            <Text style={styles.title}>{trainerName}</Text>
             <TextField
               icon="dollar"
               placeholder="Rate"
@@ -398,8 +398,8 @@ ManagerPage.propTypes = {
 
 const styles = StyleSheet.create({
   container: {
+    ...CommonStyles.flexStartContainer,
     alignItems: 'flex-start',
-    flex: null,
     paddingBottom: 75,
   },
   buttonContainer: {
@@ -444,6 +444,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   button: {
+    ...CommonStyles.shadow,
     backgroundColor: Colors.White,
     flexDirection: 'column',
     justifyContent: 'center',
@@ -452,6 +453,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   defaultButton: {
+    ...CommonStyles.shadow,
     backgroundColor: Colors.Green,
     flexDirection: 'column',
     justifyContent: 'center',
@@ -470,6 +472,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   deleteButton: {
+    ...CommonStyles.shadow,
     backgroundColor: Colors.Red,
     flexDirection: 'column',
     justifyContent: 'center',
@@ -490,6 +493,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   denyButton: {
+    ...CommonStyles.shadow,
     backgroundColor: Colors.Red,
     flexDirection: 'column',
     justifyContent: 'center',
@@ -500,6 +504,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   historyButton: {
+    ...CommonStyles.shadow,
     backgroundColor: Colors.Primary,
     flexDirection: 'column',
     justifyContent: 'center',
@@ -510,6 +515,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   acceptButton: {
+    ...CommonStyles.shadow,
     backgroundColor: Colors.Green,
     flexDirection: 'column',
     justifyContent: 'center',
@@ -546,18 +552,13 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   submitButton: {
+    ...CommonStyles.shadow,
     borderRadius: 5,
     backgroundColor: Colors.Secondary,
     paddingVertical: 15,
     width: 150,
     flexDirection: 'column',
     justifyContent: 'center',
-  },
-  header: {
-    textAlign: 'center',
-    fontSize: 30,
-    fontWeight: '700',
-    color: Colors.Primary,
   },
   logoutButton: {
     position: 'absolute',

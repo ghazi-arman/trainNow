@@ -18,7 +18,7 @@ import Colors from '../components/Colors';
 import { loadUser, addAvailableSession } from '../components/Functions';
 import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
-import MasterStyles from '../components/MasterStyles';
+import CommonStyles from '../components/CommonStyles';
 
 export default class SchedulerPage extends Component {
   constructor(props) {
@@ -127,98 +127,81 @@ export default class SchedulerPage extends Component {
     } else {
       startPicker = (
         <TouchableOpacity
-          style={styles.bookButton}
+          style={CommonStyles.fullButton}
           onPressIn={() => this.openDatePicker(true)}
         >
-          <Text style={styles.buttonText}>
+          <Text style={CommonStyles.buttonText}>
             Choose Date
           </Text>
         </TouchableOpacity>
       );
       startTimePicker = (
         <TouchableOpacity
-          style={[styles.bookButton, { marginTop: 20 }]}
+          style={[CommonStyles.fullButton, { marginTop: 20 }]}
           onPressIn={() => this.openTimePicker(true)}
         >
-          <Text style={styles.buttonText}>
+          <Text style={CommonStyles.buttonText}>
             Choose Time
           </Text>
         </TouchableOpacity>
       );
       endPicker = (
         <TouchableOpacity
-          style={styles.bookButton}
+          style={CommonStyles.fullButton}
           onPressIn={() => this.openDatePicker(false)}
         >
-          <Text style={styles.buttonText}>
+          <Text style={CommonStyles.buttonText}>
             Choose Date
           </Text>
         </TouchableOpacity>
       );
       endTimePicker = (
         <TouchableOpacity
-          style={[styles.bookButton, { marginTop: 20 }]}
+          style={[CommonStyles.fullButton, { marginTop: 20 }]}
           onPressIn={() => this.openTimePicker(false)}
         >
-          <Text style={styles.buttonText}>
+          <Text style={CommonStyles.buttonText}>
             Choose Time
           </Text>
         </TouchableOpacity>
       );
     }
     return (
-      <View style={[MasterStyles.flexStartContainer, { flex: null }]}>
-        <View style={styles.nameContainer}>
-          <BackButton style={styles.backButton} />
-          <Text style={styles.header}>Add Availability</Text>
-        </View>
+      <ScrollView contentContainerStyle={styles.container}>
+        <BackButton />
+        <Text style={styles.title}>Add Availability</Text>
         <View style={styles.formContainer}>
-          <ScrollView
-            style={{ width: '100%' }}
-            contentContainerStyle={styles.center}
+          <View style={styles.inputRow}>
+            <Text style={styles.formLabel}>Start Time</Text>
+            {startPicker}
+            {startTimePicker}
+          </View>
+          <View style={styles.inputRow}>
+            <Text style={styles.formLabel}>End Time</Text>
+            {endPicker}
+            {endTimePicker}
+          </View>
+          <TouchableOpacity
+            style={CommonStyles.fullButton}
+            onPressIn={() => this.addSession(this.state.startDate, this.state.endDate)}
           >
-            <View style={styles.inputRow}>
-              <Text style={styles.formLabel}>Start Time</Text>
-              {startPicker}
-              {startTimePicker}
-            </View>
-            <View style={styles.inputRow}>
-              <Text style={styles.formLabel}>End Time</Text>
-              {endPicker}
-              {endTimePicker}
-            </View>
-            <TouchableOpacity
-              style={[styles.button, MasterStyles.shadow]}
-              onPressIn={() => this.addSession(this.state.startDate, this.state.endDate)}
-            >
-              <Text style={styles.buttonText}> Add Availability</Text>
-            </TouchableOpacity>
-          </ScrollView>
+            <Text style={CommonStyles.buttonText}> Add Availability</Text>
+          </TouchableOpacity>
         </View>
-      </View>
+      </ScrollView>
     );
   }
 }
 
 const styles = StyleSheet.create({
-  header: {
+  container: {
+    ...CommonStyles.flexStartContainer,
+    alignItems: 'flex-start',
+  },
+  title: {
     fontSize: 25,
-    color: Colors.LightGray,
+    marginHorizontal: 15,
     fontWeight: '500',
-  },
-  nameContainer: {
-    height: '15%',
-    width: '100%',
-    backgroundColor: Colors.Primary,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  backButton: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    margin: 0,
   },
   formContainer: {
     height: '85%',
@@ -227,21 +210,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'center',
     marginBottom: 20,
-  },
-  center: {
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  button: {
-    borderRadius: 10,
-    width: '80%',
-    height: 50,
-    margin: 30,
-    backgroundColor: Colors.White,
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   inputRow: {
     width: '100%',
@@ -256,13 +224,8 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textAlign: 'center',
     color: Colors.Primary,
-    margin: 10,
-  },
-  buttonText: {
-    fontSize: 15,
-    textAlign: 'center',
-    color: Colors.Primary,
-    fontWeight: '600',
+    marginHorizontal: 15,
+    marginBottom: 5,
   },
   datepicker: {
     height: 200,

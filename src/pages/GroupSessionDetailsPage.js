@@ -11,7 +11,7 @@ import {
   loadGroupSession, dateToString, joinGroupSession, loadUser,
 } from '../components/Functions';
 import LoadingWheel from '../components/LoadingWheel';
-import MasterStyles from '../components/MasterStyles';
+import CommonStyles from '../components/CommonStyles';
 import Colors from '../components/Colors';
 import BackButton from '../components/BackButton';
 import profileImage from '../images/profile.png';
@@ -80,13 +80,13 @@ export default class GroupSessionDetailsPage extends Component {
     }
 
     return (
-      <ScrollView contentContainerStyle={[MasterStyles.flexStartContainer, styles.container]}>
+      <ScrollView contentContainerStyle={styles.container}>
         <BackButton style={styles.backButton} />
         <Image style={styles.profileImage} source={{ uri: this.state.image }} />
         <Text style={styles.name}>{this.state.session.name}</Text>
         <View style={styles.infoContainer}>
           <View style={styles.infoBox}>
-            <Text style={styles.infoHeader}>
+            <Text style={styles.infoTitle}>
               {this.state.session.clientCount}
               {' '}
               /
@@ -96,14 +96,14 @@ export default class GroupSessionDetailsPage extends Component {
             <Text style={styles.infoText}>Joined</Text>
           </View>
           <View style={[styles.infoBox, styles.infoBoxBorder]}>
-            <Text style={styles.infoHeader}>
+            <Text style={styles.infoTitle}>
               $
               {this.state.session.cost}
             </Text>
             <Text style={styles.infoText}>Price</Text>
           </View>
           <View style={styles.infoBox}>
-            <Text style={styles.infoHeader}>
+            <Text style={styles.infoTitle}>
               {this.state.session.duration}
               {' '}
               min
@@ -112,33 +112,33 @@ export default class GroupSessionDetailsPage extends Component {
           </View>
         </View>
         <View style={styles.aboutContainer}>
-          <Text style={styles.infoHeader}>About</Text>
+          <Text style={styles.infoTitle}>About</Text>
           <Text style={styles.bioText}>{this.state.session.bio}</Text>
           <View style={styles.aboutBox}>
             <FontAwesome style={styles.icon} name="user" color={Colors.Primary} size={25} />
-            <Text style={styles.aboutHeader}>Trainer: </Text>
+            <Text style={styles.aboutTitle}>Trainer: </Text>
             <Text style={styles.aboutText}>{this.state.session.trainerName}</Text>
           </View>
           <View style={styles.aboutBox}>
             <FontAwesome style={styles.icon} name="building" color={Colors.Primary} size={25} />
-            <Text style={styles.aboutHeader}>Gym: </Text>
+            <Text style={styles.aboutTitle}>Gym: </Text>
             <Text style={styles.aboutText}>{this.state.session.gymName}</Text>
           </View>
           <View style={styles.aboutBox}>
             <FontAwesome style={styles.icon} name="calendar" color={Colors.Primary} size={25} />
-            <Text style={styles.aboutHeader}>Time: </Text>
+            <Text style={styles.aboutTitle}>Time: </Text>
             <Text style={styles.aboutText}>{dateToString(this.state.session.start)}</Text>
           </View>
         </View>
         <View style={styles.buttonRow}>
           <TouchableOpacity
-            style={[styles.button, MasterStyles.shadow]}
+            style={styles.button}
             onPress={this.joinGroupSession}
           >
             <Text style={styles.buttonText}>Join Session</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.button, MasterStyles.shadow]}
+            style={styles.button}
             onPress={() => Actions.TrainerPage({
               trainerKey: this.state.session.trainerKey,
               gymKey: this.state.session.gymKey,
@@ -158,7 +158,7 @@ GroupSessionDetailsPage.propTypes = {
 
 const styles = StyleSheet.create({
   container: {
-    flex: null,
+    ...CommonStyles.flexStartContainer,
     paddingBottom: 50,
   },
   backButton: {
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
     borderRightWidth: 1,
     borderColor: Colors.Gray,
   },
-  infoHeader: {
+  infoTitle: {
     fontWeight: '600',
     fontSize: 22,
   },
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     marginVertical: 10,
   },
-  aboutHeader: {
+  aboutTitle: {
     fontSize: 15,
   },
   aboutText: {
@@ -243,6 +243,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   button: {
+    ...CommonStyles.shadow,
     width: '40%',
     backgroundColor: Colors.White,
     borderRadius: 10,

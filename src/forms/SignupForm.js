@@ -21,7 +21,7 @@ import Colors from '../components/Colors';
 import TextField from '../components/TextField';
 import Constants from '../components/Constants';
 import LoadingWheel from '../components/LoadingWheel';
-import MasterStyles from '../components/MasterStyles';
+import CommonStyles from '../components/CommonStyles';
 import defaultProfilePic from '../images/profile.png';
 
 export default class SignupForm extends Component {
@@ -316,7 +316,7 @@ export default class SignupForm extends Component {
 
   goNext = async () => {
     if (this.state.page === 1) {
-      if (!this.state.name.trim()) {
+      if (!this.state.name || !this.state.name.trim()) {
         Alert.alert('Please enter a name!');
         return;
       }
@@ -432,14 +432,14 @@ export default class SignupForm extends Component {
     let prevButton;
 
     prevButton = (
-      <TouchableOpacity style={styles.button} onPressIn={this.goBack}>
-        <Text style={styles.buttonText}>Previous</Text>
+      <TouchableOpacity style={CommonStyles.halfButton} onPressIn={this.goBack}>
+        <Text style={CommonStyles.buttonText}>Back</Text>
       </TouchableOpacity>
     );
 
     nextButton = (
-      <TouchableOpacity style={styles.button} onPressIn={this.goNext}>
-        <Text style={styles.buttonText}>Next</Text>
+      <TouchableOpacity style={CommonStyles.halfButton} onPressIn={this.goNext}>
+        <Text style={CommonStyles.buttonText}>Next</Text>
       </TouchableOpacity>
     );
 
@@ -603,10 +603,10 @@ export default class SignupForm extends Component {
         profileImage = <Image source={{ uri: image }} style={styles.imageHolder} />;
       }
       page4 = (
-        <View style={styles.imageContainer}>
+        <View style={CommonStyles.centeredContainer}>
           {profileImage}
-          <TouchableOpacity style={styles.pictureButton} onPress={this.pickImage}>
-            <Text style={styles.pictureButtonText}>
+          <TouchableOpacity style={CommonStyles.fullButton} onPress={this.pickImage}>
+            <Text style={CommonStyles.buttonText}>
               {buttonText}
             </Text>
           </TouchableOpacity>
@@ -616,10 +616,10 @@ export default class SignupForm extends Component {
       submitButton = (
         <TouchableOpacity
           ref={(btn) => { this.btn = btn; }}
-          style={styles.button}
+          style={CommonStyles.halfButton}
           onPressIn={this.signUp}
         >
-          <Text style={styles.buttonText}> Signup </Text>
+          <Text style={CommonStyles.buttonText}>Signup</Text>
         </TouchableOpacity>
       );
 
@@ -649,7 +649,7 @@ export default class SignupForm extends Component {
     }
 
     return (
-      <View style={MasterStyles.centeredContainer}>
+      <View style={CommonStyles.centeredContainer}>
         {page1}
         {page2}
         {page3}
@@ -660,6 +660,9 @@ export default class SignupForm extends Component {
           {submitButton}
         </View>
         {agreement}
+        <TouchableOpacity onPress={() => Actions.LoginPage()}>
+          <Text style={styles.linkText}>Have an Account?</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -667,7 +670,7 @@ export default class SignupForm extends Component {
 
 const styles = StyleSheet.create({
   container: {
-    height: '80%',
+    height: '75%',
     flexDirection: 'column',
     justifyContent: 'space-around',
     alignItems: 'center',
@@ -685,45 +688,11 @@ const styles = StyleSheet.create({
     borderColor: Colors.Primary,
     width: '90%',
   },
-  button: {
-    backgroundColor: Colors.Secondary,
-    paddingVertical: 15,
-    width: '40%',
-    borderRadius: 5,
-    margin: 5,
-  },
   buttonHolder: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 10,
-  },
-  pictureButton: {
-    padding: 10,
-    backgroundColor: Colors.Primary,
-    height: 50,
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    margin: 5,
-    borderRadius: 5,
-  },
-  pictureButtonText: {
-    fontWeight: '700',
-    color: '#f6f5f5',
-    fontSize: 20,
-    textAlign: 'center',
-  },
-  buttonText: {
-    fontSize: 20,
-    textAlign: 'center',
-    color: Colors.LightGray,
-    fontWeight: '700',
-  },
-  imageContainer: {
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   imageHolder: {
     width: 220,
@@ -756,5 +725,10 @@ const styles = StyleSheet.create({
     color: Colors.Primary,
     textAlign: 'center',
     textDecorationLine: 'underline',
+  },
+  linkText: {
+    color: Colors.Secondary,
+    fontSize: 15,
+    margin: 5,
   },
 });

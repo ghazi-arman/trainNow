@@ -4,10 +4,11 @@ import {
 } from 'react-native';
 import firebase from 'firebase';
 import bugsnag from '@bugsnag/expo';
+import { Actions } from 'react-native-router-flux';
 import Colors from '../components/Colors';
 import TextField from '../components/TextField';
 import LoadingWheel from '../components/LoadingWheel';
-import MasterStyles from '../components/MasterStyles';
+import CommonStyles from '../components/CommonStyles';
 
 export default class ForgotForm extends Component {
   constructor(props) {
@@ -43,7 +44,7 @@ export default class ForgotForm extends Component {
     }
 
     return (
-      <View style={MasterStyles.centeredContainer}>
+      <View style={CommonStyles.centeredContainer}>
         <TextField
           icon="user"
           placeholder="Email"
@@ -51,8 +52,11 @@ export default class ForgotForm extends Component {
           onChange={(email) => this.setState({ email })}
           value={this.state.email}
         />
-        <TouchableOpacity style={styles.button} onPressIn={this.submit}>
-          <Text style={styles.buttonText}> Submit </Text>
+        <TouchableOpacity style={CommonStyles.fullButton} onPressIn={this.submit}>
+          <Text style={CommonStyles.buttonText}>Submit</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={Actions.LoginPage}>
+          <Text style={styles.linkText}>Have an Account?</Text>
         </TouchableOpacity>
       </View>
     );
@@ -60,17 +64,9 @@ export default class ForgotForm extends Component {
 }
 
 const styles = StyleSheet.create({
-  button: {
-    backgroundColor: Colors.Secondary,
-    paddingVertical: 15,
-    marginTop: 20,
-    borderRadius: 5,
-    width: '80%',
-  },
-  buttonText: {
-    textAlign: 'center',
-    color: Colors.LightGray,
-    fontWeight: '700',
-    fontSize: 20,
+  linkText: {
+    color: Colors.Secondary,
+    fontSize: 15,
+    margin: 5,
   },
 });

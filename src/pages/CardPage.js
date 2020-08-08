@@ -8,11 +8,10 @@ import { STRIPE_KEY, FB_URL } from 'react-native-dotenv';
 import { Actions } from 'react-native-router-flux';
 import TextField from '../components/TextField';
 import { loadUser } from '../components/Functions';
-import Colors from '../components/Colors';
 import Constants from '../components/Constants';
 import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
-import MasterStyles from '../components/MasterStyles';
+import CommonStyles from '../components/CommonStyles';
 
 const stripe = require('stripe-client')(STRIPE_KEY);
 
@@ -37,10 +36,10 @@ export default class CardPage extends Component {
   }
 
   addCard = async () => {
-    if (this.state.pressed) {
+    if (this.state.submitted) {
       return;
     }
-    this.setState({ pressed: true });
+    this.setState({ submitted: true });
 
     const information = {
       card: {
@@ -58,7 +57,7 @@ export default class CardPage extends Component {
     try {
       card = await stripe.createToken(information);
     } catch (error) {
-      this.setState({ pressed: false });
+      this.setState({ submitted: false });
       this.bugsnagClient.notify(error);
       Alert.alert('There was an error creating a token for the card. Please check your information and try again.');
       return;
@@ -90,7 +89,7 @@ export default class CardPage extends Component {
         });
         Actions.PaymentPage();
       } catch (error) {
-        this.setState({ pressed: false });
+        this.setState({ submitted: false });
         this.bugsnagClient.notify(error);
         Alert.alert('There was an error adding the card. Please try again.');
       }
@@ -124,7 +123,7 @@ export default class CardPage extends Component {
         }
         Actions.PaymentPage();
       } catch (error) {
-        this.setState({ pressed: false });
+        this.setState({ submitted: false });
         this.bugsnagClient.notify(error);
         Alert.alert('There was an error adding the card. Please check the info and make sure it is a debit card before trying again.');
       }
@@ -151,7 +150,7 @@ export default class CardPage extends Component {
         });
         Actions.PaymentPage();
       } catch (error) {
-        this.setState({ pressed: false });
+        this.setState({ submitted: false });
         this.bugsnagClient.notify(error);
         Alert.alert('There was an error adding the card. Please try again.');
       }
@@ -159,83 +158,76 @@ export default class CardPage extends Component {
   }
 
   render() {
-    if (!this.state.user || this.state.pressed) {
+    if (!this.state.user || this.state.submitted) {
       return <LoadingWheel />;
     }
     return (
-      <View style={[MasterStyles.flexStartContainer, { alignItems: 'flex-start' }]}>
+      <View style={styles.container}>
         <BackButton />
-        <KeyboardAvoidingView behavior="padding" style={styles.formContainer}>
-          <TextField
-            icon="user"
-            placeholder="Name"
-            onChange={(name) => this.setState({ name })}
-            value={this.state.name}
-          />
-          <TextField
-            icon="credit-card"
-            placeholder="Card Number"
-            keyboard="number-pad"
-            onChange={(number) => this.setState({ number })}
-            value={this.state.number}
-          />
-          <TextField
-            icon="calendar"
-            placeholder="Expiration Month (mm)"
-            keyboard="number-pad"
-            onChange={(expMonth) => this.setState({ expMonth })}
-            value={this.state.expMonth}
-          />
-          <TextField
-            icon="calendar"
-            placeholder="Expiration Year (yy)"
-            keyboard="number-pad"
-            onChange={(expYear) => this.setState({ expYear })}
-            value={this.state.expYear}
-          />
-          <TextField
-            icon="lock"
-            placeholder="CVC Code"
-            keyboard="number-pad"
-            onChange={(cvc) => this.setState({ cvc })}
-            value={this.state.cvc}
-          />
-          <TouchableOpacity
-            style={[styles.button, MasterStyles.shadow]}
-            onPress={() => { this.addCard(); }}
-          >
-            <Text style={styles.buttonText}>
-              Add Card
-            </Text>
-          </TouchableOpacity>
-        </KeyboardAvoidingView>
+        <View style={styles.centeredContainer}>
+          <KeyboardAvoidingView style={styles.formContainer} behavior="padding">
+            <TextField
+              icon="user"
+              placeholder="Name"
+              onChange={(name) => this.setState({ name })}
+              value={this.state.name}
+            />
+            <TextField
+              icon="credit-card"
+              placeholder="Card Number"
+              keyboard="number-pad"
+              onChange={(number) => this.setState({ number })}
+              value={this.state.number}
+            />
+            <TextField
+              icon="calendar"
+              placeholder="Expiration Month (mm)"
+              keyboard="number-pad"
+              onChange={(expMonth) => this.setState({ expMonth })}
+              value={this.state.expMonth}
+            />
+            <TextField
+              icon="calendar"
+              placeholder="Expiration Year (yy)"
+              keyboard="number-pad"
+              onChange={(expYear) => this.setState({ expYear })}
+              value={this.state.expYear}
+            />
+            <TextField
+              icon="lock"
+              placeholder="CVC Code"
+              keyboard="number-pad"
+              onChange={(cvc) => this.setState({ cvc })}
+              value={this.state.cvc}
+            />
+            <TouchableOpacity
+              style={CommonStyles.fullButton}
+              onPress={() => { this.addCard(); }}
+            >
+              <Text style={CommonStyles.buttonText}>Add Card</Text>
+            </TouchableOpacity>
+          </KeyboardAvoidingView>
+        </View>
       </View>
     );
   }
 }
 
 const styles = StyleSheet.create({
-  formContainer: {
+  container: {
+    ...CommonStyles.flexStartContainer,
     height: '100%',
+    alignItems: 'flex-start',
+  },
+  centeredContainer: {
+    ...CommonStyles.flexStartContainer,
     width: '100%',
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    padding: 10,
+    height: '70%',
   },
-  button: {
-    borderRadius: 10,
+  formContainer: {
+    ...CommonStyles.spacedContainer,
     width: '80%',
-    height: 50,
-    marginTop: 30,
-    backgroundColor: Colors.White,
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  buttonText: {
-    fontSize: 20,
-    color: Colors.Primary,
-    fontWeight: '600',
+    height: '100%',
+    padding: 10,
   },
 });

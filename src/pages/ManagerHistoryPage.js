@@ -119,7 +119,7 @@ export default class ManagerHistoryPage extends Component {
         contentContainerStyle={styles.container}
       >
         <BackButton />
-        <Text style={styles.header}>Past Sessions</Text>
+        <Text style={styles.title}>Past Sessions</Text>
         {this.renderSessions()}
       </ScrollView>
     );
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 5,
   },
-  header: {
+  title: {
     textAlign: 'center',
     fontSize: 25,
     fontWeight: '700',

@@ -6,7 +6,7 @@
       "image": "./images/splash.png",
       "resizeMode": "cover"
     },
-    "version": "2.1.0",
+    "version": "2.2.0",
     "slug": "trainNow",
     "updates": {
       "enabled": false
@@ -22,7 +22,7 @@
     },
     "android": {
       "package": "com.trainNow.app",
-      "versionCode": 7,
+      "versionCode": 8,
       "permissions": [
         "WAKE_LOCK"
       ],

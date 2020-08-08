@@ -6,19 +6,17 @@ import PropTypes from 'prop-types';
 import { Actions } from 'react-native-router-flux';
 import { FontAwesome } from '@expo/vector-icons';
 import Colors from './Colors';
-import MasterStyles from './MasterStyles';
+import CommonStyles from './CommonStyles';
 
 const BackButton = (props) => (
-  <TouchableOpacity
-    style={[styles.button, MasterStyles.shadow, props.style]}
-    onPress={props.onPress}
-  >
+  <TouchableOpacity style={[styles.button, props.style]} onPress={props.onPress}>
     <FontAwesome name="arrow-left" color={Colors.Black} size={25} />
   </TouchableOpacity>
 );
 
 const styles = StyleSheet.create({
   button: {
+    ...CommonStyles.shadow,
     marginTop: Dimensions.get('window').height / 20,
     marginBottom: 10,
     marginHorizontal: 15,

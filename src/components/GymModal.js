@@ -12,7 +12,7 @@ import LoadingWheel from './LoadingWheel';
 import {
   sortGymsByLocation, joinGym, leaveGym, loadUser,
 } from './Functions';
-import MasterStyles from './MasterStyles';
+import CommonStyles from './CommonStyles';
 import gymImage from '../images/gym.png';
 import profileImage from '../images/profile.png';
 
@@ -39,7 +39,7 @@ export default class GymModal extends Component {
     return (
       <View style={styles.container}>
         <Text style={styles.title}>Find a gym/park near you</Text>
-        <ScrollView contentContainerStyle={[MasterStyles.flexStartContainer, { flex: null }]}>
+        <ScrollView contentContainerStyle={CommonStyles.flexStartContainer}>
           {sortedGyms.map((gym) => (
             <View style={styles.gymContainer} key={gym.key}>
               <Image style={styles.gymImage} source={gymImage} />
@@ -164,7 +164,7 @@ export default class GymModal extends Component {
           </View>
         </TouchableWithoutFeedback>
       </View>
-      <ScrollView contentContainerStyle={[MasterStyles.flexStartContainer, { width: '90%', flex: null }]}>
+      <ScrollView contentContainerStyle={[CommonStyles.flexStartContainer, { width: '90%' }]}>
         {this.state.selectedTab === 'trainers' ? this.renderTrainers() : this.renderSessions()}
       </ScrollView>
     </View>
@@ -211,7 +211,7 @@ export default class GymModal extends Component {
         && !this.state.user.gyms[this.state.selectedGym.key]
       ) {
         joinOrLeaveGymButton = (
-          <TouchableOpacity style={[styles.button, MasterStyles.shadow]} onPress={this.joinGym}>
+          <TouchableOpacity style={styles.button} onPress={this.joinGym}>
             <Text style={styles.buttonText}>Join Gym</Text>
           </TouchableOpacity>
         );
@@ -221,14 +221,14 @@ export default class GymModal extends Component {
         && this.state.user.gyms[this.state.selectedGym.key]
       ) {
         joinOrLeaveGymButton = (
-          <TouchableOpacity style={[styles.button, MasterStyles.shadow]} onPress={this.leaveGym}>
+          <TouchableOpacity style={styles.button} onPress={this.leaveGym}>
             <Text style={styles.buttonText}>Leave Gym</Text>
           </TouchableOpacity>
         );
       }
     }
     return (
-      <View style={MasterStyles.flexStartContainer}>
+      <View style={[CommonStyles.flexStartContainer, {flex: 1}]}>
         {!this.state.selectedGym ? this.renderGyms() : this.renderTrainersAndSessions()}
         {joinOrLeaveGymButton}
       </View>
@@ -325,6 +325,7 @@ const styles = StyleSheet.create({
     marginRight: 5,
   },
   button: {
+    ...CommonStyles.shadow,
     borderRadius: 10,
     width: '50%',
     marginTop: 10,

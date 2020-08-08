@@ -16,7 +16,7 @@ import {
 } from '../components/Functions';
 import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
-import MasterStyles from '../components/MasterStyles';
+import CommonStyles from '../components/CommonStyles';
 
 export default class SchedulePage extends Component {
   constructor(props) {
@@ -46,10 +46,17 @@ export default class SchedulePage extends Component {
 
   renderAgendaItem = (item) => (
     <View style={styles.agendaItem}>
-      <Text style={styles.agendaItemHeader}>{item.text}</Text>
-      <Text style={styles.agendaItemText}>{dateToString(item.start)}</Text>
-      <Text style={styles.agendaItemText}>to</Text>
-      <Text style={styles.agendaItemText}>{dateToString(item.end)}</Text>
+      <Text style={styles.agendaItemTitle}>{item.text}</Text>
+      <Text style={styles.agendaItemText}>
+        Start:
+        {' '}
+        {dateToString(item.start)}
+      </Text>
+      <Text style={styles.agendaItemText}>
+        End:
+        {' '}
+        {dateToString(item.end)}
+      </Text>
     </View>
   );
 
@@ -72,18 +79,20 @@ export default class SchedulePage extends Component {
     }
     const events = this.renderAgendaEvents();
     return (
-      <View style={MasterStyles.flexStartContainer}>
-        <View style={styles.nameContainer}>
-          <BackButton style={styles.backButton} />
-          <Text style={styles.trainerName}>
-            {' '}
-            {this.state.trainer.name}
-            {' '}
-          </Text>
-        </View>
+      <View style={[CommonStyles.flexStartContainer, { alignItems: 'flex-start' }]}>
+        <BackButton style={styles.backButton} />
+        <Text style={styles.trainerName}>{this.state.trainer.name}</Text>
         <View style={styles.calendarContainer}>
           <Agenda
             style={styles.calendar}
+            theme={{
+              backgroundColor: Colors.White,
+              calendarBackground: Colors.LightGray,
+              selectedDayBackgroundColor: Colors.Primary,
+              dotColor: Colors.Secondary,
+              selectedDotColor: Colors.Secondary,
+              todayTextColor: Colors.Primary,
+            }}
             minDate={this.state.date}
             maxDate={new Date(this.state.date.getTime() + 86400000 * 14)}
             items={events}
@@ -103,24 +112,11 @@ SchedulePage.propTypes = {
 
 const styles = StyleSheet.create({
   trainerName: {
+    marginHorizontal: 15,
+    marginVertical: 10,
     fontSize: 30,
-    color: Colors.LightGray,
-    fontWeight: '500',
+    fontWeight: '700',
     textAlign: 'center',
-  },
-  nameContainer: {
-    height: '15%',
-    width: '100%',
-    backgroundColor: Colors.Primary,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  backButton: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    margin: 0,
   },
   calendarContainer: {
     height: '85%',
@@ -131,22 +127,23 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   agendaItem: {
+    ...CommonStyles.shadow,
     height: 100,
     width: '90%',
-    backgroundColor: Colors.Secondary,
+    borderRadius: 10,
+    padding: 10,
+    backgroundColor: Colors.LightGray,
     textAlign: 'left',
     flexDirection: 'column',
     justifyContent: 'space-around',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     margin: 10,
   },
-  agendaItemHeader: {
-    color: Colors.LightGray,
+  agendaItemTitle: {
+    color: Colors.Primary,
     fontSize: 20,
-    fontWeight: '300',
   },
   agendaItemText: {
-    color: Colors.Primary,
     fontSize: 15,
   },
 });
