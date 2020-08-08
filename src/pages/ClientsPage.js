@@ -16,7 +16,7 @@ import {
 import Constants from '../components/Constants';
 import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
-import MasterStyles from '../components/MasterStyles';
+import CommonStyles from '../components/CommonStyles';
 import profileImage from '../images/profile.png';
 
 export default class ClientsPage extends Component {
@@ -158,13 +158,13 @@ export default class ClientsPage extends Component {
           <Text style={styles.name}>{request.name}</Text>
           <View style={styles.buttonRow}>
             <TouchableOpacity
-              style={[styles.button, MasterStyles.shadow]}
+              style={styles.button}
               onPress={() => this.denyRequest(request)}
             >
               <Text style={[styles.buttonText, { color: Colors.Red }]}>Deny</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.button, MasterStyles.shadow]}
+              style={styles.button}
               onPress={() => this.acceptRequest(request)}
             >
               <Text style={[styles.buttonText, { color: Colors.Green }]}>Accept</Text>
@@ -188,14 +188,14 @@ export default class ClientsPage extends Component {
       let button;
       if (this.state.user.sentRequests && this.state.user.sentRequests[client.userKey]) {
         button = (
-          <TouchableOpacity style={[styles.button, MasterStyles.shadow]} disabled>
+          <TouchableOpacity style={styles.button} disabled>
             <Text style={styles.buttonText}>Pending</Text>
           </TouchableOpacity>
         );
       } else {
         button = (
           <TouchableOpacity
-            style={[styles.button, MasterStyles.shadow]}
+            style={styles.button}
             onPress={() => this.sendRequest(client)}
           >
             <Text style={[styles.buttonText, { color: Colors.Green }]}>Add</Text>
@@ -244,7 +244,7 @@ export default class ClientsPage extends Component {
           <Text style={styles.name}>{client.name}</Text>
           <View style={styles.buttonRow}>
             <TouchableOpacity
-              style={[styles.button, MasterStyles.shadow]}
+              style={styles.button}
               onPress={() => {
                 Actions.BookingPage({
                   clientKey: client.userKey,
@@ -332,13 +332,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   button: {
+    ...CommonStyles.shadow,
     borderRadius: 10,
     backgroundColor: Colors.White,
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
     height: 30,
-    width: 100,
+    width: 80,
     margin: 5,
   },
   name: {

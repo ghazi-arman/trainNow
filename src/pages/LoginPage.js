@@ -1,69 +1,43 @@
 import React from 'react';
 import {
-  StyleSheet, Text, View, Image, KeyboardAvoidingView, TouchableOpacity,
+  StyleSheet, View, Image, KeyboardAvoidingView,
 } from 'react-native';
-import { Actions } from 'react-native-router-flux';
 import LoginForm from '../forms/LoginForm';
-import Colors from '../components/Colors';
-import MasterStyles from '../components/MasterStyles';
+import CommonStyles from '../components/CommonStyles';
 import logo from '../images/logo.png';
 
 export default function LoginPage() {
   return (
-    <View style={MasterStyles.spacedContainer}>
+    <View style={styles.container}>
       <View style={styles.logoContainer}>
         <Image style={styles.logo} source={logo} />
       </View>
-      <KeyboardAvoidingView behavior="padding" style={styles.formContainer}>
+      <KeyboardAvoidingView style={styles.formContainer} behavior="padding">
         <LoginForm />
       </KeyboardAvoidingView>
-      <View style={styles.linkContainer}>
-        <View style={styles.textContain}>
-          <TouchableOpacity onPress={Actions.ForgotPage}>
-            <Text style={styles.linkText}>Forgot Password?</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.textContain}>
-          <TouchableOpacity onPress={Actions.SignupPage}>
-            <Text style={styles.linkText}>New User?</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    ...CommonStyles.flexStartContainer,
+    flex: 1,
+  },
+  logoContainer: {
+    width: '80%',
+    height: '35%',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   logo: {
     flex: 1,
     resizeMode: 'contain',
   },
   formContainer: {
-    height: '30%',
+    ...CommonStyles.centeredContainer,
     width: '80%',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  textContain: {
-    height: 30,
-  },
-  logoContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: '25%',
-    width: '80%',
-  },
-  linkContainer: {
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    height: '20%',
-  },
-  linkText: {
-    color: Colors.Primary,
-    fontSize: 16,
-    fontWeight: '500',
+    marginVertical: 20,
   },
 });

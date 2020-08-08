@@ -16,7 +16,7 @@ import firebase from 'firebase';
 import bugsnag from '@bugsnag/expo';
 import { dateToString, reportSession, renderStars } from '../components/Functions';
 import LoadingWheel from '../components/LoadingWheel';
-import MasterStyles from '../components/MasterStyles';
+import CommonStyles from '../components/CommonStyles';
 import Colors from '../components/Colors';
 import BackButton from '../components/BackButton';
 import markerImage from '../images/marker.png';
@@ -135,7 +135,7 @@ export default class SessionDetailsPage extends Component {
             value={this.state.report}
           />
           <TouchableOpacity
-            style={[styles.button, MasterStyles.shadow]}
+            style={styles.button}
             onPress={this.reportSession}
           >
             <Text style={styles.buttonText}>Report</Text>
@@ -208,6 +208,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   button: {
+    ...CommonStyles.shadow,
     borderRadius: 10,
     width: 100,
     height: 30,

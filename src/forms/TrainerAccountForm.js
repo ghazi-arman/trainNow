@@ -11,7 +11,7 @@ import TextField from '../components/TextField';
 import { loadUser } from '../components/Functions';
 import Constants from '../components/Constants';
 import LoadingWheel from '../components/LoadingWheel';
-import MasterStyles from '../components/MasterStyles';
+import CommonStyles from '../components/CommonStyles';
 import profileImage from '../images/profile.png';
 
 export default class TrainerAccountForm extends Component {
@@ -173,12 +173,12 @@ export default class TrainerAccountForm extends Component {
     }
 
     return (
-      <View style={MasterStyles.spacedContainer}>
-        <View style={styles.imageContainer}>
+      <View style={CommonStyles.spacedContainer}>
+        <View style={CommonStyles.centeredContainer}>
           <Image source={{ uri: this.state.image }} style={styles.imageHolder} />
         </View>
         <View style={styles.switchRow}>
-          <Text style={styles.hints}>Active</Text>
+          <Text style={styles.mediumText}>Active</Text>
           <Switch
             trackColor={Colors.Primary}
             _thumbColor={Colors.Secondary}
@@ -215,11 +215,11 @@ export default class TrainerAccountForm extends Component {
           onChange={(offset) => this.setState({ offset, change: true })}
           value={this.state.offset}
         />
-        <TouchableOpacity style={styles.button} onPressIn={this.pickImage}>
-          <Text style={styles.buttonText}>Update Image</Text>
+        <TouchableOpacity style={CommonStyles.fullButton} onPressIn={this.pickImage}>
+          <Text style={CommonStyles.buttonText}>Update Image</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPressIn={this.updateAccount}>
-          <Text style={styles.buttonText}>Save Changes</Text>
+        <TouchableOpacity style={CommonStyles.fullButton} onPressIn={this.updateAccount}>
+          <Text style={CommonStyles.buttonText}>Save Changes</Text>
         </TouchableOpacity>
       </View>
     );
@@ -234,31 +234,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     margin: 10,
   },
-  button: {
-    borderRadius: 5,
-    width: 200,
-    backgroundColor: Colors.Secondary,
-    paddingVertical: 15,
-    marginTop: 10,
-  },
-  buttonText: {
-    textAlign: 'center',
-    color: Colors.LightGray,
-    fontWeight: '700',
-  },
-  hints: {
+  mediumText: {
     color: Colors.Primary,
     fontSize: 25,
     fontWeight: '500',
   },
-  imageContainer: {
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   imageHolder: {
     width: 200,
     height: 200,
+    margin: 10,
     borderRadius: 100,
     borderWidth: 1,
     borderColor: Colors.Primary,

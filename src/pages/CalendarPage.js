@@ -27,7 +27,7 @@ import Colors from '../components/Colors';
 import Constants from '../components/Constants';
 import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
-import MasterStyles from '../components/MasterStyles';
+import CommonStyles from '../components/CommonStyles';
 import profileImage from '../images/profile.png';
 
 export default class CalendarPage extends Component {
@@ -318,7 +318,7 @@ export default class CalendarPage extends Component {
       ) {
         button = (
           <TouchableOpacity
-            style={[styles.button, MasterStyles.shadow]}
+            style={styles.button}
             onPress={() => this.cancelSession(session)}
           >
             <Text style={[styles.buttonText, { color: Colors.Red }]}>Cancel</Text>
@@ -328,7 +328,7 @@ export default class CalendarPage extends Component {
       } else {
         button = (
           <TouchableOpacity
-            style={[styles.button, MasterStyles.shadow]}
+            style={styles.button}
             onPress={() => this.acceptSession(session)}
           >
             <Text style={[styles.buttonText, { color: Colors.Green }]}>Accept</Text>
@@ -336,7 +336,7 @@ export default class CalendarPage extends Component {
         );
         button2 = (
           <TouchableOpacity
-            style={[styles.button, MasterStyles.shadow]}
+            style={styles.button}
             onPress={() => this.cancelSession(session)}
           >
             <Text style={[styles.buttonText, { color: Colors.Red }]}>Reject</Text>
@@ -405,13 +405,13 @@ export default class CalendarPage extends Component {
           </View>
           <View style={styles.buttonColumn}>
             <TouchableOpacity
-              style={[styles.button, MasterStyles.shadow]}
+              style={styles.button}
               onPress={() => this.cancelAcceptedSession(session)}
             >
               <Text style={[styles.buttonText, { color: Colors.Red }]}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.button, MasterStyles.shadow]}
+              style={styles.button}
               onPress={() => Actions.SessionPage({ session: session.key })}
             >
               <Text style={[styles.buttonText, { color: Colors.Green }]}>Enter</Text>
@@ -426,7 +426,7 @@ export default class CalendarPage extends Component {
       const editButton = this.state.user.type === Constants.trainerType
         ? (
           <TouchableOpacity
-            style={[styles.button, MasterStyles.shadow]}
+            style={styles.button}
             onPress={() => Actions.CreateGroupSessionPage({ sessionKey: session.key })}
           >
             <Text style={[styles.buttonText, { color: Colors.Black }]}>Edit</Text>
@@ -463,14 +463,14 @@ export default class CalendarPage extends Component {
           </View>
           <View style={styles.buttonColumn}>
             <TouchableOpacity
-              style={[styles.button, MasterStyles.shadow]}
+              style={styles.button}
               onPress={() => this.cancelGroupSession(session)}
             >
               <Text style={[styles.buttonText, { color: Colors.Red }]}>{cancelButtonText}</Text>
             </TouchableOpacity>
             {editButton}
             <TouchableOpacity
-              style={[styles.button, MasterStyles.shadow]}
+              style={styles.button}
               onPress={() => Actions.GroupSessionPage({ session: session.key })}
             >
               <Text style={[styles.buttonText, { color: Colors.Green }]}>Enter</Text>
@@ -493,7 +493,7 @@ export default class CalendarPage extends Component {
     }
     const userId = firebase.auth().currentUser.uid;
     return (
-      <View style={MasterStyles.flexStartContainer}>
+      <View style={CommonStyles.flexStartContainer}>
         <ScrollView
           style={{ width: '100%' }}
           contentContainerStyle={styles.container}
@@ -564,6 +564,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   buttonColumn: {
+    ...CommonStyles.shadow,
     height: '100%',
     position: 'absolute',
     right: 15,

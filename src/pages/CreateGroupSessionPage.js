@@ -24,7 +24,7 @@ import {
 import TextField from '../components/TextField';
 import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
-import MasterStyles from '../components/MasterStyles';
+import CommonStyles from '../components/CommonStyles';
 
 export default class CreateGroupSessionPage extends Component {
   constructor(props) {
@@ -214,20 +214,20 @@ export default class CreateGroupSessionPage extends Component {
     } else {
       startDatePicker = (
         <TouchableOpacity
-          style={[styles.button, MasterStyles.shadow]}
+          style={CommonStyles.fullButton}
           onPressIn={() => this.openDatePicker(true)}
         >
-          <Text style={styles.buttonText}>
+          <Text style={CommonStyles.buttonText}>
             Choose Session Date
           </Text>
         </TouchableOpacity>
       );
       startTimePicker = (
         <TouchableOpacity
-          style={[styles.button, { marginTop: 20 }, MasterStyles.shadow]}
+          style={[CommonStyles.fullButton, { marginTop: 20 }]}
           onPress={() => this.openTimePicker(true)}
         >
-          <Text style={styles.buttonText}>
+          <Text style={CommonStyles.buttonText}>
             Choose Session Time
           </Text>
         </TouchableOpacity>
@@ -237,19 +237,19 @@ export default class CreateGroupSessionPage extends Component {
     if (this.props.sessionKey) {
       button = (
         <TouchableOpacity
-          style={[styles.button, MasterStyles.shadow]}
+          style={CommonStyles.fullButton}
           onPress={this.updateSession}
         >
-          <Text style={styles.buttonText}> Update Session </Text>
+          <Text style={CommonStyles.buttonText}> Update Session </Text>
         </TouchableOpacity>
       );
     } else {
       button = (
         <TouchableOpacity
-          style={[styles.button, MasterStyles.shadow]}
+          style={CommonStyles.fullButton}
           onPress={this.createSession}
         >
-          <Text style={styles.buttonText}> Create Session </Text>
+          <Text style={CommonStyles.buttonText}> Create Session </Text>
         </TouchableOpacity>
       );
     }
@@ -349,16 +349,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  button: {
-    borderRadius: 10,
-    width: '80%',
-    height: 50,
-    marginTop: 30,
-    backgroundColor: Colors.White,
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   formLabel: {
     fontSize: 20,
     fontWeight: '500',
@@ -367,15 +357,10 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     margin: 5,
   },
-  buttonText: {
-    fontSize: 20,
-    textAlign: 'center',
-    color: Colors.Primary,
-    fontWeight: '600',
-  },
   datePicker: {
     height: 200,
     width: '100%',
+    marginBottom: 20,
     borderTopWidth: 1,
     borderBottomWidth: 1,
     borderColor: Colors.Primary,

@@ -21,7 +21,7 @@ import {
 import Constants from '../components/Constants';
 import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
-import MasterStyles from '../components/MasterStyles';
+import CommonStyles from '../components/CommonStyles';
 
 export default class PaymentPage extends Component {
   constructor(props) {
@@ -274,14 +274,14 @@ export default class PaymentPage extends Component {
       );
     }
     return (
-      <View style={[MasterStyles.flexStartContainer, { alignItems: 'flex-start' }]}>
+      <View style={[CommonStyles.flexStartContainer, { alignItems: 'flex-start' }]}>
         <BackButton style={styles.backButton} onPress={Actions.MapPage} />
         <Text style={styles.title}>Payments</Text>
         {balanceDiv}
         {this.renderCards()}
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={[styles.button, MasterStyles.shadow]} onPress={Actions.CardPage}>
-            <Text style={styles.buttonText}>Add Card</Text>
+          <TouchableOpacity style={CommonStyles.fullButton} onPress={Actions.CardPage}>
+            <Text style={CommonStyles.buttonText}>Add Card</Text>
           </TouchableOpacity>
           {payoutText}
         </View>
@@ -326,27 +326,12 @@ const styles = StyleSheet.create({
     height: '100%',
     paddingBottom: 50,
   },
-  buttonText: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: Colors.Primary,
-  },
   balanceText: {
     fontSize: 25,
     color: Colors.Primary,
     marginHorizontal: 15,
     marginBottom: 15,
     fontWeight: '600',
-  },
-  button: {
-    borderRadius: 10,
-    width: '80%',
-    height: 50,
-    marginTop: 30,
-    backgroundColor: Colors.White,
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   buttonContainer: {
     width: '100%',

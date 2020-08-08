@@ -9,7 +9,7 @@ import bugsnag from '@bugsnag/expo';
 import Colors from '../components/Colors';
 import { loadUser } from '../components/Functions';
 import LoadingWheel from '../components/LoadingWheel';
-import MasterStyles from '../components/MasterStyles';
+import CommonStyles from '../components/CommonStyles';
 import profileImage from '../images/profile.png';
 
 export default class ClientAccountForm extends Component {
@@ -109,15 +109,15 @@ export default class ClientAccountForm extends Component {
     }
 
     return (
-      <View style={MasterStyles.spacedContainer}>
-        <View style={styles.imageContainer}>
+      <View style={CommonStyles.spacedContainer}>
+        <View style={CommonStyles.centeredContainer}>
           <Image source={{ uri: this.state.image }} style={styles.imageHolder} />
         </View>
-        <TouchableOpacity style={styles.button} onPressIn={this.pickImage}>
-          <Text style={styles.buttonText}> Update Image </Text>
+        <TouchableOpacity style={CommonStyles.fullButton} onPressIn={this.pickImage}>
+          <Text style={CommonStyles.buttonText}> Update Image </Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPressIn={this.updateAccount}>
-          <Text style={styles.buttonText}> Save Changes </Text>
+        <TouchableOpacity style={CommonStyles.fullButton} onPressIn={this.updateAccount}>
+          <Text style={CommonStyles.buttonText}> Save Changes </Text>
         </TouchableOpacity>
       </View>
     );
@@ -125,26 +125,10 @@ export default class ClientAccountForm extends Component {
 }
 
 const styles = StyleSheet.create({
-  button: {
-    borderRadius: 5,
-    width: '80%',
-    backgroundColor: Colors.Secondary,
-    paddingVertical: 15,
-    marginTop: 10,
-  },
-  buttonText: {
-    textAlign: 'center',
-    color: Colors.LightGray,
-    fontWeight: '700',
-  },
-  imageContainer: {
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   imageHolder: {
     width: 200,
     height: 200,
+    margin: 10,
     borderRadius: 100,
     borderWidth: 1,
     borderColor: Colors.Primary,

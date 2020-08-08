@@ -26,7 +26,7 @@ import {
 } from '../components/Functions';
 import Constants from '../components/Constants';
 import LoadingWheel from '../components/LoadingWheel';
-import MasterStyles from '../components/MasterStyles';
+import CommonStyles from '../components/CommonStyles';
 import GymModal from '../components/GymModal';
 import markerImage from '../images/marker.png';
 import profileImage from '../images/profile.png';
@@ -184,7 +184,7 @@ export default class MapPage extends Component {
     if (alertFunction) {
       alertBox = (
         <TouchableOpacity
-          style={[styles.button, MasterStyles.shadow]}
+          style={styles.button}
           onPress={alertFunction}
         >
           <Text style={styles.buttonText}>Enter Session!</Text>
@@ -197,7 +197,7 @@ export default class MapPage extends Component {
     if (this.state.selectedGym) {
       menuOrBackButton = (
         <TouchableOpacity
-          style={[styles.menuButton, MasterStyles.shadow]}
+          style={styles.menuButton}
           onPress={() => this.setState({ selectedGym: null })}
         >
           <Text>
@@ -257,7 +257,7 @@ export default class MapPage extends Component {
       gymInfo = null;
       menuOrBackButton = (
         <TouchableOpacity
-          style={[styles.menuButton, MasterStyles.shadow]}
+          style={styles.menuButton}
           onPress={this.toggleMenu}
         >
           <Text>
@@ -280,7 +280,7 @@ export default class MapPage extends Component {
         tapToClose
         onClose={() => this.setState({ menuOpen: false })}
       >
-        <View style={MasterStyles.flexStartContainer}>
+        <View style={[CommonStyles.flexStartContainer, { flex: 1 }]}>
           <MapView
             ref={(mapView) => { this.map = mapView; }}
             style={styles.map}
@@ -292,7 +292,7 @@ export default class MapPage extends Component {
           {alertBox}
           {menuOrBackButton}
           {gymInfo}
-          <View style={[styles.gymsContainer, MasterStyles.shadow]}>
+          <View style={styles.gymsContainer}>
             <GymModal
               gyms={this.state.gyms}
               selectedGym={this.state.selectedGym}
@@ -315,6 +315,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   menuButton: {
+    ...CommonStyles.shadow,
     position: 'absolute',
     top: Dimensions.get('window').height / 20,
     left: 20,
@@ -328,6 +329,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   button: {
+    ...CommonStyles.shadow,
     position: 'absolute',
     top: Dimensions.get('window').height / 20,
     width: '40%',
@@ -346,6 +348,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   gymsContainer: {
+    ...CommonStyles.shadow,
     position: 'absolute',
     bottom: 0,
     height: '50%',

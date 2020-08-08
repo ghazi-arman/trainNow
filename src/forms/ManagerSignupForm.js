@@ -10,7 +10,7 @@ import Colors from '../components/Colors';
 import Constants from '../components/Constants';
 import TextField from '../components/TextField';
 import LoadingWheel from '../components/LoadingWheel';
-import MasterStyles from '../components/MasterStyles';
+import CommonStyles from '../components/CommonStyles';
 
 const stripe = require('stripe-client')(STRIPE_KEY);
 
@@ -227,14 +227,14 @@ export default class ManagerSignupForm extends Component {
     let nextButton;
 
     prevButton = (
-      <TouchableOpacity style={styles.button} onPressIn={this.goBack}>
-        <Text style={styles.buttonText}>Previous</Text>
+      <TouchableOpacity style={CommonStyles.halfButton} onPressIn={this.goBack}>
+        <Text style={CommonStyles.buttonText}>Previous</Text>
       </TouchableOpacity>
     );
 
     nextButton = (
-      <TouchableOpacity style={styles.button} onPressIn={this.goNext}>
-        <Text style={styles.buttonText}>Next</Text>
+      <TouchableOpacity style={CommonStyles.halfButton} onPressIn={this.goNext}>
+        <Text style={CommonStyles.buttonText}>Next</Text>
       </TouchableOpacity>
     );
 
@@ -349,10 +349,10 @@ export default class ManagerSignupForm extends Component {
       submitButton = (
         <TouchableOpacity
           ref={(btn) => { this.btn = btn; }}
-          style={styles.button}
+          style={CommonStyles.halfButton}
           onPressIn={this.onSignUpPress}
         >
-          <Text style={styles.buttonText}> Signup </Text>
+          <Text style={CommonStyles.buttonText}> Signup </Text>
         </TouchableOpacity>
       );
 
@@ -376,7 +376,7 @@ export default class ManagerSignupForm extends Component {
     }
 
     return (
-      <View style={MasterStyles.centeredContainer}>
+      <View style={CommonStyles.centeredContainer}>
         {page1}
         {page2}
         {page3}
@@ -387,6 +387,9 @@ export default class ManagerSignupForm extends Component {
           {submitButton}
         </View>
         {agreement}
+        <TouchableOpacity onPress={() => Actions.LoginPage()}>
+          <Text style={styles.linkText}>Have an Account?</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -394,29 +397,16 @@ export default class ManagerSignupForm extends Component {
 
 const styles = StyleSheet.create({
   container: {
-    height: '80%',
+    height: '75%',
     flexDirection: 'column',
     justifyContent: 'space-around',
     alignItems: 'center',
-  },
-  button: {
-    backgroundColor: Colors.Secondary,
-    paddingVertical: 15,
-    width: '40%',
-    margin: 5,
-    borderRadius: 5,
   },
   buttonHolder: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 10,
-  },
-  buttonText: {
-    fontSize: 20,
-    textAlign: 'center',
-    color: Colors.LightGray,
-    fontWeight: '700',
   },
   agreement: {
     color: Colors.Primary,
@@ -426,5 +416,10 @@ const styles = StyleSheet.create({
     color: Colors.Primary,
     textAlign: 'center',
     textDecorationLine: 'underline',
+  },
+  linkText: {
+    color: Colors.Secondary,
+    fontSize: 15,
+    margin: 5,
   },
 });

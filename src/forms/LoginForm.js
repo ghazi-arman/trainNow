@@ -5,11 +5,12 @@ import {
 import { Actions } from 'react-native-router-flux';
 import firebase from 'firebase';
 import bugsnag from '@bugsnag/expo';
+import { loadUser } from '../components/Functions';
 import Colors from '../components/Colors';
 import Constants from '../components/Constants';
 import TextField from '../components/TextField';
 import LoadingWheel from '../components/LoadingWheel';
-import MasterStyles from '../components/MasterStyles';
+import CommonStyles from '../components/CommonStyles';
 
 export default class LoginForm extends Component {
   constructor(props) {
@@ -19,18 +20,15 @@ export default class LoginForm extends Component {
   }
 
   login = async () => {
-    // Prevents multiple form
-    if (this.state.pressed) {
+    if (this.state.submitted) {
       return;
     }
 
-    // Go to manager sign up page
     if (this.state.email && this.state.email.toLowerCase() === 'manager signup') {
       Actions.ManagerSignupPage();
       return;
     }
 
-    // Input validation
     if (!this.state.email) {
       Alert.alert('Please enter an email.');
       return;
@@ -40,24 +38,19 @@ export default class LoginForm extends Component {
       return;
     }
 
-    this.setState({ pressed: true });
+    this.setState({ submitted: true });
     try {
-      // Validate username and password combo through firebase
-      const userCredentials = await firebase.auth().signInWithEmailAndPassword(
-        this.state.email,
-        this.state.password,
-      );
-      const userDatabaseObject = await firebase.database().ref(`/users/${userCredentials.user.uid}`).once('value');
-      const user = userDatabaseObject.val();
+      await firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password);
+      const user = await loadUser(firebase.auth().currentUser.uid);
 
       // Checks status of current user and routes appropriately
       if (user.deleted) {
-        this.setState({ pressed: false });
+        this.setState({ submitted: false });
         Alert.alert('Your account has been deleted. Please contact your gym manager.');
         return;
       }
       if (user.pending) {
-        this.setState({ pressed: false });
+        this.setState({ submitted: false });
         Alert.alert('Your account is pending approval.');
         return;
       }
@@ -72,15 +65,11 @@ export default class LoginForm extends Component {
 
       Actions.reset('MapPage');
     } catch (error) {
-      this.setState({ pressed: false });
+      this.setState({ submitted: false });
       if (error.code === 'auth/invalid-email') {
         Alert.alert('Please enter a valid email.');
         return;
       }
-      this.bugsnagClient.metaData = {
-        email: this.state.email,
-      };
-      this.bugsnagClient.notify(error);
       if (error.code === 'auth/wrong-password') {
         Alert.alert('Wrong password.');
         return;
@@ -90,16 +79,20 @@ export default class LoginForm extends Component {
         return;
       }
       Alert.alert('There was an unexpected problem logging in. Please try again.');
+      this.bugsnagClient.metaData = {
+        email: this.state.email,
+      };
+      this.bugsnagClient.notify(error);
     }
   }
 
   render() {
-    if (this.state.pressed) {
+    if (this.state.submitted) {
       return <LoadingWheel />;
     }
 
     return (
-      <View style={MasterStyles.centeredContainer}>
+      <View style={CommonStyles.centeredContainer}>
         <TextField
           icon="user"
           placeholder="Email"
@@ -116,8 +109,14 @@ export default class LoginForm extends Component {
           onSubmitEditing={() => this.login()}
           value={this.state.password}
         />
-        <TouchableOpacity style={styles.button} onPressIn={this.login}>
-          <Text style={styles.buttonText}> Login </Text>
+        <TouchableOpacity style={CommonStyles.fullButton} onPress={this.login}>
+          <Text style={CommonStyles.buttonText}>Login</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={Actions.ForgotPage}>
+          <Text style={styles.linkText}>Forgot Password?</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={Actions.SignupPage}>
+          <Text style={styles.linkText}>New User?</Text>
         </TouchableOpacity>
       </View>
     );
@@ -125,17 +124,9 @@ export default class LoginForm extends Component {
 }
 
 const styles = StyleSheet.create({
-  button: {
-    backgroundColor: Colors.Secondary,
-    paddingVertical: 15,
-    marginTop: 20,
-    borderRadius: 5,
-    width: '80%',
-  },
-  buttonText: {
-    fontSize: 20,
-    textAlign: 'center',
-    color: Colors.LightGray,
-    fontWeight: '700',
+  linkText: {
+    color: Colors.Secondary,
+    fontSize: 15,
+    margin: 5,
   },
 });

@@ -13,7 +13,7 @@ import {
 } from '../components/Functions';
 import Constants from '../components/Constants';
 import LoadingWheel from '../components/LoadingWheel';
-import MasterStyles from '../components/MasterStyles';
+import CommonStyles from '../components/CommonStyles';
 
 export default class RatingPage extends Component {
   constructor(props) {
@@ -87,7 +87,9 @@ export default class RatingPage extends Component {
     const starToRender = outline ? 'star-o' : 'star';
     return (
       <TouchableOpacity key={number} onPress={() => this.setRating(number)}>
-        <Text style={styles.icon}><FontAwesome name={starToRender} size={35} /></Text>
+        <Text style={styles.icon}>
+          <FontAwesome name={starToRender} size={30} color={Colors.Secondary} />
+        </Text>
       </TouchableOpacity>
     );
   }
@@ -129,47 +131,53 @@ export default class RatingPage extends Component {
     if (this.state.session.trainerKey === userId) {
       if (this.state.session.trainerType === Constants.independentType) {
         cost = (
-          <Text style={styles.bookDetails}>
-            Total Earned: $
-            {payout}
-          </Text>
+          <View style={styles.textRow}>
+            <Text style={styles.mediumText}>Earned:</Text>
+            <Text style={styles.smallText}>
+              $
+              {payout}
+            </Text>
+          </View>
         );
       }
     } else {
       cost = (
-        <Text style={styles.bookDetails}>
-          Total Cost: $
-          {total}
-        </Text>
+        <View style={styles.textRow}>
+          <Text style={styles.mediumText}>Cost:</Text>
+          <Text style={styles.smallText}>
+            $
+            {total}
+          </Text>
+        </View>
       );
     }
     const stars = this.renderStars(this.state.rating);
     return (
-      <View style={MasterStyles.spacedContainer}>
-        <View style={MasterStyles.centeredContainer}>
-          <View style={styles.infoContainer}>
-            <Text style={styles.bookDetails}>
-              Ended:
-              {' '}
-              {displayDate}
-            </Text>
-            <Text style={styles.bookDetails}>
-              Total Time:
-              {' '}
+      <View style={[CommonStyles.flexStartContainer, { alignItems: 'flex-start' }]}>
+        <Text style={styles.title}>Rate your session</Text>
+        <View style={styles.infoContainer}>
+          <View style={styles.textRow}>
+            <Text style={styles.mediumText}>Ended:</Text>
+            <Text style={styles.smallText}>{displayDate}</Text>
+          </View>
+          <View style={styles.textRow}>
+            <Text style={styles.mediumText}>Total Time:</Text>
+            <Text style={styles.smallText}>
               {this.state.session.duration}
               {' '}
               min
             </Text>
-            {cost}
-            <View style={styles.starContainer}>
-              {stars}
-            </View>
           </View>
+          {cost}
+        </View>
+        <Text style={styles.subTitle}>Rating</Text>
+        <View style={styles.starContainer}>
+          {stars}
           <TouchableOpacity
-            style={[styles.button, MasterStyles.shadow]}
+            style={styles.button}
             onPress={this.rateSession}
           >
-            <Text style={styles.buttonText}>Rate Session</Text>
+            <Text style={styles.buttonText}>Rate</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -182,28 +190,59 @@ RatingPage.propTypes = {
 };
 
 const styles = StyleSheet.create({
-  bookDetails: {
+  title: {
+    margin: 15,
+    marginTop: 40,
     fontSize: 25,
-    fontWeight: '500',
-    color: Colors.Primary,
+    fontWeight: '700',
   },
-  starContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 10,
+  subTitle: {
+    margin: 15,
+    fontSize: 20,
+    fontWeight: '600',
   },
   infoContainer: {
-    height: '65%',
     width: '100%',
+    backgroundColor: Colors.LightGray,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: Colors.Gray,
     flexDirection: 'column',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+  },
+  textRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    margin: 10,
+  },
+  mediumText: {
+    fontSize: 20,
+  },
+  smallText: {
+    fontSize: 18,
+    color: Colors.DarkGray,
+    marginLeft: 10,
+  },
+  starContainer: {
+    width: '100%',
+    backgroundColor: Colors.LightGray,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: Colors.Gray,
+    padding: 10,
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
     alignItems: 'center',
   },
   button: {
+    ...CommonStyles.shadow,
+    position: 'absolute',
+    right: 10,
     borderRadius: 10,
-    width: '80%',
-    height: 50,
+    width: 100,
+    height: 35,
     backgroundColor: Colors.White,
     flexDirection: 'column',
     justifyContent: 'center',
@@ -215,7 +254,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   icon: {
-    color: Colors.Secondary,
-    fontSize: 35,
+    margin: 5,
   },
 });

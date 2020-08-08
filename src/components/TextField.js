@@ -31,16 +31,17 @@ const TextField = (props) => (
 );
 const styles = StyleSheet.create({
   input: {
+    width: '85%',
     height: 40,
-    borderWidth: 0,
+    marginLeft: 5,
     backgroundColor: 'transparent',
     borderBottomWidth: 1,
     borderColor: Colors.Primary,
-    width: '85%',
     color: Colors.Primary,
   },
   icon: {
-    height: 40,
+    height: 30,
+    marginBottom: -4,
     width: '15%',
     flexDirection: 'row',
     justifyContent: 'center',

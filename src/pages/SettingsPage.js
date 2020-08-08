@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import {
   StyleSheet,
   Text,
-  View,
   KeyboardAvoidingView,
   ScrollView,
   Alert,
@@ -11,10 +10,9 @@ import { Actions } from 'react-native-router-flux';
 import PropTypes from 'prop-types';
 import ClientAccountForm from '../forms/ClientAccountForm';
 import TrainerAccountForm from '../forms/TrainerAccountForm';
-import Colors from '../components/Colors';
 import Constants from '../components/Constants';
 import BackButton from '../components/BackButton';
-import MasterStyles from '../components/MasterStyles';
+import CommonStyles from '../components/CommonStyles';
 
 export default class SettingsPage extends Component {
   goToMap = () => {
@@ -43,17 +41,13 @@ export default class SettingsPage extends Component {
       accountForm = (<ClientAccountForm ref={(form) => { this.form = form; }} />);
     }
     return (
-      <View style={MasterStyles.spacedContainer}>
-        <View style={styles.nameContainer}>
-          <BackButton style={styles.backButton} onPress={this.goToMap} />
-          <Text style={styles.title}>Settings</Text>
-        </View>
+      <ScrollView contentContainerStyle={styles.container}>
+        <BackButton onPress={this.goToMap} />
+        <Text style={styles.title}>Settings</Text>
         <KeyboardAvoidingView style={styles.formContainer} behavior="padding">
-          <ScrollView contentContainerStyle={styles.center}>
-            {accountForm}
-          </ScrollView>
+          {accountForm}
         </KeyboardAvoidingView>
-      </View>
+      </ScrollView>
     );
   }
 }
@@ -63,34 +57,17 @@ SettingsPage.propTypes = {
 };
 
 const styles = StyleSheet.create({
-  center: {
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  nameContainer: {
-    height: '15%',
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  backButton: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    margin: 0,
+  container: {
+    ...CommonStyles.flexStartContainer,
+    alignItems: 'flex-start',
   },
   title: {
-    fontSize: 34,
-    color: Colors.Primary,
+    fontSize: 30,
+    marginHorizontal: 15,
     fontWeight: '700',
   },
   formContainer: {
-    height: '85%',
-    width: '90%',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'space-around',
+    height: '80%',
+    width: '100%',
   },
 });

@@ -13,7 +13,7 @@ import {
 } from '../components/Functions';
 import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
-import MasterStyles from '../components/MasterStyles';
+import CommonStyles from '../components/CommonStyles';
 
 export default class SessionPage extends Component {
   constructor(props) {
@@ -103,16 +103,11 @@ export default class SessionPage extends Component {
       return <LoadingWheel />;
     }
 
-    let displayDate = dateToString(this.state.session.start);
     let button;
-    let time;
-    let minutes;
-    let remaining;
     let ready;
     let ownReady;
     let ownEnd;
     let description;
-    let length;
     const user = firebase.auth().currentUser;
 
     if (this.state.session.clientKey === user.uid) {
@@ -135,25 +130,12 @@ export default class SessionPage extends Component {
     }
 
     if (!this.state.session.started) {
-      time = (
-        <Text style={styles.mediumText}>
-          {displayDate}
-          {' '}
-        </Text>
-      );
-      length = (
-        <Text style={styles.mediumText}>
-          {this.state.session.duration}
-          {' '}
-          min
-        </Text>
-      );
       button = (
         <TouchableOpacity
-          style={[styles.button, MasterStyles.shadow]}
+          style={CommonStyles.halfButton}
           onPress={this.startSession}
         >
-          <Text style={styles.buttonText}> Start Session </Text>
+          <Text style={CommonStyles.buttonText}> Start Session </Text>
         </TouchableOpacity>
       );
 
@@ -199,28 +181,13 @@ export default class SessionPage extends Component {
         ownReady = <Text style={styles.smallText}>You are ready!</Text>;
       }
     } else {
-      const pendingDate = new Date(this.state.session.start);
-      displayDate = dateToString(this.state.session.start);
-      const durationMs = this.state.session.duration * 60000;
-      remaining = ((pendingDate.getTime() + durationMs) - new Date().getTime());
-      minutes = Math.max(Math.floor((remaining / 1000) / 60), 0);
-      time = <Text style={styles.mediumText}>{displayDate}</Text>;
-      length = (
-        <Text style={styles.mediumText}>
-          You have
-          {' '}
-          {minutes}
-          {' '}
-          min left
-        </Text>
-      );
       button = (
         <TouchableOpacity
-          style={[styles.button, MasterStyles.shadow]}
+          style={CommonStyles.halfButton}
           onPressIn={this.endSession}
         >
           <Text
-            style={styles.buttonText}
+            style={CommonStyles.buttonText}
           >
             End Session
           </Text>
@@ -269,43 +236,48 @@ export default class SessionPage extends Component {
       }
     }
     return (
-      <View style={[MasterStyles.flexStartContainer, {alignItems: 'flex-start'}]}>
+      <View style={[CommonStyles.flexStartContainer, { alignItems: 'flex-start' }]}>
         <BackButton />
-        <Text style={styles.header}>Your Session</Text>
+        <Text style={styles.title}>Your Session</Text>
         <View style={styles.infoContainer}>
           {description}
           <Text style={styles.mediumText}>
-            {dateToString(this.state.session.start)} ({this.state.session.duration} min)
+            {dateToString(this.state.session.start)}
+            {' '}
+            (
+            {this.state.session.duration}
+            {' '}
+            min)
           </Text>
           {ready}
           {ownReady}
           {ownEnd}
         </View>
-          <MapView
-            pitchEnabled={false}
-            rotateEnabled={false}
-            scrollEnabled={false}
-            zoomEnabled={false}
-            style={styles.mapContainer}
-            region={this.state.mapRegion}
-            showsUserLocation
+        <MapView
+          pitchEnabled={false}
+          rotateEnabled={false}
+          scrollEnabled={false}
+          zoomEnabled={false}
+          style={styles.mapContainer}
+          region={this.state.mapRegion}
+          showsUserLocation
+        >
+          <MapView.Marker
+            ref={this.state.session.trainerKey}
+            key={this.state.session.trainerKey}
+            coordinate={this.state.session.location}
+          />
+        </MapView>
+        <View style={styles.buttonRow}>
+          {button}
+          <TouchableOpacity
+            style={CommonStyles.halfButton}
+            onPress={this.openMaps}
           >
-            <MapView.Marker
-              ref={this.state.session.trainerKey}
-              key={this.state.session.trainerKey}
-              coordinate={this.state.session.location}
-            />
-          </MapView>
-          <View style={styles.buttonRow}>
-            {button}
-            <TouchableOpacity
-              style={[styles.button, MasterStyles.shadow]}
-              onPress={this.openMaps}
-            >
-              <Text style={styles.buttonText}> Open in Maps </Text>
-            </TouchableOpacity>
-          </View>
+            <Text style={CommonStyles.buttonText}> Open in Maps </Text>
+          </TouchableOpacity>
         </View>
+      </View>
     );
   }
 }
@@ -338,7 +310,7 @@ const styles = StyleSheet.create({
     color: Colors.Primary,
     textAlign: 'center',
   },
-  header: {
+  title: {
     fontSize: 25,
     fontWeight: '700',
     margin: 15,
@@ -353,21 +325,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-  },
-  button: {
-    borderRadius: 10,
-    width: '40%',
-    height: 40,
-    marginTop: 15,
-    backgroundColor: Colors.White,
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  buttonText: {
-    fontSize: 15,
-    textAlign: 'center',
-    color: Colors.Primary,
-    fontWeight: '600',
   },
 });
