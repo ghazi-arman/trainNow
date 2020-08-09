@@ -146,7 +146,10 @@ export default class TrainersPage extends Component {
 
   renderRequests = () => {
     if (!this.state.user.requests) {
-      return null;
+      return ([
+        <Text style={styles.subTitle} key={0}>Trainer Requests</Text>,
+        <Text style={styles.name} key={1}>No Requests</Text>,
+      ]);
     }
 
     const requests = Object.keys(this.state.user.requests).map((key) => {
@@ -188,7 +191,10 @@ export default class TrainersPage extends Component {
 
   renderRecent = () => {
     if (!this.state.recentTrainers || !this.state.recentTrainers.length) {
-      return null;
+      return ([
+        <Text style={styles.subTitle} key={0}>Recent Trainers</Text>,
+        <Text style={styles.name} key={1}>No Recent Trainers</Text>,
+      ]);
     }
 
     const recentTrainers = this.state.recentTrainers.map((trainer) => {
@@ -234,7 +240,10 @@ export default class TrainersPage extends Component {
 
   renderTrainers = () => {
     if (!this.state.user.trainers) {
-      return null;
+      return ([
+        <Text style={styles.subTitle} key={0}>Trainers</Text>,
+        <Text style={styles.name} key={1}>No Recent Trainers</Text>,
+      ]);
     }
 
     const trainers = Object.keys(this.state.user.trainers).map((key) => {
@@ -306,6 +315,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
     margin: 10,
+    marginHorizontal: 15,
   },
   mediumText: {
     fontSize: 25,
@@ -355,6 +365,7 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 18,
     margin: 10,
+    marginHorizontal: 15,
   },
   profileImage: {
     height: 40,

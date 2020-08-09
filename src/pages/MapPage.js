@@ -237,19 +237,19 @@ export default class MapPage extends Component {
                 {this.state.selectedGym.address}
               </Text>
             ) : null}
-            {this.state.selectedGym.website ? (
-              <Text
-                style={[styles.link, { fontSize: 15, marginBottom: 5 }]}
-                onPress={() => Linking.openUrl(this.state.selectedGym.website)}
-              >
-                Website
-              </Text>
-            ) : null}
             <Text style={styles.gymDetails}>
               Hours:
               {' '}
               {this.state.selectedGym.hours}
             </Text>
+            {this.state.selectedGym.website ? (
+              <Text
+                style={[styles.link, { fontSize: 15, marginBottom: 5 }]}
+                onPress={() => Linking.openURL(this.state.selectedGym.website)}
+              >
+                Website
+              </Text>
+            ) : null}
           </View>
         );
       }
@@ -322,8 +322,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     backgroundColor: Colors.White,
-    borderWidth: 1,
-    borderColor: Colors.Black,
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
@@ -361,6 +359,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   expandedGymInfo: {
+    ...CommonStyles.shadow,
     position: 'absolute',
     top: 100,
     backgroundColor: Colors.White,
@@ -380,6 +379,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   gymInfo: {
+    ...CommonStyles.shadow,
     position: 'absolute',
     top: 100,
     backgroundColor: Colors.White,

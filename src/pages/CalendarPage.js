@@ -304,7 +304,10 @@ export default class CalendarPage extends Component {
   renderPendingSessions = () => {
     const userKey = firebase.auth().currentUser.uid;
     if (!this.state.pendingSessions.length) {
-      return null;
+      return ([
+        <Text style={styles.subTitle} key={0}>Pending Sessions</Text>,
+        <Text style={styles.noneText} key={1}>No Pending Sessions</Text>,
+      ]);
     }
 
     const pendingSessions = this.state.pendingSessions.map((session) => {
@@ -379,7 +382,10 @@ export default class CalendarPage extends Component {
   renderUpcomingSessions = () => {
     const userKey = firebase.auth().currentUser.uid;
     if (!this.state.upcomingSessions.length && !this.state.groupSessions.length) {
-      return null;
+      return ([
+        <Text style={styles.subTitle} key={0}>Upcoming Sessions</Text>,
+        <Text style={styles.noneText} key={1}>No Upcoming Sessions</Text>,
+      ]);
     }
 
     const upcomingSessions = this.state.upcomingSessions.map((session) => {
@@ -602,6 +608,11 @@ const styles = StyleSheet.create({
     color: Colors.Black,
     marginHorizontal: 15,
     marginVertical: 10,
+  },
+  noneText: {
+    fontSize: 18,
+    margin: 10,
+    marginHorizontal: 15,
   },
   button: {
     borderRadius: 10,

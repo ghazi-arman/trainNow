@@ -228,7 +228,7 @@ export default class GymModal extends Component {
       }
     }
     return (
-      <View style={[CommonStyles.flexStartContainer, {flex: 1}]}>
+      <View style={[CommonStyles.flexStartContainer, { flex: 1 }]}>
         {!this.state.selectedGym ? this.renderGyms() : this.renderTrainersAndSessions()}
         {joinOrLeaveGymButton}
       </View>
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'center',
     width: '100%',
-    marginTop: 20,
+    margin: 10,
   },
   nameContainer: {
     flexDirection: 'column',
@@ -317,6 +317,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 20,
     textAlign: 'left',
+    marginBottom: 10,
   },
   gymImage: {
     height: 40,

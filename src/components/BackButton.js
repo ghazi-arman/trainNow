@@ -26,8 +26,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.White,
     borderRadius: 10,
-    borderWidth: 1,
-    borderColor: Colors.Black,
   },
 });
 

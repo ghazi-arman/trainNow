@@ -140,8 +140,12 @@ export default class ClientsPage extends Component {
 
   renderRequests = () => {
     if (!this.state.user.requests) {
-      return null;
+      return ([
+        <Text style={styles.subTitle} key={0}>Trainer Requests</Text>,
+        <Text style={styles.name} key={1}>No Requests</Text>,
+      ]);
     }
+
     const requests = Object.keys(this.state.user.requests).map((key) => {
       const request = this.state.user.requests[key];
       request.key = key;
@@ -181,7 +185,10 @@ export default class ClientsPage extends Component {
 
   renderRecent = () => {
     if (!this.state.recentClients || !this.state.recentClients.length) {
-      return null;
+      return ([
+        <Text style={styles.subTitle} key={0}>Recent Clients</Text>,
+        <Text style={styles.name} key={1}>No Recent Clients</Text>,
+      ]);
     }
 
     const recentClients = this.state.recentClients.map((client) => {
@@ -220,15 +227,19 @@ export default class ClientsPage extends Component {
       );
     });
     return ([
-      <Text style={styles.subTitle}>Recent Clients</Text>,
+      <Text style={styles.subTitle} key={0}>Recent Clients</Text>,
       recentClients,
     ]);
   }
 
   renderClients = () => {
     if (!this.state.user.clients) {
-      return null;
+      return ([
+        <Text style={styles.subTitle} key={0}>Clients</Text>,
+        <Text style={styles.name} key={1}>No Clients</Text>,
+      ]);
     }
+
     const clients = Object.keys(this.state.user.clients).map((key) => {
       const client = this.state.user.clients[key];
       return (
@@ -343,8 +354,9 @@ const styles = StyleSheet.create({
     margin: 5,
   },
   name: {
-    fontSize: 15,
+    fontSize: 18,
     margin: 10,
+    marginHorizontal: 15,
   },
   profileImage: {
     height: 40,

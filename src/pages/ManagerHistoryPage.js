@@ -69,6 +69,10 @@ export default class ManagerHistoryPage extends Component {
   }
 
   renderSessions = () => {
+    if (!this.state.sessions.length) {
+      return <Text style={styles.subTitle}>No Past Sessions</Text>;
+    }
+
     this.state.sessions.sort((a, b) => (new Date(b.start) - new Date(a.start)));
     return this.state.sessions.map((session) => {
       const date = dateToString(session.start);
@@ -157,6 +161,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 25,
     fontWeight: '700',
+    color: Colors.Black,
+    marginHorizontal: 15,
+    marginBottom: 10,
+  },
+  subTitle: {
+    fontSize: 18,
     color: Colors.Black,
     marginHorizontal: 15,
     marginBottom: 10,

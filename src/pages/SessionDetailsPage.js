@@ -59,7 +59,9 @@ export default class SessionDetailsPage extends Component {
       ? this.props.session.trainerRating
       : this.props.session.clientRating;
 
-    const total = (parseInt(this.props.session.duration, 10) * (this.props.session.rate / 60)).toFixed(2);
+    const total = (
+      parseInt(this.props.session.duration, 10) * (this.props.session.rate / 60)
+    ).toFixed(2);
     const percentage = this.props.session.regular
       ? Constants.regularClientPercentage
       : Constants.newClientPercentage;
