@@ -98,6 +98,11 @@ export default class CreateGroupSessionPage extends Component {
       }
       if (!this.state.name) {
         Alert.alert('Please enter a session name');
+        return;
+      }
+      if (this.state.start < new Date()) {
+        Alert.alert(`You must pick a time after ${dateToString(new Date())}`);
+        return;
       }
       await createGroupSession(
         this.state.user,
@@ -156,6 +161,10 @@ export default class CreateGroupSessionPage extends Component {
       }
       if (!this.state.gymKey || this.state.gymKey === 'none') {
         Alert.alert('Please select a gym');
+        return;
+      }
+      if (this.state.start < new Date()) {
+        Alert.alert(`You must pick a time after ${dateToString(new Date())}`);
         return;
       }
       await updateGroupSession(
@@ -229,6 +238,8 @@ export default class CreateGroupSessionPage extends Component {
                   ),
                   showTimePicker: false,
                 });
+              } else {
+                this.setState({ showTimePicker: false });
               }
             }}
           />

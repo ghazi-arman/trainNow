@@ -67,6 +67,10 @@ export default class SchedulerPage extends Component {
   }
 
   addSession = (startDate, endDate) => {
+    if (endDate < startDate) {
+      Alert.alert('Your end date must be after your start date.');
+      return;
+    }
     addAvailableSession(firebase.auth().currentUser.uid, startDate, endDate);
     Alert.alert('Availability added.');
     Actions.CalendarPage();
@@ -140,6 +144,8 @@ export default class SchedulerPage extends Component {
                   ),
                   showStartTimePicker: false,
                 });
+              } else { 
+                this.setState({ showStartTimePicker: false });
               }
             }}
           />
@@ -179,6 +185,8 @@ export default class SchedulerPage extends Component {
                   ),
                   showEndTimePicker: false,
                 });
+              } else {
+                this.setState({ showEndTimePicker: false });
               }
             }}
           />

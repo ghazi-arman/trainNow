@@ -92,6 +92,12 @@ export default class BookingPage extends Component {
       Alert.alert('Sign into a non-trainer account to book sessions.');
       return;
     }
+    // checks if date is after minimum date for android
+    const minimumDate =  new Date(new Date().getTime() + this.state.trainer.offset * 60000);
+    if (this.state.bookDate < minimumDate) {
+      Alert.alert(`You must pick a time after ${dateToString(minimumDate)}`);
+      return;
+    }
     this.setState({ pressed: true });
 
     // Pulls schedules for trainers and conflicts to check for overlaps
@@ -246,6 +252,8 @@ export default class BookingPage extends Component {
                   ),
                   showTimePicker: false,
                 });
+              } else { 
+                this.setState({ showTimePicker: false });
               }
             }}
           />
