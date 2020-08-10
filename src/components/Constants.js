@@ -9,7 +9,7 @@ export default {
   groupSessionType: 'group',
   personalSessionType: 'personal',
   newClientPercentage: 0.15,
-  regularClientPercentage: 0.05,
+  regularClientPercentage: 0.1,
   groupSessionPercentage: 0.15,
   faqUrl: 'https://trainnow.fit/faq',
   requiredDistanceToGymMeters: REQUIRED_DISTANCE_METERS,
