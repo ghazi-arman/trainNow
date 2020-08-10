@@ -22,6 +22,7 @@ import {
   loadGroupSessions,
   cancelGroupSession,
   leaveGroupSession,
+  showFirstTimeMessage,
 } from '../components/Functions';
 import Colors from '../components/Colors';
 import Constants from '../components/Constants';
@@ -52,6 +53,7 @@ export default class CalendarPage extends Component {
         const groupSessions = await loadGroupSessions(userId, user.type);
         this.loadImages(groupSessions, 'groupSessions');
         await markSessionsAsRead(pendingSessions, upcomingSessions, user.type);
+        await showFirstTimeMessage(firebase.auth().currentUser.uid);
         this.setState({
           user, pendingSessions, upcomingSessions, groupSessions,
         });

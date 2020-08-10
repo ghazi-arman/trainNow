@@ -193,6 +193,7 @@ export default class SignupForm extends Component {
           rating: 0,
           sessions: 0,
           offset: 0,
+          firstTimeLoggedIn: true,
         });
 
         firebase.database().ref(`/users/${user.user.uid}/gyms/${gymKey}`).set({
@@ -270,6 +271,7 @@ export default class SignupForm extends Component {
           rating: 0,
           sessions: 0,
           cardAdded: false,
+          firstTimeLoggedIn: true,
         });
 
         if (this.state.image) {

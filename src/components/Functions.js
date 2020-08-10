@@ -1461,3 +1461,17 @@ export async function joinGroupSession(session, user, userKey) {
     type: Constants.groupSessionType,
   });
 }
+
+/**
+ * Shows an alert if the user is logging in for the first time.
+ * @param {String} userKey 
+ */
+export async function showFirstTimeMessage(userKey) {
+  const user = await loadUser(userKey);
+  if(user.type === Constants.trainerType && user.firstTimeLoggedIn) {
+    Alert.alert('Be sure to tell any other trainers about TrainNow so we can start adding clients as soon as possible.');
+    await firebase.database().ref(`/users/${userKey}/`).update({
+      firstTimeLoggedIn: false,
+    });
+  }
+}
