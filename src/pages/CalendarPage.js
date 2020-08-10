@@ -347,7 +347,7 @@ export default class CalendarPage extends Component {
             <Text style={[styles.buttonText, { color: Colors.Red }]}>Reject</Text>
           </TouchableOpacity>
         );
-        name = session.clientKey === userKey ? session.clientName : session.trainerName;
+        name = session.clientKey === userKey ? session.trainerName : session.clientName;
       }
       return (
         <View style={styles.sessionContainer} key={session.key}>

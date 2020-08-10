@@ -6,11 +6,11 @@ import {
   DatePickerIOS,
   DatePickerAndroid,
   TouchableOpacity,
-  TimePickerAndroid,
   Alert,
   ScrollView,
   Platform,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import firebase from 'firebase';
 import bugsnag from '@bugsnag/expo';
 import { Actions } from 'react-native-router-flux';
@@ -24,6 +24,8 @@ export default class SchedulerPage extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      showStartTimePicker: false,
+      showEndTimePicker: false,
       startDate: new Date(),
       endDate: new Date(),
     };
@@ -61,27 +63,6 @@ export default class SchedulerPage extends Component {
       }
     } catch (error) {
       this.bugsnagClient.notify(error);
-    }
-  }
-
-  openTimePicker = async (start) => {
-    try {
-      const { action, hour, minute } = await TimePickerAndroid.open({
-        hour: 0,
-        minute: 0,
-        is24Hour: false,
-      });
-      if (action !== TimePickerAndroid.dismissedAction) {
-        if (start) {
-          const { startDate } = this.state;
-          this.setState({ startDate: startDate.setHours(hour, minute) });
-        } else {
-          const { endDate } = this.state;
-          this.setState({ endDate: endDate.setHours(hour, minute) });
-        }
-      }
-    } catch ({ code, message }) {
-      this.bugsnagClient.notify(message);
     }
   }
 
@@ -128,43 +109,80 @@ export default class SchedulerPage extends Component {
       startPicker = (
         <TouchableOpacity
           style={CommonStyles.fullButton}
-          onPressIn={() => this.openDatePicker(true)}
+          onPress={() => this.openDatePicker(true)}
         >
           <Text style={CommonStyles.buttonText}>
             Choose Date
           </Text>
         </TouchableOpacity>
       );
-      startTimePicker = (
-        <TouchableOpacity
-          style={[CommonStyles.fullButton, { marginTop: 20 }]}
-          onPressIn={() => this.openTimePicker(true)}
-        >
-          <Text style={CommonStyles.buttonText}>
-            Choose Time
-          </Text>
-        </TouchableOpacity>
-      );
+      startTimePicker = !this.state.showStartTimePicker
+        ? (
+          <TouchableOpacity
+            style={[CommonStyles.fullButton, { marginTop: 20 }]}
+            onPress={() => this.setState({ showStartTimePicker: true })}
+          >
+            <Text style={CommonStyles.buttonText}>
+              Choose Time
+            </Text>
+          </TouchableOpacity>
+        )
+        : (
+          <DateTimePicker
+            mode="time"
+            value={new Date()}
+            onChange={(event, date) => {
+              if (date !== undefined) {
+                this.setState({
+                  startDate: new Date(
+                    // eslint-disable-next-line
+                    this.state.startDate.setHours(date.getHours(date), date.getMinutes(date))
+                  ),
+                  showStartTimePicker: false,
+                });
+              }
+            }}
+          />
+        );
+
       endPicker = (
         <TouchableOpacity
           style={CommonStyles.fullButton}
-          onPressIn={() => this.openDatePicker(false)}
+          onPress={() => this.openDatePicker(false)}
         >
           <Text style={CommonStyles.buttonText}>
             Choose Date
           </Text>
         </TouchableOpacity>
       );
-      endTimePicker = (
-        <TouchableOpacity
-          style={[CommonStyles.fullButton, { marginTop: 20 }]}
-          onPressIn={() => this.openTimePicker(false)}
-        >
-          <Text style={CommonStyles.buttonText}>
-            Choose Time
-          </Text>
-        </TouchableOpacity>
-      );
+      endTimePicker = !this.state.showEndTimePicker
+        ? (
+          <TouchableOpacity
+            style={[CommonStyles.fullButton, { marginTop: 20 }]}
+            onPress={() => this.setState({ showEndTimePicker: true })}
+          >
+            <Text style={CommonStyles.buttonText}>
+              Choose Time
+            </Text>
+          </TouchableOpacity>
+        )
+        : (
+          <DateTimePicker
+            mode="time"
+            value={new Date()}
+            onChange={(event, date) => {
+              if (date !== undefined) {
+                this.setState({
+                  endDate: new Date(
+                    // eslint-disable-next-line
+                    this.state.endDate.setHours(date.getHours(date), date.getMinutes(date))
+                  ),
+                  showEndTimePicker: false,
+                });
+              }
+            }}
+          />
+        );
     }
     return (
       <ScrollView contentContainerStyle={styles.container}>
@@ -183,7 +201,7 @@ export default class SchedulerPage extends Component {
           </View>
           <TouchableOpacity
             style={CommonStyles.fullButton}
-            onPressIn={() => this.addSession(this.state.startDate, this.state.endDate)}
+            onPress={() => this.addSession(this.state.startDate, this.state.endDate)}
           >
             <Text style={CommonStyles.buttonText}> Add Availability</Text>
           </TouchableOpacity>

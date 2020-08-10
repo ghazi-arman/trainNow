@@ -279,6 +279,7 @@ export default class MapPage extends Component {
         openDrawerOffset={0.3}
         tapToClose
         onClose={() => this.setState({ menuOpen: false })}
+        elevation={4}
       >
         <View style={[CommonStyles.flexStartContainer, { flex: 1 }]}>
           <MapView
@@ -336,8 +337,6 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'center',
     borderRadius: 10,
-    borderWidth: 1,
-    borderColor: Colors.Black,
   },
   buttonText: {
     textAlign: 'center',

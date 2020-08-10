@@ -7,11 +7,11 @@ import {
   Alert,
   DatePickerIOS,
   DatePickerAndroid,
-  TimePickerAndroid,
   Picker,
   Platform,
   ScrollView,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import firebase from 'firebase';
 import PropTypes from 'prop-types';
 import bugsnag from '@bugsnag/expo';
@@ -38,6 +38,7 @@ export default class BookingPage extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      showTimePicker: false,
       bookDate: new Date(),
       bookDuration: '60',
     };
@@ -195,21 +196,6 @@ export default class BookingPage extends Component {
     }
   }
 
-  openTimePicker = async () => {
-    try {
-      const { action, hour, minute } = await TimePickerAndroid.open({
-        is24Hour: false,
-      });
-      if (action !== TimePickerAndroid.dismissedAction) {
-        // eslint-disable-next-line
-        const bookDate = new Date(this.state.bookDate.setHours(hour, minute));
-        this.setState({ bookDate });
-      }
-    } catch ({ code, message }) {
-      this.bugsnagClient.notify(message);
-    }
-  }
-
   render() {
     if (!this.state.trainer || !this.state.client || this.state.pressed || !this.state.gym) {
       return <LoadingWheel />;
@@ -238,14 +224,32 @@ export default class BookingPage extends Component {
           <Text style={CommonStyles.buttonText}>Choose Date</Text>
         </TouchableOpacity>
       );
-      timePicker = (
-        <TouchableOpacity
-          style={[CommonStyles.fullButton, { marginTop: 20 }]}
-          onPress={() => this.openTimePicker()}
-        >
-          <Text style={CommonStyles.buttonText}>Choose Time</Text>
-        </TouchableOpacity>
-      );
+      timePicker = !this.state.showTimePicker
+        ? (
+          <TouchableOpacity
+            style={[CommonStyles.fullButton, { marginTop: 20 }]}
+            onPress={() => this.setState({ showTimePicker: true })}
+          >
+            <Text style={CommonStyles.buttonText}>Choose Time</Text>
+          </TouchableOpacity>
+        )
+        : (
+          <DateTimePicker
+            mode="time"
+            value={new Date()}
+            onChange={(event, date) => {
+              if (date !== undefined) {
+                this.setState({
+                  bookDate: new Date(
+                    // eslint-disable-next-line
+                    this.state.bookDate.setHours(date.getHours(date), date.getMinutes(date))
+                  ),
+                  showTimePicker: false,
+                });
+              }
+            }}
+          />
+        );
     }
     return (
       <ScrollView contentContainerStyle={styles.container}>

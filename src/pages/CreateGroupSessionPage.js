@@ -5,7 +5,6 @@ import {
   View,
   DatePickerIOS,
   DatePickerAndroid,
-  TimePickerAndroid,
   TouchableOpacity,
   Alert,
   ScrollView,
@@ -13,6 +12,7 @@ import {
   Platform,
   KeyboardAvoidingView,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import PropTypes from 'prop-types';
 import firebase from 'firebase';
 import bugsnag from '@bugsnag/expo';
@@ -30,6 +30,7 @@ export default class CreateGroupSessionPage extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      showTimePicker: false,
       start: new Date(),
     };
     this.bugsnagClient = bugsnag();
@@ -78,22 +79,6 @@ export default class CreateGroupSessionPage extends Component {
       }
     } catch (error) {
       this.bugsnagClient.notify(error);
-    }
-  }
-
-  openTimePicker = async () => {
-    try {
-      const { action, hour, minute } = await TimePickerAndroid.open({
-        hour: 0,
-        minute: 0,
-        is24Hour: false,
-      });
-      if (action !== TimePickerAndroid.dismissedAction) {
-        const { start } = this.state;
-        this.setState({ start: start.setHours(hour, minute) });
-      }
-    } catch ({ code, message }) {
-      this.bugsnagClient.notify(message);
     }
   }
 
@@ -222,16 +207,32 @@ export default class CreateGroupSessionPage extends Component {
           </Text>
         </TouchableOpacity>
       );
-      startTimePicker = (
-        <TouchableOpacity
-          style={[CommonStyles.fullButton, { marginTop: 20 }]}
-          onPress={() => this.openTimePicker(true)}
-        >
-          <Text style={CommonStyles.buttonText}>
-            Choose Session Time
-          </Text>
-        </TouchableOpacity>
-      );
+      startTimePicker = !this.state.showTimePicker
+        ? (
+          <TouchableOpacity
+            style={[CommonStyles.fullButton, { marginTop: 20 }]}
+            onPress={() => this.setState({ showTimePicker: true })}
+          >
+            <Text style={CommonStyles.buttonText}>Choose Time</Text>
+          </TouchableOpacity>
+        )
+        : (
+          <DateTimePicker
+            mode="time"
+            value={new Date()}
+            onChange={(event, date) => {
+              if (date !== undefined) {
+                this.setState({
+                  start: new Date(
+                    // eslint-disable-next-line
+                    this.state.start.setHours(date.getHours(date), date.getMinutes(date))
+                  ),
+                  showTimePicker: false,
+                });
+              }
+            }}
+          />
+        );
     }
     let button;
     if (this.props.sessionKey) {
