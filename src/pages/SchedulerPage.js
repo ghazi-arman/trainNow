@@ -144,7 +144,7 @@ export default class SchedulerPage extends Component {
                   ),
                   showStartTimePicker: false,
                 });
-              } else { 
+              } else {
                 this.setState({ showStartTimePicker: false });
               }
             }}

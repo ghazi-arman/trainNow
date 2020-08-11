@@ -117,16 +117,18 @@ export default class TrainerAccountForm extends Component {
     try {
       const userId = firebase.auth().currentUser.uid;
       // gym table updated
-      Object.keys(this.state.user.gyms).forEach((gymKey) => {
-        firebase.database().ref(`/gyms/${gymKey}/trainers/${userId}`).update({
-          cert: this.state.cert,
-          specialities: this.state.specialities,
-          rate: parseInt(this.state.rate, 10),
-          bio: this.state.bio,
-          active: this.state.active,
-          offset: parseInt(this.state.offset, 10),
+      if (this.state.user.gyms && this.state.user.gyms.length) {
+        Object.keys(this.state.user.gyms).forEach((gymKey) => {
+          firebase.database().ref(`/gyms/${gymKey}/trainers/${userId}`).update({
+            cert: this.state.cert,
+            specialities: this.state.specialities,
+            rate: parseInt(this.state.rate, 10),
+            bio: this.state.bio,
+            active: this.state.active,
+            offset: parseInt(this.state.offset, 10),
+          });
         });
-      });
+      }
 
       // user table updated
       firebase.database().ref('users').child(userId).update({

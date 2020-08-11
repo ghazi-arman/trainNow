@@ -93,7 +93,7 @@ export default class BookingPage extends Component {
       return;
     }
     // checks if date is after minimum date for android
-    const minimumDate =  new Date(new Date().getTime() + this.state.trainer.offset * 60000);
+    const minimumDate = new Date(new Date().getTime() + this.state.trainer.offset * 60000);
     if (this.state.bookDate < minimumDate) {
       Alert.alert(`You must pick a time after ${dateToString(minimumDate)}`);
       return;
@@ -252,7 +252,7 @@ export default class BookingPage extends Component {
                   ),
                   showTimePicker: false,
                 });
-              } else { 
+              } else {
                 this.setState({ showTimePicker: false });
               }
             }}

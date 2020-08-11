@@ -208,15 +208,14 @@ export default class GymModal extends Component {
     if (this.state.selectedGym && this.state.user.type === Constants.trainerType) {
       if (
         this.state.user.trainerType === Constants.independentType
-        && !this.state.user.gyms[this.state.selectedGym.key]
+        && (!this.state.user.gyms || !this.state.user.gyms[this.state.selectedGym.key])
       ) {
         joinOrLeaveGymButton = (
           <TouchableOpacity style={styles.button} onPress={this.joinGym}>
             <Text style={styles.buttonText}>Join Gym</Text>
           </TouchableOpacity>
         );
-      }
-      if (
+      } else if (
         this.state.user.trainerType === Constants.independentType
         && this.state.user.gyms[this.state.selectedGym.key]
       ) {

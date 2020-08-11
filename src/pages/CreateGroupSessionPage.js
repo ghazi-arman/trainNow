@@ -19,7 +19,7 @@ import bugsnag from '@bugsnag/expo';
 import { Actions } from 'react-native-router-flux';
 import Colors from '../components/Colors';
 import {
-  loadUser, createGroupSession, loadGroupSession, updateGroupSession,
+  loadUser, createGroupSession, loadGroupSession, updateGroupSession, dateToString,
 } from '../components/Functions';
 import TextField from '../components/TextField';
 import BackButton from '../components/BackButton';
@@ -311,14 +311,16 @@ export default class CreateGroupSessionPage extends Component {
             onValueChange={(itemValue) => this.setState({ gymKey: itemValue })}
           >
             <Picker.Item label="Pick a Gym (Scroll)" value="none" key="0" />
-            {Object.keys(this.state.user.gyms).map(
-              (key) => {
-                const gym = this.state.user.gyms[key];
-                return (
-                  <Picker.Item label={gym.name} value={key} key={key} />
-                );
-              },
-            )}
+            {this.state.user.gyms
+              ? Object.keys(this.state.user.gyms).map(
+                (key) => {
+                  const gym = this.state.user.gyms[key];
+                  return (
+                    <Picker.Item label={gym.name} value={key} key={key} />
+                  );
+                },
+              )
+              : null}
           </Picker>
           <Text style={styles.formLabel}>Start Time</Text>
           <View style={styles.buttonContainer}>

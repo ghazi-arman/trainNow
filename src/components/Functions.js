@@ -773,11 +773,6 @@ export async function joinGym(userKey, gymKey) {
  * @param {string} gymKey firebase key associated with the gym
  */
 export async function leaveGym(userKey, gymKey) {
-  const user = await loadUser(userKey);
-  if (user.gyms[gymKey].primary) {
-    Alert.alert('You cannot leave the gym you signed up with.');
-    return;
-  }
   await firebase.database().ref(`/users/${userKey}/gyms/${gymKey}`).remove();
   await firebase.database().ref(`/gyms/${gymKey}/trainers/${userKey}`).remove();
 }

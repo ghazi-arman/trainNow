@@ -55,6 +55,11 @@ export default class SignupForm extends Component {
       gym.key = snapshot.key;
       gyms.push(gym);
     });
+    gyms['Select Gym Later'] = {
+      type: Constants.independentType,
+      key: 1,
+      name: 'Select Gym Later',
+    };
     return gyms;
   }
 
@@ -155,29 +160,31 @@ export default class SignupForm extends Component {
 
       let gymRef;
       try {
-        let pending;
+        let pending = false;
         user = await firebase.auth().createUserWithEmailAndPassword(
           this.state.email,
           this.state.password,
         );
-        if (gymType === Constants.independentType) {
-          pending = false;
-          gymRef = firebase.database().ref(`/gyms/${gymKey}/trainers/`);
-        } else {
-          pending = true;
-          gymRef = firebase.database().ref(`/gyms/${gymKey}/pendingtrainers/`);
-        }
 
-        gymRef.child(user.user.uid).set({
-          active: false,
-          bio: this.state.bio,
-          cert: this.state.cert,
-          specialities: this.state.specialities,
-          name: this.state.name,
-          rate: parseInt(this.state.rate, 10),
-          rating: 0,
-          offset: 0,
-        });
+        if (gymKey !== 1) {
+          if (gymType === Constants.independentType) {
+            gymRef = firebase.database().ref(`/gyms/${gymKey}/trainers/`);
+          } else {
+            pending = true;
+            gymRef = firebase.database().ref(`/gyms/${gymKey}/pendingtrainers/`);
+          }
+
+          gymRef.child(user.user.uid).set({
+            active: false,
+            bio: this.state.bio,
+            cert: this.state.cert,
+            specialities: this.state.specialities,
+            name: this.state.name,
+            rate: parseInt(this.state.rate, 10),
+            rating: 0,
+            offset: 0,
+          });
+        }
 
         firebase.database().ref('users').child(user.user.uid).set({
           type: 'trainer',
@@ -196,11 +203,12 @@ export default class SignupForm extends Component {
           firstTimeLoggedIn: true,
         });
 
-        firebase.database().ref(`/users/${user.user.uid}/gyms/${gymKey}`).set({
-          name: gymName,
-          type: gymType,
-          primary: true,
-        });
+        if (gymKey !== 1) {
+          firebase.database().ref(`/users/${user.user.uid}/gyms/${gymKey}`).set({
+            name: gymName,
+            type: gymType,
+          });
+        }
 
         if (gymType === Constants.managedType) {
           const gymManagerKey = this.state.gyms[this.state.gym].managerKey;
@@ -245,7 +253,9 @@ export default class SignupForm extends Component {
               }
             }
             firebase.database().ref('users').child(user.user.uid).remove();
-            gymRef.child(user.user.uid).remove();
+            if (gymKey !== 1) {
+              gymRef.child(user.user.uid).remove();
+            }
             firebase.auth().currentUser.delete();
           }
           Alert.alert('There was an error creating your account. Please review your info and try again.');
@@ -515,6 +525,7 @@ export default class SignupForm extends Component {
               onValueChange={(itemValue) => this.setState({ gym: itemValue })}
             >
               <Picker.Item label="Pick a Gym (Scroll)" value="none" key="0" />
+              <Picker.Item label="Select Gym Later" value="Select Gym Later" key="1" />
               {this.state.gyms.map(
                 (gym, index) => (<Picker.Item label={gym.name} value={index} key={gym.key} />),
               )}
@@ -552,7 +563,7 @@ export default class SignupForm extends Component {
           />
           <TextField
             icon="user"
-            placeholder="Last 4  of Social Security # (For Stripe Verification)"
+            placeholder="Last 4 of Social Security # (For Stripe Verification)"
             keyboard="number-pad"
             maxLength={4}
             onChange={(ssn) => this.setState({ ssn })}
