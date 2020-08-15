@@ -67,10 +67,6 @@ export default class GroupSessionPage extends Component {
     }
   }
 
-  sendMessage = () => {
-    Linking.openURL(`sms:${this.state.session.trainerPhone}`);
-  }
-
   render() {
     if (!this.state.session || !this.state.userRegion) {
       return <LoadingWheel />;

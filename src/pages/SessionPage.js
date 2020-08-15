@@ -90,14 +90,6 @@ export default class SessionPage extends Component {
     }
   }
 
-  sendMessage = () => {
-    if (this.state.session.trainerKey === firebase.auth().currentUser.uid) {
-      Linking.openURL(`sms:${this.state.session.clientPhone}`);
-    } else {
-      Linking.openURL(`sms:${this.state.session.trainerPhone}`);
-    }
-  }
-
   render() {
     if (!this.state.session || !this.state.userRegion) {
       return <LoadingWheel />;
