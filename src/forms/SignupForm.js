@@ -336,7 +336,7 @@ export default class SignupForm extends Component {
         Alert.alert('Please enter a first and last name (no middle name).');
         return;
       }
-      if (!this.state.email.trim()) {
+      if (!this.state.email || !this.state.email.trim()) {
         Alert.alert('Please enter an email!');
         return;
       }
@@ -348,7 +348,7 @@ export default class SignupForm extends Component {
         Alert.alert('Passwords must match!');
         return;
       }
-      if (!this.state.phone.trim() || this.state.phone.trim().length < 10) {
+      if (!this.state.phone || this.state.phone.trim().length < 10) {
         Alert.alert('Please enter a valid phone number');
         return;
       }
@@ -374,15 +374,15 @@ export default class SignupForm extends Component {
         Alert.alert('Please select a gym!');
         return;
       }
-      if (!this.state.cert.trim()) {
+      if (!this.state.cert || !this.state.cert.trim()) {
         Alert.alert('Please enter your certifications!');
         return;
       }
-      if (!this.state.specialities.trim()) {
+      if (!this.state.specialities || !this.state.specialities.trim()) {
         Alert.alert('Please enter your specialities!');
         return;
       }
-      if (!this.state.bio.trim()) {
+      if (!this.state.bio || !this.state.bio.trim()) {
         Alert.alert('Please fill out your bio!');
         return;
       }
@@ -390,15 +390,15 @@ export default class SignupForm extends Component {
         this.setState({ page: 4 });
       } else {
         if (!this.state.rate || parseInt(this.state.rate, 10) < 25) {
-          Alert.alert('Please enter your rate (has to be $25+)!');
+          Alert.alert('Please enter your hourly rate (has to be $25+)!');
           return;
         }
-        if (!this.state.ssn.trim() || this.state.ssn.trim().length !== 4) {
+        if (!this.state.ssn || this.state.ssn.trim().length !== 4) {
           Alert.alert('Please enter a valid Social Security Number! Just the last four digits.');
           return;
         }
         if (
-          !this.state.birthDay.trim()
+          !this.state.birthDay
           || this.state.birthDay.trim().length < 8
           || this.state.birthDay.trim().split('/').length !== 3
         ) {
@@ -408,19 +408,19 @@ export default class SignupForm extends Component {
         this.setState({ page: 3 });
       }
     } else {
-      if (!this.state.address.trim()) {
+      if (!this.state.address || !this.state.address.trim()) {
         Alert.alert('Please enter an address!');
         return;
       }
-      if (!this.state.city.trim()) {
+      if (!this.state.city || !this.state.city.trim()) {
         Alert.alert('Please enter a city!');
         return;
       }
-      if (!this.state.zip.trim() || this.state.zip.trim().length !== 5) {
+      if (!this.state.zip || this.state.zip.trim().length !== 5) {
         Alert.alert('Please enter a valid 5 digit zip code!');
         return;
       }
-      if (!this.state.state.trim() || this.state.state.trim().length !== 2) {
+      if (!this.state.state || this.state.state.trim().length !== 2) {
         Alert.alert('Please enter a valid state Abbreviation!');
         return;
       }
