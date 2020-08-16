@@ -62,22 +62,22 @@ export default class Menu extends Component {
           <Text style={styles.stars}>{renderStars(this.state.user.rating)}</Text>
         </View>
         <TouchableOpacity style={styles.menuRow} onPress={this.props.toggleMenu}>
-          <FontAwesome style={styles.icon} name="compass" color={Colors.Primary} size={30} />
+          <FontAwesome style={styles.icon} name="compass" color={Colors.Primary} size={27} />
           <Text style={styles.menuLink}>Map</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.menuRow}
           onPress={() => Actions.SettingsPage({ userType: this.state.user.type })}
         >
-          <FontAwesome style={styles.icon} name="gear" color={Colors.Primary} size={30} />
+          <FontAwesome style={styles.icon} name="gear" color={Colors.Primary} size={27} />
           <Text style={styles.menuLink}>Settings</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.menuRow} onPress={Actions.CalendarPage}>
-          <FontAwesome style={styles.icon} name="calendar" color={Colors.Primary} size={30} />
+          <FontAwesome style={styles.icon} name="calendar" color={Colors.Primary} size={27} />
           <Text style={styles.menuLink}>Calendar</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.menuRow} onPress={Actions.HistoryPage}>
-          <FontAwesome style={styles.icon} name="list" color={Colors.Primary} size={30} />
+          <FontAwesome style={styles.icon} name="list" color={Colors.Primary} size={27} />
           <Text style={styles.menuLink}>History</Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -88,21 +88,21 @@ export default class Menu extends Component {
               : Actions.TrainersPage
           }
         >
-          <FontAwesome style={styles.icon} name="users" color={Colors.Primary} size={30} />
+          <FontAwesome style={styles.icon} name="users" color={Colors.Primary} size={27} />
           <Text style={styles.menuLink}>
             {this.state.user.type === Constants.trainerType ? 'Clients' : 'Trainers'}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.menuRow} onPress={Actions.PaymentPage}>
-          <FontAwesome style={styles.icon} name="credit-card" color={Colors.Primary} size={30} />
+          <FontAwesome style={styles.icon} name="credit-card" color={Colors.Primary} size={27} />
           <Text style={styles.menuLink}>Payments</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.menuRow} onPress={() => Linking.openURL(Constants.faqUrl)}>
-          <FontAwesome style={styles.icon} name="book" color={Colors.Primary} size={30} />
+          <FontAwesome style={styles.icon} name="book" color={Colors.Primary} size={27} />
           <Text style={styles.menuLink}>FAQ</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.menuRow} onPress={this.logout}>
-          <FontAwesome style={styles.icon} name="power-off" color={Colors.Primary} size={30} />
+          <FontAwesome style={styles.icon} name="power-off" color={Colors.Primary} size={27} />
           <Text style={styles.menuLink}>Sign Out</Text>
         </TouchableOpacity>
       </View>
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-start',
     alignItems: 'center',
-    padding: 5,
+    padding: 10,
     marginLeft: 5,
   },
   profilePicture: {
@@ -160,8 +160,6 @@ const styles = StyleSheet.create({
   },
   icon: {
     width: 35,
-    height: 35,
-    textAlign: 'center',
   },
   stars: {
     color: Colors.Primary,

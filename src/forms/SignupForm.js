@@ -516,7 +516,7 @@ export default class SignupForm extends Component {
         <View style={styles.container}>
           <View style={styles.inputRow}>
             <Text style={styles.icon}>
-              <FontAwesome name="building" size={30} />
+              <FontAwesome name="building" size={27} />
             </Text>
             <Picker
               style={styles.picker}

@@ -9,7 +9,7 @@ import Colors from './Colors';
 const TextField = (props) => (
   <View style={props.rowStyle}>
     <View style={styles.icon}>
-      <FontAwesome name={props.icon} size={30} color={Colors.Primary} />
+      <FontAwesome name={props.icon} size={27} color={Colors.Primary} />
     </View>
     <TextInput
       placeholder={props.placeholder}
