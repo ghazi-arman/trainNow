@@ -208,7 +208,7 @@ export default class MapPage extends Component {
       if (!this.state.viewDetails) {
         gymInfo = (
           <View style={styles.gymInfo}>
-            <Text style={[styles.title]}>{this.state.selectedGym.name}</Text>
+            <Text style={styles.title}>{this.state.selectedGym.name}</Text>
             <Text
               style={[styles.link, { fontSize: 15 }]}
               onPress={() => { this.setState({ viewDetails: true }); }}
@@ -221,7 +221,7 @@ export default class MapPage extends Component {
         gymInfo = (
           <View style={styles.expandedGymInfo}>
             <View style={styles.gymNameRow}>
-              <Text style={[styles.title]}>{this.state.selectedGym.name}</Text>
+              <Text style={styles.title}>{this.state.selectedGym.name}</Text>
               <Text
                 style={[styles.link, { fontSize: 15 }]}
                 onPress={() => { this.setState({ viewDetails: false }); }}

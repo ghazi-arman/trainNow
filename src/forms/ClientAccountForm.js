@@ -113,10 +113,10 @@ export default class ClientAccountForm extends Component {
         <View style={CommonStyles.centeredContainer}>
           <Image source={{ uri: this.state.image }} style={styles.imageHolder} />
         </View>
-        <TouchableOpacity style={CommonStyles.fullButton} onPressIn={this.pickImage}>
+        <TouchableOpacity style={CommonStyles.fullButton} onPress={this.pickImage}>
           <Text style={CommonStyles.buttonText}> Update Image </Text>
         </TouchableOpacity>
-        <TouchableOpacity style={CommonStyles.fullButton} onPressIn={this.updateAccount}>
+        <TouchableOpacity style={CommonStyles.fullButton} onPress={this.updateAccount}>
           <Text style={CommonStyles.buttonText}> Save Changes </Text>
         </TouchableOpacity>
       </View>

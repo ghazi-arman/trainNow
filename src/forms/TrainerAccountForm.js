@@ -217,10 +217,10 @@ export default class TrainerAccountForm extends Component {
           onChange={(offset) => this.setState({ offset, change: true })}
           value={this.state.offset}
         />
-        <TouchableOpacity style={CommonStyles.fullButton} onPressIn={this.pickImage}>
+        <TouchableOpacity style={CommonStyles.fullButton} onPress={this.pickImage}>
           <Text style={CommonStyles.buttonText}>Update Image</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={CommonStyles.fullButton} onPressIn={this.updateAccount}>
+        <TouchableOpacity style={CommonStyles.fullButton} onPress={this.updateAccount}>
           <Text style={CommonStyles.buttonText}>Save Changes</Text>
         </TouchableOpacity>
       </View>

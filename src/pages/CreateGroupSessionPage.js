@@ -209,7 +209,7 @@ export default class CreateGroupSessionPage extends Component {
       startDatePicker = (
         <TouchableOpacity
           style={CommonStyles.fullButton}
-          onPressIn={() => this.openDatePicker(true)}
+          onPress={() => this.openDatePicker(true)}
         >
           <Text style={CommonStyles.buttonText}>
             Choose Session Date

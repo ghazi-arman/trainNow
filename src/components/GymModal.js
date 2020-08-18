@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {
-  Image, StyleSheet, Text, View, ScrollView, TouchableWithoutFeedback, TouchableOpacity,
+  Image, StyleSheet, Text, View, ScrollView, TouchableWithoutFeedback, TouchableOpacity, Alert,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import geolib from 'geolib';
@@ -48,9 +48,9 @@ export default class GymModal extends Component {
                   <Text style={styles.gymName}>{gym.name}</Text>
                   <Text style={styles.distance}>
                     {(geolib.getDistance(
-                      gym.location,
-                      this.props.userRegion,
-                    ) * Constants.metersToMilesMultiplier).toFixed(2)}
+                        gym.location,
+                        this.props.userRegion,
+                      ) * Constants.metersToMilesMultiplier).toFixed(2)}
                     {' '}
                     miles away
                   </Text>
@@ -189,13 +189,18 @@ export default class GymModal extends Component {
   }
 
   joinGym = async () => {
+    if (this.state.selectedGym.virtual) {
+      Alert.alert('Please read the blog post on our website to find out how virtual sessions work.');
+    }
     await joinGym(firebase.auth().currentUser.uid, this.state.selectedGym.key);
+    Alert.alert('Reload the map to see changes.');
     const user = await loadUser(firebase.auth().currentUser.uid);
     this.setState({ user });
   }
 
   leaveGym = async () => {
     await leaveGym(firebase.auth().currentUser.uid, this.state.selectedGym.key);
+    Alert.alert('Reload the map to see changes.');
     const user = await loadUser(firebase.auth().currentUser.uid);
     this.setState({ user });
   }

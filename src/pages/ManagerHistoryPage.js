@@ -14,7 +14,7 @@ import bugsnag from '@bugsnag/expo';
 import Colors from '../components/Colors';
 import Constants from '../components/Constants';
 import {
-  loadSessions, dateToString,
+  loadSessions, dateToString, getLocation,
 } from '../components/Functions';
 import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
@@ -33,8 +33,9 @@ export default class ManagerHistoryPage extends Component {
   async componentDidMount() {
     try {
       const sessions = await loadSessions(this.props.userKey);
+      const userRegion = await getLocation();
       this.loadImages(sessions);
-      this.setState({ sessions });
+      this.setState({ sessions, userRegion });
     } catch (error) {
       this.bugsnagClient.notify(error);
       Alert.alert('There was an error loading the history for that trainer.');
@@ -87,12 +88,20 @@ export default class ManagerHistoryPage extends Component {
         name = session.trainerKey !== this.props.userKey
           ? session.trainerName
           : session.clientName;
-        link = () => Actions.SessionDetailsPage({ session, managerView: true });
+        link = () => Actions.SessionDetailsPage({
+          session,
+          userRegion: this.state.userRegion,
+          managerView: true,
+        });
       } else {
         name = session.trainerKey !== this.props.userKey
           ? session.trainerName
           : session.name;
-        link = () => Actions.PastGroupSessionDetailsPage({ session, managerView: true });
+        link = () => Actions.PastGroupSessionDetailsPage({
+          session,
+          userRegion: this.state.userRegion,
+          managerView: true,
+        });
       }
 
       return (

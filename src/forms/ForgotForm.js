@@ -52,7 +52,7 @@ export default class ForgotForm extends Component {
           onChange={(email) => this.setState({ email })}
           value={this.state.email}
         />
-        <TouchableOpacity style={CommonStyles.fullButton} onPressIn={this.submit}>
+        <TouchableOpacity style={CommonStyles.fullButton} onPress={this.submit}>
           <Text style={CommonStyles.buttonText}>Submit</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={Actions.LoginPage}>

@@ -71,6 +71,7 @@ const addGym = async (req, res) => {
     name: body.name,
     type: body.type,
     website: body.website,
+    virtual: body.virtual ? body.virtual : false,
   };
 
   try {

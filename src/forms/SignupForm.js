@@ -444,13 +444,13 @@ export default class SignupForm extends Component {
     let prevButton;
 
     prevButton = (
-      <TouchableOpacity style={CommonStyles.halfButton} onPressIn={this.goBack}>
+      <TouchableOpacity style={CommonStyles.halfButton} onPress={this.goBack}>
         <Text style={CommonStyles.buttonText}>Back</Text>
       </TouchableOpacity>
     );
 
     nextButton = (
-      <TouchableOpacity style={CommonStyles.halfButton} onPressIn={this.goNext}>
+      <TouchableOpacity style={CommonStyles.halfButton} onPress={this.goNext}>
         <Text style={CommonStyles.buttonText}>Next</Text>
       </TouchableOpacity>
     );
@@ -630,7 +630,7 @@ export default class SignupForm extends Component {
         <TouchableOpacity
           ref={(btn) => { this.btn = btn; }}
           style={CommonStyles.halfButton}
-          onPressIn={this.signUp}
+          onPress={this.signUp}
         >
           <Text style={CommonStyles.buttonText}>Signup</Text>
         </TouchableOpacity>

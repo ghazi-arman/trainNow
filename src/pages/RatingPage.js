@@ -9,7 +9,7 @@ import bugsnag from '@bugsnag/expo';
 import PropTypes from 'prop-types';
 import Colors from '../components/Colors';
 import {
-  loadSession, loadUser, rateSession, dateToTime, chargeCard,
+  loadSession, loadUser, rateSession, dateToTime,
 } from '../components/Functions';
 import Constants from '../components/Constants';
 import LoadingWheel from '../components/LoadingWheel';
@@ -44,29 +44,6 @@ export default class RatingPage extends Component {
     }
     this.setState({ pressed: true });
     try {
-      if (this.state.user.type === Constants.clientType) {
-        const total = (
-          parseInt(this.state.session.duration, 10) * (this.state.session.rate / 60) * 100
-        ).toFixed(0);
-        let percentage = this.state.session.regular
-          ? Constants.regularClientPercentage
-          : Constants.newClientPercentage;
-        if (this.state.session.type === Constants.groupSessionType) {
-          percentage = Constants.groupSessionPercentage;
-        }
-        const payout = (total - total * percentage).toFixed(0);
-        if (payout !== '0') {
-          await chargeCard(
-            this.state.user.stripeId,
-            this.state.session.trainerStripe,
-            total,
-            total - payout,
-            this.state.session,
-            this.state.user.phone,
-          );
-        }
-      }
-
       await rateSession(
         this.state.session.key,
         parseInt(this.state.rating, 10),

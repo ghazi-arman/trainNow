@@ -7,9 +7,10 @@ import firebase from 'firebase';
 import bugsnag from '@bugsnag/expo';
 import PropTypes from 'prop-types';
 import { Actions } from 'react-native-router-flux';
+import Constants from '../components/Constants';
 import Colors from '../components/Colors';
 import {
-  getLocation, loadGroupSession, dateToString, startGroupSession,
+  getLocation, loadGroupSession, dateToString, startGroupSession, chargeCard, loadUser,
 } from '../components/Functions';
 import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
@@ -28,12 +29,13 @@ export default class GroupSessionPage extends Component {
       try {
         const location = await getLocation();
         const session = await loadGroupSession(this.props.session);
+        const user = await loadUser(firebase.auth().currentUser.uid);
         // if session has been ended redirect to rating page
         if (session.end) {
           clearInterval(this.interval);
           Actions.GroupSessionRatingPage({ session: session.key });
         }
-        this.setState({ session, userRegion: location, mapRegion: location });
+        this.setState({ session, userRegion: location, mapRegion: location, user });
       } catch (error) {
         this.bugsnagClient.notify(error);
         Alert.alert('There was an error when trying to load the current session.');
@@ -51,12 +53,34 @@ export default class GroupSessionPage extends Component {
   }
 
   endSession = async () => {
-    const sessionRef = firebase.database().ref(`/groupSessions/${this.state.session.key}`);
-    const gymSessionRef = firebase.database().ref(`/gyms/${this.state.session.gymKey}/groupSessions/${this.state.session.key}`);
-    sessionRef.update({ end: new Date() });
-    gymSessionRef.update({ end: new Date() });
-    clearInterval(this.interval);
-    Actions.GroupSessionRatingPage({ session: this.state.session.key });
+    try {
+      if (this.state.submitted) {
+        return;
+      }
+      this.setState({ submitted: true });
+      if (this.state.session.trainerKey !== firebase.auth().currentUser.uid) {
+        const total = (this.state.session.cost * 100).toFixed(0);
+        const payout = (total - (total * Constants.groupSessionPercentage)).toFixed(0);
+        await chargeCard(
+          this.state.user.stripeId,
+          this.state.session.trainerStripe,
+          total,
+          total - payout,
+          this.state.session,
+          this.state.user.phone,
+        );
+      }
+      const sessionRef = firebase.database().ref(`/groupSessions/${this.state.session.key}`);
+      const gymSessionRef = firebase.database().ref(`/gyms/${this.state.session.gymKey}/groupSessions/${this.state.session.key}`);
+      sessionRef.update({ end: new Date() });
+      gymSessionRef.update({ end: new Date() });
+      clearInterval(this.interval);
+      Actions.GroupSessionRatingPage({ session: this.state.session.key });
+    } catch(error) {
+      this.bugsnagClient.notify(error);
+    } finally {
+      this.setState({ submitted: false });
+    }
   }
 
   openMaps = () => {
@@ -67,12 +91,25 @@ export default class GroupSessionPage extends Component {
     }
   }
 
+  sendMessage = () => {
+    if (this.state.session.trainerKey === firebase.auth().currentUser.uid) {
+      const clientPhones = Object.keys(this.state.session.clients).map((clientKey) => this.state.session.clients[clientKey].phone).join(',');
+      const messagingLink = Platform.OS === 'ios'
+        ? `sms:/open?addresses=${clientPhones}`
+        : `sms:${clientPhones}`;
+      Linking.openURL(messagingLink);
+    } else {
+      Linking.openURL(`sms:${this.state.session.trainerPhone}`);
+    }
+  }
+
   render() {
-    if (!this.state.session || !this.state.userRegion) {
+    if (!this.state.session || !this.state.userRegion || this.state.submitted) {
       return <LoadingWheel />;
     }
 
     let button;
+    let secondButton;
     let ready;
     let description;
     const user = firebase.auth().currentUser;
@@ -114,6 +151,14 @@ export default class GroupSessionPage extends Component {
         );
       }
 
+      if (!this.state.session.virtual) {
+        secondButton = (
+          <TouchableOpacity style={CommonStyles.halfButton} onPress={this.openMaps}>
+            <Text style={CommonStyles.buttonText}>Open in Maps</Text>
+          </TouchableOpacity>
+        );
+      }
+
       if (this.state.session.trainerKey === firebase.auth().currentUser.uid) {
         button = (
           <TouchableOpacity
@@ -124,15 +169,22 @@ export default class GroupSessionPage extends Component {
           </TouchableOpacity>
         );
       }
-    } else if (this.state.session.trainerKey === firebase.auth().currentUser.uid) {
-      button = (
-        <TouchableOpacity
-          style={CommonStyles.halfButton}
-          onPressIn={this.endSession}
-        >
-          <Text style={CommonStyles.buttonText}>
-            End Session
-          </Text>
+    } else {
+      if (this.state.session.trainerKey === firebase.auth().currentUser.uid) {
+        button = (
+          <TouchableOpacity
+            style={CommonStyles.halfButton}
+            onPress={this.endSession}
+          >
+            <Text style={CommonStyles.buttonText}>
+              End Session
+            </Text>
+          </TouchableOpacity>
+        );
+      }
+      secondButton = (
+        <TouchableOpacity style={CommonStyles.halfButton} onPress={this.sendMessage}>
+          <Text style={CommonStyles.buttonText}>Send Message</Text>
         </TouchableOpacity>
       );
     }
@@ -164,16 +216,16 @@ export default class GroupSessionPage extends Component {
           <MapView.Marker
             ref={this.state.session.trainerKey}
             key={this.state.session.trainerKey}
-            coordinate={this.state.session.location}
+            coordinate={this.state.session.virtual
+              ? this.state.session.location
+              : this.state.userRegion}
           >
             <Image source={markerImage} style={{ width: 40, height: 40 }} />
           </MapView.Marker>
         </MapView>
         <View style={styles.buttonRow}>
           {button}
-          <TouchableOpacity style={CommonStyles.halfButton} onPress={this.openMaps}>
-            <Text style={CommonStyles.buttonText}>Open in Maps</Text>
-          </TouchableOpacity>
+          {secondButton}
         </View>
       </View>
     );

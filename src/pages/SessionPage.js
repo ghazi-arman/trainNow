@@ -7,9 +7,10 @@ import firebase from 'firebase';
 import bugsnag from '@bugsnag/expo';
 import PropTypes from 'prop-types';
 import { Actions } from 'react-native-router-flux';
+import Constants from '../components/Constants';
 import Colors from '../components/Colors';
 import {
-  getLocation, loadSession, dateToString, startSession,
+  getLocation, loadSession, dateToString, startSession, chargeCard, loadUser,
 } from '../components/Functions';
 import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
@@ -25,6 +26,7 @@ export default class SessionPage extends Component {
   async componentDidMount() {
     this.interval = setInterval(async () => {
       try {
+        const user = await loadUser(firebase.auth().currentUser.uid);
         const location = await getLocation();
         const session = await loadSession(this.props.session);
         const sessionRef = firebase.database().ref(`/trainSessions/${this.props.session}`);
@@ -43,7 +45,7 @@ export default class SessionPage extends Component {
         if (session.clientReady && session.trainerReady && !session.started) {
           sessionRef.update({ start: new Date(), started: true });
         }
-        this.setState({ session, userRegion: location, mapRegion: location });
+        this.setState({ session, userRegion: location, mapRegion: location, user });
       } catch (error) {
         this.bugsnagClient.notify(error);
         Alert.alert('There was an error when trying to load the current session.');
@@ -61,24 +63,52 @@ export default class SessionPage extends Component {
   }
 
   endSession = async () => {
-    const user = firebase.auth().currentUser;
-    const sessionRef = firebase.database().ref(`/trainSessions/${this.state.session.key}`);
-    const session = await loadSession(this.state.session.key);
+    try {
+      if (this.state.submitted) {
+        return;
+      }
+      this.setState({ submitted: true });
+      const user = firebase.auth().currentUser;
+      const sessionRef = firebase.database().ref(`/trainSessions/${this.state.session.key}`);
+      const session = await loadSession(this.state.session.key);
+      if (session.clientKey === user.uid) {
+        const total = (parseInt(session.duration, 10) * (session.rate / 60) * 100).toFixed(0);
+        let percentage = session.regular
+          ? Constants.regularClientPercentage
+          : Constants.newClientPercentage;
+        if (session.type === Constants.groupSessionType) {
+          percentage = Constants.groupSessionPercentage;
+        }
+        const payout = (total - total * percentage).toFixed(0);
+        await chargeCard(
+          this.state.user.stripeId,
+          session.trainerStripe,
+          total,
+          total - payout,
+          session,
+          this.state.user.phone,
+        );
+      }
 
-    if (session.trainerKey === user.uid) {
-      if (session.clientEnd) {
-        sessionRef.update({ trainerEnd: true, end: new Date() });
+      if (session.trainerKey === user.uid) {
+        if (session.clientEnd) {
+          sessionRef.update({ trainerEnd: true, end: new Date() });
+          clearInterval(this.interval);
+          Actions.RatingPage({ session: this.state.session.key });
+        } else {
+          sessionRef.update({ trainerEnd: true, read: true });
+        }
+      } else if (session.trainerEnd) {
+        sessionRef.update({ clientEnd: true, end: new Date() });
         clearInterval(this.interval);
         Actions.RatingPage({ session: this.state.session.key });
       } else {
-        sessionRef.update({ trainerEnd: true, read: true });
+        sessionRef.update({ clientEnd: true, read: true });
       }
-    } else if (session.trainerEnd) {
-      sessionRef.update({ clientEnd: true, end: new Date() });
-      clearInterval(this.interval);
-      Actions.RatingPage({ session: this.state.session.key });
-    } else {
-      sessionRef.update({ clientEnd: true, read: true });
+    } catch(error) {
+      this.bugsnagClient.notify(error);
+    } finally {
+      this.setState({ submitted: false });
     }
   }
 
@@ -90,12 +120,21 @@ export default class SessionPage extends Component {
     }
   }
 
+  sendMessage = () => {
+    if (this.state.session.trainerKey === firebase.auth().currentUser.uid) {
+      Linking.openURL(`sms:${this.state.session.clientPhone}`);
+    } else {
+      Linking.openURL(`sms:${this.state.session.trainerPhone}`);
+    }
+  }
+
   render() {
-    if (!this.state.session || !this.state.userRegion) {
+    if (!this.state.session || !this.state.userRegion || this.state.submitted) {
       return <LoadingWheel />;
     }
 
     let button;
+    let secondButton;
     let ready;
     let ownReady;
     let ownEnd;
@@ -130,6 +169,14 @@ export default class SessionPage extends Component {
           <Text style={CommonStyles.buttonText}> Start Session </Text>
         </TouchableOpacity>
       );
+
+      if (!this.state.session.virtual) {
+        secondButton = (
+          <TouchableOpacity style={CommonStyles.halfButton} onPress={this.openMaps}>
+            <Text style={CommonStyles.buttonText}>Open in Maps</Text>
+          </TouchableOpacity>
+        );
+      }
 
       // Gives info about whether trainer/client is ready or en route
       if (this.state.session.clientReady && user.uid === this.state.session.trainerKey) {
@@ -174,15 +221,14 @@ export default class SessionPage extends Component {
       }
     } else {
       button = (
-        <TouchableOpacity
-          style={CommonStyles.halfButton}
-          onPressIn={this.endSession}
-        >
-          <Text
-            style={CommonStyles.buttonText}
-          >
-            End Session
-          </Text>
+        <TouchableOpacity style={CommonStyles.halfButton} onPress={this.endSession}>
+          <Text style={CommonStyles.buttonText}>End Session</Text>
+        </TouchableOpacity>
+      );
+
+      secondButton = (
+        <TouchableOpacity style={CommonStyles.halfButton} onPress={this.sendMessage}>
+          <Text style={CommonStyles.buttonText}>Send Message</Text>
         </TouchableOpacity>
       );
 
@@ -257,17 +303,14 @@ export default class SessionPage extends Component {
           <MapView.Marker
             ref={this.state.session.trainerKey}
             key={this.state.session.trainerKey}
-            coordinate={this.state.session.location}
+            coordinate={this.state.session.virtual
+              ? this.state.session.location
+              : this.state.userRegion}
           />
         </MapView>
         <View style={styles.buttonRow}>
           {button}
-          <TouchableOpacity
-            style={CommonStyles.halfButton}
-            onPress={this.openMaps}
-          >
-            <Text style={CommonStyles.buttonText}> Open in Maps </Text>
-          </TouchableOpacity>
+          {secondButton}
         </View>
       </View>
     );

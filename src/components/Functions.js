@@ -361,7 +361,7 @@ export async function createSession(session, sessionKey, startTime, endTime) {
     trainerName: session.trainerName,
     start: session.start,
     duration: session.duration,
-    location: session.location,
+    location: session.virtual ? session.location : null,
     rate: session.rate,
     gymName: session.gymName,
     gymKey: session.gymKey,
@@ -375,6 +375,7 @@ export async function createSession(session, sessionKey, startTime, endTime) {
     read: false,
     trainerType: session.trainerType,
     type: session.type,
+    virtual: session.virtual,
   });
 
   const otherUserKey = (userId === session.clientKey) ? session.trainerKey : session.clientKey;
@@ -486,8 +487,12 @@ export async function sendMessage(number, message) {
  */
 export async function loadGym(gymKey) {
   let gym;
+  const userRegion = await getLocation();
   await firebase.database().ref('gyms').child(gymKey).once('value', (snapshot) => {
     gym = snapshot.val();
+    if (gym.virtual) {
+      gym.location = userRegion;
+    }
     gym.key = gymKey;
   });
   return gym;
@@ -523,7 +528,7 @@ export async function createPendingSession(
     trainerName: trainer.name,
     start: date.toString(),
     duration,
-    location: gym.location,
+    location: gym.location ? gym.location : null,
     gymName: gym.name,
     gymKey: gym.key,
     rate: trainer.rate,
@@ -535,6 +540,7 @@ export async function createPendingSession(
     sentBy,
     regular,
     type: Constants.personalSessionType,
+    virtual: gym.virtual ? gym.virtual : false,
   }).key;
   const end = new Date(new Date(date).getTime() + (60000 * duration));
   const userId = firebase.auth().currentUser.uid;
@@ -697,10 +703,14 @@ export async function getLocation() {
  * @returns {Array[Gym]} array of all gyms in gyms table
  */
 export async function loadGyms() {
+  const userRegion = await getLocation();
   const gyms = [];
   await firebase.database().ref('gyms').once('value', (data) => {
     data.forEach((gymValue) => {
       const gym = gymValue.val();
+      if (gym.virtual) {
+        gym.location = userRegion;
+      }
       gym.key = gymValue.key;
       gyms.push(gym);
     });
@@ -1287,7 +1297,10 @@ export async function chargeCard(clientStripe, trainerStripe, amount, cut, sessi
  */
 export async function startSession(sessionKey, userRegion) {
   const session = await loadSession(sessionKey);
-  if (geolib.getDistance(userRegion, session.location) > Constants.requiredDistanceToGymMeters) {
+  if (
+    !session.virtual
+    && geolib.getDistance(userRegion, session.location) > Constants.requiredDistanceToGymMeters
+  ) {
     Alert.alert('You must be within 1000 feet to press ready!');
     return;
   }
@@ -1317,7 +1330,10 @@ export async function startGroupSession(sessionKey, userRegion) {
   const session = await loadGroupSession(sessionKey);
   const sessionDatabase = firebase.database().ref(`/groupSessions/${sessionKey}`);
   const gymSessionDatabase = firebase.database().ref(`/gyms/${session.gymKey}/groupSessions/${sessionKey}`);
-  if (geolib.getDistance(userRegion, session.location) > Constants.requiredDistanceToGymMeters) {
+  if (
+    !session.virtual
+    && geolib.getDistance(userRegion, session.location) > Constants.requiredDistanceToGymMeters
+  ) {
     Alert.alert('You must be within 1000 feet to press ready!');
     return;
   }
@@ -1347,12 +1363,11 @@ export async function createGroupSession(
   cost,
   gymKey,
 ) {
-  const location = (await firebase.database().ref(`/gyms/${gymKey}/location`).once('value')).val();
-  const gymName = (await firebase.database().ref(`/gyms/${gymKey}/name`).once('value')).val();
+  const gym = await loadGym(gymKey);
   const session = {
     gymKey,
-    gymName,
-    location,
+    gymName: gym.name,
+    location: gym.location ? gym.location : null,
     trainerKey: trainer.userKey,
     trainerName: trainer.name,
     trainerStripe: trainer.stripeId,
@@ -1366,6 +1381,7 @@ export async function createGroupSession(
     clientCount: 0,
     capacity,
     type: Constants.groupSessionType,
+    virtual: gym.virtual ? gym.virtual : false,
   };
   const sessionKey = firebase.database().ref('groupSessions').push(session).key;
   await firebase.database().ref(`gyms/${gymKey}/groupSessions/${sessionKey}`).set(session);
@@ -1402,12 +1418,11 @@ export async function updateGroupSession(
   cost,
   gymKey,
 ) {
-  const location = (await firebase.database().ref(`/gyms/${gymKey}/location`).once('value')).val();
-  const gymName = (await firebase.database().ref(`/gyms/${gymKey}/name`).once('value')).val();
+  const gym = await loadGym(gymKey);
   const updatedSession = {
     gymKey,
-    gymName,
-    location,
+    gymName: gym.name,
+    location: gym.location,
     trainerKey: trainer.userKey,
     trainerName: trainer.name,
     trainerStripe: trainer.stripeId,
@@ -1419,6 +1434,7 @@ export async function updateGroupSession(
     bio,
     capacity,
     type: Constants.groupSessionType,
+    virtual: gym.virtual ? gym.virtual : false,
   };
   await firebase.database().ref(`groupSessions/${session.key}`).update(updatedSession);
   await firebase.database().ref(`gyms/${gymKey}/groupSessions/${session.key}`).update(updatedSession);

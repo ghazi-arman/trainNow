@@ -11,7 +11,7 @@ import firebase from 'firebase';
 import { Actions } from 'react-native-router-flux';
 import bugsnag from '@bugsnag/expo';
 import Colors from '../components/Colors';
-import { loadSessions, dateToString } from '../components/Functions';
+import { loadSessions, dateToString, getLocation } from '../components/Functions';
 import Constants from '../components/Constants';
 import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
@@ -27,8 +27,9 @@ export default class HistoryPage extends Component {
   async componentDidMount() {
     try {
       const sessions = await loadSessions(firebase.auth().currentUser.uid);
+      const userRegion = await getLocation();
       this.loadImages(sessions);
-      this.setState({ sessions });
+      this.setState({ sessions, userRegion });
     } catch (error) {
       this.bugsnagClient.notify(error);
       Alert.alert('There was an error loading the history page. Please try again later.');
@@ -81,12 +82,20 @@ export default class HistoryPage extends Component {
         name = session.trainerKey !== firebase.auth().currentUser.uid
           ? session.trainerName
           : session.clientName;
-        link = () => Actions.SessionDetailsPage({ session, managerView: false });
+        link = () => Actions.SessionDetailsPage({
+          session,
+          userRegion: this.state.userRegion,
+          managerView: false,
+        });
       } else {
         name = session.trainerKey !== firebase.auth().currentUser.uid
           ? session.trainerName
           : session.name;
-        link = () => Actions.PastGroupSessionDetailsPage({ session, managerView: false });
+        link = () => Actions.PastGroupSessionDetailsPage({
+          session,
+          userRegion: this.state.userRegion,
+          managerView: false,
+        });
       }
 
       return (

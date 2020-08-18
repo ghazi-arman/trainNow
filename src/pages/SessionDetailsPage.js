@@ -105,12 +105,16 @@ export default class SessionDetailsPage extends Component {
         <View style={styles.mapContainer}>
           <MapView
             style={styles.map}
-            region={{
-              latitude: this.props.session.location.latitude,
-              longitude: this.props.session.location.longitude,
-              latitudeDelta: 0.0422,
-              longitudeDelta: 0.0221,
-            }}
+            region={
+              !this.props.session.virtual
+                ? {
+                  latitude: this.props.session.location.latitude,
+                  longitude: this.props.session.location.longitude,
+                  latitudeDelta: 0.0422,
+                  longitudeDelta: 0.0221,
+                }
+                : this.props.userRegion
+            }
             pitchEnabled={false}
             rotateEnabled={false}
             scrollEnabled={false}
@@ -118,7 +122,10 @@ export default class SessionDetailsPage extends Component {
           >
             <MapView.Marker
               key={this.props.session.key}
-              coordinate={this.props.session.location}
+              coordinate={this.props.session.virtual
+                ? this.props.session.location
+                : this.props.userRegion
+              }
             >
               <Image source={markerImage} style={{ width: 50, height: 50 }} />
             </MapView.Marker>
@@ -148,6 +155,7 @@ export default class SessionDetailsPage extends Component {
 
 SessionDetailsPage.propTypes = {
   session: PropTypes.object.isRequired,
+  userRegion: PropTypes.object.isRequired,
   managerView: PropTypes.bool.isRequired,
 };
 

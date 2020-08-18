@@ -604,6 +604,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 15,
   },
   button: {
+    ...CommonStyles.shadow,
     borderRadius: 10,
     width: 100,
     height: 30,
