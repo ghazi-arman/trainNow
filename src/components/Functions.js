@@ -481,6 +481,23 @@ export async function sendMessage(number, message) {
 }
 
 /**
+ * Gets the current location of the user.
+ * @returns {Location} location object of the user's location
+ */
+export async function getLocation() {
+  const location = Platform.OS === 'ios'
+    ? await Location.getCurrentPositionAsync()
+    : await Location.getCurrentPositionAsync({ enableHighAccuracy: true });
+
+  return {
+    latitude: Number(JSON.stringify(location.coords.latitude)),
+    longitude: Number(JSON.stringify(location.coords.longitude)),
+    latitudeDelta: 0.0422,
+    longitudeDelta: 0.0221,
+  };
+}
+
+/**
  * Retrieves the specified gym from the gyms table using the gymKey.
  * @param {string} gymKey firebase key associated with the gym
  * @returns {Gym} gym object associated with the key if it exists
@@ -679,23 +696,6 @@ export async function loadSessions(userKey) {
     });
   });
   return sessions;
-}
-
-/**
- * Gets the current location of the user.
- * @returns {Location} location object of the user's location
- */
-export async function getLocation() {
-  const location = Platform.OS === 'ios'
-    ? await Location.getCurrentPositionAsync()
-    : await Location.getCurrentPositionAsync({ enableHighAccuracy: true });
-
-  return {
-    latitude: Number(JSON.stringify(location.coords.latitude)),
-    longitude: Number(JSON.stringify(location.coords.longitude)),
-    latitudeDelta: 0.0422,
-    longitudeDelta: 0.0221,
-  };
 }
 
 /**

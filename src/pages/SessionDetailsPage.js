@@ -124,8 +124,7 @@ export default class SessionDetailsPage extends Component {
               key={this.props.session.key}
               coordinate={this.props.session.virtual
                 ? this.props.session.location
-                : this.props.userRegion
-              }
+                : this.props.userRegion}
             >
               <Image source={markerImage} style={{ width: 50, height: 50 }} />
             </MapView.Marker>

@@ -48,9 +48,9 @@ export default class GymModal extends Component {
                   <Text style={styles.gymName}>{gym.name}</Text>
                   <Text style={styles.distance}>
                     {(geolib.getDistance(
-                        gym.location,
-                        this.props.userRegion,
-                      ) * Constants.metersToMilesMultiplier).toFixed(2)}
+                      gym.location,
+                      this.props.userRegion,
+                    ) * Constants.metersToMilesMultiplier).toFixed(2)}
                     {' '}
                     miles away
                   </Text>

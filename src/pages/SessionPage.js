@@ -45,7 +45,9 @@ export default class SessionPage extends Component {
         if (session.clientReady && session.trainerReady && !session.started) {
           sessionRef.update({ start: new Date(), started: true });
         }
-        this.setState({ session, userRegion: location, mapRegion: location, user });
+        this.setState({
+          session, userRegion: location, mapRegion: location, user,
+        });
       } catch (error) {
         this.bugsnagClient.notify(error);
         Alert.alert('There was an error when trying to load the current session.');
@@ -105,7 +107,7 @@ export default class SessionPage extends Component {
       } else {
         sessionRef.update({ clientEnd: true, read: true });
       }
-    } catch(error) {
+    } catch (error) {
       this.bugsnagClient.notify(error);
     } finally {
       this.setState({ submitted: false });

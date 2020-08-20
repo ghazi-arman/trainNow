@@ -35,7 +35,9 @@ export default class GroupSessionPage extends Component {
           clearInterval(this.interval);
           Actions.GroupSessionRatingPage({ session: session.key });
         }
-        this.setState({ session, userRegion: location, mapRegion: location, user });
+        this.setState({
+          session, userRegion: location, mapRegion: location, user,
+        });
       } catch (error) {
         this.bugsnagClient.notify(error);
         Alert.alert('There was an error when trying to load the current session.');
@@ -76,7 +78,7 @@ export default class GroupSessionPage extends Component {
       gymSessionRef.update({ end: new Date() });
       clearInterval(this.interval);
       Actions.GroupSessionRatingPage({ session: this.state.session.key });
-    } catch(error) {
+    } catch (error) {
       this.bugsnagClient.notify(error);
     } finally {
       this.setState({ submitted: false });

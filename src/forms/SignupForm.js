@@ -494,7 +494,7 @@ export default class SignupForm extends Component {
             value={this.state.phone}
           />
           <View style={styles.inputRow}>
-            <Text style={styles.hints}>Are you signing up as a trainer? </Text>
+            <Text style={styles.hints}>Signing up as a trainer? </Text>
             <Switch
               trackColor={Colors.Primary}
               _thumbColor={Colors.Secondary}
@@ -692,7 +692,7 @@ const styles = StyleSheet.create({
     width: '100%',
     flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     marginBottom: 20,
   },
   picker: {
@@ -726,8 +726,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   hints: {
+    fontSize: 20,
     color: Colors.Primary,
-    marginBottom: 10,
     marginRight: 10,
   },
   agreement: {
