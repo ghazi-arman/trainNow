@@ -10,7 +10,7 @@ import { Actions } from 'react-native-router-flux';
 import Constants from '../components/Constants';
 import Colors from '../components/Colors';
 import {
-  getLocation, loadGroupSession, dateToString, startGroupSession, chargeCard, loadUser,
+  getLocation, loadGroupSession, dateToString, startGroupSession, chargeCard, loadUser, sendMessage,
 } from '../components/Functions';
 import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
@@ -68,9 +68,9 @@ export default class GroupSessionPage extends Component {
           this.state.session.trainerStripe,
           total,
           total - payout,
-          this.state.session,
-          this.state.user.phone,
         );
+        const message = `You were charged $ ${(total / 100).toFixed(2)} for your session with ${this.state.session.trainerName}. If this is not accurate please contact support.`;
+        await sendMessage(this.state.user.phone, message);
       }
       const sessionRef = firebase.database().ref(`/groupSessions/${this.state.session.key}`);
       const gymSessionRef = firebase.database().ref(`/gyms/${this.state.session.gymKey}/groupSessions/${this.state.session.key}`);

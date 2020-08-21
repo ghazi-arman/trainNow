@@ -3,9 +3,9 @@
     "users": {
     	"$uid": {
         ".write": "auth.uid === $uid",
-        ".read": "auth.uid === $uid",
+        ".read": "auth.uid === $uid || root.child('users').child(auth.uid).exists()",
         "$field": {
-          ".read": "($field === 'stripeId' && auth.uid === $uid) || root.child('users').child(auth.uid).exists()",
+          ".read": "root.child('users').child(auth.uid).exists()",
         	".write": "auth.uid === $uid || $field === 'pendingschedule' || $field === 'schedule' || $field === 'rating' || $field === 'sessions' || $field === 'clients' || $field === 'trainers' || $field === 'requests' || $field === 'sentRequests' || root.child('users').child($uid).child('managerKey').val() === auth.uid"
         }
       }

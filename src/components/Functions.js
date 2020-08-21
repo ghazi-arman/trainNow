@@ -115,72 +115,6 @@ export async function loadUser(userKey) {
 }
 
 /**
- * Retrieves a client type user from the users table in firebase but omitting sensitive data.
- * @param {string} userKey firebase key associated with the user
- * @return {User} user associated with the key if it exists
- */
-export async function loadClient(userKey) {
-  const cardAdded = await firebase.database().ref(`/users/${userKey}/cardAdded`).once('value');
-  const name = await firebase.database().ref(`/users/${userKey}/name`).once('value');
-  const phone = await firebase.database().ref(`/users/${userKey}/phone`).once('value');
-  const rating = await firebase.database().ref(`/users/${userKey}/rating`).once('value');
-  const sessions = await firebase.database().ref(`/users/${userKey}/sessions`).once('value');
-  const type = await firebase.database().ref(`/users/${userKey}/type`).once('value');
-  return {
-    userKey,
-    cardAdded: cardAdded.val(),
-    name: name.val(),
-    phone: phone.val(),
-    rating: rating.val(),
-    sessions: sessions.val(),
-    type: type.val(),
-  };
-}
-
-/**
- * Retrieves a trainer type user from the users table in firebase but omitting sensitive data.
- * @param {string} userKey firebase key associated with the user
- * @return {User} user associated with the key if it exists
- */
-export async function loadTrainer(userKey) {
-  const active = await firebase.database().ref(`/users/${userKey}/active`).once('value');
-  const bio = await firebase.database().ref(`/users/${userKey}/bio`).once('value');
-  const cardAdded = await firebase.database().ref(`/users/${userKey}/cardAdded`).once('value');
-  const cert = await firebase.database().ref(`/users/${userKey}/cert`).once('value');
-  const specialities = await firebase.database().ref(`/users/${userKey}/specialities`).once('value');
-  const clients = await firebase.database().ref(`/users/${userKey}/clients`).once('value');
-  const gyms = await firebase.database().ref(`/users/${userKey}/gyms`).once('value');
-  const name = await firebase.database().ref(`/users/${userKey}/name`).once('value');
-  const pending = await firebase.database().ref(`/users/${userKey}/pending`).once('value');
-  const phone = await firebase.database().ref(`/users/${userKey}/phone`).once('value');
-  const rate = await firebase.database().ref(`/users/${userKey}/rate`).once('value');
-  const rating = await firebase.database().ref(`/users/${userKey}/rating`).once('value');
-  const sessions = await firebase.database().ref(`/users/${userKey}/sessions`).once('value');
-  const type = await firebase.database().ref(`/users/${userKey}/type`).once('value');
-  const trainerType = await firebase.database().ref(`/users/${userKey}/trainerType`).once('value');
-  const offset = await firebase.database().ref(`/users/${userKey}/offset`).once('value');
-  return {
-    userKey,
-    active: active.val(),
-    bio: bio.val(),
-    cardAdded: cardAdded.val(),
-    cert: cert.val(),
-    specialities: specialities.val(),
-    clients: clients.val(),
-    gyms: gyms.val(),
-    name: name.val(),
-    pending: pending.val(),
-    phone: phone.val(),
-    rate: rate.val(),
-    rating: rating.val(),
-    sessions: sessions.val(),
-    type: type.val(),
-    trainerType: trainerType.val(),
-    offset: offset.val() || 0,
-  };
-}
-
-/**
  * Retrieves a user's accepted schedule (sessions already accepted) from the users table.
  * @param {string} userKey firebase key associated with the user
  * @returns {Array[Schedule]} sessions already accepted by the user that have yet to happen
@@ -1150,12 +1084,12 @@ export async function rateSession(sessionKey, rating, userType) {
   const session = await loadSession(sessionKey);
   const userId = firebase.auth().currentUser.uid;
   const otherUserKey = userType === Constants.trainerType ? session.clientKey : session.trainerKey;
-  const otherUser = await loadClient(otherUserKey);
+  const otherUser = await loadUser(otherUserKey);
   const ratingField = `${userType}Rating`;
   const totalRating = otherUser.rating * otherUser.sessions;
   const newRating = ((totalRating + rating) / (otherUser.sessions + 1)).toFixed(2);
   if (userType === Constants.clientType) {
-    const trainer = await loadTrainer(session.trainerKey);
+    const trainer = await loadUser(session.trainerKey);
     Object.keys(trainer.gyms).forEach((gymKey) => {
       firebase.database().ref(`/gyms/${gymKey}/trainers/${session.trainerKey}`).update({
         rating: parseFloat(newRating),
@@ -1197,7 +1131,7 @@ export async function rateGroupSession(sessionKey, rating, userType) {
   const userId = firebase.auth().currentUser.uid;
   let session = await loadGroupSession(sessionKey);
   if (userType === Constants.clientType) {
-    const trainer = await loadTrainer(session.trainerKey);
+    const trainer = await loadUser(session.trainerKey);
     const totalRating = trainer.rating * trainer.sessions;
     const newRating = ((totalRating + rating) / (trainer.sessions + 1)).toFixed(2);
     Object.keys(trainer.gyms).forEach((gymKey) => {
@@ -1264,7 +1198,7 @@ export async function markSessionsAsRead(pendingSessions, acceptedSessions, user
  * @param {Session} session session object associated with charge
  * @param {string} userPhone string of user's (client) phone number
  */
-export async function chargeCard(clientStripe, trainerStripe, amount, cut, session, userPhone) {
+export async function chargeCard(clientStripe, trainerStripe, amount, cut) {
   const idToken = await firebase.auth().currentUser.getIdToken(true);
   const res = await fetch(`${FB_URL}/stripe/charge/`, {
     method: 'POST',
@@ -1285,8 +1219,6 @@ export async function chargeCard(clientStripe, trainerStripe, amount, cut, sessi
   if (response.body.message !== 'Success') {
     throw new Error('Stripe Error');
   }
-  const message = `You were charged $ ${(amount / 100).toFixed(2)} for your session with ${session.trainerName}. If this is not accurate please contact support.`;
-  sendMessage(userPhone, message);
 }
 
 /**

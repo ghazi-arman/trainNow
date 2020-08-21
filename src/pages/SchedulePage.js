@@ -8,11 +8,7 @@ import PropTypes from 'prop-types';
 import { Actions } from 'react-native-router-flux';
 import Colors from '../components/Colors';
 import {
-  dateToString,
-  loadAcceptedSchedule,
-  dateforAgenda,
-  loadAvailableSchedule,
-  loadTrainer,
+  dateToString, loadAcceptedSchedule, dateforAgenda, loadAvailableSchedule, loadUser,
 } from '../components/Functions';
 import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
@@ -31,7 +27,7 @@ export default class SchedulePage extends Component {
     // load trainer info and sessions
     if (!this.state.trainer || !this.state.sessions) {
       try {
-        const trainer = await loadTrainer(this.props.trainerKey);
+        const trainer = await loadUser(this.props.trainerKey);
         let sessions = await loadAcceptedSchedule(this.props.trainerKey);
         const availability = await loadAvailableSchedule(this.props.trainerKey);
         sessions = sessions.concat(availability);

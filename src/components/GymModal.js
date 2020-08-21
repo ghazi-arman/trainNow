@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'flex-start',
-    width: '90%',
+    width: '85%',
   },
   linkContainer: {
     position: 'absolute',

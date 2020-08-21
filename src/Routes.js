@@ -26,6 +26,7 @@ import SchedulePage from './pages/SchedulePage';
 import CardPage from './pages/CardPage';
 import CreateGroupSessionPage from './pages/CreateGroupSessionPage';
 import SchedulerPage from './pages/SchedulerPage';
+import NutritionPage from './pages/NutritionPage';
 
 export default function Routes() {
   return (
@@ -57,6 +58,7 @@ export default function Routes() {
         <Scene key="CardPage" component={CardPage} title="CardPage" />
         <Scene key="CreateGroupSessionPage" component={CreateGroupSessionPage} title="CreateGroupSessionPage" />
         <Scene key="SchedulerPage" component={SchedulerPage} title="SchedulerPage" />
+        <Scene key="NutritionPage" component={NutritionPage} title="NutritionPage" />
       </Stack>
     </Router>
   );

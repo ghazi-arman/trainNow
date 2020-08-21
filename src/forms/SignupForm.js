@@ -520,7 +520,7 @@ export default class SignupForm extends Component {
             </Text>
             <Picker
               style={styles.picker}
-              itemStyle={{ height: 45, color: Colors.Primary }}
+              itemStyle={styles.pickerItem}
               selectedValue={this.state.gym}
               onValueChange={(itemValue) => this.setState({ gym: itemValue })}
             >
@@ -700,6 +700,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.Primary,
     width: '90%',
+  },
+  pickerItem: {
+    height: 45,
+    fontSize: 11,
+    color: Colors.Primary,
   },
   buttonHolder: {
     flexDirection: 'row',

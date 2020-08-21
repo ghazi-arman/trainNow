@@ -41,13 +41,13 @@ export default class SettingsPage extends Component {
       accountForm = (<ClientAccountForm ref={(form) => { this.form = form; }} />);
     }
     return (
-      <ScrollView contentContainerStyle={styles.container}>
+      <KeyboardAvoidingView style={styles.container} behavior="padding">
         <BackButton onPress={this.goToMap} />
         <Text style={styles.title}>Settings</Text>
-        <KeyboardAvoidingView style={styles.formContainer} behavior="padding">
+        <ScrollView style={{ width: '100%' }} contentContainerStyle={styles.formContainer}>
           {accountForm}
-        </KeyboardAvoidingView>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     );
   }
 }
@@ -60,6 +60,7 @@ const styles = StyleSheet.create({
   container: {
     ...CommonStyles.flexStartContainer,
     alignItems: 'flex-start',
+    height: '100%',
   },
   title: {
     fontSize: 30,
@@ -67,7 +68,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   formContainer: {
-    height: '80%',
-    width: '100%',
+    ...CommonStyles.centeredContainer,
   },
 });

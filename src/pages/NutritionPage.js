@@ -1,12 +1,11 @@
 import React, { Component } from 'react';
 import {
-  View, Image, StyleSheet, Text, TouchableOpacity, Dimensions, ScrollView,
+  View, Image, StyleSheet, Text, TouchableOpacity, Dimensions, ScrollView, Alert,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import { FontAwesome } from '@expo/vector-icons';
 import firebase from 'firebase';
-import { Actions } from 'react-native-router-flux';
-import { loadUser } from '../components/Functions';
+import bugsnag from '@bugsnag/expo';
+import { sendMessage, loadUser, chargeCard } from '../components/Functions';
 import LoadingWheel from '../components/LoadingWheel';
 import CommonStyles from '../components/CommonStyles';
 import profileImage from '../images/profile.png';
@@ -14,107 +13,113 @@ import Colors from '../components/Colors';
 import BackButton from '../components/BackButton';
 import Constants from '../components/Constants';
 
-export default class TrainerPage extends Component {
+export default class NutritionPage extends Component {
   constructor(props) {
     super(props);
     this.state = {};
+    this.bugsnagClient = bugsnag();
   }
 
   async componentDidMount() {
     const trainer = await loadUser(this.props.trainerKey);
+    const user = await loadUser(firebase.auth().currentUser.uid);
     let image;
     try {
       image = await firebase.storage().ref().child(this.props.trainerKey).getDownloadURL();
     } catch {
       image = Image.resolveAssetSource(profileImage).uri;
     } finally {
-      this.setState({ trainer, image });
+      this.setState({ trainer, image, user });
     }
   }
 
-  render() {
-    if (!this.state.trainer || !this.state.image) {
-      return <LoadingWheel />;
-    }
+  purchasePlan = async () => {
+    Alert.alert(
+      'Nutrition Plan',
+      `Are you sure you want to purchase ${this.state.trainer.name}'s Nutrition Plan for $${this.state.trainer.nutritionCost}.`,
+      [
+        { text: 'No' },
+        {
+          text: 'Yes',
+          onPress: async () => {
+            try {
+              if (this.state.submitted) {
+                return;
+              }
+              this.setState({ submitted: true });
+              const total = (this.state.trainer.nutritionCost * 100).toFixed(0);
+              const payout = (total - (total * Constants.groupSessionPercentage)).toFixed(0);
+              await chargeCard(
+                this.state.user.stripeId,
+                this.state.trainer.stripeId,
+                total,
+                total - payout,
+              );
+              sendMessage(this.state.trainer.phone, `${this.state.user.name} has purchased your nutrition plan. Please contact him at ${this.state.user.phone} for details on how to send him the plan.`);
+              Alert.alert(`Nutrition plan purchased. ${this.state.trainer.name} should contact you shortly.`);
+              return;
+            } catch (error) {
+              Alert.alert('There was an error purchasing the nutrition plan. Please try again later.');
+              this.bugsnagClient.notify(error);
+            } finally {
+              this.setState({ submitted: false });
+            }
+          },
+        },
+      ],
+    );
+  }
 
-    let nutritionPlanButton;
-    if (this.state.trainer.nutritionPlan) {
-      nutritionPlanButton = (
-        <TouchableOpacity
-          style={[styles.button, { width: '85%' }]}
-          onPress={() => Actions.NutritionPage({ trainerKey: this.props.trainerKey })}
-        >
-          <Text style={styles.buttonText}>Nutrition Plan</Text>
-        </TouchableOpacity>
-      );
+  render() {
+    if (!this.state.trainer || !this.state.image || this.state.submitted) {
+      return <LoadingWheel />;
     }
 
     return (
       <ScrollView contentContainerStyle={styles.container}>
         <BackButton style={styles.backButton} />
         <Image style={styles.profileImage} source={{ uri: this.state.image }} />
-        <Text style={styles.name}>{this.state.trainer.name}</Text>
+        <Text style={styles.name}>
+          {this.state.trainer.name}
+          &apos;s Nutrition Plan
+        </Text>
         <View style={styles.infoContainer}>
           <View style={styles.infoBox}>
-            <Text style={styles.infoTitle}>{this.state.trainer.rating.toFixed(1)}</Text>
-            <Text style={styles.infoText}>Rating</Text>
+            <Text style={styles.infoTitle}>{this.state.trainer.nutritionMeals}</Text>
+            <Text style={styles.infoText}>Meals</Text>
           </View>
           <View style={[styles.infoBox, styles.infoBoxBorder]}>
             <Text style={styles.infoTitle}>
               $
-              {this.state.trainer.rate}
+              {this.state.trainer.nutritionCost}
             </Text>
-            <Text style={styles.infoText}>Per Hour</Text>
+            <Text style={styles.infoText}>Cost</Text>
           </View>
           <View style={styles.infoBox}>
-            <Text style={styles.infoTitle}>{this.state.trainer.sessions}</Text>
-            <Text style={styles.infoText}>Sessions</Text>
+            <Text style={styles.infoTitle}>
+              {this.state.trainer.nutritionLength}
+              {' '}
+              weeks
+            </Text>
+            <Text style={styles.infoText}>Length</Text>
           </View>
         </View>
         <View style={styles.aboutContainer}>
           <Text style={styles.infoTitle}>About</Text>
-          <Text style={styles.bioText}>{this.state.trainer.bio}</Text>
-          <View style={styles.aboutBox}>
-            <FontAwesome style={styles.icon} name="vcard" color={Colors.Primary} size={25} />
-            <Text style={styles.aboutTitle}>Certifications: </Text>
-            <Text style={styles.aboutText}>{this.state.trainer.cert}</Text>
-          </View>
-          <View style={styles.aboutBox}>
-            <FontAwesome style={styles.icon} name="book" color={Colors.Primary} size={25} />
-            <Text style={styles.aboutTitle}>Specialities: </Text>
-            <Text style={styles.aboutText}>{this.state.trainer.specialities}</Text>
-          </View>
+          <Text style={styles.bioText}>{this.state.trainer.nutritionDescription}</Text>
         </View>
         <View style={styles.buttonRow}>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => Actions.BookingPage({
-              clientKey: firebase.auth().currentUser.uid,
-              trainerKey: this.props.trainerKey,
-              gymKey: this.props.gymKey,
-              bookedBy: Constants.clientType,
-            })}
-          >
-            <Text style={styles.buttonText}>Book Session</Text>
+          <TouchableOpacity style={styles.button} onPress={this.purchasePlan}>
+            <Text style={styles.buttonText}>Purchase Plan</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => Actions.SchedulePage({ trainerKey: this.props.trainerKey })}
-          >
-            <Text style={styles.buttonText}>Schedule</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.buttonRow}>
-          {nutritionPlanButton}
         </View>
       </ScrollView>
     );
   }
 }
 
-TrainerPage.propTypes = {
+NutritionPage.propTypes = {
   trainerKey: PropTypes.string.isRequired,
-  gymKey: PropTypes.string.isRequired,
 };
 
 const styles = StyleSheet.create({
@@ -202,11 +207,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    margin: 10,
   },
   button: {
     ...CommonStyles.shadow,
-    width: '40%',
+    width: '85%',
     backgroundColor: Colors.White,
     borderRadius: 10,
     borderWidth: 1,

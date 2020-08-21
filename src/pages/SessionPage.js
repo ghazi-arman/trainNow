@@ -10,7 +10,7 @@ import { Actions } from 'react-native-router-flux';
 import Constants from '../components/Constants';
 import Colors from '../components/Colors';
 import {
-  getLocation, loadSession, dateToString, startSession, chargeCard, loadUser,
+  getLocation, loadSession, dateToString, startSession, chargeCard, loadUser, sendMessage,
 } from '../components/Functions';
 import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
@@ -87,9 +87,9 @@ export default class SessionPage extends Component {
           session.trainerStripe,
           total,
           total - payout,
-          session,
-          this.state.user.phone,
         );
+        const message = `You were charged $ ${(total / 100).toFixed(2)} for your session with ${this.state.session.trainerName}. If this is not accurate please contact support.`;
+        await sendMessage(this.state.user.phone, message);
       }
 
       if (session.trainerKey === user.uid) {

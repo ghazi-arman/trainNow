@@ -24,8 +24,6 @@ import {
   loadUser,
   createPendingSession,
   loadAcceptedSchedule,
-  loadTrainer,
-  loadClient,
   loadGym,
 } from '../components/Functions';
 import Colors from '../components/Colors';
@@ -48,13 +46,8 @@ export default class BookingPage extends Component {
   async componentDidMount() {
     if (!this.state.trainer || !this.state.client || !this.state.gym) {
       try {
-        // Load trainer and user logged in
-        const trainer = this.props.bookedBy === Constants.trainerType
-          ? await loadUser(this.props.trainerKey)
-          : await loadTrainer(this.props.trainerKey);
-        const client = this.props.bookedBy === Constants.clientType
-          ? await loadUser(this.props.clientKey)
-          : await loadClient(this.props.clientKey);
+        const trainer = await loadUser(this.props.trainerKey);
+        const client = await loadUser(this.props.clientKey);
         const gym = await loadGym(this.props.gymKey);
         this.setState({
           trainer,
