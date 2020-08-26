@@ -56,18 +56,11 @@ export default class ManagerSignupForm extends Component {
         tax_id: this.state.taxId,
       },
     };
-    const ssn = {
-      pii: {
-        personal_id_number: this.state.ssn,
-      },
-    };
     let taxToken;
-    let ssnToken;
 
     try {
       // Create stripe tokens from social security and tax id
       taxToken = await stripe.createToken(taxId);
-      ssnToken = await stripe.createToken(ssn);
     } catch (error) {
       this.setState({ pressed: false });
       this.bugsnagClient.notify(error);
@@ -88,7 +81,7 @@ export default class ManagerSignupForm extends Component {
           phone: this.state.phone,
           firstName,
           lastName,
-          ssnToken: ssnToken.id,
+          ssn: this.state.ssn,
           taxToken: taxToken.id,
           company: this.state.companyName,
           day,
@@ -146,7 +139,7 @@ export default class ManagerSignupForm extends Component {
 
   goNext = async () => {
     if (this.state.page === 1) {
-      if (!this.state.name.trim()) {
+      if (!this.state.name || !this.state.name.trim()) {
         Alert.alert('Please enter a name!');
         return;
       }
@@ -154,11 +147,11 @@ export default class ManagerSignupForm extends Component {
         Alert.alert('Please enter a first and last name (no middle name).');
         return;
       }
-      if (!this.state.email.trim()) {
+      if (!this.state.email || !this.state.email.trim()) {
         Alert.alert('Please enter an email!');
         return;
       }
-      if (!this.state.password.trim() || this.state.password.trim().length < 6) {
+      if (!this.state.password || this.state.password.trim().length < 6) {
         Alert.alert('Please enter a password at least 6 characters long!');
         return;
       }
@@ -166,7 +159,7 @@ export default class ManagerSignupForm extends Component {
         Alert.alert('Passwords must match!');
         return;
       }
-      if (!this.state.phone.trim() || this.state.phone.trim().length < 10) {
+      if (!this.state.phone || this.state.phone.trim().length < 10) {
         Alert.alert('Please enter a valid phone number');
       }
 
@@ -183,24 +176,24 @@ export default class ManagerSignupForm extends Component {
       }
       this.setState({ page: 2 });
     } else if (this.state.page === 2) {
-      if (!this.state.companyName.trim()) {
+      if (!this.state.companyName || !this.state.companyName.trim()) {
         Alert.alert('Please enter a company name');
         return;
       }
-      if (!this.state.gymKey.trim()) {
+      if (!this.state.gymKey || !this.state.gymKey.trim()) {
         Alert.alert('Please enter a gym Key!');
         return;
       }
-      if (!this.state.ssn.trim()) {
+      if (!this.state.ssn || !this.state.ssn.trim()) {
         Alert.alert('Please enter your Social Security Number!');
         return;
       }
-      if (!this.state.taxId.trim()) {
+      if (!this.state.taxId || !this.state.taxId.trim()) {
         Alert.alert('Please enter your Company Tax ID!');
         return;
       }
       if (
-        !this.state.birthDay.trim()
+        !this.state.birthDay
         || this.state.birthDay.trim().length < 8
         || this.state.birthDay.trim().split('/').length !== 3
       ) {
@@ -302,8 +295,9 @@ export default class ManagerSignupForm extends Component {
           />
           <TextField
             icon="user"
-            placeholder="Social Security Number"
+            placeholder="Last 4 of Social Security # (For Stripe Verification)"
             keyboard="number-pad"
+            maxLength={4}
             onChange={(ssn) => this.setState({ ssn })}
             value={this.state.ssn}
           />
@@ -318,7 +312,7 @@ export default class ManagerSignupForm extends Component {
     } else if (this.state.page === 3) {
       nextButton = null;
       page3 = (
-        <View style={styles.container}>
+        <View style={[styles.container, { height: '60%'}]}>
           <TextField
             icon="envelope"
             placeholder="Address"
@@ -357,7 +351,7 @@ export default class ManagerSignupForm extends Component {
       );
 
       agreement = (
-        <View style={{ marginTop: 15 }}>
+        <View style={{ marginTop: 5 }}>
           <Text style={styles.agreement}>
             By registering for an account you agree to the
             {' '}

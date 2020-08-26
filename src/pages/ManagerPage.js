@@ -156,7 +156,11 @@ export default class ManagerPage extends Component {
 
   renderPending = () => {
     if (!this.state.gym.pendingtrainers) {
-      return null;
+      return (
+        <Text style={{ marginHorizontal: 15, fontSize: 20, color: Colors.Primary }}>
+          No Pending Trainers
+        </Text>
+      );
     }
     return Object.keys(this.state.gym.pendingtrainers).map((key) => {
       const trainer = this.state.gym.pendingtrainers[key];
@@ -185,7 +189,11 @@ export default class ManagerPage extends Component {
 
   renderTrainers = () => {
     if (!this.state.gym.trainers) {
-      return null;
+      return (
+        <Text style={{ marginHorizontal: 15, fontSize: 20, color: Colors.Primary }}>
+          No Trainers
+        </Text>
+      );
     }
     return Object.keys(this.state.gym.trainers).map((key) => {
       const trainer = this.state.gym.trainers[key];
@@ -254,7 +262,7 @@ export default class ManagerPage extends Component {
   renderCards = () => {
     if (!this.state.cards || !this.state.cards.length) {
       return (
-        <Text style={{ marginTop: 10, fontSize: 20, color: Colors.Primary }}>
+        <Text style={{ marginHorizontal: 15, fontSize: 20, color: Colors.Primary }}>
           No Cards Added
         </Text>
       );
@@ -345,16 +353,14 @@ export default class ManagerPage extends Component {
     const trainerName = this.state.selectedTrainer ? this.state.selectedTrainer.name : 'None';
     return (
       <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.buttonContainer}>
-          <Text style={styles.logoutButton} onPress={this.logout}>
-            <FontAwesome name="power-off" size={35} />
-          </Text>
-        </View>
+        <Text style={styles.logoutButton} onPress={this.logout}>
+          <FontAwesome name="power-off" size={35} />
+        </Text>
         <Text style={styles.title}>Pending</Text>
         {this.renderPending()}
         <Text style={styles.title}>Trainers</Text>
         {this.renderTrainers()}
-        <Text style={[styles.title, { color: Colors.Primary }]}>
+        <Text style={styles.title}>
           $
           {' '}
           {balanceFormatted}
@@ -402,16 +408,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     paddingBottom: 75,
   },
-  buttonContainer: {
-    height: '7%',
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'flex-end',
-  },
   title: {
     margin: 15,
-    marginTop: 30,
     fontSize: 30,
     color: Colors.Black,
     fontWeight: '700',
@@ -561,23 +559,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   logoutButton: {
-    position: 'absolute',
-    top: Dimensions.get('window').height / 20,
-    left: 20,
+    marginHorizontal: 15,
+    marginTop: 35,
     fontSize: 35,
     color: Colors.Secondary,
   },
   paymentButtonRow: {
     paddingHorizontal: 10,
-    marginTop: 20,
+    marginVertical: 10,
     width: '100%',
-    flexDirection: 'row',
+    flexDirection: 'column',
     justifyContent: 'flex-start',
-    alignItems: 'flex-end',
+    alignItems: 'flex-start',
   },
   paymentDetails: {
-    width: '50%',
     fontSize: 15,
+    marginTop: 15,
     textAlign: 'center',
     color: Colors.Primary,
   },

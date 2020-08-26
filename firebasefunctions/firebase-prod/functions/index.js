@@ -282,7 +282,7 @@ const createManager = async (req, res) => {
           account_opener: true,
           title: 'Owner',
         },
-        id_number: body.ssnToken,
+        ssn_last_4: body.ssn,
         dob: {
           day: body.day,
           month: body.month,
