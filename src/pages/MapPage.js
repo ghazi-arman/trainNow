@@ -64,7 +64,9 @@ export default class MapPage extends Component {
                 });
               },
             },
-          ]);
+          ]
+        );
+        return;
       }
     }
     if (!this.state.gyms || !this.state.user) {
