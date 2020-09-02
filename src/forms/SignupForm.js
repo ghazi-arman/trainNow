@@ -225,7 +225,6 @@ export default class SignupForm extends Component {
           await firebase.database().ref('users').child(user.user.uid).update({ stripeId: response.body.trainer.id, cardAdded: false });
           await firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password);
           Actions.reset('CalendarPage');
-          Alert.alert('You must enter a debit card for payouts before clients can book a session with you!');
         } else {
           Actions.reset('LoginPage');
           Alert.alert('Your account is now pending approval. Sign in once your gym manager approves your account.');

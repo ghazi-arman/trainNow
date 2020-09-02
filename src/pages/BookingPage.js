@@ -73,13 +73,6 @@ export default class BookingPage extends Component {
       Alert.alert('You must have a card on file to book a session.');
       return;
     }
-    if (
-      !this.state.trainer.cardAdded
-      && this.state.trainer.trainerType === Constants.independentType
-    ) {
-      Alert.alert('This trainer has not added a payment method yet.');
-      return;
-    }
     // checks if client is using trainer account and if trainer is active
     if (this.state.client.type === Constants.trainerType) {
       Alert.alert('Sign into a non-trainer account to book sessions.');
