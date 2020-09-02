@@ -23,6 +23,7 @@ import {
   loadPendingSessions,
   loadAcceptedSessions,
   loadCurrentGroupSession,
+  loadGym,
 } from '../components/Functions';
 import Constants from '../components/Constants';
 import LoadingWheel from '../components/LoadingWheel';
@@ -64,8 +65,7 @@ export default class MapPage extends Component {
                 });
               },
             },
-          ]
-        );
+          ]);
         return;
       }
     }
@@ -94,6 +94,15 @@ export default class MapPage extends Component {
         Alert.alert('There was an error loading the map.');
       }
     }
+  }
+
+  reloadMap = async () => {
+    const gyms = await loadGyms();
+    if (this.state.selectedGym) {
+      const selectedGym = await loadGym(this.state.selectedGym.key);
+      this.selectGym(selectedGym);
+    }
+    this.setState({ gyms });
   }
 
   setLocation = () => {
@@ -302,6 +311,7 @@ export default class MapPage extends Component {
               userRegion={this.state.userRegion}
               selectGym={this.selectGym}
               user={this.state.user}
+              reloadMap={this.reloadMap}
             />
           </View>
         </View>

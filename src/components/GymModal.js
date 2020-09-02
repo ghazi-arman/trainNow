@@ -76,7 +76,7 @@ export default class GymModal extends Component {
         <View style={styles.gymContainer} key={key}>
           <Image
             style={styles.gymImage}
-            source={{ uri: trainer.uri ? trainer.uri : Image.resolveAssetSource(profileImage).uri }}
+            source={{ uri: trainer.uri || Image.resolveAssetSource(profileImage).uri }}
           />
           <View style={styles.nameContainer}>
             <Text style={styles.gymName}>{trainer.name}</Text>
@@ -193,9 +193,9 @@ export default class GymModal extends Component {
       Alert.alert('Please read the blog post on our website to find out how virtual sessions work.');
     }
     await joinGym(firebase.auth().currentUser.uid, this.state.selectedGym.key);
-    Alert.alert('Reload the map to see changes.');
     const user = await loadUser(firebase.auth().currentUser.uid);
     this.setState({ user });
+    this.props.reloadMap();
   }
 
   leaveGym = async () => {
@@ -203,6 +203,7 @@ export default class GymModal extends Component {
     Alert.alert('Reload the map to see changes.');
     const user = await loadUser(firebase.auth().currentUser.uid);
     this.setState({ user });
+    this.props.reloadMap();
   }
 
   render() {
@@ -246,6 +247,7 @@ GymModal.propTypes = {
   selectGym: PropTypes.func.isRequired,
   user: PropTypes.object.isRequired,
   selectedGym: PropTypes.object,
+  reloadMap: PropTypes.func.isRequired,
 };
 
 GymModal.defaultProps = {

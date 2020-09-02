@@ -159,11 +159,7 @@ export default class TrainersPage extends Component {
         <View style={styles.rowContainer} key={request.key}>
           <Image
             style={styles.profileImage}
-            source={{
-              uri: request.image
-                ? request.image
-                : Image.resolveAssetSource(profileImage).uri,
-            }}
+            source={{ uri: request.image || Image.resolveAssetSource(profileImage).uri }}
           />
           <Text style={styles.name}>{request.name}</Text>
           <View style={styles.buttonRow}>
@@ -219,11 +215,7 @@ export default class TrainersPage extends Component {
         <View key={trainer.userKey} style={styles.rowContainer}>
           <Image
             style={styles.profileImage}
-            source={{
-              uri: trainer.image
-                ? trainer.image
-                : Image.resolveAssetSource(profileImage).uri,
-            }}
+            source={{ uri: trainer.image || Image.resolveAssetSource(profileImage).uri }}
           />
           <Text style={styles.name}>{trainer.name}</Text>
           <View style={styles.buttonRow}>
@@ -252,11 +244,7 @@ export default class TrainersPage extends Component {
         <View key={key} style={styles.rowContainer}>
           <Image
             style={styles.profileImage}
-            source={{
-              uri: trainer.image
-                ? trainer.image
-                : Image.resolveAssetSource(profileImage).uri,
-            }}
+            source={{ uri: trainer.image || Image.resolveAssetSource(profileImage).uri }}
           />
           <Text style={styles.name}>{trainer.name}</Text>
           <View style={styles.buttonRow}>

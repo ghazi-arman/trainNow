@@ -153,11 +153,7 @@ export default class ClientsPage extends Component {
         <View style={styles.rowContainer} key={request.key}>
           <Image
             style={styles.profileImage}
-            source={{
-              uri: request.image
-                ? request.image
-                : Image.resolveAssetSource(profileImage).uri,
-            }}
+            source={{ uri: request.image || Image.resolveAssetSource(profileImage).uri }}
           />
           <Text style={styles.name}>{request.name}</Text>
           <View style={styles.buttonRow}>
@@ -213,11 +209,7 @@ export default class ClientsPage extends Component {
         <View key={client.userKey} style={styles.rowContainer}>
           <Image
             style={styles.profileImage}
-            source={{
-              uri: client.image
-                ? client.image
-                : Image.resolveAssetSource(profileImage).uri,
-            }}
+            source={{ uri: client.image || Image.resolveAssetSource(profileImage).uri }}
           />
           <Text style={styles.name}>{client.name}</Text>
           <View style={styles.buttonRow}>
@@ -246,11 +238,7 @@ export default class ClientsPage extends Component {
         <View key={key} style={styles.rowContainer}>
           <Image
             style={styles.profileImage}
-            source={{
-              uri: client.image
-                ? client.image
-                : Image.resolveAssetSource(profileImage).uri,
-            }}
+            source={{ uri: client.image || Image.resolveAssetSource(profileImage).uri }}
           />
           <Text style={styles.name}>{client.name}</Text>
           <View style={styles.buttonRow}>

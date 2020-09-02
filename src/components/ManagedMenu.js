@@ -50,7 +50,7 @@ export default class ManagedMenu extends Component {
   }
 
   render() {
-    if (!this.state.user) {
+    if (!this.state.user || !this.state.image) {
       return <LoadingWheel />;
     }
 

@@ -38,7 +38,7 @@ export default class NutritionPage extends Component {
       Alert.alert('You must enter your payment information before you can purchase this plan.');
       return;
     }
-    
+
     Alert.alert(
       'Nutrition Plan',
       `Are you sure you want to purchase ${this.state.trainer.name}'s Nutrition Plan for $${this.state.trainer.nutritionCost}.`,

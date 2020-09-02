@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {
-  StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, KeyboardAvoidingView, Dimensions,
+  StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, KeyboardAvoidingView,
 } from 'react-native';
 import firebase from 'firebase';
 import Modal from 'react-native-modal';

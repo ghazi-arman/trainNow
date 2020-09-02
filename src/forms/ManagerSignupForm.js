@@ -312,7 +312,7 @@ export default class ManagerSignupForm extends Component {
     } else if (this.state.page === 3) {
       nextButton = null;
       page3 = (
-        <View style={[styles.container, { height: '60%'}]}>
+        <View style={[styles.container, { height: '60%' }]}>
           <TextField
             icon="envelope"
             placeholder="Address"
