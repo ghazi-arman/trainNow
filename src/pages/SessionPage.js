@@ -10,7 +10,7 @@ import { Actions } from 'react-native-router-flux';
 import Constants from '../components/Constants';
 import Colors from '../components/Colors';
 import {
-  getLocation, loadSession, dateToString, startSession, chargeCard, loadUser, sendMessage,
+  getLocation, loadSession, dateToString, chargeCard, loadUser, sendMessage,
 } from '../components/Functions';
 import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
@@ -41,10 +41,6 @@ export default class SessionPage extends Component {
           sessionRef.update({ end: new Date() });
           Actions.RatingPage({ session: session.key });
         }
-        // if both users are ready then start session if it has not been started yet
-        if (session.clientReady && session.trainerReady && !session.started) {
-          sessionRef.update({ start: new Date(), started: true });
-        }
         this.setState({
           session, userRegion: location, mapRegion: location, user,
         });
@@ -58,10 +54,6 @@ export default class SessionPage extends Component {
 
   componentWillUnmount() {
     clearInterval(this.interval);
-  }
-
-  startSession = () => {
-    startSession(this.state.session.key, this.state.userRegion);
   }
 
   endSession = async () => {
@@ -137,9 +129,8 @@ export default class SessionPage extends Component {
 
     let button;
     let secondButton;
-    let ready;
-    let ownReady;
-    let ownEnd;
+    let ended;
+    let ownEnded;
     let description;
     const user = firebase.auth().currentUser;
 
@@ -162,64 +153,16 @@ export default class SessionPage extends Component {
       );
     }
 
-    if (!this.state.session.started) {
-      button = (
-        <TouchableOpacity
-          style={CommonStyles.halfButton}
-          onPress={this.startSession}
-        >
-          <Text style={CommonStyles.buttonText}> Start Session </Text>
-        </TouchableOpacity>
-      );
-
+    const dateToShowFirstButton = new Date(
+      new Date(this.state.session.start).getTime() - 15 * 60000,
+    );
+    if (dateToShowFirstButton >= new Date()) {
       if (!this.state.session.virtual) {
         secondButton = (
           <TouchableOpacity style={CommonStyles.halfButton} onPress={this.openMaps}>
             <Text style={CommonStyles.buttonText}>Open in Maps</Text>
           </TouchableOpacity>
         );
-      }
-
-      // Gives info about whether trainer/client is ready or en route
-      if (this.state.session.clientReady && user.uid === this.state.session.trainerKey) {
-        ready = (
-          <Text style={styles.smallText}>
-            {this.state.session.clientName}
-            {' '}
-            is ready!
-          </Text>
-        );
-      } else if (this.state.session.trainerReady && user.uid === this.state.session.clientKey) {
-        ready = (
-          <Text style={styles.smallText}>
-            {this.state.session.trainerName}
-            {' '}
-            is ready!
-          </Text>
-        );
-      } else if (user.uid === this.state.session.clientKey) {
-        ready = (
-          <Text style={styles.smallText}>
-            {this.state.session.trainerName}
-            {' '}
-            is en route!
-          </Text>
-        );
-      } else {
-        ready = (
-          <Text style={styles.smallText}>
-            {this.state.session.clientName}
-            {' '}
-            is en route
-          </Text>
-        );
-      }
-
-      // Gives info about if user is ready or not
-      if (this.state.session.clientReady && user.uid === this.state.session.clientKey) {
-        ownReady = <Text style={styles.smallText}>You are ready!</Text>;
-      } else if (this.state.session.trainerReady && user.uid === this.state.session.trainerKey) {
-        ownReady = <Text style={styles.smallText}>You are ready!</Text>;
       }
     } else {
       button = (
@@ -234,9 +177,9 @@ export default class SessionPage extends Component {
         </TouchableOpacity>
       );
 
-      // Gives info about whether trainer/client is ready or en route
+      // Gives info about whether trainer/client has ended the session
       if (this.state.session.clientEnd && user.uid === this.state.session.trainerKey) {
-        ready = (
+        ended = (
           <Text style={styles.smallText}>
             {this.state.session.clientName}
             {' '}
@@ -244,7 +187,7 @@ export default class SessionPage extends Component {
           </Text>
         );
       } else if (this.state.session.trainerEnd && user.uid === this.state.session.clientKey) {
-        ready = (
+        ended = (
           <Text style={styles.smallText}>
             {this.state.session.trainerName}
             {' '}
@@ -254,7 +197,7 @@ export default class SessionPage extends Component {
       }
 
       if (this.state.session.clientEnd && user.uid === this.state.session.clientKey) {
-        ownEnd = (
+        ownEnded = (
           <Text style={styles.smallText}>
             Waiting for
             {' '}
@@ -264,7 +207,7 @@ export default class SessionPage extends Component {
           </Text>
         );
       } else if (this.state.session.trainerEnd && user.uid === this.state.session.trainerKey) {
-        ownEnd = (
+        ownEnded = (
           <Text style={styles.smallText}>
             Waiting for
             {' '}
@@ -289,9 +232,8 @@ export default class SessionPage extends Component {
             {' '}
             min)
           </Text>
-          {ready}
-          {ownReady}
-          {ownEnd}
+          {ended}
+          {ownEnded}
         </View>
         <MapView
           pitchEnabled={false}

@@ -59,8 +59,9 @@ export default class GroupSessionDetailsPage extends Component {
         return;
       }
 
-      if (this.state.session.started) {
-        Alert.alert('You cannot join a session after it has started.');
+      const latestDateToJoin = new Date(new Date(this.state.session.start).getTime() - 5 * 60000);
+      if (latestDateToJoin <= new Date()) {
+        Alert.alert('You cannot join a session less than 5 minutes before it starts.');
         return;
       }
 

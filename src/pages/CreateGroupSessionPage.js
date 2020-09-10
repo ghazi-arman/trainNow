@@ -88,6 +88,10 @@ export default class CreateGroupSessionPage extends Component {
         Alert.alert('Please enter a duration greater than 30 minutes.');
         return;
       }
+      if (!this.state.cost || parseInt(this.state.cost, 10) < 10) {
+        Alert.alert('Please enter a cost greater than $10.');
+        return;
+      }
       if (!this.state.capacity || parseInt(this.state.capacity, 10) < 2) {
         Alert.alert('Please enter a capacity greater than 1.');
         return;
@@ -98,6 +102,10 @@ export default class CreateGroupSessionPage extends Component {
       }
       if (!this.state.name) {
         Alert.alert('Please enter a session name');
+        return;
+      }
+      if (!this.state.gymKey || this.state.gymKey === 'none') {
+        Alert.alert('Please select a gym');
         return;
       }
       if (this.state.start < new Date()) {
@@ -123,6 +131,13 @@ export default class CreateGroupSessionPage extends Component {
 
   updateSession = async () => {
     try {
+      const latestDateToCancel = new Date(
+        new Date(this.state.session.start).getTime() - 15 * 60000,
+      );
+      if (latestDateToCancel <= new Date()) {
+        Alert.alert('You cannot edit a session 15 minutes before it starts.');
+        return;
+      }
       if (this.state.session.clientCount > 0
         && (
           this.state.session.start !== this.state.start.toString()

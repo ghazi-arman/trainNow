@@ -305,7 +305,6 @@ export async function createSession(session, sessionKey, startTime, endTime) {
     [otherUserStripeField]: otherUserStripe,
     clientPhone: session.clientPhone,
     trainerPhone: session.trainerPhone,
-    started: false,
     read: false,
     trainerType: session.trainerType,
     type: session.type,
@@ -753,7 +752,7 @@ export async function goToPendingRating(userKey, userType) {
 }
 
 /**
- * Retrieves any personal session that is in progress (has already started)
+ * Retrieves any personal session that is in progress
  * that involves the specified user.
  * @param {string} userKey firebase key associated with the user
  * @param {string} userType the type of the user (client, trainer, manager)
@@ -775,7 +774,7 @@ export async function loadCurrentSession(userKey, userType) {
 }
 
 /**
- * Retrieves any group session that is in progress (has already started)
+ * Retrieves any group session that is in progress
  * that involves the specified user.
  * @param {string} userKey firebase key associated with the user
  * @param {string} userType the type of the user (client, trainer, manager)
@@ -1219,58 +1218,6 @@ export async function chargeCard(clientStripe, trainerStripe, amount, cut) {
   if (response.body.message !== 'Success') {
     throw new Error('Stripe Error');
   }
-}
-
-/**
- * Starts the session but checks if the user is within the specified distance close to the gym.
- * If they are then the session object in the trainSessions table is updated.
- * @param {string} sessionKey firebase key associated with the session
- * @param {Location} userRegion location object of the user
- */
-export async function startSession(sessionKey, userRegion) {
-  const session = await loadSession(sessionKey);
-  if (
-    !session.virtual
-    && geolib.getDistance(userRegion, session.location) > Constants.requiredDistanceToGymMeters
-  ) {
-    Alert.alert('You must be within 1000 feet to press ready!');
-    return;
-  }
-
-  const user = firebase.auth().currentUser;
-  const sessionDatabase = firebase.database().ref(`/trainSessions/${session.key}`);
-  if (session.trainerKey === user.uid) {
-    if (session.clientReady) {
-      sessionDatabase.update({ trainerReady: true, started: true, start: new Date() });
-    } else {
-      sessionDatabase.update({ trainerReady: true });
-    }
-  } else if (session.trainerReady) {
-    sessionDatabase.update({ clientReady: true, started: true, start: new Date() });
-  } else {
-    sessionDatabase.update({ clientReady: true });
-  }
-}
-
-/**
- * Starts the session but checks if the user is within the specified distance close to the gym.
- * If they are then the session object in the trainSessions table is updated.
- * @param {string} sessionKey firebase key associated with the session
- * @param {Location} userRegion location object of the user
- */
-export async function startGroupSession(sessionKey, userRegion) {
-  const session = await loadGroupSession(sessionKey);
-  const sessionDatabase = firebase.database().ref(`/groupSessions/${sessionKey}`);
-  const gymSessionDatabase = firebase.database().ref(`/gyms/${session.gymKey}/groupSessions/${sessionKey}`);
-  if (
-    !session.virtual
-    && geolib.getDistance(userRegion, session.location) > Constants.requiredDistanceToGymMeters
-  ) {
-    Alert.alert('You must be within 1000 feet to press ready!');
-    return;
-  }
-  sessionDatabase.update({ started: true, start: new Date() });
-  gymSessionDatabase.update({ started: true, start: new Date() });
 }
 
 /**

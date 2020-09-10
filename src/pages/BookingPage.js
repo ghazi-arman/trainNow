@@ -306,6 +306,7 @@ const styles = StyleSheet.create({
   formLabel: {
     fontSize: 20,
     margin: 10,
+    marginHorizontal: 15,
     fontWeight: '600',
     color: Colors.Primary,
     marginBottom: 15,

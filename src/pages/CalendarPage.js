@@ -211,8 +211,9 @@ export default class CalendarPage extends Component {
 
   // Cancel upcoming session as a client
   cancelAcceptedSession = async (session) => {
-    if (new Date(session.start) <= new Date()) {
-      Alert.alert('You cannot cancel a session after it has started!');
+    const latestDateToCancel = new Date(new Date(session.start).getTime() - 15 * 60000);
+    if (latestDateToCancel <= new Date()) {
+      Alert.alert('You cannot cancel a session 15 minutes before it starts.');
       return;
     }
     Alert.alert(
@@ -257,8 +258,9 @@ export default class CalendarPage extends Component {
   }
 
   cancelGroupSession = async (session) => {
-    if (session.started) {
-      Alert.alert('You cannot cancel a session after it has started!');
+    const latestDateToCancel = new Date(new Date(session.start).getTime() - 15 * 60000);
+    if (latestDateToCancel <= new Date()) {
+      Alert.alert('You cannot cancel a session less than 15 minutes before it starts.');
       return;
     }
     Alert.alert(
@@ -519,7 +521,7 @@ export default class CalendarPage extends Component {
                     onPress={Actions.CreateGroupSessionPage}
                   >
                     <FontAwesome style={styles.icon} name="plus" color={Colors.Primary} size={30} />
-                    <Text>Create Session</Text>
+                    <Text>Create Class</Text>
                   </TouchableOpacity>
                 </View>
               </View>

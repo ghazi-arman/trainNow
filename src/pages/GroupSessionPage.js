@@ -7,10 +7,9 @@ import firebase from 'firebase';
 import bugsnag from '@bugsnag/expo';
 import PropTypes from 'prop-types';
 import { Actions } from 'react-native-router-flux';
-import Constants from '../components/Constants';
 import Colors from '../components/Colors';
 import {
-  getLocation, loadGroupSession, dateToString, startGroupSession, chargeCard, loadUser, sendMessage,
+  getLocation, loadGroupSession, dateToString, loadUser,
 } from '../components/Functions';
 import BackButton from '../components/BackButton';
 import LoadingWheel from '../components/LoadingWheel';
@@ -50,28 +49,12 @@ export default class GroupSessionPage extends Component {
     clearInterval(this.interval);
   }
 
-  startSession = () => {
-    startGroupSession(this.state.session.key, this.state.userRegion);
-  }
-
   endSession = async () => {
     try {
       if (this.state.submitted) {
         return;
       }
       this.setState({ submitted: true });
-      if (this.state.session.trainerKey !== firebase.auth().currentUser.uid) {
-        const total = (this.state.session.cost * 100).toFixed(0);
-        const payout = (total - (total * Constants.groupSessionPercentage)).toFixed(0);
-        await chargeCard(
-          this.state.user.stripeId,
-          this.state.session.trainerStripe,
-          total,
-          total - payout,
-        );
-        const message = `You were charged $ ${(total / 100).toFixed(2)} for your session with ${this.state.session.trainerName}. If this is not accurate please contact support.`;
-        await sendMessage(this.state.user.phone, message);
-      }
       const sessionRef = firebase.database().ref(`/groupSessions/${this.state.session.key}`);
       const gymSessionRef = firebase.database().ref(`/gyms/${this.state.session.gymKey}/groupSessions/${this.state.session.key}`);
       sessionRef.update({ end: new Date() });
@@ -112,7 +95,6 @@ export default class GroupSessionPage extends Component {
 
     let button;
     let secondButton;
-    let ready;
     let description;
     const user = firebase.auth().currentUser;
 
@@ -134,40 +116,14 @@ export default class GroupSessionPage extends Component {
       );
     }
 
-    if (!this.state.session.started) {
-      if (!this.state.session.started) {
-        ready = (
-          <Text style={styles.smallText}>
-            {this.state.session.trainerName}
-            {' '}
-            has not started the session!
-          </Text>
-        );
-      } else {
-        ready = (
-          <Text style={styles.smallText}>
-            {this.state.session.trainerName}
-            {' '}
-            has started the session!
-          </Text>
-        );
-      }
-
+    const dateToShowFirstButton = new Date(
+      new Date(this.state.session.start).getTime() - 15 * 60000,
+    );
+    if (dateToShowFirstButton >= new Date()) {
       if (!this.state.session.virtual) {
         secondButton = (
           <TouchableOpacity style={CommonStyles.halfButton} onPress={this.openMaps}>
             <Text style={CommonStyles.buttonText}>Open in Maps</Text>
-          </TouchableOpacity>
-        );
-      }
-
-      if (this.state.session.trainerKey === firebase.auth().currentUser.uid) {
-        button = (
-          <TouchableOpacity
-            style={CommonStyles.halfButton}
-            onPress={this.startSession}
-          >
-            <Text style={CommonStyles.buttonText}> Start Session </Text>
           </TouchableOpacity>
         );
       }
@@ -204,7 +160,6 @@ export default class GroupSessionPage extends Component {
             {' '}
             min)
           </Text>
-          {ready}
         </View>
         <MapView
           pitchEnabled={false}

@@ -9,7 +9,7 @@ import bugsnag from '@bugsnag/expo';
 import PropTypes from 'prop-types';
 import Colors from '../components/Colors';
 import {
-  loadGroupSession, loadUser, rateGroupSession, dateToTime,
+  loadGroupSession, loadUser, rateGroupSession, dateToTime, chargeCard, sendMessage,
 } from '../components/Functions';
 import Constants from '../components/Constants';
 import LoadingWheel from '../components/LoadingWheel';
@@ -43,6 +43,18 @@ export default class GroupSessionRatingPage extends Component {
     }
     this.setState({ pressed: true });
     try {
+      if (this.state.session.trainerKey !== firebase.auth().currentUser.uid) {
+        const total = (this.state.session.cost * 100).toFixed(0);
+        const payout = (total - (total * Constants.groupSessionPercentage)).toFixed(0);
+        await chargeCard(
+          this.state.user.stripeId,
+          this.state.session.trainerStripe,
+          total,
+          total - payout,
+        );
+        const message = `You were charged $ ${(total / 100).toFixed(2)} for your session with ${this.state.session.trainerName}. If this is not accurate please contact support.`;
+        await sendMessage(this.state.user.phone, message);
+      }
       await rateGroupSession(
         this.state.session.key,
         parseInt(this.state.rating, 10),
