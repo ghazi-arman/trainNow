@@ -28,7 +28,7 @@ export default class SignupForm extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      trainer: false,
+      trainer: true,
       page: 1,
       pressed: false,
       image: defaultProfilePic.uri,
