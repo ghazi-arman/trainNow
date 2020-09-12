@@ -696,6 +696,7 @@ export async function joinGym(userKey, gymKey) {
   await firebase.database().ref(`/users/${userKey}/gyms/${gymKey}`).set({
     type: gym.type,
     name: gym.name,
+    joined: new Date().toString(),
   });
   await firebase.database().ref(`/gyms/${gymKey}/trainers/${userKey}`).set({
     active: user.active,
@@ -705,6 +706,7 @@ export async function joinGym(userKey, gymKey) {
     rate: user.rate,
     rating: user.rating,
     offset: user.offset,
+    joined: new Date().toString(),
   });
 }
 

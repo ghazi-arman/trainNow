@@ -183,6 +183,7 @@ export default class SignupForm extends Component {
             rate: parseInt(this.state.rate, 10),
             rating: 0,
             offset: 0,
+            joined: new Date().toString(),
           });
         }
 
@@ -207,6 +208,7 @@ export default class SignupForm extends Component {
           firebase.database().ref(`/users/${user.user.uid}/gyms/${gymKey}`).set({
             name: gymName,
             type: gymType,
+            joined: new Date().toString(),
           });
         }
 
