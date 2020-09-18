@@ -86,7 +86,7 @@ TextField.defaultProps = {
   keyboard: 'default',
   returnKeyType: 'done',
   multiline: false,
-  autoCapitalize: 'none',
+  autoCapitalize: 'sentences',
   editable: true,
   onSubmitEditing: null,
   value: null,

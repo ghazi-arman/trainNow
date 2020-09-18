@@ -42,11 +42,6 @@ export default class TrainerAccountForm extends Component {
         active: user.active,
         offset: String(user.offset),
         imageUploaded: true,
-        nutritionPlan: user.nutritionPlan ? user.nutritionPlan : false,
-        nutritionDescription: user.nutritionDescription ? user.nutritionDescription : null,
-        nutritionCost: user.nutritionCost ? String(user.nutritionCost) : null,
-        nutritionMeals: user.nutritionMeals ? String(user.nutritionMeals) : null,
-        nutritionLength: user.nutritionLength ? String(user.nutritionLength) : null,
       });
     }
   }
@@ -119,25 +114,6 @@ export default class TrainerAccountForm extends Component {
       return;
     }
 
-    if (this.state.nutritionPlan) {
-      if (!this.state.nutritionDescription || !this.state.nutritionDescription.length) {
-        Alert.alert('Please enter a nutrition plan description!');
-        return;
-      }
-      if (!this.state.nutritionCost || parseInt(this.state.nutritionCost, 10) < 20) {
-        Alert.alert('Please enter a nutrition plan cost over $20!');
-        return;
-      }
-      if (!this.state.nutritionMeals || !this.state.nutritionMeals.length) {
-        Alert.alert('Please enter a nutrition plan unique meals number!');
-        return;
-      }
-      if (!this.state.nutritionLength || !this.state.nutritionLength.length) {
-        Alert.alert('Please enter a nutrition plan length in weeks!');
-        return;
-      }
-    }
-
     try {
       const userId = firebase.auth().currentUser.uid;
       // gym table updated
@@ -162,17 +138,7 @@ export default class TrainerAccountForm extends Component {
         bio: this.state.bio,
         active: this.state.active,
         offset: parseInt(this.state.offset, 10),
-        nutritionPlan: this.state.nutritionPlan,
       });
-
-      if (this.state.nutritionPlan) {
-        firebase.database().ref('users').child(userId).update({
-          nutritionDescription: this.state.nutritionDescription,
-          nutritionCost: parseInt(this.state.nutritionCost, 10),
-          nutritionMeals: parseInt(this.state.nutritionMeals, 10),
-          nutritionLength: parseInt(this.state.nutritionLength, 10),
-        });
-      }
 
       // image upload
       if (this.state.imageToUpload != null) {
@@ -251,45 +217,6 @@ export default class TrainerAccountForm extends Component {
           placeholder="Offset (minutes away from gym)"
           onChange={(offset) => this.setState({ offset, change: true })}
           value={this.state.offset}
-        />
-        <View style={styles.switchRow}>
-          <Text style={styles.mediumText}>Offer Nutrition Plan</Text>
-          <Switch
-            trackColor={Colors.Primary}
-            _thumbColor={Colors.Secondary}
-            style={{ marginLeft: 10 }}
-            value={this.state.nutritionPlan}
-            onValueChange={(nutritionPlan) => this.setState({ nutritionPlan, change: true })}
-          />
-        </View>
-        <TextField
-          icon="info"
-          placeholder="Nutrition plan description"
-          multiline
-          maxLength={250}
-          onChange={(nutritionDescription) => this.setState({ nutritionDescription, change: true })}
-          value={this.state.nutritionDescription}
-        />
-        <TextField
-          icon="dollar"
-          placeholder="Nutrition plan cost"
-          onChange={(nutritionCost) => this.setState({ nutritionCost, change: true })}
-          value={this.state.nutritionCost}
-          keyboard="number-pad"
-        />
-        <TextField
-          icon="hashtag"
-          placeholder="Number of unique meals"
-          onChange={(nutritionMeals) => this.setState({ nutritionMeals, change: true })}
-          value={this.state.nutritionMeals}
-          keyboard="number-pad"
-        />
-        <TextField
-          icon="clock-o"
-          placeholder="Nutrition plan length (weeks)"
-          onChange={(nutritionLength) => this.setState({ nutritionLength, change: true })}
-          value={this.state.nutritionLength}
-          keyboard="number-pad"
         />
         <TouchableOpacity style={CommonStyles.fullButton} onPress={this.pickImage}>
           <Text style={CommonStyles.buttonText}>Update Image</Text>

@@ -32,21 +32,75 @@ export default class TrainerPage extends Component {
     }
   }
 
+  renderNutritionPlans = () => {
+    if (!this.state.trainer.nutritionPlans) {
+      return (<Text style={[styles.bioText, { marginHorizontal: 10 }]}>None</Text>);
+    }
+
+    return Object.keys(this.state.trainer.nutritionPlans).map((key) => {
+      const plan = this.state.trainer.nutritionPlans[key];
+      return (
+        <View style={styles.planContainer} key={key}>
+          <View style={styles.nameContainer}>
+            <Text style={styles.planName}>{plan.name}</Text>
+            <Text style={styles.planInfo}>
+              $
+              {plan.cost}
+              {plan.monthly ? '/month' : null}
+            </Text>
+          </View>
+          <View style={styles.linkContainer}>
+            <Text
+              style={styles.link}
+              onPress={() => Actions.NutritionPlanPage({
+                trainerKey: this.props.trainerKey,
+                planKey: key,
+              })}
+            >
+              Details
+            </Text>
+          </View>
+        </View>
+      );
+    });
+  }
+
+  renderWorkoutPlans = () => {
+    if (!this.state.trainer.workoutPlans) {
+      return (<Text style={[styles.bioText, { marginHorizontal: 10 }]}>None</Text>);
+    }
+
+    return Object.keys(this.state.trainer.workoutPlans).map((key) => {
+      const plan = this.state.trainer.workoutPlans[key];
+      return (
+        <View style={styles.planContainer} key={key}>
+          <View style={styles.nameContainer}>
+            <Text style={styles.planName}>{plan.name}</Text>
+            <Text style={styles.planInfo}>
+              $
+              {plan.cost}
+              {plan.monthly ? '/month' : null}
+            </Text>
+          </View>
+          <View style={styles.linkContainer}>
+            <Text
+              style={styles.link}
+              onPress={() => Actions.WorkoutPlanPage({
+                trainerKey: this.props.trainerKey,
+                planKey: key,
+              })}
+            >
+              Details
+            </Text>
+          </View>
+        </View>
+      );
+    });
+  }
+
   render() {
     if (!this.state.trainer || !this.state.image) {
       return <LoadingWheel />;
-    }
-
-    let nutritionPlanButton;
-    if (this.state.trainer.nutritionPlan) {
-      nutritionPlanButton = (
-        <TouchableOpacity
-          style={[styles.button, { width: '85%' }]}
-          onPress={() => Actions.NutritionPage({ trainerKey: this.props.trainerKey })}
-        >
-          <Text style={styles.buttonText}>Nutrition Plan</Text>
-        </TouchableOpacity>
-      );
     }
 
     return (
@@ -84,6 +138,14 @@ export default class TrainerPage extends Component {
             <Text style={styles.aboutTitle}>Specialities: </Text>
             <Text style={styles.aboutText}>{this.state.trainer.specialities}</Text>
           </View>
+          <Text style={styles.infoTitle}>Workout Plans</Text>
+          <View style={{ width: '90%' }}>
+            {this.renderWorkoutPlans()}
+          </View>
+          <Text style={styles.infoTitle}>Nutrition Plans</Text>
+          <View style={{ width: '90%' }}>
+            {this.renderNutritionPlans()}
+          </View>
         </View>
         <View style={styles.buttonRow}>
           <TouchableOpacity
@@ -104,9 +166,6 @@ export default class TrainerPage extends Component {
             <Text style={styles.buttonText}>Schedule</Text>
           </TouchableOpacity>
         </View>
-        <View style={styles.buttonRow}>
-          {nutritionPlanButton}
-        </View>
       </ScrollView>
     );
   }
@@ -120,7 +179,6 @@ TrainerPage.propTypes = {
 const styles = StyleSheet.create({
   container: {
     ...CommonStyles.flexStartContainer,
-    paddingBottom: 50,
   },
   backButton: {
     position: 'absolute',
@@ -143,7 +201,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    height: '20%',
+    height: 100,
     backgroundColor: Colors.LightGray,
     borderTopWidth: 1,
     borderBottomWidth: 1,
@@ -163,7 +221,7 @@ const styles = StyleSheet.create({
   },
   infoTitle: {
     fontWeight: '600',
-    fontSize: 22,
+    fontSize: 20,
   },
   infoText: {
     fontSize: 17,
@@ -173,14 +231,14 @@ const styles = StyleSheet.create({
     width: '100%',
     flexDirection: 'column',
     alignItems: 'flex-start',
-    padding: 20,
+    padding: 10,
   },
   aboutBox: {
     width: '60%',
     flexDirection: 'row',
     justifyContent: 'flex-start',
     alignItems: 'center',
-    paddingVertical: 10,
+    marginVertical: 10,
   },
   bioText: {
     fontSize: 15,
@@ -202,7 +260,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    margin: 10,
+    marginHorizontal: 10,
+    marginBottom: 25,
   },
   button: {
     ...CommonStyles.shadow,
@@ -220,5 +279,34 @@ const styles = StyleSheet.create({
     color: Colors.Primary,
     fontWeight: '600',
     fontSize: 15,
+  },
+  planContainer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    width: '100%',
+    padding: 10,
+  },
+  nameContainer: {
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    width: '85%',
+  },
+  planName: {
+    maxWidth: '70%',
+    fontWeight: '500',
+    fontSize: 14,
+    color: Colors.Black,
+  },
+  planInfo: {
+    fontWeight: '400',
+    fontSize: 12,
+    color: Colors.DarkGray,
+  },
+  link: {
+    fontWeight: '500',
+    fontSize: 14,
+    color: Colors.Primary,
   },
 });

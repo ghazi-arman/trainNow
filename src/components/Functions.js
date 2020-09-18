@@ -1207,13 +1207,110 @@ export async function chargeCard(clientStripe, trainerStripe, amount, cut) {
       Authorization: idToken,
     },
     body: JSON.stringify({
-      charge: {
-        amount,
-        cut,
-        clientStripe,
-        trainerStripe,
-        currency: 'USD',
-      },
+      amount,
+      cut,
+      clientStripe,
+      trainerStripe,
+      currency: 'USD',
+    }),
+  });
+  const response = await res.json();
+  if (response.body.message !== 'Success') {
+    throw new Error('Stripe Error');
+  }
+}
+
+/**
+ * Creates a subscription using Stripe.
+ * @param {string} productId id of stripe product associated with plan
+ * @param {string} clientStripe stripe id of user subscribing
+ * @param {string} trainerStripe stripe id of trainer who created plan
+ * @param {number} amount price for subscription
+ * @param {number} percentage percentage trainnow takes of subscription
+ * @param {string} interval how often the user is charged (monthly, daily, etc.)
+ */
+export async function createSubscription(
+  productId,
+  clientStripe,
+  trainerStripe,
+  amount,
+  percentage,
+  interval,
+) {
+  const idToken = await firebase.auth().currentUser.getIdToken(true);
+  const res = await fetch(`${FB_URL}/stripe/createSubscription/`, {
+    method: 'POST',
+    headers: {
+      Authorization: idToken,
+    },
+    body: JSON.stringify({
+      productId,
+      clientStripe,
+      trainerStripe,
+      amount,
+      percentage,
+      interval,
+      currency: 'USD',
+    }),
+  });
+  const response = await res.json();
+  if (response.body.message !== 'Success') {
+    throw new Error('Stripe Error');
+  }
+  return response;
+}
+
+/**
+ * Cancels a subscription.
+ * @param {string} subscriptionId subscription id of subscription to cancel
+ */
+export async function cancelSubscription(subscriptionId) {
+  const res = await fetch(`${FB_URL}/stripe/cancelSubscription/`, {
+    method: 'POST',
+    body: JSON.stringify({
+      subscriptionId,
+    }),
+  });
+  const response = await res.json();
+  if (response.body.message !== 'Success') {
+    throw new Error('Stripe Error');
+  }
+}
+
+/**
+ *
+ * @param {string} stripeId Stripe id associated with user
+ * @param {string} productId Stripe id to be used for product
+ * @param {*} productName name of product
+ */
+export async function createProduct(stripeId, productId, productName) {
+  const idToken = await firebase.auth().currentUser.getIdToken(true);
+  const res = await fetch(`${FB_URL}/stripe/createProduct/`, {
+    method: 'POST',
+    headers: {
+      Authorization: idToken,
+    },
+    body: JSON.stringify({
+      productId,
+      stripeId,
+      productName,
+    }),
+  });
+  const response = await res.json();
+  if (response.body.message !== 'Success') {
+    throw new Error('Stripe Error');
+  }
+}
+
+/**
+ *
+ * @param {string} productKey id of Stripe product to delete
+ */
+export async function deleteProduct(productId) {
+  const res = await fetch(`${FB_URL}/stripe/deleteProduct/`, {
+    method: 'POST',
+    body: JSON.stringify({
+      productId,
     }),
   });
   const response = await res.json();
@@ -1356,7 +1453,7 @@ export async function joinGroupSession(session, user, userKey) {
 
 /**
  * Shows an alert if the user is logging in for the first time.
- * @param {String} userKey
+ * @param {string} userKey firebase key associated with user
  */
 export async function showFirstTimeMessage(userKey) {
   const user = await loadUser(userKey);
@@ -1366,4 +1463,186 @@ export async function showFirstTimeMessage(userKey) {
       firstTimeLoggedIn: false,
     });
   }
+}
+
+/**
+ *
+ * @param {string} userKey firebase key associated with user
+ * @param {string} planName workout plan's name
+ * @param {string} planDescription workout plan's description
+ * @param {string} planDuration workout plan's length
+ * @param {Boolean} monthly whether the plan is subscription based (monthly charge)
+ * @param {number} cost cost of the plan
+ * @param {number} exercises number of exercises in the plan
+ */
+export async function createWorkoutPlan(
+  userKey,
+  name,
+  description,
+  duration,
+  monthly,
+  cost,
+  exercises,
+) {
+  let planKey;
+  try {
+    const user = await loadUser(userKey);
+    planKey = await firebase.database().ref(`/users/${userKey}/workoutPlans/`).push({
+      name,
+      description,
+      duration,
+      monthly,
+      cost,
+      exercises,
+    }).key;
+
+    if (monthly) {
+      await createProduct(user.stripeId, planKey, `${user.name}'s ${name}`);
+    }
+  } catch (error) {
+    if (planKey) {
+      await firebase.database().ref(`/users/${userKey}/workoutPlans/${planKey}`).remove();
+    }
+  }
+}
+
+/**
+ *
+ * @param {string} userKey firebase key associated with user
+ * @param {string} planKey firebase key associated with workout plan
+ * @param {string} planName workout plan's name
+ * @param {string} planDescription workout plan's description
+ * @param {string} planDuration workout plan's length
+ * @param {Boolean} monthly whether the plan is subscription based (monthly charge)
+ * @param {number} cost cost of the plan
+ * @param {number} exercises number of exercises in the plan
+ */
+export async function updateWorkoutPlan(
+  userKey,
+  planKey,
+  name,
+  description,
+  duration,
+  monthly,
+  cost,
+  exercises,
+) {
+  await firebase.database().ref(`/users/${userKey}/workoutPlans/${planKey}/`).update({
+    name,
+    description,
+    duration,
+    monthly,
+    cost,
+    exercises,
+  });
+}
+
+/**
+ *
+ * @param {string} userKey firebase key associated with user
+ * @param {string} name nutrition plan's name
+ * @param {string} description nutrition plan's description
+ * @param {string} duratino workout plan's length
+ * @param {Boolean} monthly whether the plan is subscription based (monthly charge)
+ * @param {number} cost cost of the plan
+ * @param {number} meals number of unique meals
+ */
+export async function createNutritionPlan(
+  userKey,
+  name,
+  description,
+  duration,
+  monthly,
+  cost,
+  meals,
+) {
+  let planKey;
+  try {
+    const user = await loadUser(userKey);
+    planKey = await firebase.database().ref(`/users/${userKey}/nutritionPlans/`).push({
+      name,
+      description,
+      duration,
+      monthly,
+      cost,
+      meals,
+    }).key;
+
+    if (monthly) {
+      await createProduct(user.stripeId, planKey, `${user.name}'s ${name}`);
+    }
+  } catch (error) {
+    if (planKey) {
+      await firebase.database().ref(`/users/${userKey}/nutritionPlans/${planKey}`).remove();
+    }
+  }
+}
+
+/**
+ *
+ * @param {string} userKey firebase key associated with user
+ * @param {string} planKey firebase key associated with nutrition plan
+ * @param {string} name nutrition plan's name
+ * @param {string} description nutrition plan's description
+ * @param {string} duration nutrition plan's length
+ * @param {Boolean} monthly whether the plan is subscription based (monthly charge)
+ * @param {number} cost cost of the plan
+ * @param {number} meals number of unique meals
+ */
+export async function updateNutritionPlan(
+  userKey,
+  planKey,
+  name,
+  description,
+  duration,
+  monthly,
+  cost,
+  meals,
+) {
+  await firebase.database().ref(`/users/${userKey}/nutritionPlans/${planKey}/`).update({
+    name,
+    description,
+    duration,
+    monthly,
+    cost,
+    meals,
+  });
+}
+
+/**
+ *
+ * @param {string} userKey firebase key associated with user
+ * @param {Plan} plan plan object to be deleted
+ * @param {string} planType specifies whether it is a workout or nutrition plan
+ */
+export async function deletePlan(userKey, plan, planType) {
+  const tableName = planType === 'nutrition' ? 'nutritionPlans' : 'workoutPlans';
+  if (plan.monthly) {
+    if (plan.clients) {
+      Object.keys(plan.clients).forEach(async (clientKey) => {
+        const client = plan.clients[clientKey];
+        await firebase.database().ref(`/users/${clientKey}/${tableName}/${plan.key}`).remove();
+        await cancelSubscription(client.subscriptionId);
+      });
+    }
+    await deleteProduct(plan.key);
+  }
+  await firebase.database().ref(`/users/${userKey}/${tableName}/${plan.key}`).remove();
+}
+
+/**
+ *
+ * @param {string} userKey firebase key associated with user
+ * @param {Plan} plan plan object to be deleted
+ * @param {string} planType specifies whether it is a workout or nutrition plan
+ */
+export async function cancelPlan(userKey, plan, planType) {
+  const user = await loadUser(userKey);
+  const tableName = planType === 'nutrition' ? 'nutritionPlans' : 'workoutPlans';
+  if (plan.monthly) {
+    await cancelSubscription(plan.subscriptionId);
+    sendMessage(plan.trainerPhone, `${user.name} has cancelled their subscription to your ${plan.nam} plan.'`);
+  }
+  await firebase.database().ref(`/users/${userKey}/${tableName}/${plan.key}`).remove();
+  await firebase.database().ref(`/users/${plan.trainerKey}/${tableName}/${plan.key}/clients/${userKey}`).remove();
 }

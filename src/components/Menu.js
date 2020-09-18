@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {
-  StyleSheet, Text, View, TouchableOpacity, Alert, Linking, Image,
+  StyleSheet, Text, View, TouchableOpacity, Alert, Linking, Image, ScrollView,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { FontAwesome } from '@expo/vector-icons';
@@ -55,7 +55,7 @@ export default class Menu extends Component {
     }
 
     return (
-      <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.nameContainer}>
           <Image style={styles.profilePicture} source={{ uri: this.state.image }} />
           <Text style={styles.name}>{this.state.user.name}</Text>
@@ -75,6 +75,10 @@ export default class Menu extends Component {
         <TouchableOpacity style={styles.menuRow} onPress={Actions.CalendarPage}>
           <FontAwesome style={styles.icon} name="calendar" color={Colors.Primary} size={27} />
           <Text style={styles.menuLink}>Calendar</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.menuRow} onPress={Actions.PlansPage}>
+          <FontAwesome style={styles.icon} name="list-alt" color={Colors.Primary} size={27} />
+          <Text style={styles.menuLink}>Plans</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.menuRow} onPress={Actions.HistoryPage}>
           <FontAwesome style={styles.icon} name="list" color={Colors.Primary} size={27} />
@@ -105,7 +109,7 @@ export default class Menu extends Component {
           <FontAwesome style={styles.icon} name="power-off" color={Colors.Primary} size={27} />
           <Text style={styles.menuLink}>Sign Out</Text>
         </TouchableOpacity>
-      </View>
+      </ScrollView>
     );
   }
 }
@@ -116,7 +120,7 @@ Menu.propTypes = {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    minHeight: '100%',
     flexDirection: 'column',
     justifyContent: 'flex-start',
     alignItems: 'flex-start',

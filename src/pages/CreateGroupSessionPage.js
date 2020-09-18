@@ -282,7 +282,7 @@ export default class CreateGroupSessionPage extends Component {
     }
     return (
       <KeyboardAvoidingView behavior="padding" style={styles.formContainer}>
-        <ScrollView contentContainerStyle={styles.center}>
+        <ScrollView contentContainerStyle={styles.center} style={{ width: '100%' }}>
           <BackButton style={{ marginHorizontal: 5 }} />
           <TextField
             icon="vcard"

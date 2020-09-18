@@ -5,7 +5,9 @@ import {
 import PropTypes from 'prop-types';
 import firebase from 'firebase';
 import bugsnag from '@bugsnag/expo';
-import { sendMessage, loadUser, chargeCard } from '../components/Functions';
+import {
+  sendMessage, loadUser, chargeCard, createSubscription, cancelSubscription,
+} from '../components/Functions';
 import LoadingWheel from '../components/LoadingWheel';
 import CommonStyles from '../components/CommonStyles';
 import profileImage from '../images/profile.png';
@@ -13,7 +15,7 @@ import Colors from '../components/Colors';
 import BackButton from '../components/BackButton';
 import Constants from '../components/Constants';
 
-export default class NutritionPage extends Component {
+export default class NutritionPlanPage extends Component {
   constructor(props) {
     super(props);
     this.state = {};
@@ -22,6 +24,7 @@ export default class NutritionPage extends Component {
 
   async componentDidMount() {
     const trainer = await loadUser(this.props.trainerKey);
+    const plan = trainer.nutritionPlans[this.props.planKey];
     const user = await loadUser(firebase.auth().currentUser.uid);
     let image;
     try {
@@ -29,7 +32,9 @@ export default class NutritionPage extends Component {
     } catch {
       image = Image.resolveAssetSource(profileImage).uri;
     } finally {
-      this.setState({ trainer, image, user });
+      this.setState({
+        trainer, image, user, plan,
+      });
     }
   }
 
@@ -41,30 +46,62 @@ export default class NutritionPage extends Component {
 
     Alert.alert(
       'Nutrition Plan',
-      `Are you sure you want to purchase ${this.state.trainer.name}'s Nutrition Plan for $${this.state.trainer.nutritionCost}.`,
+      `Are you sure you want to purchase the ${this.state.plan.name} plan for $${this.state.plan.cost}${this.state.plan.monthly ? ' per month' : ''}.`,
       [
         { text: 'No' },
         {
           text: 'Yes',
           onPress: async () => {
+            let response;
+            const user = await loadUser(firebase.auth().currentUser.uid);
             try {
               if (this.state.submitted) {
                 return;
               }
+              if (user.nutritionPlans && user.nutritionPlans[this.props.planKey]) {
+                Alert.alert('You have already purchased this plan.');
+                return;
+              }
               this.setState({ submitted: true });
-              const total = (this.state.trainer.nutritionCost * 100).toFixed(0);
-              const payout = (total - (total * Constants.groupSessionPercentage)).toFixed(0);
-              await chargeCard(
-                this.state.user.stripeId,
-                this.state.trainer.stripeId,
-                total,
-                total - payout,
-              );
-              sendMessage(this.state.trainer.phone, `${this.state.user.name} has purchased your nutrition plan. Please contact him at ${this.state.user.phone} for details on how to send him the plan.`);
+              await firebase.database().ref(`/users/${firebase.auth().currentUser.uid}/nutritionPlans/${this.props.planKey}`).set(this.state.plan);
+              if (!this.state.plan.monthly) {
+                const total = (this.state.plan.cost * 100).toFixed(0);
+                const payout = (total - (total * Constants.groupSessionPercentage)).toFixed(0);
+                await chargeCard(
+                  this.state.user.stripeId,
+                  this.state.trainer.stripeId,
+                  total,
+                  total - payout,
+                );
+              } else {
+                const total = (this.state.plan.cost * 100).toFixed(0);
+                response = await createSubscription(
+                  this.props.planKey,
+                  this.state.user.stripeId,
+                  this.state.trainer.stripeId,
+                  total,
+                  17.5,
+                  'month',
+                );
+                await firebase.database().ref(`/users/${firebase.auth().currentUser.uid}/nutritionPlans/${this.props.planKey}`).update({ subscriptionId: response.body.subscription.id });
+              }
+              await firebase.database().ref(`/users/${this.props.trainerKey}/nutritionPlans/${this.props.planKey}/clients/${firebase.auth().currentUser.uid}`).set({
+                name: this.state.user.name,
+                phone: this.state.user.phone,
+                trainerKey: this.state.trainer.userKey,
+                trainerPhone: this.state.trainer.phone,
+                subscriptionId: this.state.plan.monthly ? response.body.subscription.id : null,
+              });
+              sendMessage(this.state.trainer.phone, `${this.state.user.name} has purchased your ${this.state.plan.name} nutrition plan. Please contact him at ${this.state.user.phone} for details on how to send him the plan.`);
               Alert.alert(`Nutrition plan purchased. ${this.state.trainer.name} should contact you shortly.`);
               return;
             } catch (error) {
               Alert.alert('There was an error purchasing the nutrition plan. Please try again later.');
+              await firebase.database().ref(`/users/${firebase.auth().currentUser.uid}/nutritionPlans/${this.props.planKey}`).remove();
+              if (this.state.plan.monthly && response.body.subscription.id) {
+                await cancelSubscription(this.state.user.stripeId, response.body.subscription.id);
+              }
+              await firebase.database().ref(`/users/${this.props.trainerKey}/nutritionPlans/${this.props.planKey}/clients/${firebase.auth().currentUser.uid}`).remove();
               this.bugsnagClient.notify(error);
             } finally {
               this.setState({ submitted: false });
@@ -85,24 +122,24 @@ export default class NutritionPage extends Component {
         <BackButton style={styles.backButton} />
         <Image style={styles.profileImage} source={{ uri: this.state.image }} />
         <Text style={styles.name}>
-          {this.state.trainer.name}
-          &apos;s Nutrition Plan
+          {this.state.plan.name}
         </Text>
         <View style={styles.infoContainer}>
           <View style={styles.infoBox}>
-            <Text style={styles.infoTitle}>{this.state.trainer.nutritionMeals}</Text>
+            <Text style={styles.infoTitle}>{this.state.plan.meals}</Text>
             <Text style={styles.infoText}>Meals</Text>
           </View>
           <View style={[styles.infoBox, styles.infoBoxBorder]}>
             <Text style={styles.infoTitle}>
               $
-              {this.state.trainer.nutritionCost}
+              {this.state.plan.cost}
+              {this.state.plan.monthly ? '/mth' : null}
             </Text>
             <Text style={styles.infoText}>Cost</Text>
           </View>
           <View style={styles.infoBox}>
             <Text style={styles.infoTitle}>
-              {this.state.trainer.nutritionLength}
+              {this.state.plan.duration}
               {' '}
               weeks
             </Text>
@@ -111,7 +148,7 @@ export default class NutritionPage extends Component {
         </View>
         <View style={styles.aboutContainer}>
           <Text style={styles.infoTitle}>About</Text>
-          <Text style={styles.bioText}>{this.state.trainer.nutritionDescription}</Text>
+          <Text style={styles.bioText}>{this.state.plan.description}</Text>
         </View>
         <View style={styles.buttonRow}>
           <TouchableOpacity style={styles.button} onPress={this.purchasePlan}>
@@ -123,8 +160,9 @@ export default class NutritionPage extends Component {
   }
 }
 
-NutritionPage.propTypes = {
+NutritionPlanPage.propTypes = {
   trainerKey: PropTypes.string.isRequired,
+  planKey: PropTypes.string.isRequired,
 };
 
 const styles = StyleSheet.create({
@@ -173,7 +211,7 @@ const styles = StyleSheet.create({
   },
   infoTitle: {
     fontWeight: '600',
-    fontSize: 22,
+    fontSize: 20,
   },
   infoText: {
     fontSize: 17,

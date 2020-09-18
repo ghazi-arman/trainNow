@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
   },
   infoTitle: {
     fontWeight: '600',
-    fontSize: 22,
+    fontSize: 20,
   },
   infoText: {
     fontSize: 17,

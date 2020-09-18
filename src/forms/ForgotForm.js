@@ -21,6 +21,10 @@ export default class ForgotForm extends Component {
     if (this.state.pressed) {
       return;
     }
+    if (!this.state.email) {
+      Alert.alert('Please enter an email.');
+      return;
+    }
     this.setState({ pressed: true });
 
     try {
