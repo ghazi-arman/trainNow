@@ -200,7 +200,6 @@ export default class GymModal extends Component {
 
   leaveGym = async () => {
     await leaveGym(firebase.auth().currentUser.uid, this.state.selectedGym.key);
-    Alert.alert('Reload the map to see changes.');
     const user = await loadUser(firebase.auth().currentUser.uid);
     this.setState({ user });
     this.props.reloadMap();
