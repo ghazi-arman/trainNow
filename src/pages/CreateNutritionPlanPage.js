@@ -195,18 +195,18 @@ export default class CreateNutritionPlanPage extends Component {
             value={this.state.description}
           />
           <TextField
-            icon="clock-o"
-            placeholder="Duration (weeks)"
-            keyboard="number-pad"
-            onChange={(duration) => this.setState({ duration })}
-            value={this.state.duration}
-          />
-          <TextField
             icon="hashtag"
             placeholder="Unique meals in plan"
             keyboard="number-pad"
             onChange={(meals) => this.setState({ meals })}
             value={this.state.meals}
+          />
+          <TextField
+            icon="clock-o"
+            placeholder="Duration (weeks)"
+            keyboard="number-pad"
+            onChange={(duration) => this.setState({ duration })}
+            value={this.state.duration}
           />
           <TextField
             icon="dollar"

@@ -70,6 +70,7 @@ export default class NutritionPlanPage extends Component {
                 await chargeCard(
                   this.state.user.stripeId,
                   this.state.trainer.stripeId,
+                  this.state.trainer.userKey,
                   total,
                   total - payout,
                 );

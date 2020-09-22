@@ -117,7 +117,6 @@ export default class PlansPage extends Component {
               user = await loadUser(firebase.auth().currentUser.uid);
               this.setState({ user });
             } catch (error) {
-              console.log(error);
               Alert.alert('There was an error when trying to delete the plan');
             } finally {
               this.setState({ submitted: false });

@@ -1193,13 +1193,14 @@ export async function markSessionsAsRead(pendingSessions, acceptedSessions, user
  * cut to the trainer's balance. Then a text will be sent to the user indicating
  * them of the charge.
  * @param {string} clientStripe stripe token of client
- * @param {stripe} trainerStripe stripe token of trainer
+ * @param {string} trainerStripe stripe token of trainer
+ * @param {string} trainerUid firebase key of trainer
  * @param {number} amount amount to charge client
  * @param {number} cut amount of cost to take from trainer
  * @param {Session} session session object associated with charge
  * @param {string} userPhone string of user's (client) phone number
  */
-export async function chargeCard(clientStripe, trainerStripe, amount, cut) {
+export async function chargeCard(clientStripe, trainerStripe, trainerUid, amount, cut) {
   const idToken = await firebase.auth().currentUser.getIdToken(true);
   const res = await fetch(`${FB_URL}/stripe/charge/`, {
     method: 'POST',
@@ -1211,6 +1212,7 @@ export async function chargeCard(clientStripe, trainerStripe, amount, cut) {
       cut,
       clientStripe,
       trainerStripe,
+      trainerUid,
       currency: 'USD',
     }),
   });

@@ -77,6 +77,7 @@ export default class SessionPage extends Component {
         await chargeCard(
           this.state.user.stripeId,
           session.trainerStripe,
+          session.trainerKey,
           total,
           total - payout,
         );

@@ -49,6 +49,7 @@ export default class GroupSessionRatingPage extends Component {
         await chargeCard(
           this.state.user.stripeId,
           this.state.session.trainerStripe,
+          this.state.session.trainerKey,
           total,
           total - payout,
         );

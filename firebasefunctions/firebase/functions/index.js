@@ -99,6 +99,7 @@ const charge = async (req, res) => {
   }
 
   try {
+    const trainer = await admin.auth().getUser(body.trainerUid);
     const token = await stripe.tokens.create(
       {
         customer: body.clientStripe,
@@ -114,6 +115,7 @@ const charge = async (req, res) => {
         source: token.id,
         description: 'TrainNow Session',
         application_fee_amount: body.cut,
+        receipt_email: trainer.email,
       },
       {
         stripe_account: body.trainerStripe,
