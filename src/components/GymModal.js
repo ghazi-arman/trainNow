@@ -70,7 +70,14 @@ export default class GymModal extends Component {
     if (!this.state.selectedGym.trainers) {
       return null;
     }
-    return Object.keys(this.state.selectedGym.trainers).map((key) => {
+
+    const sortedTrainers = Object.keys(this.state.selectedGym.trainers).sort((key1, key2) => {
+      const trainerOne = this.state.selectedGym.trainers[key1];
+      const trainerTwo = this.state.selectedGym.trainers[key2];
+      return  trainerTwo.rating - trainerOne.rating;
+    });
+
+    return sortedTrainers.map((key) => {
       const trainer = this.state.selectedGym.trainers[key];
       return (
         <View style={styles.gymContainer} key={key}>
